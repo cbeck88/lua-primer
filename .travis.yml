@@ -1,0 +1,15 @@
+sudo: required
+dist: trusty
+language: cpp
+compiler:
+  - gcc
+
+before_install:
+  - sudo apt-get install gdb
+
+script:
+  - $CXX --version
+
+  - echo "Unit Tests"
+  - cd test
+  - ./run_tests.sh

@@ -1,0 +1,15 @@
+project : default-build <optimization>speed debug ;
+#release
+
+LUA_PATH = lua-5.3.1/src ;
+
+lib lua : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/luac.c ] : <link>static : : <include>$(LUA_PATH)/ ;
+
+PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
+#<define>PRIMER_NO_EXCEPTIONS ;
+
+TEST_HARNESS = <include>include/ ;
+
+exe core : core.cpp lua : $(PRIMER) $(TEST_HARNESS) ;
+
+install install-bin : core : <location>stage/ ;
