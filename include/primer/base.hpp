@@ -10,6 +10,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+// clang-format off
+
 #define PRIMER_VERSION_MAJOR    "0"
 #define PRIMER_VERSION_MINOR    "0"
 #define PRIMER_VERSION_NUM      000
@@ -17,6 +19,8 @@ PRIMER_ASSERT_FILESCOPE;
 
 #define PRIMER_VERSION          "Lua Primer " PRIMER_VERSION_MAJOR "." PRIMER_VERSION_MINOR
 #define PRIMER_RELEASE          PRIMER_VERSION "." PRIMER_VERSION_RELEASE
+
+// clang-format on
 
 /* #define PRIMER_DEBUG */
 /* #define PRIMER_LUA_AS_CPP */
@@ -30,7 +34,8 @@ namespace primer {
 
 typedef unsigned int uint;
 
-// Use this type if you want to push nil onto the stack using primer::push interface.
-struct nil_t{};
+// Use this type if you want to push nil onto the stack using primer::push
+// interface.
+struct nil_t {};
 
 } // end namespace primer

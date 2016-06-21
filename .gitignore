@@ -17,3 +17,7 @@ time.txt
 
 # Draft file
 README_DRAFT.md
+
+# clang-format
+clang-format.sh
+.clang-format
