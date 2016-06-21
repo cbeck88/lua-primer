@@ -15,7 +15,8 @@ namespace traits {
 /***
  * Trait used to register a type as having "optional" semantics.
  *
- * Optional semantics means it is a container that contains one or zero of some other type.
+ * Optional semantics means it is a container that contains one or zero of some
+ * other type.
  * Like, boost::optional, std::experimental::optional, or mpl::maybe.
  *
  * Primer treats optional types as follows:
@@ -45,7 +46,8 @@ namespace traits {
  * };
  *
  * Additionally, you *may* provide `static constexpr bool relaxed = true;` to
- * give it relaxed semantics. If `relaxed` is false, or not present, then it has strict semantics.
+ * give it relaxed semantics. If `relaxed` is false, or not present, then it has
+ * strict semantics.
  *
  * See <primer/traits/push.hpp> and <primer/traits/read.hpp> for details.
  */
@@ -57,29 +59,30 @@ struct optional;
 } // end namespace primer
 
 /***
- * If your optional type has at least a vaguely similar interface to `boost::optional`, then you can
+ * If your optional type has at least a vaguely similar interface to
+ * `boost::optional`, then you can
  * register it using the following macro:
  */
 
-#define PRIMER_DECLARE_OPTIONAL_TEMPLATE_TYPE(NAME)                             \
-PRIMER_ASSERT_FILESCOPE;                                                        \
-namespace primer {                                                              \
-namespace traits {                                                              \
-                                                                                \
-template <typename T>                                                           \
-struct optional<NAME<T>> {                                                      \
-  typedef T base_type;                                                          \
-  static const base_type * as_ptr(const NAME<T> & o) {                          \
-    if (o) {                                                                    \
-      return &*o;                                                               \
-    } else {                                                                    \
-      return nullptr;                                                           \
-    }                                                                           \
-  }                                                                             \
-                                                                                \
-  static NAME<T> make_empty() { return {}; }                                    \
-  static NAME<T> from_base(T && t) { return {std::move(t)}; }                   \
-};                                                                              \
-}                                                                               \
-}                                                                               \
-static_assert(true, "")
+#define PRIMER_DECLARE_OPTIONAL_TEMPLATE_TYPE(NAME)                            \
+  PRIMER_ASSERT_FILESCOPE;                                                     \
+  namespace primer {                                                           \
+  namespace traits {                                                           \
+                                                                               \
+  template <typename T>                                                        \
+  struct optional<NAME<T>> {                                                   \
+    typedef T base_type;                                                       \
+    static const base_type * as_ptr(const NAME<T> & o) {                       \
+      if (o) {                                                                 \
+        return &*o;                                                            \
+      } else {                                                                 \
+        return nullptr;                                                        \
+      }                                                                        \
+    }                                                                          \
+                                                                               \
+    static NAME<T> make_empty() { return {}; }                                 \
+    static NAME<T> from_base(T && t) { return {std::move(t)}; }                \
+  };                                                                           \
+  }                                                                            \
+  }                                                                            \
+  static_assert(true, "")

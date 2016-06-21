@@ -31,13 +31,15 @@ public:
   error() = default;
   error(const error &) = default;
   error(error &&) = default;
-  error & operator = (const error &) = default;
-  error & operator = (error &&) = default;
+  error & operator=(const error &) = default;
+  error & operator=(error &&) = default;
   ~error() = default;
 
   // Helper constructor
   template <typename... Args>
-  explicit error(Args && ... args) : msg_(primer::detail::str_cat(std::forward<Args>(args)...)) {}
+  explicit error(Args &&... args)
+    : msg_(primer::detail::str_cat(std::forward<Args>(args)...))
+  {}
 
 
   const std::string & str() const { return msg_; }

@@ -38,7 +38,8 @@ struct read<const char *> {
     if (lua_type(L, idx) == LUA_TSTRING) {
       return lua_tostring(L, idx);
     } else {
-      return primer::error{"Expected string, found ", primer::describe_lua_value(L, idx)};
+      return primer::error{"Expected string, found ",
+                           primer::describe_lua_value(L, idx)};
     }
   }
 };
@@ -54,9 +55,13 @@ template <>
 struct read<int> {
   static expected<int> from_stack(lua_State * L, int idx) {
     if (lua_isinteger(L, idx)) {
-      return static_cast<int>(lua_tointeger(L, idx)); // TODO: Should this be different if LUA_INTEGER is larger than int? :/
+      return static_cast<int>(lua_tointeger(L, idx)); // TODO: Should this be
+                                                      // different if
+                                                      // LUA_INTEGER is larger
+                                                      // than int? :/
     } else {
-      return primer::error{"Expected integer, found ", primer::describe_lua_value(L, idx)};
+      return primer::error{"Expected integer, found ",
+                           primer::describe_lua_value(L, idx)};
     }
   }
 };
@@ -65,7 +70,10 @@ template <>
 struct read<uint> {
   static expected<uint> from_stack(lua_State * L, int idx) {
     auto maybe_int = read<int>::from_stack(L, idx);
-    if (maybe_int && *maybe_int < 0) { return primer::error{"Expected nonnegative integer, found ", std::to_string(*maybe_int)}; }
+    if (maybe_int && *maybe_int < 0) {
+      return primer::error{"Expected nonnegative integer, found ",
+                           std::to_string(*maybe_int)};
+    }
     return maybe_int; // implicit static cast to uint, in expected ctor.
   }
 };
@@ -76,7 +84,8 @@ struct read<float> {
     if (lua_isnumber(L, idx)) {
       return lua_tonumber(L, idx);
     } else {
-      return primer::error{"Expected number, found ", primer::describe_lua_value(L, idx)};
+      return primer::error{"Expected number, found ",
+                           primer::describe_lua_value(L, idx)};
     }
   }
 };
@@ -87,7 +96,8 @@ struct read<bool> {
     if (lua_isboolean(L, idx)) {
       return static_cast<bool>(lua_toboolean(L, idx));
     } else {
-      return primer::error{"Expected boolean, found ", primer::describe_lua_value(L, idx)};
+      return primer::error{"Expected boolean, found ",
+                           primer::describe_lua_value(L, idx)};
     }
   }
 };
@@ -96,22 +106,26 @@ struct read<bool> {
 // Userdata
 template <typename T>
 struct read<T &, enable_if_t<primer::traits::is_userdata<T>::value>> {
-  static expected<T&> from_stack(lua_State * L, int idx) {
+  static expected<T &> from_stack(lua_State * L, int idx) {
     if (T * t = primer::test_udata<T>(L, idx)) {
       return *t;
     } else {
-      return primer::error{"Expected userdata '", primer::udata_name<T>(), "', found ", primer::describe_lua_value(L, idx)};
+      return primer::error{"Expected userdata '", primer::udata_name<T>(),
+                           "', found ", primer::describe_lua_value(L, idx)};
     }
   }
 };
 
 // Strict optional
 template <typename T>
-struct read<T, enable_if_t<primer::traits::is_optional<T>::value && !primer::traits::is_relaxed_optional<T>::value>> {
+struct read<T,
+            enable_if_t<primer::traits::is_optional<T>::value &&
+                        !primer::traits::is_relaxed_optional<T>::value>> {
   using helper = primer::traits::optional<T>;
   static expected<T> from_stack(lua_State * L, int idx) {
     if (lua_isnoneornil(L, idx)) { return helper::make_blank(); }
-    if(auto maybe_result = primer::traits::read<typename helper::base_type>(L, idx)) {
+    if (auto maybe_result =
+          primer::traits::read<typename helper::base_type>(L, idx)) {
       return helper::from_base(*std::move(maybe_result));
     } else {
       return std::move(maybe_result).err();
@@ -121,11 +135,14 @@ struct read<T, enable_if_t<primer::traits::is_optional<T>::value && !primer::tra
 
 // Relaxed optional
 template <typename T>
-struct read<T, enable_if_t<primer::traits::is_optional<T>::value && primer::traits::is_relaxed_optional<T>::value>> {
+struct read<T,
+            enable_if_t<primer::traits::is_optional<T>::value &&
+                        primer::traits::is_relaxed_optional<T>::value>> {
   using helper = primer::traits::optional<T>;
 
   static expected<T> from_stack(lua_State * L, int idx) {
-    if(auto maybe_result = primer::traits::read<typename helper::base_type>(L, idx)) {
+    if (auto maybe_result =
+          primer::traits::read<typename helper::base_type>(L, idx)) {
       return helper::from_base(*std::move(maybe_result));
     } else {
       return helper::make_blank();

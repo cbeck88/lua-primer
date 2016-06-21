@@ -6,7 +6,8 @@
 #pragma once
 
 /***
- * Trait for converting unsigned to signed integers in a efficient and mostly portable way.
+ * Trait for converting unsigned to signed integers in a efficient and mostly
+ * portable way.
  */
 
 #include <primer/base.hpp>
@@ -27,13 +28,9 @@ T unsigned_to_signed(typename std::make_unsigned<T>::type x) {
   constexpr T max = std::numeric_limits<T>::max();
   constexpr T min = std::numeric_limits<T>::min();
 
-  if (x <= static_cast<U>(max)) {
-    return static_cast<T>(x);
-  }
+  if (x <= static_cast<U>(max)) { return static_cast<T>(x); }
 
-  if (x >= static_cast<U>(min)) {
-    return static_cast<T>(x - min) + min;
-  }
+  if (x >= static_cast<U>(min)) { return static_cast<T>(x - min) + min; }
 
   PRIMER_ASSERT(false, "Bad unsigned -> signed integer conversion! x = " << x);
   return 0;

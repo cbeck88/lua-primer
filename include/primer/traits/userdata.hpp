@@ -16,8 +16,10 @@ namespace traits {
  * Trait used to register a type as userdata.
  *
  * A valid partial specialization has members:
- *   static const char * name;        // name used in lua registry for this userdata type
- *   static const luaL_Reg * methods; // methods registered in the metatable for this userdata type.
+ *   static const char * name;        // name used in lua registry for this
+ * userdata type
+ *   static const luaL_Reg * methods; // methods registered in the metatable for
+ * this userdata type.
  *
  * luaL_Reg is defined in lua headers as a struct:
  *
@@ -26,9 +28,10 @@ namespace traits {
  *     int (*func)(lua_State *);
  *   };
  *
- * It is sufficient to use any type which has at least these members with these names and types, it need not
+ * It is sufficient to use any type which has at least these members with these
+ * names and types, it need not
  * be a type related to luaL_Reg.
- * 
+ *
  * See traits/is_userdata.hpp for the static_asserts which we apply.
  */
 

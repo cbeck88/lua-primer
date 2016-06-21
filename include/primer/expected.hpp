@@ -25,7 +25,8 @@ PRIMER_ASSERT_FILESCOPE;
  * https://channel9.msdn.com/Shows/Going+Deep/C-and-Beyond-2012-Andrei-Alexandrescu-Systematic-Error-Handling-in-C
  */
 
-#define PRIMER_BAD_ACCESS(X) PRIMER_ASSERT((X), "Bad access to primer::expected")
+#define PRIMER_BAD_ACCESS(X)                                                   \
+  PRIMER_ASSERT((X), "Bad access to primer::expected")
 
 namespace primer {
 
@@ -86,7 +87,7 @@ public:
     return std::move(spam_);
   }
 
-  
+
 private:
   // Internal manipulation: deinitialize, init_ham, init_spam
 
@@ -101,7 +102,7 @@ private:
   // Both init_ham and init_spam assume that this is a fresh union or that
   // deiniitalize() was called!
   template <typename A>
-  void init_ham(A &&  a) {
+  void init_ham(A && a) {
     new (&ham_) T(std::forward<A>(a));
     have_ham_ = true;
   }
@@ -113,7 +114,8 @@ private:
   }
 
 
-  // Helpers for special member functions: Init from (potentially) another kind of expected.
+  // Helpers for special member functions: Init from (potentially) another kind
+  // of expected.
   template <typename E>
   void init_from_const_ref(const E & e) {
     if (e) {
@@ -133,36 +135,22 @@ private:
   }
 
 public:
-  expected(const T & t) {
-    this->init_ham(t);
-  }
+  expected(const T & t) { this->init_ham(t); }
 
-  expected(T && t) {
-    this->init_ham(std::move(t));
-  }
+  expected(T && t) { this->init_ham(std::move(t)); }
 
   // this is to make it so that we can return error structs from functions that
   // return expected
-  expected(const primer::error & e) {
-    this->init_spam(e);
-  }
+  expected(const primer::error & e) { this->init_spam(e); }
 
-  expected(primer::error && e) {
-    this->init_spam(std::move(e));
-  }
+  expected(primer::error && e) { this->init_spam(std::move(e)); }
 
-  expected() {
-    this->init_spam(primer::error{std::string{"uninit"}});
-  }
+  expected() { this->init_spam(primer::error{std::string{"uninit"}}); }
 
-  ~expected() {
-    this->deinitialize();
-  }
+  ~expected() { this->deinitialize(); }
 
   // Copy ctor
-  expected(const expected & e) {
-    this->init_from_const_ref(e);
-  }
+  expected(const expected & e) { this->init_from_const_ref(e); }
 
   // When incoming expected has a different type, we allow conversion if U is
   // convertible to T.
@@ -177,9 +165,7 @@ public:
   /***
    * Same thing with move constructors.
    */
-  expected(expected && e) {
-    this->init_from_rvalue_ref(std::move(e));
-  }
+  expected(expected && e) { this->init_from_rvalue_ref(std::move(e)); }
 
   template <typename U>
   expected(expected<U> && u)
@@ -233,16 +219,18 @@ public:
 };
 
 /***
- * Allow references. This works by providing a new interface over `expected<T*>`.
+ * Allow references. This works by providing a new interface over
+ * `expected<T*>`.
  */
 
 template <typename T>
-class expected<T&> {
-  expected<T*> internal_;
+class expected<T &> {
+  expected<T *> internal_;
 
 public:
-
-  explicit operator bool() const noexcept { return static_cast<bool>(internal_); }
+  explicit operator bool() const noexcept {
+    return static_cast<bool>(internal_);
+  }
 
   T & operator*() & { return **internal_; }
   const T & operator*() const & { return **internal_; }
@@ -256,14 +244,14 @@ public:
   primer::error && err() && { return std::move(internal_.err()); }
 
   const std::string & err_str() const { return this->err().str(); }
-  const char * err_c_str() const { return this->err_str().c_str(); }  
+  const char * err_c_str() const { return this->err_str().c_str(); }
 
   // Ctors
   expected() = default;
   expected(const expected &) = default;
   expected(expected &&) = default;
-  expected & operator = (const expected &) = default;
-  expected & operator = (expected &&) = default;
+  expected & operator=(const expected &) = default;
+  expected & operator=(expected &&) = default;
   ~expected() = default;
 
   expected(T & t)
@@ -278,12 +266,14 @@ public:
     : internal_(std::move(e))
   {}
 
-  // Don't allow converting from other kinds of expected, since could get a dangling reference.
+  // Don't allow converting from other kinds of expected, since could get a
+  // dangling reference.
 };
 
 /***
  * Specialize the template for type "void".
- * Internally this is similar to "optional<error>", but has a matching interface as above, where operator bool
+ * Internally this is similar to "optional<error>", but has a matching interface
+ * as above, where operator bool
  * returning false signals the error.
  *
  * There is no operator * for this one.
@@ -317,7 +307,8 @@ public:
   {}
 
   // Conversion from other expected types
-  // Note this ASSUMES that the other one has an error! Does not discard a value.
+  // Note this ASSUMES that the other one has an error! Does not discard a
+  // value.
   template <typename U>
   expected(const expected<U> & u)
     : expected(u.err())
@@ -346,12 +337,8 @@ public:
     return std::move(error_);
   }
 
-  const std::string & err_str() const {
-    return this->err().str();
-  }
-  const char * err_c_str() const {
-    return this->err_str().c_str();
-  }
+  const std::string & err_str() const { return this->err().str(); }
+  const char * err_c_str() const { return this->err_str().c_str(); }
 };
 
 #undef PRIMER_BAD_ACCESS

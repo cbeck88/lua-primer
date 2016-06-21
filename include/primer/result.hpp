@@ -14,10 +14,12 @@
  *   yield
  *   error
  *
- * Return and yield both take an int, indicating how many arguments went on the stack.
+ * Return and yield both take an int, indicating how many arguments went on the
+ * stack.
  * error is indicated by a primer::error object.
  *
- * Code to send corresponding signal to lua is in `primer/support/implement_result.hpp`
+ * Code to send corresponding signal to lua is in
+ * `primer/support/implement_result.hpp`
  */
 
 #include <primer/base.hpp>
@@ -49,9 +51,15 @@ class result {
 
 public:
   // Ctors (implicit for ease of use)
-  result(int i) : payload_(return_or_yield{i, true}) {}
-  result(yield y) : payload_(return_or_yield{y.n_, false}) {}
-  result(error e) : payload_(e) {}
+  result(int i)
+    : payload_(return_or_yield{i, true})
+  {}
+  result(yield y)
+    : payload_(return_or_yield{y.n_, false})
+  {}
+  result(error e)
+    : payload_(e)
+  {}
 
   // Accessor
   const expected<return_or_yield> & get_payload() const & { return payload_; }

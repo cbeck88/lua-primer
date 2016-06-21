@@ -13,7 +13,9 @@
 
 void test_top_type(lua_State * L, int expected, int line) {
   if (lua_type(L, 1) != expected) {
-    TEST(false, "Expected '" << lua_typename(L, expected) << "', found '" << lua_typename(L, lua_type(L, 1)) << "' line: " << line);
+    TEST(false, "Expected '" << lua_typename(L, expected) << "', found '"
+                             << lua_typename(L, lua_type(L, 1))
+                             << "' line: " << line);
   }
 }
 
@@ -57,7 +59,6 @@ void test_roundtrip_value(lua_State * L, T t, int line) {
   CHECK_STACK(L, 1);
 
   lua_pop(L, 1);
-
 }
 
 void roundtrip_simple() {
@@ -99,14 +100,16 @@ void test_type_safety(lua_State * L, T t, int line) {
   auto r = primer::read<U>(L, 1);
 
   if (r) {
-    throw test_exception{"Unexpected conversion was permitted by primer: line " + std::to_string(line)};
+    throw test_exception{
+      "Unexpected conversion was permitted by primer: line " +
+      std::to_string(line)};
   }
 
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 }
 
-void typesafe_simple () {
+void typesafe_simple() {
   lua_raii L;
 
   test_type_safety<std::string>(L, int{1}, __LINE__);
@@ -125,17 +128,17 @@ void typesafe_simple () {
  */
 
 namespace {
-  int test_result_one;
-  float test_result_two;
-  std::string test_result_three;
+int test_result_one;
+float test_result_two;
+std::string test_result_three;
 
-  primer::result test_func_one(lua_State * L, int i, float d, std::string s) {
-    test_result_one = i;
-    test_result_two = d;
-    test_result_three = s;
-    lua_pushboolean(L, true);
-    return 1;
-  }
+primer::result test_func_one(lua_State * L, int i, float d, std::string s) {
+  test_result_one = i;
+  test_result_two = d;
+  test_result_three = s;
+  lua_pushboolean(L, true);
+  return 1;
+}
 } // end anonymous namespace
 
 void adapt_test_one() {
@@ -217,8 +220,8 @@ void adapt_test_one() {
   lua_pop(L, 1);
 }
 
-#define WEAK_REF_TEST(X) \
-TEST(X, "Unexpected value for lua_weak_ref. line: " << __LINE__)
+#define WEAK_REF_TEST(X)                                                       \
+  TEST(X, "Unexpected value for lua_weak_ref. line: " << __LINE__)
 
 void lua_weak_ref_validity() {
   using primer::lua_weak_ref;
@@ -302,13 +305,11 @@ void lua_weak_ref_validity() {
     WEAK_REF_TEST(!r);
     WEAK_REF_TEST(!s);
     WEAK_REF_TEST(!t);
-
   }
 
   WEAK_REF_TEST(!r);
   WEAK_REF_TEST(!s);
   WEAK_REF_TEST(!t);
-
 }
 
 int main() {

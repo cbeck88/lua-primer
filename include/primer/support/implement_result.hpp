@@ -35,7 +35,8 @@ namespace primer {
 
 namespace detail {
 
-inline primer::return_or_yield implement_result_step_one(lua_State * L, primer::result r) {
+inline primer::return_or_yield implement_result_step_one(lua_State * L,
+                                                         primer::result r) {
   auto & p = r.get_payload();
   if (p) {
     return std::move(*p);
@@ -47,8 +48,11 @@ inline primer::return_or_yield implement_result_step_one(lua_State * L, primer::
 
 inline int implement_result_step_two(lua_State * L, primer::return_or_yield r) {
   if (r.is_valid()) {
-    if (r.is_return_) { return r.n_; }
-    else { return lua_yield(L, r.n_); }
+    if (r.is_return_) {
+      return r.n_;
+    } else {
+      return lua_yield(L, r.n_);
+    }
   } else {
     return lua_error(L);
   }

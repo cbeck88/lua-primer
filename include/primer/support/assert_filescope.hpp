@@ -22,13 +22,14 @@ struct primer_assert_filescope_check_ {
 
 #define PRIMER_ASSERT_FILESCOPE PRIMER_ASSERT_FILESCOPE_I(__COUNTER__)
 
-#define PRIMER_ASSERT_FILESCOPE_I(counter)                                                         \
-  template <int>                                                                                   \
-  struct primer_assert_filescope_check_;                                                           \
-                                                                                                   \
-  template <>                                                                                      \
-  struct primer_assert_filescope_check_<counter> {                                                 \
-    static constexpr bool value = true;                                                            \
-  };                                                                                               \
-                                                                                                   \
-  static_assert(::primer_assert_filescope_check_<counter>::value, "Assert filescope failed!")
+#define PRIMER_ASSERT_FILESCOPE_I(counter)                                     \
+  template <int>                                                               \
+  struct primer_assert_filescope_check_;                                       \
+                                                                               \
+  template <>                                                                  \
+  struct primer_assert_filescope_check_<counter> {                             \
+    static constexpr bool value = true;                                        \
+  };                                                                           \
+                                                                               \
+  static_assert(::primer_assert_filescope_check_<counter>::value,              \
+                "Assert filescope failed!")

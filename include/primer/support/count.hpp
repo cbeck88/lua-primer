@@ -33,7 +33,8 @@ struct Concat<SizeList<TL...>, SizeList<TR...>> {
  */
 template <std::size_t n>
 struct Count {
-  typedef typename Concat<typename Count<n - 1>::type, SizeList<n - 1>>::type type;
+  typedef
+    typename Concat<typename Count<n - 1>::type, SizeList<n - 1>>::type type;
 };
 
 template <>

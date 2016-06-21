@@ -8,19 +8,22 @@
 /***
  * A lua_weak_ref is a weak reference to a lua_State *.
  *
- * It is not like std::weak_ptr, in that it does not lock and become an owning pointer.
- * Instead, either it locks and yields a lua_State *, or it produces nullptr, indicating
- * that the lua state is gone.
+ * It is not like std::weak_ptr, in that it does not lock and become an owning
+ * pointer.
+ * Instead, either it locks and yields a lua_State *, or it produces nullptr,
+ * indicating that the lua state is gone.
  *
- * The purpose of this is that you might want to be able to create references to objects
- * that are in the lua state, but the reference might outlive the lua state and they need
- * to be able to detect this. For example, if there is an existing GUI framework,
- * and you want to be able to implement callbacks as lua functions. The GUI framework may
- * need to be able to recieve some sort of C++ delegate object, but you may not really
- * know when the GUI will delete those delegates and you don't want them to be able to
- * take ownership of the lua state.
+ * The purpose of this is that you might want to be able to create references to
+ * objects that are in the lua state, but the reference might outlive the lua
+ * state and they need to be able to detect this. For example, if there is an
+ * existing GUI framework, and you want to be able to implement callbacks as
+ * lua functions. The GUI framework may need to be able to recieve some sort of
+ * C++ delegate object, but you may not really know when the GUI will delete
+ * those delegates and you don't want them to be able to take ownership of the
+ * lua state.
  *
- * lua_weak_ref is not thread safe -- there would be little purpose, as lua is not thread-safe.
+ * lua_weak_ref is not thread safe -- there would be little purpose, as lua is
+ * not thread-safe.
  */
 
 #include <primer/base.hpp>
@@ -39,11 +42,14 @@ namespace primer {
 
 class lua_weak_ref {
 
-  // Pod type pointed to be shared_ptr. It's a bit inconvenient to make it point to a raw pointer.
+  // Pod type pointed to be shared_ptr. It's a bit inconvenient to make it point
+  // to a raw pointer.
   struct ptr_pod {
     lua_State * ptr_;
 
-    explicit ptr_pod(lua_State * L) : ptr_(L) {}
+    explicit ptr_pod(lua_State * L)
+      : ptr_(L)
+    {}
   };
 
   using weak_ptr_type = std::weak_ptr<const ptr_pod>;
@@ -53,7 +59,6 @@ class lua_weak_ref {
   using strong_ptr_type = std::shared_ptr<ptr_pod>;
 
 public:
-
   explicit lua_weak_ref(const weak_ptr_type & _ptr)
     : weak_ptr_(_ptr)
   {}
@@ -68,9 +73,7 @@ public:
 
   // Access the pointed state if possible
   lua_State * lock() const noexcept {
-    if (auto result = weak_ptr_.lock()) {
-      return result->ptr_;
-    }
+    if (auto result = weak_ptr_.lock()) { return result->ptr_; }
     return nullptr;
   }
 
@@ -79,7 +82,8 @@ public:
   // Obtain a weak ref to the given lua state.
   // This works by installing a strong ref at a special registry key.
   // If the strong ref is not found, it is lazily created.
-  // The strong ref is destroyed in its __gc metamethod, or, it can be explicitly
+  // The strong ref is destroyed in its __gc metamethod, or, it can be
+  // explicitly
   // destroyed by calling "close_weak_refs".
   static lua_weak_ref obtain_weak_ref_to_state(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
@@ -89,15 +93,17 @@ public:
   }
 
   // Close the strong ref which is found in the registry.
-  // Post condition: Any weak refs to this lua state wlil return nullptr when locked.
-  // Any attempts to obtain_weak_ref from this lua_State will result in a dead weak_ref.
-  // Even if no strong ref currently exists, a dead one will be created to prevent future
-  // obtain_weak_ref calls from installing one.
+  // Post condition: Any weak refs to this lua state wlil return nullptr when
+  // locked.
+  // Any attempts to obtain_weak_ref from this lua_State will result in a dead
+  // weak_ref.
+  // Even if no strong ref currently exists, a dead one will be created to
+  // prevent future obtain_weak_ref calls from installing one.
   //
-  // N.B. You do not need to call this explicitly, unless you are paranoid about bad things
-  // happening *during* the lua garbage collection process. Closing the state closes all objects
-  // which are marked with finalizers, so the weak refs will be closed by that, during the course
-  // of lua_close execution.
+  // N.B. You do not need to call this explicitly, unless you are paranoid about
+  // bad things happening *during* the lua garbage collection process. Closing
+  // the state closes all objects which are marked with finalizers, so the weak
+  // refs will be closed by that, during the course of lua_close execution.
   static void close_weak_refs_to_state(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     get_strong_ptr(L).reset();
@@ -112,7 +118,8 @@ private:
     const char * key = get_strong_ptr_key();
     if (LUA_TUSERDATA != lua_getfield(L, LUA_REGISTRYINDEX, key)) {
       lua_pop(L, 1); // Clear the bad result, create a strong_ptr_type userdata.
-      new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{std::make_shared<ptr_pod>(L)};
+      new (lua_newuserdata(L, sizeof(strong_ptr_type)))
+        strong_ptr_type{std::make_shared<ptr_pod>(L)};
 
       lua_newtable(L); // Create the metatable
       lua_pushcfunction(L, &strong_ptr_gc);
@@ -125,19 +132,24 @@ private:
       lua_setfield(L, LUA_REGISTRYINDEX, key);
     }
     void * result = lua_touserdata(L, -1);
-    PRIMER_ASSERT(result, "Failed to obtain strong ptr: got " << describe_lua_value(L, -1));
-    return *static_cast<strong_ptr_type*>(result);
+    PRIMER_ASSERT(result, "Failed to obtain strong ptr: got "
+                            << describe_lua_value(L, -1));
+    return *static_cast<strong_ptr_type *>(result);
   }
 
-  static const char * get_strong_ptr_key() { return "primer_strong_ptr_reg_key"; }
+  static const char * get_strong_ptr_key() {
+    return "primer_strong_ptr_reg_key";
+  }
 
   static int strong_ptr_gc(lua_State * L) {
-    PRIMER_ASSERT(lua_isuserdata(L, 1), "strong_ptr_gc called with argument that is not userdata");
-    strong_ptr_type * ptr = static_cast<strong_ptr_type*>(lua_touserdata(L, 1));
+    PRIMER_ASSERT(lua_isuserdata(L, 1),
+                  "strong_ptr_gc called with argument that is not userdata");
+    strong_ptr_type * ptr = static_cast<strong_ptr_type *>(lua_touserdata(L, 1));
 
 #ifdef PRIMER_DEBUG
     if (auto lock = *ptr) {
-      PRIMER_ASSERT(L == lock->ptr_, "lua_weak_ref: strong pointer was somehow corrupted");
+      PRIMER_ASSERT(L == lock->ptr_,
+                    "lua_weak_ref: strong pointer was somehow corrupted");
     }
 #endif
 

@@ -68,12 +68,14 @@ class adaptor;
 
 /***
  * Simplified interface to the helper structure template
- * (This seems to be necessary since we can't deduce non-type template parameter types.)
+ * (This seems to be necessary since we can't deduce non-type template parameter
+ * types.)
  */
 #define PRIMER_ADAPT(F) &::primer::adaptor<decltype(F), (F)>::adapted
 
 /***
- * Traditional "raw" C-style lua callbacks. They aren't even member functions. We don't have to do any work.
+ * Traditional "raw" C-style lua callbacks. They aren't even member functions.
+ * We don't have to do any work.
  */
 
 template <lua_CFunction target_func>
@@ -101,23 +103,26 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
   template <std::size_t... indices>
   struct impl<primer::SizeList<indices...>> {
-    // We also mark this as "noexcept" in order to prevent bad exceptions from propagating to lua.
+// We also mark this as "noexcept" in order to prevent bad exceptions from
+// propagating to lua.
 
 #ifndef PRIMER_NO_EXCEPTIONS
 
-    // There is some overhead for exception support, but this version makes basically no copies
+    // There is some overhead for exception support, but this version makes
+    // basically no copies
     static primer::result helper(lua_State * L) noexcept {
       try {
-        return target_func(L, primer::unwrap(primer::read<Args>(L, indices + 1))...);
-      } catch (primer::error & e) {
-        return std::move(e);
-      }
+        return target_func(L, primer::unwrap(
+                                primer::read<Args>(L, indices + 1))...);
+      } catch (primer::error & e) { return std::move(e); }
     }
 
 #else // PRIMER_NO_EXCEPTIONS
 
     template <typename T>
-    static expected<T> short_circuiting_reader(lua_State * L, int index, expected<void> & ok) {
+    static expected<T> short_circuiting_reader(lua_State * L,
+                                               int index,
+                                               expected<void> & ok) {
       // short circuit if we would have thrown an exception by now
       if (!ok) { return primer::error{}; }
       expected<T> result{primer::read<T>(L, index)};
@@ -134,21 +139,22 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
       expected<void> ok;
       // indices + 1 is because lua counts from 1
       tuple_t tup{short_circuiting_reader<Args>(L, indices + 1, ok)...};
-      if (!ok) {
-        return ok.err();
-      }
+      if (!ok) { return ok.err(); }
       return target_func(L, *std::move(std::get<indices>(tup))...);
     }
-    // Note: * std::move(...) rather than std::move(* ...)` is important, that allows it to work with expected<T&>
+// Note: * std::move(...) rather than std::move(* ...)` is important, that
+// allows it to work with expected<T&>
 
 #endif // PRIMER_NO_EXCEPTIONS
-
   };
 
 public:
   static int adapted(lua_State * L) {
-    auto temp = detail::implement_result_step_one(L, impl<primer::Count_t<sizeof...(Args)>>::helper(L));
-    // primer::result is destroyed at the end of "full expression" in the above line, so it is safe to
+    using I = Count_t<sizeof...(Args)>;
+
+    auto temp = detail::implement_result_step_one(L, impl<I>::helper(L));
+    // primer::result is destroyed at the end of "full expression" in the above
+    // line, so it is safe to
     // longjmp after this.
     return detail::implement_result_step_two(L, temp);
   }

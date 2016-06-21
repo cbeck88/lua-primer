@@ -25,7 +25,9 @@ void set_funcs(lua_State * L, const T * ptr) {
 #ifdef PRIMER_DEBUG
   {
     auto t = lua_type(L, -1);
-    PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA || t == LUA_TLIGHTUSERDATA, "In set_funcs, no table or table-like thing was found!");
+    PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA ||
+                    t == LUA_TLIGHTUSERDATA,
+                  "In set_funcs, no table or table-like thing was found!");
   }
 #endif // PRIMER_DEBUG
 

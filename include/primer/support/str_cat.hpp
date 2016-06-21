@@ -21,12 +21,12 @@ namespace detail {
 inline std::string str_cat() { return {}; }
 
 template <typename... Args>
-std::string str_cat(std::string s, Args && ... args) {
+std::string str_cat(std::string s, Args &&... args) {
   return s + str_cat(std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-std::string str_cat(const char * s, Args && ... args) {
+std::string str_cat(const char * s, Args &&... args) {
   return s + str_cat(std::forward<Args>(args)...);
 }
 

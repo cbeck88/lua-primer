@@ -6,7 +6,8 @@
 #pragma once
 
 /***
- * Some simple code that "describes" a lua value on top of the stack in some user-friendly way.
+ * Some simple code that "describes" a lua value on top of the stack in some
+ * user-friendly way.
  * For error messages.
  */
 

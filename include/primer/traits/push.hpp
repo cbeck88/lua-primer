@@ -41,17 +41,13 @@ struct push;
 // Nil (tag-dispatch)
 template <>
 struct push<primer::nil_t> {
-  static void to_stack(lua_State * L, primer::nil_t) {
-    lua_pushnil(L);
-  }
+  static void to_stack(lua_State * L, primer::nil_t) { lua_pushnil(L); }
 };
 
 // Strings
 template <>
 struct push<const char *> {
-  static void to_stack(lua_State * L, const char * s) {
-    lua_pushstring(L, s);
-  }
+  static void to_stack(lua_State * L, const char * s) { lua_pushstring(L, s); }
 };
 
 // Std-String
@@ -65,7 +61,7 @@ struct push<std::string> {
 // Manually decay string literals...
 template <std::size_t n>
 struct push<const char(&)[n]> {
-  static void to_stack(lua_State * L, const char (&str)[n]) {
+  static void to_stack(lua_State * L, const char(&str)[n]) {
     push<const char *>::to_stack(L, str);
   }
 };
@@ -90,15 +86,15 @@ struct push<uint> {
 
 template <>
 struct push<float> {
-  static void to_stack(lua_State * L, float f) {
-    lua_pushnumber(L, f);
-  }
+  static void to_stack(lua_State * L, float f) { lua_pushnumber(L, f); }
 };
 
 // Userdata object
 template <typename T>
 struct push<T, enable_if_t<traits::is_userdata<T>::value>> {
-  static void to_stack(lua_State * L, const T & t) { primer::push_udata<T>(L, t); }
+  static void to_stack(lua_State * L, const T & t) {
+    primer::push_udata<T>(L, t);
+  }
 };
 
 // Optional
@@ -106,8 +102,9 @@ template <typename T>
 struct push<T, enable_if_t<traits::is_optional<T>::value>> {
   static void to_stack(lua_State * L, const T & t) {
     if (const auto ptr = traits::optional<T>::as_ptr(t)) {
-      push<remove_cv_t<typename traits::optional<T>::base_type>>::to_stack(L, *ptr);
-      // primer::push(L, *ptr); 
+      push<remove_cv_t<typename traits::optional<T>::base_type>>::to_stack(L,
+                                                                           *ptr);
+      // primer::push(L, *ptr);
     } else {
       lua_pushnil(L);
     }

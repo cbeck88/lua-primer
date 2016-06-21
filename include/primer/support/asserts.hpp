@@ -10,9 +10,11 @@
  *
  * PRIMER_ASSERT_STACK_NEUTRAL is a debugging aide.
  * It creates a stack object which records the top of the stack in its ctor.
- * It checks it again in the dtor, if they don't match then it causes an assertion failure.
+ * It checks it again in the dtor, if they don't match then it causes an
+ * assertion failure.
  *
- * This macro is only active if PRIMER_DEBUG is defined. If not, then it does nothing.
+ * This macro is only active if PRIMER_DEBUG is defined. If not, then it does
+ * nothing.
  */
 
 #include <primer/base.hpp>
@@ -23,7 +25,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 #define PRIMER_FATAL_ERROR(X)
 #define PRIMER_ASSERT(C, X)
-#define PRIMER_ASSERT_STACK_NEUTRAL(L) static_cast<const void>(L); static_assert(true, "")
+#define PRIMER_ASSERT_STACK_NEUTRAL(L)                                         \
+  static_cast<const void>(L);                                                  \
+  static_assert(true, "")
 #define PRIMER_DEBUG_MSG(X)
 
 #else // PRIMER_DEBUG
@@ -43,20 +47,18 @@ void fatal_error(const std::string & message) {
   std::abort();
 }
 
-#define PRIMER_FATAL_ERROR(X)              \
-do {                                       \
-  std::stringstream ss;                    \
-  ss << X;                                 \
-  ::primer::fatal_error(ss.str());         \
-} while(0)
+#define PRIMER_FATAL_ERROR(X)                                                  \
+  do {                                                                         \
+    std::stringstream ss;                                                      \
+    ss << X;                                                                   \
+    ::primer::fatal_error(ss.str());                                           \
+  } while (0)
 
 
-#define PRIMER_ASSERT(C, X)                                                      \
-do {                                                                             \
-  if (!(C)) {                                                                    \
-    PRIMER_FATAL_ERROR("Assertion " #C " failed!\n" << X);                       \
-  }                                                                              \
-} while (0)
+#define PRIMER_ASSERT(C, X)                                                    \
+  do {                                                                         \
+    if (!(C)) { PRIMER_FATAL_ERROR("Assertion " #C " failed!\n" << X); }       \
+  } while (0)
 
 
 // Help to catch lua stack discipline problems
@@ -77,18 +79,24 @@ public:
 
   ~stack_neutrality_assertion() {
     int end = lua_gettop(L_);
-    PRIMER_ASSERT(top_ == end, "[" << file_ << ":" << line_ << "] PRIMER_ASSERT_STACK_NEUTRAL failed. start " << top_ << " end " << end);
+    PRIMER_ASSERT(top_ == end,
+                  "[" << file_ << ":" << line_
+                      << "] PRIMER_ASSERT_STACK_NEUTRAL failed. start " << top_
+                      << " end " << end);
   }
 };
 
-#define PRIMER_ASSERT_STACK_NEUTRAL(L)                                                                    \
-  primer::stack_neutrality_assertion PRIMER_TOKEN_PASTE(anonymous_variable_, __LINE__){L, __FILE__,     \
-                                                                       __LINE__}
+#define PRIMER_ASSERT_STACK_NEUTRAL(L)                                         \
+  primer::stack_neutrality_assertion PRIMER_TOKEN_PASTE(anonymous_variable_,   \
+                                                        __LINE__) {            \
+    L, __FILE__, __LINE__                                                      \
+  }
 
-#define PRIMER_DEBUG_MSG(X) \
-do { \
-  std::cerr << "      [" << __FILE__ << ":" << __LINE__ << "] " << X << std::endl; \
-} while(0)
+#define PRIMER_DEBUG_MSG(X)                                                    \
+  do {                                                                         \
+    std::cerr << "      [" << __FILE__ << ":" << __LINE__ << "] " << X         \
+              << std::endl;                                                    \
+  } while (0)
 
 } // end namespace primer
 

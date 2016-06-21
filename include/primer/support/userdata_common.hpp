@@ -36,9 +36,11 @@ struct common_meta<T, traits::enable_if_t<primer::traits::is_userdata<T>::value>
   using udata_check = primer::traits::assert_userdata<T>;
   using udata = primer::traits::userdata<T>;
 
-  static int impl_gc (lua_State * L) {
+  static int impl_gc(lua_State * L) {
     void * d = luaL_testudata(L, 1, udata::name);
-    PRIMER_ASSERT(d, "garbage collection metamethod for userdata '" << udata::name << "' called on object of type '" << describe_lua_value(L, 1) << "'");
+    PRIMER_ASSERT(d, "garbage collection metamethod for userdata '"
+                       << udata::name << "' called on object of type '"
+                       << describe_lua_value(L, 1) << "'");
     static_cast<T *>(d)->~T();
     return 0;
   }

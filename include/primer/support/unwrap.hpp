@@ -22,7 +22,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-template<typename T>
+template <typename T>
 T unwrap(expected<T> e) {
   if (e) {
     return *std::move(e);
