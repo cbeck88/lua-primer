@@ -1,4 +1,4 @@
-project : default-build <optimization>speed debug ;
+project : default-build <optimization>speed debug <cxxflags>"-std=c++11" ;
 #release
 
 LUA_PATH = lua-5.3.1/src ;

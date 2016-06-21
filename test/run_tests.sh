@@ -2,14 +2,12 @@
 
 set -e
 
-bjam clean
-bjam cxxflags="-std=c++11"
-echo
+b2 "$@"
 cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./core
 cd ..
 
-# bjam clean
-# bjam cxxflags="-std=c++11 -DLUA_32BITS"
+# b2 clean
+# b2 cxxflags="-std=c++11 -DLUA_32BITS"
 # echo
 # cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./core
 # cd ..
