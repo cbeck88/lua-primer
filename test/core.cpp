@@ -9,14 +9,27 @@
 #include <iostream>
 #include <string>
 
+#ifdef PRIMER_LUA_AS_CPP
+#include <lualib.h>
+#else
+extern "C" {
+#include <lualib.h>
+}
+#endif
+
+
 #define CHECK_STACK(L, I) TEST_EQ(lua_gettop(L), I)
 
-void test_top_type(lua_State * L, int expected, int line) {
-  if (lua_type(L, 1) != expected) {
+void test_type(lua_State * L, int idx, int expected, int line) {
+  if (lua_type(L, idx) != expected) {
     TEST(false, "Expected '" << lua_typename(L, expected) << "', found '"
-                             << lua_typename(L, lua_type(L, 1))
+                             << lua_typename(L, lua_type(L, idx))
                              << "' line: " << line);
   }
+}
+
+void test_top_type(lua_State * L, int expected, int line) {
+  test_type(L, -1, expected, line);
 }
 
 template <typename T>
@@ -141,7 +154,7 @@ primer::result test_func_one(lua_State * L, int i, float d, std::string s) {
 }
 } // end anonymous namespace
 
-void adapt_test_one() {
+void primer_adapt_test_one() {
   lua_raii L;
 
   lua_CFunction func = PRIMER_ADAPT(&test_func_one);
@@ -239,14 +252,139 @@ void primer_adapt_test_two() {
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
+  luaL_requiref(L, "", &luaopen_base, 1);
+  lua_pop(L, 1);
+
   lua_pushcfunction(L, func);
   lua_setglobal(L, "f");
 
   TEST_EQ(LUA_OK, luaL_loadstring(L, "pcall(f()); return true"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+
+  TEST_EQ(lua_type(L, 1), LUA_TSTRING);
+  TEST_EQ(std::string{"foo"}, lua_tostring(L, 1));  
+
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "pcall(f); return true"));
   TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+
   CHECK_STACK(L, 1);
   TEST_EQ(lua_type(L, 1), LUA_TBOOLEAN);
   TEST_EQ(true, lua_toboolean(L, 1));  
+}
+
+namespace {
+
+primer::result test_func_three(lua_State * L, int i, int j, bool b) {
+  if (i != 5) {
+    primer::push(L, i);
+    return 1;
+  }
+
+  if (j != 7) {
+    primer::push(L, j);
+    return primer::yield{1};
+  }
+
+  if (b) {
+    return primer::error{"foo"};
+  } else {
+    const char * msg = "bar";
+    primer::push(L, msg);
+    return 1;
+  }
+}
+
+} // end anonymous namespace
+
+void primer_adapt_test_three() {
+  lua_raii L;
+
+  lua_CFunction func = PRIMER_ADAPT(&test_func_three);
+
+  {
+    lua_State * T = lua_newthread(L);
+
+    lua_pushcfunction(T, func);
+    lua_pushinteger(T, 5);
+    lua_pushinteger(T, 7);
+    lua_pushboolean(T, false);
+
+    TEST_EQ(LUA_OK, lua_resume(T, nullptr, 3));
+    CHECK_STACK(T, 1);
+    test_top_type(T, LUA_TSTRING, __LINE__);
+    TEST_EQ(std::string{"bar"}, lua_tostring(T, 1));
+
+    lua_pop(L, 1);
+  }
+
+  CHECK_STACK(L, 0);
+
+  {
+    lua_State * T = lua_newthread(L);
+
+    lua_pushcfunction(T, func);
+    lua_pushinteger(T, 3);
+    lua_pushinteger(T, 7);
+    lua_pushboolean(T, false);
+
+    TEST_EQ(LUA_OK, lua_resume(T, nullptr, 3));
+    CHECK_STACK(T, 1);
+    test_top_type(T, LUA_TNUMBER, __LINE__);
+    TEST_EQ(3, lua_tointeger(T, 1));
+
+    lua_pop(L, 1);
+  }
+
+  CHECK_STACK(L, 0);
+
+  {
+    lua_State * T = lua_newthread(L);
+
+    lua_pushcfunction(T, func);
+    lua_pushinteger(T, 5);
+    lua_pushinteger(T, 6);
+    lua_pushboolean(T, false);
+
+    TEST_EQ(LUA_YIELD, lua_resume(T, nullptr, 3));
+    CHECK_STACK(T, 1);
+    test_top_type(T, LUA_TNUMBER, __LINE__);
+    TEST_EQ(6, lua_tointeger(T, 1));
+
+    lua_pop(L, 1);
+  }
+
+  CHECK_STACK(L, 0);
+
+  {
+    lua_State * T = lua_newthread(L);
+
+    lua_pushcfunction(T, func);
+    lua_pushinteger(T, 5);
+    lua_pushinteger(T, 7);
+    lua_pushboolean(T, true);
+
+    TEST_EQ(LUA_ERRRUN, lua_resume(T, nullptr, 3));
+
+    CHECK_STACK(L, 1);
+    CHECK_STACK(T, 5);
+
+    test_type(L, 1, LUA_TTHREAD, __LINE__);
+    test_type(T, 1, LUA_TNUMBER, __LINE__);
+    test_type(T, 2, LUA_TNUMBER, __LINE__);
+    test_type(T, 3, LUA_TBOOLEAN, __LINE__);
+    test_type(T, 4, LUA_TSTRING, __LINE__);
+    test_type(T, 5, LUA_TSTRING, __LINE__);
+
+    TEST_EQ(lua_tostring(T, 4), std::string{"foo"});
+    // Last item is the stack trace... this is a property of lua_resume.
+
+    lua_pop(L, 1);
+  }
+
+  CHECK_STACK(L, 0);
 }
 
 #define WEAK_REF_TEST(X)                                                       \
@@ -349,8 +487,9 @@ int main() {
     {"push type simple values", &push_type_simple},
     {"roundtrip simple values", &roundtrip_simple},
     {"simple type safety", &typesafe_simple},
-    {"adapt test one", &adapt_test_one},
-    {"adapt test two", &adapt_test_one},
+    {"primer adapt test one", &primer_adapt_test_one},
+    {"primer adapt test two", &primer_adapt_test_two},
+    {"primer adapt test three", &primer_adapt_test_three},
     {"lua state ref validity", &lua_state_ref_validity},
   };
   int num_fails = tests.run();
