@@ -193,7 +193,7 @@ void adapt_test_one() {
   lua_pushcfunction(L, func);
   lua_pushnumber(L, 7);
   lua_pushstring(L, "jkl;");
-  lua_pushinteger(L, 17.5f);
+  lua_pushnumber(L, 17.5f);
 
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 3, 1, 0));
 
@@ -218,6 +218,35 @@ void adapt_test_one() {
 
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
+}
+
+namespace {
+
+primer::result test_func_two (lua_State * L) {
+  return primer::error("foo");
+}
+
+}
+
+void primer_adapt_test_two() {
+  lua_raii L;
+
+  lua_CFunction func = PRIMER_ADAPT(&test_func_two);
+
+  lua_pushcfunction(L, func);
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 0, 0));
+
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  lua_pushcfunction(L, func);
+  lua_setglobal(L, "f");
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "pcall(f()); return true"));
+  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  TEST_EQ(lua_type(L, 1), LUA_TBOOLEAN);
+  TEST_EQ(true, lua_toboolean(L, 1));  
 }
 
 #define WEAK_REF_TEST(X)                                                       \
@@ -321,7 +350,8 @@ int main() {
     {"roundtrip simple values", &roundtrip_simple},
     {"simple type safety", &typesafe_simple},
     {"adapt test one", &adapt_test_one},
-    {"lua weak ref validity", &lua_state_ref_validity},
+    {"adapt test two", &adapt_test_one},
+    {"lua state ref validity", &lua_state_ref_validity},
   };
   int num_fails = tests.run();
   std::cout << "\n";
