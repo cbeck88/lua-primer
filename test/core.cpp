@@ -2,7 +2,7 @@
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/result.hpp>
-#include <primer/lua_weak_ref.hpp>
+#include <primer/lua_state_ref.hpp>
 #include <primer/set_funcs.hpp>
 
 #include "test_harness.hpp"
@@ -221,14 +221,14 @@ void adapt_test_one() {
 }
 
 #define WEAK_REF_TEST(X)                                                       \
-  TEST(X, "Unexpected value for lua_weak_ref. line: " << __LINE__)
+  TEST(X, "Unexpected value for lua_state_ref. line: " << __LINE__)
 
-void lua_weak_ref_validity() {
-  using primer::lua_weak_ref;
+void lua_state_ref_validity() {
+  using primer::lua_state_ref;
 
-  lua_weak_ref r;
-  lua_weak_ref s;
-  lua_weak_ref t;
+  lua_state_ref r;
+  lua_state_ref s;
+  lua_state_ref t;
 
   WEAK_REF_TEST(!r);
   WEAK_REF_TEST(!s);
@@ -237,7 +237,7 @@ void lua_weak_ref_validity() {
   {
     lua_raii L;
 
-    r = primer::obtain_weak_ref(L);
+    r = primer::obtain_state_ref(L);
 
     WEAK_REF_TEST(r);
     WEAK_REF_TEST(!s);
@@ -261,7 +261,7 @@ void lua_weak_ref_validity() {
   {
     lua_raii L;
 
-    t = primer::obtain_weak_ref(L);
+    t = primer::obtain_state_ref(L);
 
     lua_State * l = L;
     TEST_EQ(l, t.lock());
@@ -278,7 +278,7 @@ void lua_weak_ref_validity() {
 
     // TEST_EQ(L, s.lock());
 
-    primer::close_weak_refs(L);
+    primer::close_state_refs(L);
 
     WEAK_REF_TEST(!r);
     WEAK_REF_TEST(!s);
@@ -292,9 +292,9 @@ void lua_weak_ref_validity() {
   {
     lua_raii L;
 
-    primer::close_weak_refs(L);
+    primer::close_state_refs(L);
 
-    s = primer::obtain_weak_ref(L);
+    s = primer::obtain_state_ref(L);
 
     WEAK_REF_TEST(!r);
     WEAK_REF_TEST(!s);
@@ -321,7 +321,7 @@ int main() {
     {"roundtrip simple values", &roundtrip_simple},
     {"simple type safety", &typesafe_simple},
     {"adapt test one", &adapt_test_one},
-    {"lua weak ref validity", &lua_weak_ref_validity},
+    {"lua weak ref validity", &lua_state_ref_validity},
   };
   int num_fails = tests.run();
   std::cout << "\n";

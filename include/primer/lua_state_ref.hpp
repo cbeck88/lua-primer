@@ -6,7 +6,7 @@
 #pragma once
 
 /***
- * A lua_weak_ref is a weak reference to a lua_State *.
+ * A lua_state_ref is a weak reference to a lua_State *.
  *
  * It is not like std::weak_ptr, in that it does not lock and become an owning
  * pointer.
@@ -31,50 +31,41 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+#include <primer/weak_ref.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
 
-#include <memory>
-
-struct lua_State;
+#include <utility>
 
 namespace primer {
 
-class lua_weak_ref {
+class lua_state_ref {
 
-  // Pod type pointed to be shared_ptr. It's a bit inconvenient to make it point
-  // to a raw pointer.
-  struct ptr_pod {
-    lua_State * ptr_;
-
-    explicit ptr_pod(lua_State * L)
-      : ptr_(L)
-    {}
-  };
-
-  using weak_ptr_type = std::weak_ptr<const ptr_pod>;
+  using weak_ptr_type = primer::weak_ref<lua_State>;
+  using strong_ptr_type = primer::unique_ref<lua_State>;
 
   weak_ptr_type weak_ptr_;
 
-  using strong_ptr_type = std::shared_ptr<ptr_pod>;
-
 public:
-  explicit lua_weak_ref(const weak_ptr_type & _ptr)
+  explicit lua_state_ref(const weak_ptr_type & _ptr) noexcept
     : weak_ptr_(_ptr)
   {}
 
+  explicit lua_state_ref(weak_ptr_type && _ptr) noexcept
+    : weak_ptr_(std::move(_ptr))
+  {}
+
   // Default all special member functions
-  lua_weak_ref() = default;
-  lua_weak_ref(const lua_weak_ref &) = default;
-  lua_weak_ref(lua_weak_ref &&) = default;
-  lua_weak_ref & operator=(const lua_weak_ref &) = default;
-  lua_weak_ref & operator=(lua_weak_ref &&) = default;
-  ~lua_weak_ref() = default;
+  lua_state_ref() = default;
+  lua_state_ref(const lua_state_ref &) = default;
+  lua_state_ref(lua_state_ref &&) = default;
+  lua_state_ref & operator=(const lua_state_ref &) = default;
+  lua_state_ref & operator=(lua_state_ref &&) = default;
+  ~lua_state_ref() = default;
 
   // Access the pointed state if possible
   lua_State * lock() const noexcept {
-    if (auto result = weak_ptr_.lock()) { return result->ptr_; }
-    return nullptr;
+    return weak_ptr_.lock();
   }
 
   explicit operator bool() const noexcept { return this->lock(); }
@@ -85,11 +76,11 @@ public:
   // The strong ref is destroyed in its __gc metamethod, or, it can be
   // explicitly
   // destroyed by calling "close_weak_refs".
-  static lua_weak_ref obtain_weak_ref_to_state(lua_State * L) {
+  static lua_state_ref obtain_weak_ref_to_state(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
-    lua_weak_ref result{std::shared_ptr<const ptr_pod>{get_strong_ptr(L)}};
+    weak_ptr_type result{get_strong_ptr(L)};
     lua_pop(L, 1);
-    return result;
+    return lua_state_ref{result};
   }
 
   // Close the strong ref which is found in the registry.
@@ -119,7 +110,7 @@ private:
     if (LUA_TUSERDATA != lua_getfield(L, LUA_REGISTRYINDEX, key)) {
       lua_pop(L, 1); // Clear the bad result, create a strong_ptr_type userdata.
       new (lua_newuserdata(L, sizeof(strong_ptr_type)))
-        strong_ptr_type{std::make_shared<ptr_pod>(L)};
+        strong_ptr_type{L};
 
       lua_newtable(L); // Create the metatable
       lua_pushcfunction(L, &strong_ptr_gc);
@@ -145,14 +136,6 @@ private:
     PRIMER_ASSERT(lua_isuserdata(L, 1),
                   "strong_ptr_gc called with argument that is not userdata");
     strong_ptr_type * ptr = static_cast<strong_ptr_type *>(lua_touserdata(L, 1));
-
-#ifdef PRIMER_DEBUG
-    if (auto lock = *ptr) {
-      PRIMER_ASSERT(L == lock->ptr_,
-                    "lua_weak_ref: strong pointer was somehow corrupted");
-    }
-#endif
-
     ptr->~strong_ptr_type();
     return 0;
   }
@@ -160,12 +143,12 @@ private:
 
 // Forward facing interface
 
-inline lua_weak_ref obtain_weak_ref(lua_State * L) {
-  return lua_weak_ref::obtain_weak_ref_to_state(L);
+inline lua_state_ref obtain_state_ref(lua_State * L) {
+  return lua_state_ref::obtain_weak_ref_to_state(L);
 }
 
-inline void close_weak_refs(lua_State * L) {
-  lua_weak_ref::close_weak_refs_to_state(L);
+inline void close_state_refs(lua_State * L) {
+  lua_state_ref::close_weak_refs_to_state(L);
 }
 
 } // end namespace primer

@@ -11,6 +11,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
+#include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/userdata_common.hpp>
 
@@ -98,6 +99,7 @@ struct udata_helper<
   // Based on impl of luaL_setmetatable
   // Sets the top of the stack entry to this metatable
   static void set_metatable(lua_State * L) {
+    PRIMER_ASSERT_STACK_NEUTRAL(L);
     get_or_create_metatable(L);
     lua_setmetatable(L, -2);
   }
@@ -120,8 +122,7 @@ T * test_udata(lua_State * L, int idx) {
 template <typename T, typename... Args>
 void push_udata(lua_State * L, Args &&... args) {
   new (lua_newuserdata(L, sizeof(T))) T{std::forward<Args>(args)...};
-  detail::udata_helper<T>::set_metatable(L,
-                                         detail::udata_helper<T>::udata::name);
+  detail::udata_helper<T>::set_metatable(L);
 }
 
 /// Easy, checked access to udata::name
