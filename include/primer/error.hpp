@@ -24,7 +24,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-class error : public std::exception {
+class error final : public std::exception {
   std::string msg_;
 
 public:
