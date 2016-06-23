@@ -48,12 +48,12 @@ class lua_state_ref {
   weak_ptr_type weak_ptr_;
 
 public:
-  explicit lua_state_ref(const weak_ptr_type & _ptr) noexcept
-    : weak_ptr_(_ptr)
+  explicit lua_state_ref(const weak_ptr_type & _ptr) noexcept //
+    : weak_ptr_(_ptr)                                         //
   {}
 
-  explicit lua_state_ref(weak_ptr_type && _ptr) noexcept
-    : weak_ptr_(std::move(_ptr))
+  explicit lua_state_ref(weak_ptr_type && _ptr) noexcept //
+    : weak_ptr_(std::move(_ptr))                         //
   {}
 
   // Default all special member functions
@@ -65,9 +65,7 @@ public:
   ~lua_state_ref() = default;
 
   // Access the pointed state if possible
-  lua_State * lock() const noexcept {
-    return weak_ptr_.lock();
-  }
+  lua_State * lock() const noexcept { return weak_ptr_.lock(); }
 
   explicit operator bool() const noexcept { return this->lock(); }
 
@@ -110,8 +108,7 @@ private:
     const char * key = get_strong_ptr_key();
     if (LUA_TUSERDATA != lua_getfield(L, LUA_REGISTRYINDEX, key)) {
       lua_pop(L, 1); // Clear the bad result, create a strong_ptr_type userdata.
-      new (lua_newuserdata(L, sizeof(strong_ptr_type)))
-        strong_ptr_type{L};
+      new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{L};
 
       lua_newtable(L); // Create the metatable
       lua_pushcfunction(L, &strong_ptr_gc);

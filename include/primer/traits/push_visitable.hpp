@@ -35,7 +35,6 @@ struct push_helper {
     traits::push<T>::to_stack(L, value);
     lua_setfield(L, -2, name);
   }
-
 };
 
 } // end namespace detail
@@ -49,7 +48,7 @@ struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
     lua_newtable(L);
     detail::push_helper vis{L};
 
-    visit_struct::apply_visitor(vis, t);    
+    visit_struct::apply_visitor(vis, t);
   }
 };
 

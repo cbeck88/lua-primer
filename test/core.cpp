@@ -220,10 +220,7 @@ void primer_adapt_test_one() {
 
 namespace {
 
-primer::result test_func_two (lua_State * L) {
-  return primer::error("foo");
-}
-
+primer::result test_func_two(lua_State * L) { return primer::error("foo"); }
 }
 
 void primer_adapt_test_two() {
@@ -247,7 +244,7 @@ void primer_adapt_test_two() {
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
 
   TEST_EQ(lua_type(L, 1), LUA_TSTRING);
-  TEST_EQ(std::string{"foo"}, lua_tostring(L, 1));  
+  TEST_EQ(std::string{"foo"}, lua_tostring(L, 1));
 
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
@@ -257,7 +254,7 @@ void primer_adapt_test_two() {
 
   CHECK_STACK(L, 1);
   TEST_EQ(lua_type(L, 1), LUA_TBOOLEAN);
-  TEST_EQ(true, lua_toboolean(L, 1));  
+  TEST_EQ(true, lua_toboolean(L, 1));
 }
 
 namespace {

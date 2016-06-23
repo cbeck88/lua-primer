@@ -1,9 +1,9 @@
-#include <visit_struct/visit_struct.hpp>
-#include <visit_struct/visit_struct_intrusive.hpp>
+#include <primer/visit_struct.hpp>
 
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/traits/push_visitable.hpp>
+#include <primer/traits/read_visitable.hpp>
 
 #include "test_harness.hpp"
 #include <iostream>
@@ -127,12 +127,34 @@ void visitable_push_test() {
   }
 }
 
+void visitable_read_test() {
+  lua_raii L;
+
+  lua_newtable(L);
+  lua_pushinteger(L, 10);
+  lua_setfield(L, -2, "a");
+  lua_pushboolean(L, false);
+  lua_setfield(L, -2, "b");
+  lua_pushnumber(L, 8.5f);
+  lua_setfield(L, -2, "c");
+
+  CHECK_STACK(L, 1);
+
+  auto result = primer::read<test::foo>(L, 1);
+  TEST(result, "Could not read result 'foo' at line: " << __LINE__);
+
+  TEST_EQ(result->a, 10);
+  TEST_EQ(result->b, false);
+  TEST_EQ(result->c, 8.5f);
+}
+
 int main() {
   conf::log_conf();
 
   std::cout << "Visitable structure tests:" << std::endl;
   test_harness tests{
     {"visitable push test", &visitable_push_test},
+    {"visitable read test", &visitable_read_test},
   };
   int num_fails = tests.run();
   std::cout << "\n";
