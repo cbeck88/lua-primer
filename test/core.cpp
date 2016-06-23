@@ -17,21 +17,6 @@ extern "C" {
 }
 #endif
 
-
-#define CHECK_STACK(L, I) TEST_EQ(lua_gettop(L), I)
-
-void test_type(lua_State * L, int idx, int expected, int line) {
-  if (lua_type(L, idx) != expected) {
-    TEST(false, "Expected '" << lua_typename(L, expected) << "', found '"
-                             << lua_typename(L, lua_type(L, idx))
-                             << "' line: " << line);
-  }
-}
-
-void test_top_type(lua_State * L, int expected, int line) {
-  test_type(L, -1, expected, line);
-}
-
 template <typename T>
 void test_push_type(lua_State * L, T t, int expected, int line) {
   CHECK_STACK(L, 0);

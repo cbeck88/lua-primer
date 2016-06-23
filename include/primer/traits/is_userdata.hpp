@@ -84,8 +84,8 @@ struct is_userdata : std::false_type {};
 
 template <typename T>
 struct is_userdata<T,
-                   enable_if_t<std::is_same<primer::traits::userdata<T>,
-                                            primer::traits::userdata<T>>::value>>
+                   enable_if_t<std::is_same<decltype(primer::traits::userdata<T>::name),
+                                            decltype(primer::traits::userdata<T>::name)>::value>>
   : std::true_type {};
 
 } // end namespace traits

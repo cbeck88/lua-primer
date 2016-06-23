@@ -22,5 +22,6 @@ PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
 TEST_HARNESS = <include>include/ ;
 
 exe core : core.cpp lua : $(PRIMER) $(TEST_HARNESS) $(NO_EXCEPTIONS) ;
+exe visitable : visitable.cpp lua : $(PRIMER) $(TEST_HARNESS) $(NO_EXCEPTIONS) ;
 
-install install-bin : core : <location>stage/ ;
+install install-bin : core visitable : <location>stage/ ;
