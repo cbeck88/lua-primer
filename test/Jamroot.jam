@@ -1,15 +1,26 @@
-project : default-build <optimization>speed debug <cxxflags>"-std=c++11" ;
-#release
+project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
+
+import option ;
+
+NO_EXCEPTIONS = option.get '--no-exceptions' ;
+if $(NO_EXCEPTIONS) {
+  NO_EXCEPTIONS = <define>PRIMER_NO_EXCEPTIONS ;
+} else {
+  NO_EXCEPTIONS = ;
+}
+
+WITH_EXCEPTIONS = option.get '--with-exceptions' ;
+if $(WITH_EXCEPTIONS) {
+  NO_EXCEPTIONS = ;
+}
 
 LUA_PATH = lua-5.3.1/src ;
 
 lib lua : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/luac.c ] : <link>static : : <include>$(LUA_PATH)/ ;
 
 PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
-#<define>PRIMER_NO_EXCEPTIONS ;
-
 TEST_HARNESS = <include>include/ ;
 
-exe core : core.cpp lua : $(PRIMER) $(TEST_HARNESS) ;
+exe core : core.cpp lua : $(PRIMER) $(TEST_HARNESS) $(NO_EXCEPTIONS) ;
 
 install install-bin : core : <location>stage/ ;

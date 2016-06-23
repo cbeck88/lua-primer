@@ -3,8 +3,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef PRIMER_WEAK_REF_HPP_INCLUDED
-#define PRIMER_WEAK_REF_HPP_INCLUDED
+#ifndef NONSTD_WEAK_REF_HPP_INCLUDED
+#define NONSTD_WEAK_REF_HPP_INCLUDED
 
 /***
  * Synopsis:
@@ -31,7 +31,7 @@
      control structure, whose destructor is trivial.
  */
 
-namespace primer {
+namespace nonstd {
 
 namespace detail {
 
@@ -56,7 +56,13 @@ class unique_ref {
 
   ctrl_t * ptr_;
 
-  void init(T * t) { ptr_ = new ctrl_t(t); }
+  void init(T * t) {
+    if (t) {
+      ptr_ = new ctrl_t(t);
+    } else {
+      ptr_ = nullptr;
+    }
+  }
 
   void move(unique_ref & o) noexcept {
     ptr_ = o.ptr_;
@@ -88,7 +94,7 @@ public:
   // Copy ctor: Make a new ctrl structure pointing to the same payload
   unique_ref(const unique_ref & other) {
     if (other.ptr_) {
-      this->init(*other.ptr_->payload_);
+      this->init(other.ptr_->payload_);
     } else {
       ptr_ = nullptr;
     }
@@ -258,6 +264,6 @@ public:
   }
 };
 
-} // end namespace primer
+} // end namespace nonstd
 
-#endif // PRIMER_WEAK_REF_HPP_INCLUDED
+#endif // NONSTD_WEAK_REF_HPP_INCLUDED
