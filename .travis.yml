@@ -33,7 +33,7 @@ script:
   - $CXX --version
 
   - cd test
-  - b2 clean
+  - b2 clean --toolset=${CC} --with-exceptions
   - ./run_tests.sh --toolset=${CC} --with-exceptions
-  - b2 clean
+  - b2 clean --toolset=${CC} --no-exceptions
   - ./run_tests.sh --toolset=${CC} --no-exceptions
