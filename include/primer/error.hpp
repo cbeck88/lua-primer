@@ -41,6 +41,11 @@ public:
     : msg_(primer::detail::str_cat(std::forward<Args>(args)...))
   {}
 
+  // Help to give context to errors
+  error & prepend_error_line(const std::string & line) {
+    msg_ = line + "\n" + msg_;
+    return *this;
+  }
 
   const std::string & str() const { return msg_; }
 

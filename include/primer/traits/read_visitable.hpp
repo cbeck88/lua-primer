@@ -21,6 +21,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
+#include <primer/support/str_cat.hpp>
 #include <primer/traits/read.hpp>
 #include <primer/traits/util.hpp>
 
@@ -47,16 +48,18 @@ struct read_helper {
     , ok{}
   {}
 
+  // TODO: This needs to be exception safe.
   template <typename T>
   void operator()(const char * name, T & value) {
     if (!ok) { return; }
 
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     lua_getfield(L, index, name);
+
     if (auto result = primer::traits::read<primer::traits::remove_cv_t<T>>::from_stack(L, -1)) {
       value = std::move_if_noexcept(*result);
     } else {
-      ok = std::move(result.err());
+      ok = std::move(result.err().prepend_error_line(primer::detail::str_cat("In field name '", name, "',")));
     }
     lua_pop(L, 1);
   }
@@ -69,7 +72,7 @@ namespace traits {
 template <typename T>
 struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
   static expected<T> from_stack(lua_State * L, int index) {
-    expected<T> result{std::move(T{})}; // TODO: Improve this, possibly requires change to `expected`.
+    expected<T> result{primer::default_construct_in_place_tag{}};
 
     detail::read_helper vis{L, lua_absindex(L, index)};
     visit_struct::apply_visitor(vis, *result);

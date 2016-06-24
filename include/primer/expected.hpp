@@ -31,6 +31,12 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 
 /***
+ * Tag used in tag dispactch
+ */
+
+struct default_construct_in_place_tag{};
+
+/***
  * Expected class template
  */
 template <typename T>
@@ -101,15 +107,15 @@ private:
 
   // Both init_ham and init_spam assume that this is a fresh union or that
   // deiniitalize() was called!
-  template <typename A>
-  void init_ham(A && a) {
-    new (&ham_) T(std::forward<A>(a));
+  template <typename... As>
+  void init_ham(As && ... as) {
+    new (&ham_) T(std::forward<As>(as)...);
     have_ham_ = true;
   }
 
-  template <typename A>
-  void init_spam(A && a) {
-    new (&spam_) error(std::forward<A>(a));
+  template <typename... As>
+  void init_spam(As && ... as) {
+    new (&spam_) error(std::forward<As>(as)...);
     have_ham_ = false;
   }
 
@@ -135,6 +141,8 @@ private:
   }
 
 public:
+  explicit expected(default_construct_in_place_tag) { this->init_ham(); }
+
   expected(const T & t) { this->init_ham(t); }
 
   expected(T && t) { this->init_ham(std::move(t)); }

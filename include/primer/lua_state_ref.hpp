@@ -22,7 +22,7 @@
  * those delegates and you don't want them to be able to take ownership of the
  * lua state.
  *
- * lua_weak_ref is not thread safe -- there would be little purpose, as lua is
+ * lua_state_ref is not thread safe -- there would be little purpose, as lua is
  * not thread-safe.
  */
 
