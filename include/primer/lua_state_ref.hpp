@@ -43,7 +43,7 @@ namespace primer {
 class lua_state_ref {
 
   using weak_ptr_type = nonstd::weak_ref<lua_State>;
-  using strong_ptr_type = nonstd::unique_ref<lua_State>;
+  using strong_ptr_type = nonstd::master_ref<lua_State>;
 
   weak_ptr_type weak_ptr_;
 

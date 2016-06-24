@@ -8,13 +8,15 @@
 
 /***
  * Synopsis:
- * unique_ref and weak_ref are a pair of "smart pointer-like" objects.
+ * master_ref and weak_ref are a pair of "smart pointer-like" objects.
  *
- * - unique_ref is constructed from a reference to an object (or, default
+ * - Both are *value types* about the size of a pointer. They both can be
+     dereferenced, to access the object they are pointing to.
+ * - master_ref is constructed from a raw pointer to an object (or, default
      constructed.)
- * - weak_ref can be constructed from unique_ref.
+ * - weak_ref can be constructed from master_ref.
  * - They do not manage the lifetime of the thing they are referring to,
-     instead, the unique_ref merely manages the validity of the weak_ref's,
+     instead, the master_ref merely manages the validity of the weak_ref's,
      making it easier to manage the possibility of dangling pointers. (But not
      100% eliminating it.)
  * - On the plus side, it has significantly less overhead, and can be used
@@ -22,7 +24,7 @@
  * - "weak_ref::lock" returns a raw pointer rather than a smart pointer, since
      it is not locking in the sense of taking ownership. It's merely returning
      a validity-checked pointer -- if it's not nullptr, then it is safe to
-     dereference, unless the "unique_ref" itself is dangling (easier to manage.)
+     dereference, unless the "master_ref" itself is dangling (easier to manage.)
  * - They are not thread safe, they should not be passed across threads. If you
      need that then you should use `std::shared_ptr` instead.
  * - The interface mimics `std::weak_ptr`.
@@ -30,6 +32,8 @@
      object whose lifetime is managed by reference counting here, is a shared
      control structure, whose destructor is trivial.
  */
+
+#include <utility>
 
 namespace nonstd {
 
@@ -49,9 +53,9 @@ struct weak_ref_control_structure {
 template <typename T>
 class weak_ref;
 
-// unique_ref: Owner of control structure
+// master_ref: Owner of control structure
 template <typename T>
-class unique_ref {
+class master_ref {
   using ctrl_t = detail::weak_ref_control_structure<T>;
 
   ctrl_t * ptr_;
@@ -64,50 +68,50 @@ class unique_ref {
     }
   }
 
-  void move(unique_ref & o) noexcept {
+  void move(master_ref & o) noexcept {
     ptr_ = o.ptr_;
     o.ptr_ = nullptr;
   }
 
   // Invariant: If ptr_ is not null, it points to a ctrl_t that no other
-  // unique_ref points to, and ptr_->payload_ is also not null.
+  // master_ref points to, and ptr_->payload_ is also not null.
 
   friend class weak_ref<T>;
 
 public:
+  typedef T element_type;
+
   // Initialization
-  explicit unique_ref(T * t) { this->init(t); }
+  explicit master_ref(T * t) { this->init(t); }
 
   // Special member functions
-  constexpr unique_ref() noexcept : ptr_(nullptr) {}
+  constexpr master_ref() noexcept : ptr_(nullptr) {}
 
-  ~unique_ref() noexcept { this->reset(); }
+  ~master_ref() noexcept { this->reset(); }
 
-  unique_ref(unique_ref && other) noexcept { this->move(other); }
+  master_ref(master_ref && other) noexcept { this->move(other); }
 
-  unique_ref & operator = (unique_ref && other) noexcept {
+  master_ref & operator = (master_ref && other) noexcept {
     this->reset();
     this->move(other);
     return *this;
   }
 
   // Copy ctor: Make a new ctrl structure pointing to the same payload
-  unique_ref(const unique_ref & other) {
-    if (other.ptr_) {
-      this->init(other.ptr_->payload_);
-    } else {
-      ptr_ = nullptr;
-    }
+  master_ref(const master_ref & other) {
+    this->init(other.ptr_ ? other.ptr_->payload_ : nullptr);
   }
 
   // Copy assignment: Copy and swap
-  unique_ref & operator = (const unique_ref & other) {
-    unique_ref temp{other};
+  master_ref & operator = (const master_ref & other) {
+    master_ref temp{other};
     this->swap(temp);
     return *this;
   }
 
-  // Reset (release managed object)
+  // Reset (release managed control object)
+  // Set the payload pointer to null, to signal to weak refs that they are
+  // now closed. If ref_count_ is zero, then we must delete.
   void reset() noexcept {
     if (ptr_) {
       ptr_->payload_ = nullptr;
@@ -119,7 +123,7 @@ public:
   }
 
   // Swap
-  void swap(unique_ref & other) noexcept {
+  void swap(master_ref & other) noexcept {
     ctrl_t * temp = ptr_;
     ptr_ = other.ptr_;
     other.ptr_ = temp;
@@ -179,6 +183,8 @@ class weak_ref {
     o.ptr_ = nullptr;
   }
 
+  // This is const qualified so that dereference can be const qualified, and
+  // *still* result in release if the master_ref is gone.
   void release() const noexcept {
     if (ptr_) {
       if (!--(ptr_->ref_count_)) {
@@ -189,6 +195,8 @@ class weak_ref {
   }
 
 public:
+  typedef T element_type;
+
   // Special member functions
   constexpr weak_ref() noexcept : ptr_(nullptr) {}
   weak_ref(const weak_ref & o) noexcept {
@@ -209,12 +217,12 @@ public:
     return *this;
   }
 
-  // Construct from unique_ref
-  explicit weak_ref(const unique_ref<T> & u) noexcept {
+  // Construct from master_ref
+  explicit weak_ref(const master_ref<T> & u) noexcept {
     this->init(u.ptr_);
   }
 
-  weak_ref & operator = (const unique_ref<T> & u) noexcept {
+  weak_ref & operator = (const master_ref<T> & u) noexcept {
     this->release();
     this->init(u.ptr_);
     return *this;
@@ -261,6 +269,31 @@ public:
       this->release();
     }
     return 0;
+  }
+};
+
+/***
+ * This is a helper for using the class properly. Since you don't want the
+ * master_ref to outlive the pointed object, it makes sense to hold them in the
+ * same structure.
+ */
+
+template <typename T>
+struct weakly_referenced {
+  T object;
+
+private:
+  master_ref<T> ref;
+
+public:
+  template <typename... Args>
+  explicit weakly_referenced(Args && ... args)
+    : object(std::forward<Args>(args)...)
+    , ref(&object)
+  {}
+
+  weak_ref<T> get_weak_ref() const {
+    return weak_ref<T>{this->ref};
   }
 };
 
