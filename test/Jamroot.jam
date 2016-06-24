@@ -1,18 +1,20 @@
 project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
 
-import option ;
+import modules ;
 
-NO_EXCEPTIONS = option.get '--no-exceptions' ;
-if $(NO_EXCEPTIONS) {
+if "--no-exceptions" in [ modules.peek : ARGV ] {
+  echo "no exceptions" ;
   NO_EXCEPTIONS = <define>PRIMER_NO_EXCEPTIONS ;
 } else {
   NO_EXCEPTIONS = ;
 }
 
-WITH_EXCEPTIONS = option.get '--with-exceptions' ;
-if $(WITH_EXCEPTIONS) {
+if "--with-exceptions" in [ modules.peek : ARGV ] {
+  echo "with exceptions" ;
   NO_EXCEPTIONS = ;
 }
+
+echo "value = " $(NO_EXCEPTIONS) ;
 
 LUA_PATH = lua-5.3.1/src ;
 
@@ -21,8 +23,12 @@ lib lua : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/luac.c ] : <link>static : : <incl
 PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
 TEST_HARNESS = <include>include/ ;
 
-exe core : core.cpp lua : $(PRIMER) $(TEST_HARNESS) $(NO_EXCEPTIONS) ;
-exe visitable : visitable.cpp lua : $(PRIMER) $(TEST_HARNESS) $(NO_EXCEPTIONS) ;
-exe std : std.cpp lua : $(PRIMER) $(TEST_HARNESS) $(NO_EXCEPTIONS) ;
+FLAGS = $(TEST_HARNESS)  $(PRIMER) $(NO_EXCEPTIONS) ;
+
+echo "flags = " $(FLAGS) ;
+
+exe core : core.cpp lua : $(FLAGS) ;
+exe visitable : visitable.cpp lua : $(FLAGS) ;
+exe std : std.cpp lua : $(FLAGS) ;
 
 install install-bin : core visitable std : <location>stage/ ;

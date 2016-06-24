@@ -50,7 +50,7 @@ void test_vector_push() {
 void test_array_push() {
   lua_raii L;
 
-  std::array<int, 4> arr {5, 6, 7, 8};
+  std::array<int, 4> arr {{5, 6, 7, 8}};
 
   primer::push(L, arr);
   CHECK_STACK(L, 1);
