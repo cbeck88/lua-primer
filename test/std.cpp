@@ -13,7 +13,7 @@
 void test_vector_push() {
   lua_raii L;
 
-  std::vector<int> vec {5, 6, 7, 8};
+  std::vector<int> vec {{5, 6, 7, 8}};
 
   primer::push(L, vec);
   CHECK_STACK(L, 1);
