@@ -14,6 +14,6 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/traits/optional.hpp>
-#include <boost/optional.hpp>
+#include <boost/optional/optional.hpp>
 
 PRIMER_DECLARE_OPTIONAL_TEMPLATE_TYPE(boost::optional);

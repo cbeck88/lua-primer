@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 
-#include <boost/optional.hpp>
+#include <boost/optional/optional.hpp>
 
 void test_optional_push() {
   lua_raii L;
