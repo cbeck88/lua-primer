@@ -29,20 +29,19 @@ namespace primer {
 namespace detail {
 
 template <typename M>
-struct map_push_helper {
+struct set_push_helper {
   using first_t = typename M::key_type;
-  using second_t = typename M::mapped_type;
 
   static void to_stack(lua_State * L, const M & m) {
     lua_newtable(L);
 
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     for (const auto & item : m) {
-      traits::push<first_t>::to_stack(L, item.first);
+      traits::push<first_t>::to_stack(L, item);
       if (lua_isnil(L, -1)) {
         lua_pop(L, 1);
       } else {
-        traits::push<second_t>::to_stack(L, item.second);
+        lua_pushboolean(L, true);
         lua_settable(L, -3);
       }
     }
@@ -50,9 +49,8 @@ struct map_push_helper {
 };
 
 template <typename M>
-struct map_read_helper {
+struct set_read_helper {
   using first_t = typename M::key_type;
-  using second_t = typename M::mapped_type;
 
   static expected<M> from_stack(lua_State * L, int index) {
     if (!lua_istable(L, index) && !lua_isuserdata(L, index)) { return primer::error("Not a table"); }
@@ -65,17 +63,14 @@ struct map_read_helper {
     while (lua_next(L, index) != 0) { // Stack is now ... index ... original_top , k, v
       // Backup the key in case one of the read functions messes with it, can cause very subtle problems
       lua_pushvalue(L, -2);       // original_top, k, v, k
-      if (auto first = traits::read<first_t>::from_stack(L, -1)) {
-        if (auto second = traits::read<second_t>::from_stack(L, -2)) {
-          result.emplace(std::move(*first), std::move(*second));
-          lua_pop(L, 2);
-        } else {
-          lua_pop(L, 3);
-          return second.err();
+      if (auto key = traits::read<first_t>::from_stack(L, -1)) {
+        if (lua_toboolean(L, -2)) {
+          result.emplace(std::move(*key));
         }
+        lua_pop(L, 2);
       } else {
         lua_pop(L, 3);
-        return first.err();
+        return key.err();
       }
     }
     return result;

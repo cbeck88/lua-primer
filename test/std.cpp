@@ -9,6 +9,7 @@
 
 #include <array>
 #include <map>
+#include <set>
 #include <vector>
 
 void test_vector_push() {
@@ -141,6 +142,49 @@ void test_map_push() {
   }
 }
 
+void test_set_push() {
+  lua_raii L;
+
+  std::set<std::string> s{"a", "k", "q", "j"};
+
+  primer::push(L, s);
+
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TTABLE, __LINE__);
+
+  lua_getfield(L, 1, "a");
+  test_top_type(L, LUA_TBOOLEAN, __LINE__);
+  TEST_EQ(true, lua_toboolean(L, 2));
+  lua_pop(L, 1);
+
+  lua_getfield(L, 1, "k");
+  test_top_type(L, LUA_TBOOLEAN, __LINE__);
+  TEST_EQ(true, lua_toboolean(L, 2));
+  lua_pop(L, 1);
+
+  lua_getfield(L, 1, "q");
+  test_top_type(L, LUA_TBOOLEAN, __LINE__);
+  TEST_EQ(true, lua_toboolean(L, 2));
+  lua_pop(L, 1);
+
+  lua_getfield(L, 1, "j");
+  test_top_type(L, LUA_TBOOLEAN, __LINE__);
+  TEST_EQ(true, lua_toboolean(L, 2));
+  lua_pop(L, 1);
+
+  lua_getfield(L, 1, "p");
+  test_top_type(L, LUA_TNIL, __LINE__);
+  lua_pop(L, 1);
+
+  lua_getfield(L, 1, "b");
+  test_top_type(L, LUA_TNIL, __LINE__);
+  lua_pop(L, 1);
+
+  lua_getfield(L, 1, "c");
+  test_top_type(L, LUA_TNIL, __LINE__);
+  lua_pop(L, 1);
+}
+
 int main() {
   conf::log_conf();
 
@@ -149,6 +193,7 @@ int main() {
     {"test vector push", &test_vector_push},
     {"test array push", &test_array_push},
     {"test map push", &test_map_push},
+    {"test set push", &test_set_push},
   };
   int num_fails = tests.run();
   std::cout << "\n";
