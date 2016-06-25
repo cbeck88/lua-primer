@@ -3,6 +3,7 @@
 #include <primer/read.hpp>
 #include <primer/result.hpp>
 #include <primer/lua_state_ref.hpp>
+#include <primer/lua_ref.hpp>
 #include <primer/set_funcs.hpp>
 
 #include "test_harness.hpp"
@@ -461,6 +462,109 @@ void lua_state_ref_validity() {
   WEAK_REF_TEST(!t);
 }
 
+void primer_ref_test() {
+  lua_raii L;
+
+  {
+    primer::lua_ref dummy;
+    TEST(!dummy, "expected empty state to evaluate false");
+  }
+
+  lua_pushstring(L, "asdf");
+  primer::lua_ref foo{L};
+  CHECK_STACK(L, 0);
+  TEST(foo, "expected ref to be engaged");
+
+  lua_pushstring(L, "jkl;");
+  lua_pushnumber(L, 15);
+  primer::lua_ref bar{L};
+  CHECK_STACK(L, 1);
+  primer::lua_ref baz{L};
+
+  CHECK_STACK(L, 0);
+
+  TEST(bar, "Expected ref to be engaged");
+  TEST(baz, "Expected ref to be engaged");
+
+  TEST(baz.push(L), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
+  lua_pop(L, 1);
+
+  TEST(bar.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TNUMBER, __LINE__);
+  TEST_EQ(15, lua_tonumber(L, -1));
+  lua_pop(L, 1);
+
+  TEST(foo.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"asdf"}, lua_tostring(L, -1));
+  lua_pop(L, 1);
+
+  // Test reset
+  bar.reset();
+  TEST(!bar.push(), "Expected ref to be in the empty state!");
+  CHECK_STACK(L, 0);
+
+  TEST(baz.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
+  lua_pop(L, 1);  
+
+  // Move assign
+  bar = std::move(baz);
+
+  TEST(!baz.push(), "Expected ref that has been moved from to be empty!");
+  CHECK_STACK(L, 0);
+
+  TEST(bar.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
+  lua_pop(L, 1);  
+
+  // Copy assign a disengaged
+  baz = bar;
+
+  TEST(bar.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
+  lua_pop(L, 1);  
+
+  TEST(baz.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
+  lua_pop(L, 1);  
+
+  // Copy assign an engaged
+  bar = foo;
+
+  TEST(bar.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"asdf"}, lua_tostring(L, -1));
+  lua_pop(L, 1);  
+
+  TEST(foo.push(), "Expected push to succeed");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TSTRING, __LINE__);
+  TEST_EQ(std::string{"asdf"}, lua_tostring(L, -1));
+  lua_pop(L, 1);  
+
+
+  // Close all refs
+  primer::close_state_refs(L);
+  TEST(!foo, "Expected all refs to be closed now!");
+  TEST(!bar, "Expected all refs to be closed now!");
+  TEST(!baz, "Expected all refs to be closed now!");
+}
+
 int main() {
   conf::log_conf();
 
@@ -473,6 +577,7 @@ int main() {
     {"primer adapt test two", &primer_adapt_test_two},
     {"primer adapt test three", &primer_adapt_test_three},
     {"lua state ref validity", &lua_state_ref_validity},
+    {"lua value ref validity", &primer_ref_test},
   };
   int num_fails = tests.run();
   std::cout << "\n";

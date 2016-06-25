@@ -57,17 +57,25 @@ public:
   {}
 
   // Default all special member functions
-  lua_state_ref() = default;
-  lua_state_ref(const lua_state_ref &) = default;
-  lua_state_ref(lua_state_ref &&) = default;
-  lua_state_ref & operator=(const lua_state_ref &) = default;
-  lua_state_ref & operator=(lua_state_ref &&) = default;
-  ~lua_state_ref() = default;
+  lua_state_ref() noexcept = default;
+  lua_state_ref(const lua_state_ref &) noexcept = default;
+  lua_state_ref(lua_state_ref &&) noexcept = default;
+  lua_state_ref & operator=(const lua_state_ref &) noexcept = default;
+  lua_state_ref & operator=(lua_state_ref &&) noexcept = default;
+  ~lua_state_ref() noexcept = default;
+
+  // Swap
+  void swap(lua_state_ref & other) { weak_ptr_.swap(other.weak_ptr_); }
 
   // Access the pointed state if possible
   lua_State * lock() const noexcept { return weak_ptr_.lock(); }
 
+  // Reset
+  void reset() noexcept { weak_ptr_.reset(); }
+
+  // Check validity
   explicit operator bool() const noexcept { return this->lock(); }
+
 
   // Obtain a weak ref to the given lua state.
   // This works by installing a strong ref at a special registry key.
@@ -141,11 +149,11 @@ private:
 
 // Forward facing interface
 
-inline lua_state_ref obtain_state_ref(lua_State * L) {
+inline lua_state_ref obtain_state_ref(lua_State * L) noexcept {
   return lua_state_ref::obtain_weak_ref_to_state(L);
 }
 
-inline void close_state_refs(lua_State * L) {
+inline void close_state_refs(lua_State * L) noexcept {
   lua_state_ref::close_weak_refs_to_state(L);
 }
 

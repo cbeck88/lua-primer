@@ -1,4 +1,6 @@
-project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
+project : default-build <optimization>off debug <cxxflags>"-std=c++11" ;
+# project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
+
 
 import modules ;
 

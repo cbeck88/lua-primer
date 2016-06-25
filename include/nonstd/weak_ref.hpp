@@ -188,7 +188,9 @@ class weak_ref {
   void release() const noexcept {
     if (ptr_) {
       if (!--(ptr_->ref_count_)) {
-        delete ptr_;
+        if (!ptr_->payload_) { // Check if the master is still pointing to it.
+          delete ptr_;
+        }
       }
       ptr_ = nullptr;
     }
