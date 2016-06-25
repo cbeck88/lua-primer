@@ -123,9 +123,9 @@ struct read<T,
                         !primer::traits::is_relaxed_optional<T>::value>> {
   using helper = primer::traits::optional<T>;
   static expected<T> from_stack(lua_State * L, int idx) {
-    if (lua_isnoneornil(L, idx)) { return helper::make_blank(); }
+    if (lua_isnoneornil(L, idx)) { return helper::make_empty(); }
     if (auto maybe_result =
-          primer::traits::read<typename helper::base_type>(L, idx)) {
+          primer::traits::read<typename helper::base_type>::from_stack(L, idx)) {
       return helper::from_base(*std::move(maybe_result));
     } else {
       return std::move(maybe_result).err();
@@ -142,10 +142,10 @@ struct read<T,
 
   static expected<T> from_stack(lua_State * L, int idx) {
     if (auto maybe_result =
-          primer::traits::read<typename helper::base_type>(L, idx)) {
+          primer::traits::read<typename helper::base_type>::from_stack(L, idx)) {
       return helper::from_base(*std::move(maybe_result));
     } else {
-      return helper::make_blank();
+      return helper::make_empty();
     }
   }
 };

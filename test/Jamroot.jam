@@ -33,4 +33,12 @@ exe core : core.cpp lua : $(FLAGS) ;
 exe visitable : visitable.cpp lua : $(FLAGS) ;
 exe std : std.cpp lua : $(FLAGS) ;
 
-install install-bin : core visitable std : <location>stage/ ;
+
+# Need to get boost directory...
+TEST_HARNESS = <include>include/ <include>/usr/include ;
+FLAGS = $(TEST_HARNESS)  $(PRIMER) $(NO_EXCEPTIONS) ;
+
+exe boost : boost.cpp lua : $(FLAGS) ;
+
+
+install install-bin : core visitable std boost : <location>stage/ ;
