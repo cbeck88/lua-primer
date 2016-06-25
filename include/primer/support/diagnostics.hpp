@@ -6,7 +6,7 @@
 #pragma once
 
 /***
- * Some simple code that "describes" a lua value on top of the stack in some
+ * Some simple code that "describes" a lua value on the stack in some
  * user-friendly way.
  * For error messages.
  */
@@ -19,8 +19,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
+/// Generate an error message string describing a value at a given position.
 inline const char * describe_lua_value(lua_State * L, int idx) {
-  return lua_typename(L, lua_type(L, 1));
+  return lua_typename(L, lua_type(L, idx));
 }
 
 } // end namespace primer
