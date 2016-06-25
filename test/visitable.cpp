@@ -149,6 +149,78 @@ void visitable_read_test() {
   TEST_EQ(result->c, 8.5f);
 }
 
+void visitable_round_trip() {
+  lua_raii L;
+
+  test::foo f{ true, 5, 9 };
+
+  {
+    primer::push(L, f);
+    CHECK_STACK(L, 1);
+    auto g = primer::read<test::foo>(L, 1);
+    TEST(g, "failed to read back 'test::foo' struct");
+
+    TEST_EQ(g->a, f.a);
+    TEST_EQ(g->b, f.b);
+    TEST_EQ(g->c, f.c);
+  }
+
+  lua_pop(L, 1);
+
+  f.b = false;
+  f.c = 17.75;
+
+  {
+    primer::push(L, f);
+    CHECK_STACK(L, 1);
+    auto g = primer::read<test::foo>(L, 1);
+    TEST(g, "failed to read back 'test::foo' struct");
+
+    TEST_EQ(g->a, f.a);
+    TEST_EQ(g->b, f.b);
+    TEST_EQ(g->c, f.c);
+
+    lua_pop(L, 1);
+  }
+
+  f.a += 95;
+
+  {
+    primer::push(L, f);
+    CHECK_STACK(L, 1);
+    auto g = primer::read<test::foo>(L, 1);
+    TEST(g, "failed to read back 'test::foo' struct");
+
+    TEST_EQ(g->a, f.a);
+    TEST_EQ(g->b, f.b);
+    TEST_EQ(g->c, f.c);
+
+    lua_pop(L, 1);
+  }
+
+
+  test::bar h{ "wasd", f, f };
+  h.f.a -= 77;
+  h.f.b = true;
+
+  {
+    primer::push(L, h);
+    CHECK_STACK(L, 1);
+    auto i = primer::read<test::bar>(L, 1);
+    TEST(i, "failed to read back 'test::bar' struct");
+
+    TEST_EQ(i->d, h.d);
+    TEST_EQ(i->e.a, h.e.a);
+    TEST_EQ(i->e.b, h.e.b);
+    TEST_EQ(i->e.c, h.e.c);
+    TEST_EQ(i->f.a, h.f.a);
+    TEST_EQ(i->f.b, h.f.b);
+    TEST_EQ(i->f.c, h.f.c);
+
+    lua_pop(L, 1);
+  }
+}
+
 primer::result test_func_one(lua_State * L, test::foo f, test::foo g) {
   test::foo result{ f.b != g.b, f.a - g.a, f.c + g.c };
   primer::push(L, result);
@@ -217,6 +289,7 @@ int main() {
   test_harness tests{
     {"visitable push test", &visitable_push_test},
     {"visitable read test", &visitable_read_test},
+    {"visitable round trip", &visitable_read_test},
     {"visitable params adapt test", &visitable_function_params_test}, 
   };
   int num_fails = tests.run();
