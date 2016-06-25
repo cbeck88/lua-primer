@@ -6,7 +6,7 @@
 #pragma once
 
 /***
- * How to push `std::map` to the stack, as a table
+ * How to push `std::unordered_map` to the stack, as a table
  */
 
 #include <primer/base.hpp>
@@ -14,17 +14,17 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/std/map_base.hpp>
-#include <map>
+#include <unordered_map>
 
 namespace primer {
 
 namespace traits {
 
 template <typename T, typename U>
-struct push<std::map<T, U>> : detail::map_push_helper<std::map<T, U>> {};
+struct push<std::unordered_map<T, U>> : detail::map_push_helper<std::map<T, U>> {};
 
 template <typename T, typename U>
-struct read<std::map<T, U>> : detail::map_read_helper<std::map<T, U>> {};
+struct read<std::unordered_map<T, U>> : detail::map_read_helper<std::map<T, U>> {};
 
 } // end namespace traits
 
