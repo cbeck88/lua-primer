@@ -8,6 +8,7 @@
 #include <string>
 
 #include <array>
+#include <map>
 #include <vector>
 
 void test_vector_push() {
@@ -84,6 +85,62 @@ void test_array_push() {
   lua_pop(L, 1);
 }
 
+void test_map_push() {
+  {
+    std::map<std::string, std::string> my_map{{"a", "1"}, {"b", "2"}, {"c", "3"}};
+
+    lua_raii L;
+
+    primer::push(L, my_map);
+    CHECK_STACK(L, 1);
+    test_top_type(L, LUA_TTABLE, __LINE__);
+
+    lua_pushnil(L);
+    int counter = 0;
+    while (lua_next(L, 1)) {
+      ++counter;
+      TEST(lua_isstring(L, 2), "expected a string key");
+      std::string key = lua_tostring(L, 2);
+      TEST(lua_isstring(L, 3), "expected a string val");
+      std::string val = lua_tostring(L, 3);
+
+      TEST_EQ(val, my_map[key]);
+      my_map.erase(key);
+
+      lua_pop(L, 1);
+    }
+    TEST_EQ(my_map.size(), 0);
+    TEST_EQ(counter, 3);
+  }
+
+  {
+    std::map<int, int> my_map{{'a', 1}, {'b', 2}, {'c', 3}};
+
+    lua_raii L;
+
+    primer::push(L, my_map);
+    CHECK_STACK(L, 1);
+    test_top_type(L, LUA_TTABLE, __LINE__);
+
+    lua_pushnil(L);
+    int counter = 0;
+    while (lua_next(L, 1)) {
+      ++counter;
+      TEST(lua_isinteger(L, 2), "expected an int key");
+      int key = lua_tointeger(L, 2);
+      TEST(lua_isinteger(L, 3), "expected an int val");
+      int val = lua_tointeger(L, 3);
+
+      TEST_EQ(val, my_map[key]);
+      my_map.erase(key);
+
+      lua_pop(L, 1);
+    }
+    TEST_EQ(my_map.size(), 0);
+    TEST_EQ(counter, 3);
+  }
+}
+
 int main() {
   conf::log_conf();
 
@@ -91,6 +148,7 @@ int main() {
   test_harness tests{
     {"test vector push", &test_vector_push},
     {"test array push", &test_array_push},
+    {"test map push", &test_map_push},
   };
   int num_fails = tests.run();
   std::cout << "\n";
