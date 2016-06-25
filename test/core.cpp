@@ -221,7 +221,7 @@ void primer_adapt_test_one() {
 
 namespace {
 
-primer::result test_func_two(lua_State * L) { return primer::error("foo"); }
+primer::result test_func_two(lua_State *) { return primer::error("foo"); }
 }
 
 void primer_adapt_test_two() {
