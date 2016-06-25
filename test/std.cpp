@@ -185,6 +185,112 @@ void test_set_push() {
   lua_pop(L, 1);
 }
 
+/***
+ * Stream ops for containers
+ */
+
+template <typename T>
+std::ostream & operator << (std::ostream & o, const std::vector<T> & vec) {
+  o << "{ ";
+  for (const auto & i : vec) {
+    o << i << ", ";
+  }
+  o << "}";
+  return o;
+}
+
+
+template <typename T, std::size_t N>
+std::ostream & operator << (std::ostream & o, const std::array<T, N> & vec) {
+  o << "{ ";
+  for (const auto & i : vec) {
+    o << i << ", ";
+  }
+  o << "}";
+  return o;
+}
+
+template <typename T>
+std::ostream & operator << (std::ostream & o, const std::set<T> & s) {
+  o << "{ ";
+  for (const auto & i : s) {
+    o << i << ", ";
+  }
+  o << "}";
+  return o;
+}
+
+template <typename T, typename U>
+std::ostream & operator << (std::ostream & o, const std::map<T, U> & m) {
+  o << "{ ";
+  for (const auto & p : m) {
+    o << "( " << p.first << ", " << p.second << ") ";
+  }
+  o << "}";
+  return o;
+}
+
+template <typename T, typename U>
+std::ostream & operator << (std::ostream & o, const std::unordered_map<T, U> & m) {
+  o << "{ ";
+  for (const auto & p : m) {
+    o << "( " << p.first << ", " << p.second << ") ";
+  }
+  o << "}";
+  return o;
+}
+
+
+template <typename T>
+void round_trip_value(lua_State * L, const T & t, int line) {
+  PRIMER_ASSERT_STACK_NEUTRAL(L);
+
+  primer::push(L, t);
+  auto r = primer::read<T>(L, -1);
+  TEST(r, "Failed to read when roundtripping a value. line: " + std::to_string(line));
+  TEST_EQ(t, *r);
+  lua_pop(L, 1);
+}
+
+void test_vector_round_trip() {
+  lua_raii L;
+
+  round_trip_value(L, std::vector<int>{}, __LINE__);
+  round_trip_value(L, std::vector<int>{1,5, -1, 2932}, __LINE__);
+  round_trip_value(L, std::vector<int>{99999,99999}, __LINE__);
+  round_trip_value(L, std::vector<float>{-0.5f, .5f, 6.5f}, __LINE__);
+  round_trip_value(L, std::vector<std::string>{"asdf", "jkl;", "", "wer"}, __LINE__);
+}
+
+void test_array_round_trip() {
+  lua_raii L;
+
+  round_trip_value(L, std::array<int,0>{{}}, __LINE__);
+  round_trip_value(L, std::array<int,4>{{1,5, -1, 2932}}, __LINE__);
+  round_trip_value(L, std::array<int,2>{{99999,99999}}, __LINE__);
+  round_trip_value(L, std::array<float,3>{{-0.5f, .5f, 6.5f}}, __LINE__);
+  round_trip_value(L, std::array<std::string, 4>{{"asdf", "jkl;", "", "wer"}}, __LINE__);
+}
+
+void test_map_round_trip() {
+  lua_raii L;
+
+  round_trip_value(L, std::map<std::string, std::string>{}, __LINE__);
+  round_trip_value(L, std::map<std::string, std::string>{{"a", "jk"}, {"l", "wer"}, {"_@34", "wasd"}}, __LINE__);
+  round_trip_value(L, std::map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}}, __LINE__);
+  round_trip_value(L, std::map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}}, __LINE__);
+  round_trip_value(L, std::map<int, std::vector<std::string>>{{1, {}}, {2, {}}, {3, {"a", "b", "c"}}, {9, {"asdf", "jkl;"}}}, __LINE__); 
+}
+
+void test_set_round_trip() {
+  lua_raii L;
+
+  round_trip_value(L, std::set<int>{}, __LINE__);
+  round_trip_value(L, std::set<int>{1, 5, 6, 10, 234}, __LINE__);
+  round_trip_value(L, std::set<std::string>{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"}, __LINE__);
+  round_trip_value(L, std::set<bool>{true}, __LINE__);
+}
+
 int main() {
   conf::log_conf();
 
@@ -194,6 +300,10 @@ int main() {
     {"test array push", &test_array_push},
     {"test map push", &test_map_push},
     {"test set push", &test_set_push},
+    {"test vector roundtrip", &test_vector_push},
+    {"test array roundtrip", &test_array_push},
+    {"test map roundtrip", &test_map_push},
+    {"test set roundtrip", &test_set_push},
   };
   int num_fails = tests.run();
   std::cout << "\n";
