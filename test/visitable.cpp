@@ -1,5 +1,6 @@
 #include <primer/visit_struct.hpp>
 
+#include <primer/adapt.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/traits/push_visitable.hpp>
@@ -148,6 +149,67 @@ void visitable_read_test() {
   TEST_EQ(result->c, 8.5f);
 }
 
+primer::result test_func_one(lua_State * L, test::foo f, test::foo g) {
+  test::foo result{ f.b != g.b, f.a - g.a, f.c + g.c };
+  primer::push(L, result);
+  return 1;
+}
+
+void visitable_function_params_test() {
+  lua_raii L;
+
+  lua_CFunction f = PRIMER_ADAPT(&test_func_one);
+
+  lua_pushcfunction(L, f);
+  lua_setglobal(L, "f");
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = 7}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+
+  CHECK_STACK(L, 1);
+  auto maybe_foo = primer::read<test::foo>(L, 1);
+  TEST(maybe_foo, "expected to read back a foo");
+  TEST_EQ(maybe_foo->b, true);
+  TEST_EQ(maybe_foo->a, -2);
+  TEST_EQ(maybe_foo->c, 8);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, d = 7}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = '7'}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = -15.5}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = {}, a = 3}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = 1, c = 5.5, a = 3}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f{{ b = true, c = {}, a = 3}, {a= 9, b = false, c = 2.5}}"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = 7}, {q = 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  lua_pop(L, 1);
+}
+
 int main() {
   conf::log_conf();
 
@@ -155,6 +217,7 @@ int main() {
   test_harness tests{
     {"visitable push test", &visitable_push_test},
     {"visitable read test", &visitable_read_test},
+    {"visitable params adapt test", &visitable_function_params_test}, 
   };
   int num_fails = tests.run();
   std::cout << "\n";
