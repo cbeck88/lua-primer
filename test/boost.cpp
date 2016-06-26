@@ -1,5 +1,7 @@
 #include <primer/boost.hpp>
 
+#include <primer/adapt.hpp>
+#include <primer/bound_function.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
@@ -58,6 +60,59 @@ void test_optional_read() {
   }
 }
 
+primer::result test_func(lua_State * L, int i, int j, boost::optional<std::string> k, boost::optional<std::string> l) {
+  if (k && l && (*k != *l)) { return primer::error("Expected equal strings"); }
+  lua_pushboolean(L, (i==j));
+  return 1;
+}
+
+void test_bound_function() {
+  lua_raii L;
+
+  lua_CFunction f1 = PRIMER_ADAPT(&test_func);
+
+  lua_pushcfunction(L, f1);
+  primer::bound_function func(L);
+  CHECK_STACK(L, 0);
+  TEST(func, "expected func to be valid");
+
+  {
+    auto maybe_result = func.call_one_ret(4, 5);
+    CHECK_STACK(L, 0);
+    TEST(maybe_result, "expected a result");
+    TEST(maybe_result->push(), "expected to be able to push");
+    test_top_type(L, LUA_TBOOLEAN, __LINE__);
+    TEST_EQ(false, lua_toboolean(L, 1));
+    lua_pop(L, 1);
+  }
+
+  {
+    auto maybe_result = func.call_one_ret(5, 5, "asdf");
+    CHECK_STACK(L, 0);
+    TEST(maybe_result, "expected a result");
+    TEST(maybe_result->push(), "expected to be able to push");
+    test_top_type(L, LUA_TBOOLEAN, __LINE__);
+    TEST_EQ(true, lua_toboolean(L, 1));
+    lua_pop(L, 1);
+  }
+
+  {
+    auto maybe_result = func.call_one_ret(6, 5, "Asdf", "Asdf");
+    CHECK_STACK(L, 0);
+    TEST(maybe_result, "expected a result");
+    TEST(maybe_result->push(), "expected to be able to push");
+    test_top_type(L, LUA_TBOOLEAN, __LINE__);
+    TEST_EQ(false, lua_toboolean(L, 1));
+    lua_pop(L, 1);
+  }
+
+  {
+    auto maybe_result = func.call_one_ret(4, 5, "asdf", "jkl;");
+    CHECK_STACK(L, 0);
+    TEST(!maybe_result, "expected an error message");
+  }
+
+}
 
 int main() {
   conf::log_conf();
@@ -66,6 +121,7 @@ int main() {
   test_harness tests{
     {"test optional push", &test_optional_push},
     {"test optional read", &test_optional_read},
+    {"test bound function", &test_bound_function},
   };
   int num_fails = tests.run();
   std::cout << "\n";

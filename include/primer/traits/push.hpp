@@ -60,7 +60,7 @@ struct push<std::string> {
 
 // Manually decay string literals...
 template <std::size_t n>
-struct push<const char(&)[n]> {
+struct push<char[n]> {
   static void to_stack(lua_State * L, const char(&str)[n]) {
     push<const char *>::to_stack(L, str);
   }
