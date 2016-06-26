@@ -19,6 +19,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/lua_ref.hpp>
+#include <primer/support/push_cached.hpp>
 #include <tuple>
 #include <utility>
 
@@ -33,16 +34,6 @@ inline void fetch_traceback_function(lua_State * L) {
                 "could not find debug traceback function");
   static_cast<void>(result);
   lua_remove(L, -2);
-}
-
-inline void get_traceback_function_cached(lua_State * L) {
-  constexpr const char * const traceback_key = "primer_debug_traceback";
-  if (LUA_TFUNCTION != lua_getfield(L, LUA_REGISTRYINDEX, traceback_key)) {
-    lua_pop(L, 1);
-    fetch_traceback_function(L);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, LUA_REGISTRYINDEX, traceback_key);
-  }
 }
 
 inline const char * error_code_to_string(const int err_code) {
@@ -70,7 +61,7 @@ inline std::tuple<int, int> pcall_helper(lua_State * L, int narg, int nret) {
   PRIMER_ASSERT(lua_gettop(L) >= (1 + narg),
                 "Not enoguh arguments on stack for pcall!");
   PRIMER_ASSERT(lua_isfunction(L, -1 - narg), "Missing function for pcall!");
-  get_traceback_function_cached(L);
+  detail::push_cached<fetch_traceback_function>(L);
   lua_insert(L, -2 - narg);
   const int error_handler_index = lua_absindex(L, -2 - narg);
   const int result_code = lua_pcall(L, narg, nret, error_handler_index);
@@ -91,7 +82,7 @@ inline std::tuple<int, int> resume_helper(lua_State * L, int narg) {
 
   const int result_code = lua_resume(L, nullptr, narg);
   if ((result_code != LUA_OK) && (result_code != LUA_YIELD)) {
-    get_traceback_function_cached(L);
+    detail::push_cached<fetch_traceback_function>(L);
     lua_insert(L, -2);
     lua_call(L, 1, 1);
   }

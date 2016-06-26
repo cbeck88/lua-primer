@@ -33,6 +33,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
+#include <primer/support/push_cached.hpp>
 
 #include <nonstd/weak_ref.hpp>
 
@@ -109,35 +110,20 @@ public:
   }
 
 private:
-  // Get the strong ptr from the registry and push it onto the stack.
-  // Also, get the userdata ptr thereof and return a reference.
-  // If the strong ptr does not exist yet, then create it.
-  static strong_ptr_type & get_strong_ptr(lua_State * L) {
-    const char * key = get_strong_ptr_key();
-    if (LUA_TUSERDATA != lua_getfield(L, LUA_REGISTRYINDEX, key)) {
-      lua_pop(L, 1); // Clear the bad result, create a strong_ptr_type userdata.
-      new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{L};
+  // Create a strong pointer in a userdata. This object will be cached,
+  // and needs to be destroyed when the lua state is destroyed.
+  static void make_strong_ptr(lua_State * L) {
+    new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{L};
 
-      lua_newtable(L); // Create the metatable
-      lua_pushcfunction(L, &strong_ptr_gc);
-      lua_setfield(L, -2, "__gc");
-      lua_pushstring(L, key);
-      lua_setfield(L, -2, "__metatable");
-      lua_setmetatable(L, -2);
-
-      lua_pushvalue(L, -1); // Duplicate the object
-      lua_setfield(L, LUA_REGISTRYINDEX, key);
-    }
-    void * result = lua_touserdata(L, -1);
-    PRIMER_ASSERT(result, "Failed to obtain strong ptr: got "
-                            << describe_lua_value(L, -1));
-    return *static_cast<strong_ptr_type *>(result);
+    lua_newtable(L); // Create the metatable
+    lua_pushcfunction(L, &strong_ptr_gc);
+    lua_setfield(L, -2, "__gc");
+    lua_pushstring(L, "primer strong pointer");
+    lua_setfield(L, -2, "__metatable");
+    lua_setmetatable(L, -2);
   }
 
-  static const char * get_strong_ptr_key() {
-    return "primer_strong_ptr_reg_key";
-  }
-
+  // gc function for userdata
   static int strong_ptr_gc(lua_State * L) {
     PRIMER_ASSERT(lua_isuserdata(L, 1),
                   "strong_ptr_gc called with argument that is not userdata");
@@ -145,6 +131,18 @@ private:
     ptr->~strong_ptr_type();
     return 0;
   }
+
+  // Get the strong ptr from the registry and push it onto the stack.
+  // Also, get the userdata ptr thereof and return a reference.
+  // If the strong ptr does not exist yet, then create it.
+  static strong_ptr_type & get_strong_ptr(lua_State * L) {
+    detail::push_cached<&make_strong_ptr>(L);
+    void * result = lua_touserdata(L, -1);
+    PRIMER_ASSERT(result, "Failed to obtain strong ptr: got "
+                            << describe_lua_value(L, -1));
+    return *static_cast<strong_ptr_type *>(result);
+  }
+
 };
 
 // Forward facing interface
