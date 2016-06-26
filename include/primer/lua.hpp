@@ -18,11 +18,13 @@ PRIMER_ASSERT_FILESCOPE;
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
+#include <lualib.h>
 }
 
 #else
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <lualib.h>
 
 #endif

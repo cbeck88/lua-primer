@@ -5,6 +5,7 @@
 #include <primer/lua_state_ref.hpp>
 #include <primer/lua_ref.hpp>
 #include <primer/set_funcs.hpp>
+#include <primer/support/function.hpp>
 
 #include "test_harness.hpp"
 #include <iostream>
@@ -565,6 +566,66 @@ void primer_ref_test() {
   TEST(!baz, "Expected all refs to be closed now!");
 }
 
+primer::result test_func_four(lua_State * L, int i, int j) {
+  lua_pushinteger(L, i + j);
+  lua_pushinteger(L, i - j);
+  return 2;
+}
+
+void primer_call_test() {
+  lua_raii L;
+
+  lua_CFunction f1 = PRIMER_ADAPT(& test_func_one);
+
+  {
+    lua_pushcfunction(L, f1);
+    auto result = primer::fcn_call_no_ret(L, 0);
+    CHECK_STACK(L, 0);
+    TEST(!result, "expected an error");
+  }
+
+  {
+    lua_pushcfunction(L, f1);
+    lua_pushinteger(L, 3);
+    lua_pushnumber(L, 4.5f);
+    lua_pushstring(L, "asdf");
+
+    auto result = primer::fcn_call_no_ret(L, 3);
+    CHECK_STACK(L, 0);
+    TEST(result, "expected success");
+  }
+
+  lua_CFunction f2 = PRIMER_ADAPT(& test_func_two);
+
+  {
+    lua_pushcfunction(L, f2);
+    lua_pushinteger(L, 3);
+    auto result = primer::fcn_call_no_ret(L, 1);
+    CHECK_STACK(L, 0);
+    TEST(!result, "expected failure");
+  }
+
+  lua_CFunction f4 = PRIMER_ADAPT(& test_func_four);
+
+  {
+    lua_pushcfunction(L, f4);
+    lua_pushinteger(L, 5);
+    lua_pushinteger(L, 7);
+
+    auto result = primer::fcn_call_one_ret(L, 2);
+
+    CHECK_STACK(L, 0);
+    TEST(result, "expected success");
+    TEST(result->push(), "expected to be able to push");
+    CHECK_STACK(L, 1);
+    test_top_type(L, LUA_TNUMBER, __LINE__);
+    TEST_EQ(lua_tointeger(L, 1), 12);
+    lua_pop(L, 1);
+  }
+
+  CHECK_STACK(L, 0);
+}
+
 int main() {
   conf::log_conf();
 
@@ -578,6 +639,7 @@ int main() {
     {"primer adapt test three", &primer_adapt_test_three},
     {"lua state ref validity", &lua_state_ref_validity},
     {"lua value ref validity", &primer_ref_test},
+    {"primer call test", & primer_call_test},
   };
   int num_fails = tests.run();
   std::cout << "\n";
