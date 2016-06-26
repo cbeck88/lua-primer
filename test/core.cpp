@@ -1,4 +1,5 @@
 #include <primer/adapt.hpp>
+#include <primer/expected.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/result.hpp>
@@ -626,6 +627,86 @@ void primer_call_test() {
   CHECK_STACK(L, 0);
 }
 
+void primer_resume_test() {
+  lua_raii L;
+
+  using primer::expected;
+  using primer::lua_ref;
+
+  lua_CFunction f1 = PRIMER_ADAPT(& test_func_three);
+
+  lua_State * T = lua_newthread(L);
+  {
+    TEST_EQ(LUA_OK, lua_status(T));
+
+    lua_pushcfunction(T, f1);
+    lua_pushinteger(T, 4);
+    lua_pushinteger(T, 7);
+    lua_pushboolean(T, true);
+
+    expected<lua_ref> result;
+    int code;
+    std::tie(result, code) = primer::resume_one_ret(T, 3);
+
+    TEST_EQ(code, LUA_OK);
+    TEST(result, "expected success");
+    CHECK_STACK(T, 0);
+    TEST(result->push(), "expected to be able to push");
+    CHECK_STACK(T, 1);
+    test_top_type(T, LUA_TNUMBER, __LINE__);
+    TEST_EQ(lua_tonumber(T, 1), 4);
+    lua_pop(T, 1);
+  }
+
+  {
+    TEST_EQ(LUA_OK, lua_status(T));
+
+    lua_pushcfunction(T, f1);
+    lua_pushinteger(T, 5);
+    lua_pushinteger(T, 6);
+    lua_pushboolean(T, true);
+
+    expected<lua_ref> result;
+    int code;
+    std::tie(result, code) = primer::resume_one_ret(T, 3);
+
+    TEST_EQ(code, LUA_YIELD);
+    TEST(result, "expected success");
+    CHECK_STACK(T, 0);
+    TEST(result->push(), "expected to be able to push");
+    CHECK_STACK(T, 1);
+    test_top_type(T, LUA_TNUMBER, __LINE__);
+    TEST_EQ(lua_tonumber(T, 1), 6);
+    lua_pop(T, 1);
+
+    TEST_EQ(LUA_YIELD, lua_status(T));
+
+    lua_pushstring(T, "asdf");
+    std::tie(result, code) = primer::resume_one_ret(T, 1);
+    TEST_EQ(code, LUA_OK);
+
+    CHECK_STACK(T, 0);
+  }
+
+  {
+    TEST_EQ(LUA_OK, lua_status(T));
+
+    lua_pushcfunction(T, f1);
+    lua_pushinteger(T, 5);
+    lua_pushinteger(T, 7);
+    lua_pushboolean(T, true);
+
+    expected<lua_ref> result;
+    int code;
+    std::tie(result, code) = primer::resume_one_ret(T, 3);
+
+    TEST_EQ(code, LUA_ERRRUN);
+    TEST(!result, "expected an error message");
+
+    CHECK_STACK(T, 0);
+  }
+}
+
 int main() {
   conf::log_conf();
 
@@ -640,6 +721,7 @@ int main() {
     {"lua state ref validity", &lua_state_ref_validity},
     {"lua value ref validity", &primer_ref_test},
     {"primer call test", & primer_call_test},
+    {"primer resume test", & primer_resume_test},
   };
   int num_fails = tests.run();
   std::cout << "\n";

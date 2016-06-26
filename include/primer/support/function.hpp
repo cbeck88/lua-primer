@@ -165,14 +165,13 @@ inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L, int narg
 
   std::tie(err_code, results_idx) = detail::resume_helper(L, narg);
   if (err_code == LUA_OK) {
-    lua_settop(L, results_idx);
     result = lua_ref{L};
   } else if (err_code == LUA_YIELD) {
-    lua_settop(L, results_idx);
     result = lua_ref{L};
   } else {
     result = detail::pop_error(L, err_code);
   }
+  lua_settop(L, results_idx - 1);
 
   return std::tuple<expected<lua_ref>, int>{ std::move(result), err_code };
 }
@@ -196,14 +195,13 @@ inline std::tuple<expected<lua_ref>, int> resume_no_ret(lua_State * L, int narg)
 
   std::tie(err_code, results_idx) = detail::resume_helper(L, narg);
   if (err_code == LUA_OK) {
-    lua_settop(L, results_idx - 1);
     result = {};
   } else if (err_code == LUA_YIELD) {
-    lua_settop(L, results_idx - 1);
     result = {};
   } else {
     result = detail::pop_error(L, err_code);
   }
+  lua_settop(L, results_idx - 1);
 
   return std::tuple<expected<lua_ref>, int>{ std::move(result), err_code };
 }
