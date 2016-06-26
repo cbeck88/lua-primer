@@ -102,8 +102,8 @@ template <typename T>
 struct push<T, enable_if_t<traits::is_optional<T>::value>> {
   static void to_stack(lua_State * L, const T & t) {
     if (const auto ptr = traits::optional<T>::as_ptr(t)) {
-      push<remove_cv_t<typename traits::optional<T>::base_type>>::to_stack(L,
-                                                                           *ptr);
+      using clean_base = remove_cv_t<typename traits::optional<T>::base_type>;
+      push<clean_base>::to_stack(L, *ptr);
       // primer::push(L, *ptr);
     } else {
       lua_pushnil(L);
