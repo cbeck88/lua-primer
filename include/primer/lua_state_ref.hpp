@@ -118,7 +118,7 @@ private:
     lua_newtable(L); // Create the metatable
     lua_pushcfunction(L, &strong_ptr_gc);
     lua_setfield(L, -2, "__gc");
-    lua_pushstring(L, "primer strong pointer");
+    lua_pushliteral(L, "primer strong pointer");
     lua_setfield(L, -2, "__metatable");
     lua_setmetatable(L, -2);
   }
