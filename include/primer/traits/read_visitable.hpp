@@ -59,8 +59,7 @@ struct read_helper {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     lua_getfield(L, index, name);
 
-    if (auto result =
-          traits::read<traits::remove_cv_t<T>>::from_stack(L, -1)) {
+    if (auto result = traits::read<traits::remove_cv_t<T>>::from_stack(L, -1)) {
       value = std::move_if_noexcept(*result);
     } else {
       ok = std::move(result.err().prepend_error_line(

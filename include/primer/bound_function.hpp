@@ -43,14 +43,12 @@ public:
   ~bound_function() noexcept = default;
 
   // Only capture the top item if it is actually a function.
-  explicit bound_function(lua_State * L) noexcept                    //
-    : ref_((lua_gettop(L) && lua_isfunction(L, -1)) ? L : nullptr)   //
+  explicit bound_function(lua_State * L) noexcept                  //
+    : ref_((lua_gettop(L) && lua_isfunction(L, -1)) ? L : nullptr) //
   {}
 
   // Forwarded methods from lua_ref
-  explicit operator bool() const noexcept {
-    return static_cast<bool>(ref_);
-  }
+  explicit operator bool() const noexcept { return static_cast<bool>(ref_); }
 
   lua_State * push() const noexcept { return ref_.push(); }
   bool push(lua_State * L) const noexcept { return ref_.push(L); }
@@ -58,7 +56,7 @@ public:
 
   // Call methods
   template <typename... Args>
-  expected<void> call_no_ret(Args && ... args) const noexcept {
+  expected<void> call_no_ret(Args &&... args) const noexcept {
     if (lua_State * L = ref_.push()) {
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_no_ret(L, sizeof...(args));
@@ -69,7 +67,7 @@ public:
   }
 
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args && ... args) const noexcept {
+  expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
     if (lua_State * L = ref_.push()) {
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_one_ret(L, sizeof...(args));

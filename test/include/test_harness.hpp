@@ -150,7 +150,7 @@ inline void test_type(lua_State * L, int idx, int expected, int line) {
       ss__ << "An operation failed '#C': " << result__.err_str();              \
       throw test_exception(ss__.str());                                        \
     }                                                                          \
-  } while(0)
+  } while (0)
 
 inline void test_top_type(lua_State * L, int expected, int line) {
   test_type(L, -1, expected, line);
