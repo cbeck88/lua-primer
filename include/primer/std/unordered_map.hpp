@@ -21,10 +21,12 @@ namespace primer {
 namespace traits {
 
 template <typename T, typename U>
-struct push<std::unordered_map<T, U>> : detail::map_push_helper<std::map<T, U>> {};
+struct push<std::unordered_map<T, U>>
+  : detail::map_push_helper<std::map<T, U>> {};
 
 template <typename T, typename U>
-struct read<std::unordered_map<T, U>> : detail::map_read_helper<std::map<T, U>> {};
+struct read<std::unordered_map<T, U>>
+  : detail::map_read_helper<std::map<T, U>> {};
 
 } // end namespace traits
 

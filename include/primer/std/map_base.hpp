@@ -55,16 +55,20 @@ struct map_read_helper {
   using second_t = typename M::mapped_type;
 
   static expected<M> from_stack(lua_State * L, int index) {
-    if (!lua_istable(L, index) && !lua_isuserdata(L, index)) { return primer::error("Not a table"); }
+    if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {
+      return primer::error("Not a table");
+    }
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
     index = lua_absindex(L, index);
     M result;
 
     lua_pushnil(L);
-    while (lua_next(L, index) != 0) { // Stack is now ... index ... original_top , k, v
-      // Backup the key in case one of the read functions messes with it, can cause very subtle problems
-      lua_pushvalue(L, -2);       // original_top, k, v, k
+    while (lua_next(L, index) != 0) {
+      // Stack is now ... index ... original_top , k, v
+      // Backup the key in case one of the read functions messes with it, can
+      // cause very subtle problems
+      lua_pushvalue(L, -2); // original_top, k, v, k
       if (auto first = traits::read<first_t>::from_stack(L, -1)) {
         if (auto second = traits::read<second_t>::from_stack(L, -2)) {
           result.emplace(std::move(*first), std::move(*second));

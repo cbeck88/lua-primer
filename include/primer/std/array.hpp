@@ -34,7 +34,7 @@ struct push<std::array<T, N>> {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     for (int i = 0; i < static_cast<int>(N); ++i) {
       traits::push<remove_cv_t<T>>::to_stack(L, arr[i]);
-      lua_rawseti(L, -2, (i+1));
+      lua_rawseti(L, -2, (i + 1));
     }
   }
 };
@@ -47,14 +47,18 @@ struct read<std::array<T, N>> {
     expected<std::array<T, N>> result{primer::default_construct_in_place_tag{}};
 
     idx = lua_absindex(L, idx);
-    if (!lua_istable(L, idx)) { result = primer::error("Expected: table, found ", primer::describe_lua_value(L, idx)); }
+    if (!lua_istable(L, idx)) {
+      result = primer::error("Expected: table, found ",
+                             primer::describe_lua_value(L, idx));
+    }
 
     for (int i = 0; (i < static_cast<int>(N)) && result; ++i) {
-      lua_rawgeti(L, idx, i+1);
+      lua_rawgeti(L, idx, i + 1);
       if (auto object = traits::read<remove_cv_t<T>>::from_stack(L, -1)) {
         (*result)[i] = std::move(*object);
       } else {
-        result = std::move(object.err().prepend_error_line("In index [" + std::to_string(i+1) + "],"));
+        result = std::move(object.err().prepend_error_line(
+          "In index [" + std::to_string(i + 1) + "],"));
       }
       lua_pop(L, 1);
     }

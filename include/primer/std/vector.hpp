@@ -36,7 +36,7 @@ struct push<std::vector<T>> {
     int n = static_cast<int>(vec.size());
     for (int i = 0; i < n; ++i) {
       traits::push<remove_cv_t<T>>::to_stack(L, vec[i]);
-      lua_rawseti(L, -2, (i+1));
+      lua_rawseti(L, -2, (i + 1));
     }
   }
 };
@@ -54,17 +54,19 @@ struct read<std::vector<T>> {
       result->reserve(n);
 
       for (int i = 0; (i < n) && result; ++i) {
-        lua_rawgeti(L, idx, i+1);
+        lua_rawgeti(L, idx, i + 1);
         if (auto object = traits::read<remove_cv_t<T>>::from_stack(L, -1)) {
           result->emplace_back(std::move(*object));
         } else {
           result = std::move(object.err());
-          result.err().prepend_error_line("In index [" + std::to_string(i+1) + "],");
+          result.err().prepend_error_line("In index [" + std::to_string(i + 1) +
+                                          "],");
         }
         lua_pop(L, 1);
       }
     } else {
-      result = primer::error("Expected: table, found ", primer::describe_lua_value(L, idx));
+      result = primer::error("Expected: table, found ",
+                             primer::describe_lua_value(L, idx));
     }
 
     return result;

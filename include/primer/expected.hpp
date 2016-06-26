@@ -34,7 +34,7 @@ namespace primer {
  * Tag used in tag dispactch
  */
 
-struct default_construct_in_place_tag{};
+struct default_construct_in_place_tag {};
 
 /***
  * Expected class template
@@ -108,13 +108,13 @@ private:
   // Both init_ham and init_spam assume that this is a fresh union or that
   // deiniitalize() was called!
   template <typename... As>
-  void init_ham(As && ... as) {
+  void init_ham(As &&... as) {
     new (&ham_) T(std::forward<As>(as)...);
     have_ham_ = true;
   }
 
   template <typename... As>
-  void init_spam(As && ... as) {
+  void init_spam(As &&... as) {
     new (&spam_) error(std::forward<As>(as)...);
     have_ham_ = false;
   }

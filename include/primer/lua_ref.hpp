@@ -127,33 +127,25 @@ class lua_ref {
 
 public:
   // Ctors
-  explicit lua_ref(lua_State * L) noexcept {
-    this->init(L);
-  }
+  explicit lua_ref(lua_State * L) noexcept { this->init(L); }
 
-  lua_ref() noexcept {
-    this->set_empty();
-  }
+  lua_ref() noexcept { this->set_empty(); }
 
-  lua_ref(lua_ref && other) noexcept {
-    this->move(other);
-  }
+  lua_ref(lua_ref && other) noexcept { this->move(other); }
 
-  lua_ref(const lua_ref & other) noexcept {
-    this->init(other.push());
-  }
+  lua_ref(const lua_ref & other) noexcept { this->init(other.push()); }
 
   // Dtor
   ~lua_ref() noexcept { this->release(); }
 
   // Assignment
-  lua_ref & operator = (const lua_ref & other) noexcept {
+  lua_ref & operator=(const lua_ref & other) noexcept {
     lua_ref temp{other};
     this->swap(temp);
     return *this;
   }
 
-  lua_ref & operator = (lua_ref && other) noexcept {
+  lua_ref & operator=(lua_ref && other) noexcept {
     this->release();
     this->move(other);
     return *this;
@@ -179,15 +171,17 @@ public:
 
   bool push(lua_State * T) const noexcept {
     if (lua_State * L = this->check_engaged()) {
-      #ifdef PRIMER_DEBUG
-      lua_xmove(L, T, 0); // This causes a lua_assert failure if states are unrelated
-      #else
+#ifdef PRIMER_DEBUG
+      // This causes a lua_assert failure if states are unrelated
+      lua_xmove(L, T, 0);
+#else
       static_cast<void>(L); // suppress unused warning
-      #endif
+#endif
       lua_rawgeti(T, LUA_REGISTRYINDEX, iref_);
       return true;
     } else {
-      lua_pushnil(T); // Even if we are empty, T exists, and expects a value, so push nil.
+      // Even if we are empty, T exists, and expects a value, so push nil.
+      lua_pushnil(T);
       return false;
     }
   }

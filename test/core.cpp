@@ -515,7 +515,7 @@ void primer_ref_test() {
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TSTRING, __LINE__);
   TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
-  lua_pop(L, 1);  
+  lua_pop(L, 1);
 
   // Move assign
   bar = std::move(baz);
@@ -527,7 +527,7 @@ void primer_ref_test() {
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TSTRING, __LINE__);
   TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
-  lua_pop(L, 1);  
+  lua_pop(L, 1);
 
   // Copy assign a disengaged
   baz = bar;
@@ -536,13 +536,13 @@ void primer_ref_test() {
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TSTRING, __LINE__);
   TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
-  lua_pop(L, 1);  
+  lua_pop(L, 1);
 
   TEST(baz.push(), "Expected push to succeed");
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TSTRING, __LINE__);
   TEST_EQ(std::string{"jkl;"}, lua_tostring(L, -1));
-  lua_pop(L, 1);  
+  lua_pop(L, 1);
 
   // Copy assign an engaged
   bar = foo;
@@ -551,13 +551,13 @@ void primer_ref_test() {
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TSTRING, __LINE__);
   TEST_EQ(std::string{"asdf"}, lua_tostring(L, -1));
-  lua_pop(L, 1);  
+  lua_pop(L, 1);
 
   TEST(foo.push(), "Expected push to succeed");
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TSTRING, __LINE__);
   TEST_EQ(std::string{"asdf"}, lua_tostring(L, -1));
-  lua_pop(L, 1);  
+  lua_pop(L, 1);
 
 
   // Close all refs
@@ -576,7 +576,7 @@ primer::result test_func_four(lua_State * L, int i, int j) {
 void primer_call_test() {
   lua_raii L;
 
-  lua_CFunction f1 = PRIMER_ADAPT(& test_func_one);
+  lua_CFunction f1 = PRIMER_ADAPT(&test_func_one);
 
   {
     lua_pushcfunction(L, f1);
@@ -596,7 +596,7 @@ void primer_call_test() {
     TEST(result, "expected success");
   }
 
-  lua_CFunction f2 = PRIMER_ADAPT(& test_func_two);
+  lua_CFunction f2 = PRIMER_ADAPT(&test_func_two);
 
   {
     lua_pushcfunction(L, f2);
@@ -606,7 +606,7 @@ void primer_call_test() {
     TEST(!result, "expected failure");
   }
 
-  lua_CFunction f4 = PRIMER_ADAPT(& test_func_four);
+  lua_CFunction f4 = PRIMER_ADAPT(&test_func_four);
 
   {
     lua_pushcfunction(L, f4);
@@ -633,7 +633,7 @@ void primer_resume_test() {
   using primer::expected;
   using primer::lua_ref;
 
-  lua_CFunction f1 = PRIMER_ADAPT(& test_func_three);
+  lua_CFunction f1 = PRIMER_ADAPT(&test_func_three);
 
   lua_State * T = lua_newthread(L);
   {
@@ -720,8 +720,8 @@ int main() {
     {"primer adapt test three", &primer_adapt_test_three},
     {"lua state ref validity", &lua_state_ref_validity},
     {"lua value ref validity", &primer_ref_test},
-    {"primer call test", & primer_call_test},
-    {"primer resume test", & primer_resume_test},
+    {"primer call test", &primer_call_test},
+    {"primer resume test", &primer_resume_test},
   };
   int num_fails = tests.run();
   std::cout << "\n";

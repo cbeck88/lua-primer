@@ -53,20 +53,22 @@ struct set_read_helper {
   using first_t = typename M::key_type;
 
   static expected<M> from_stack(lua_State * L, int index) {
-    if (!lua_istable(L, index) && !lua_isuserdata(L, index)) { return primer::error("Not a table"); }
+    if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {
+      return primer::error("Not a table");
+    }
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
     index = lua_absindex(L, index);
     M result;
 
     lua_pushnil(L);
-    while (lua_next(L, index) != 0) { // Stack is now ... index ... original_top , k, v
-      // Backup the key in case one of the read functions messes with it, can cause very subtle problems
-      lua_pushvalue(L, -2);       // original_top, k, v, k
+    while (lua_next(L, index) != 0) {
+      // Stack is now ... index ... original_top , k, v
+      // Backup the key in case one of the read functions messes with it, can
+      // cause very subtle problems
+      lua_pushvalue(L, -2); // original_top, k, v, k
       if (auto key = traits::read<first_t>::from_stack(L, -1)) {
-        if (lua_toboolean(L, -2)) {
-          result.emplace(std::move(*key));
-        }
+        if (lua_toboolean(L, -2)) { result.emplace(std::move(*key)); }
         lua_pop(L, 2);
       } else {
         lua_pop(L, 3);

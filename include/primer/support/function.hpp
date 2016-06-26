@@ -29,7 +29,8 @@ namespace detail {
 inline void fetch_traceback_function(lua_State * L) {
   luaopen_debug(L);
   int result = lua_getfield(L, -1, "traceback");
-  PRIMER_ASSERT(result == LUA_TFUNCTION, "could not find debug traceback function");
+  PRIMER_ASSERT(result == LUA_TFUNCTION,
+                "could not find debug traceback function");
   static_cast<void>(result);
   lua_remove(L, -2);
 }
@@ -66,7 +67,8 @@ inline const char * error_code_to_string(const int err_code) {
 // Error is left on top of the stack.
 // Returns the error code, and the stack index at which the return values start.
 inline std::tuple<int, int> pcall_helper(lua_State * L, int narg, int nret) {
-  PRIMER_ASSERT(lua_gettop(L) >= (1 + narg), "Not enoguh arguments on stack for pcall!");
+  PRIMER_ASSERT(lua_gettop(L) >= (1 + narg),
+                "Not enoguh arguments on stack for pcall!");
   PRIMER_ASSERT(lua_isfunction(L, -1 - narg), "Missing function for pcall!");
   get_traceback_function_cached(L);
   lua_insert(L, -2 - narg);
@@ -82,7 +84,8 @@ inline std::tuple<int, int> pcall_helper(lua_State * L, int narg, int nret) {
 // removes error handler. Error is left on top of the stack.
 // Returns the error code, and the stack index at which the return values start.
 inline std::tuple<int, int> resume_helper(lua_State * L, int narg) {
-  PRIMER_ASSERT(lua_gettop(L) >= (narg), "Not enough arguments on stack for resume!");
+  PRIMER_ASSERT(lua_gettop(L) >= (narg),
+                "Not enough arguments on stack for resume!");
 
   const int result_index = lua_absindex(L, -1 - narg);
 
@@ -96,11 +99,13 @@ inline std::tuple<int, int> resume_helper(lua_State * L, int narg) {
   return std::tuple<int, int>{result_code, result_index};
 }
 
-// Gets an error string from the top of the stack, forms a primer::error from it.
+// Gets an error string from the top of the stack, forms a primer::error from
+// it.
 // Pops the error string.
 inline primer::error pop_error(lua_State * L, int err_code) {
   PRIMER_ASSERT(lua_gettop(L), "No error object to pop!");
-  primer::error e{lua_isstring(L, -1) ? lua_tostring(L, -1) : "(no description available)"};
+  primer::error e{lua_isstring(L, -1) ? lua_tostring(L, -1)
+                                      : "(no description available)"};
   e.prepend_error_line(detail::error_code_to_string(err_code));
   lua_pop(L, 1);
   return e;
@@ -109,7 +114,8 @@ inline primer::error pop_error(lua_State * L, int err_code) {
 } // end namespace detail
 
 // Expects: Function, followed by narg arguments, on top of the stack.
-// Returns either a reference to the value, or an error message. In either case the
+// Returns either a reference to the value, or an error message. In either case
+// the
 // results are cleared from the stack.
 inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) {
 
@@ -128,7 +134,8 @@ inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) {
 }
 
 // Expects: Function, followed by narg arguments, on top of the stack.
-// Returns either a reference to the value, or an error message. In either case the
+// Returns either a reference to the value, or an error message. In either case
+// the
 // results are cleared from the stack.
 inline expected<void> fcn_call_no_ret(lua_State * L, int narg) {
 
@@ -146,18 +153,24 @@ inline expected<void> fcn_call_no_ret(lua_State * L, int narg) {
   return result;
 }
 
-// Expects a thread stack, satisfying the preconditions to call `lua_resume(L, nullptr, narg)`.
+// Expects a thread stack, satisfying the preconditions to call `lua_resume(L,
+// nullptr, narg)`.
 //   (That means, there should be narg arguments on top of the stack.
-//    If coroutine has not been started, the function should be just beneath them.
+//    If coroutine has not been started, the function should be just beneath
+//    them.
 //    Otherwise, it shouldn't be.)
 //
 // Calls lua_resume with that many arguments.
-// If it returns or yields, the single (expected) return value is popped from the stack.
-// If there is an error, an error object is returned and the error message is popped from the stack,
+// If it returns or yields, the single (expected) return value is popped from
+// the stack.
+// If there is an error, an error object is returned and the error message is
+// popped from the stack,
 // after running an error handler over it.
-// The expected<lua_ref> is first return value, the second is the error code, so you can tell if
+// The expected<lua_ref> is first return value, the second is the error code, so
+// you can tell if
 // yield occurred (LUA_YIELD) or return occurred (LUA_OK).
-inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L, int narg) {
+inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L,
+                                                         int narg) {
   expected<lua_ref> result;
 
   int err_code;
@@ -173,19 +186,24 @@ inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L, int narg
   }
   lua_settop(L, results_idx - 1);
 
-  return std::tuple<expected<lua_ref>, int>{ std::move(result), err_code };
+  return std::tuple<expected<lua_ref>, int>{std::move(result), err_code};
 }
 
-// Expects a thread stack, satisfying the preconditions to call `lua_resume(L, nullptr, narg)`.
+// Expects a thread stack, satisfying the preconditions to call `lua_resume(L,
+// nullptr, narg)`.
 //   (That means, there should be narg arguments on top of the stack.
-//    If coroutine has not been started, the function should be just beneath them.
+//    If coroutine has not been started, the function should be just beneath
+//    them.
 //    Otherwise, it shouldn't be.)
 //
 // Calls lua_resume with that many arguments.
-// If it returns or yields, the single (expected) return value is popped from the stack.
-// If there is an error, an error object is returned and the error message is popped from the stack,
+// If it returns or yields, the single (expected) return value is popped from
+// the stack.
+// If there is an error, an error object is returned and the error message is
+// popped from the stack,
 // after running an error handler over it.
-// The expected<lua_ref> is first return value, the second is the error code, so you can tell if
+// The expected<lua_ref> is first return value, the second is the error code, so
+// you can tell if
 // yield occurred (LUA_YIELD) or return occurred (LUA_OK).
 inline std::tuple<expected<lua_ref>, int> resume_no_ret(lua_State * L, int narg) {
   expected<lua_ref> result;
@@ -203,7 +221,7 @@ inline std::tuple<expected<lua_ref>, int> resume_no_ret(lua_State * L, int narg)
   }
   lua_settop(L, results_idx - 1);
 
-  return std::tuple<expected<lua_ref>, int>{ std::move(result), err_code };
+  return std::tuple<expected<lua_ref>, int>{std::move(result), err_code};
 }
 
 } // end namespace primer

@@ -8,10 +8,13 @@
 /***
  * How to read "visitable structures" from the stack, as tables (or userdata)
  *
- * The members must be default-constructible and move-constructible or copy-constructible to be used here.
+ * The members must be default-constructible and move-constructible or
+ * copy-constructible to be used here.
  *
- * TODO: This whole implementation here should be conditioned on `std::is_nothrow_move_constructible` and
- * try-catch should be used with user-defined types for safety. For now we just assume that it's okay.
+ * TODO: This whole implementation here should be conditioned on
+ * `std::is_nothrow_move_constructible` and
+ * try-catch should be used with user-defined types for safety. For now we just
+ * assume that it's okay.
  */
 
 #include <primer/base.hpp>
@@ -56,10 +59,12 @@ struct read_helper {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     lua_getfield(L, index, name);
 
-    if (auto result = primer::traits::read<primer::traits::remove_cv_t<T>>::from_stack(L, -1)) {
+    if (auto result =
+          traits::read<traits::remove_cv_t<T>>::from_stack(L, -1)) {
       value = std::move_if_noexcept(*result);
     } else {
-      ok = std::move(result.err().prepend_error_line(primer::detail::str_cat("In field name '", name, "',")));
+      ok = std::move(result.err().prepend_error_line(
+        primer::detail::str_cat("In field name '", name, "',")));
     }
     lua_pop(L, 1);
   }
