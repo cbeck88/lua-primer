@@ -8,6 +8,7 @@
 #include <primer/base.hpp>
 #include <primer/lua.hpp>
 #include <primer/error.hpp>
+#include <primer/expected.hpp>
 
 #include <cstring>
 #include <exception>
@@ -140,6 +141,16 @@ inline void test_type(lua_State * L, int idx, int expected, int line) {
                              << "' line: " << line);
   }
 }
+
+#define TEST_EXPECTED(C)                                                       \
+  do {                                                                         \
+    const auto & result__ = C;                                                 \
+    if (!result__) {                                                           \
+      std::ostringstream ss__;                                                 \
+      ss__ << "An operation failed '#C': " << result__.err_str();              \
+      throw test_exception(ss__.str());                                        \
+    }                                                                          \
+  } while(0)
 
 inline void test_top_type(lua_State * L, int expected, int line) {
   test_type(L, -1, expected, line);

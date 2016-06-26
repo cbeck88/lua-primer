@@ -2,6 +2,7 @@
 
 #include <primer/adapt.hpp>
 #include <primer/bound_function.hpp>
+#include <primer/coroutine.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
@@ -79,7 +80,7 @@ void test_bound_function() {
   {
     auto maybe_result = func.call_one_ret(4, 5);
     CHECK_STACK(L, 0);
-    TEST(maybe_result, "expected a result");
+    TEST_EXPECTED(maybe_result);
     TEST(maybe_result->push(), "expected to be able to push");
     test_top_type(L, LUA_TBOOLEAN, __LINE__);
     TEST_EQ(false, lua_toboolean(L, 1));
@@ -89,7 +90,7 @@ void test_bound_function() {
   {
     auto maybe_result = func.call_one_ret(5, 5, "asdf");
     CHECK_STACK(L, 0);
-    TEST(maybe_result, "expected a result");
+    TEST_EXPECTED(maybe_result);
     TEST(maybe_result->push(), "expected to be able to push");
     test_top_type(L, LUA_TBOOLEAN, __LINE__);
     TEST_EQ(true, lua_toboolean(L, 1));
@@ -99,7 +100,7 @@ void test_bound_function() {
   {
     auto maybe_result = func.call_one_ret(6, 5, "Asdf", "Asdf");
     CHECK_STACK(L, 0);
-    TEST(maybe_result, "expected a result");
+    TEST_EXPECTED(maybe_result);
     TEST(maybe_result->push(), "expected to be able to push");
     test_top_type(L, LUA_TBOOLEAN, __LINE__);
     TEST_EQ(false, lua_toboolean(L, 1));
@@ -111,7 +112,69 @@ void test_bound_function() {
     CHECK_STACK(L, 0);
     TEST(!maybe_result, "expected an error message");
   }
+}
 
+int yield_helper(lua_State * L) {
+  return lua_yield(L, 1);
+}
+
+void test_coroutine() {
+  lua_raii L;
+
+  lua_pushcfunction(L, PRIMER_ADAPT(&yield_helper));
+  lua_setglobal(L, "yield_helper");
+  CHECK_STACK(L, 0);
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, ""
+    " local function make_closure()         \n"
+    "   local counter = 0;                  \n"
+    "   local function f(input)             \n"
+    "     while true do                     \n"
+    "       counter = counter + input;      \n"
+    "       input = yield_helper(counter);  \n"
+    "     end                               \n"
+    "   end                                 \n"
+    "   return f;                           \n"
+    " end                                   \n"
+    " return make_closure()                 \n"));
+  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+  CHECK_STACK(L, 1);
+  TEST_EQ(true, lua_isfunction(L, 1));
+  primer::bound_function func{L};
+  CHECK_STACK(L, 0);
+  TEST(func, "expected a valid bound function");
+
+  primer::coroutine c{func};
+  CHECK_STACK(L, 0);
+  TEST(c, "expected c to be valid");
+  TEST(func, "expected func to be valid");
+
+  auto result1 = c.call_one_ret(6);
+  CHECK_STACK(L, 0);
+  TEST_EXPECTED(result1);
+  TEST(result1->push(L), "expected to be able to push");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TNUMBER, __LINE__);
+  TEST_EQ(lua_tonumber(L, 1), 6);  
+  lua_pop(L, 1);
+
+  auto result2 = c.call_one_ret(7);
+  CHECK_STACK(L, 0);
+  TEST_EXPECTED(result2);
+  TEST(result2->push(L), "expected to be able to push");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TNUMBER, __LINE__);
+  TEST_EQ(lua_tonumber(L, 1), 13);  
+  lua_pop(L, 1);
+
+  auto result3 = c.call_one_ret(8);
+  CHECK_STACK(L, 0);
+  TEST_EXPECTED(result3);
+  TEST(result3->push(L), "expected to be able to push");
+  CHECK_STACK(L, 1);
+  test_top_type(L, LUA_TNUMBER, __LINE__);
+  TEST_EQ(lua_tonumber(L, 1), 21);  
+  lua_pop(L, 1);
 }
 
 int main() {
@@ -122,6 +185,7 @@ int main() {
     {"test optional push", &test_optional_push},
     {"test optional read", &test_optional_read},
     {"test bound function", &test_bound_function},
+    {"test coroutine", &test_coroutine},
   };
   int num_fails = tests.run();
   std::cout << "\n";
