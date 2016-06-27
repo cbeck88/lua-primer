@@ -142,7 +142,6 @@ private:
                             << describe_lua_value(L, -1));
     return *static_cast<strong_ptr_type *>(result);
   }
-
 };
 
 // Forward facing interface

@@ -23,13 +23,14 @@ namespace primer {
 
 namespace detail {
 
-template <int (*producer_func)(lua_State *L)>
+template <int (*producer_func)(lua_State * L)>
 void push_cached(lua_State * L) {
   constexpr lua_CFunction registry_key = producer_func;
-  // Note that even if the function is inline and defined in a header, C++ guarantees that it
-  // has a unique address.
+  // Note that even if the function is inline and defined in a header, C++
+  // guarantees that it has a unique address.
   //
-  // The producer function should, without fail, push exactly one object onto the stack.
+  // The producer function should, without fail, push exactly one object onto
+  // the stack.
   lua_pushcfunction(L, registry_key);
   if (LUA_TNIL == lua_rawget(L, LUA_REGISTRYINDEX)) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
@@ -44,8 +45,11 @@ void push_cached(lua_State * L) {
   }
 }
 
-template <void (*producer_func)(lua_State *L)>
-int wrapped_as_cfunc(lua_State * L) { producer_func(L); return 0; }
+template <void (*producer_func)(lua_State * L)>
+int wrapped_as_cfunc(lua_State * L) {
+  producer_func(L);
+  return 0;
+}
 
 template <void (*producer_func)(lua_State * L)>
 void push_cached(lua_State * L) {
