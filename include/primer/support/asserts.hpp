@@ -42,7 +42,7 @@ namespace primer {
 
 // Assertions
 
-void fatal_error(const std::string & message) {
+inline void fatal_error(const std::string & message) {
   std::cerr << message << std::endl;
   std::abort();
 }
