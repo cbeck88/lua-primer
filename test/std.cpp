@@ -327,7 +327,7 @@ namespace traits {
 template <>
 struct userdata<userdata_test> {
   static constexpr const char * name = "userdata_test_type";
-  static constexpr const luaL_Reg * const methods = method_list;
+  static constexpr const luaL_Reg * const methods = static_cast<const luaL_Reg*>(method_list);
 };
 
 } // end namespace traits
