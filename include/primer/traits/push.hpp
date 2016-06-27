@@ -84,10 +84,54 @@ struct push<uint> {
   }
 };
 
+
+// If lua was compiled with larger integer types then enable them
+#if LUA_INT_TYPE > LUA_INT_INT
+
+template <>
+struct push<long> {
+  static void to_stack(lua_State * L, long i) { lua_pushinteger(L, i); }
+};
+
+template <>
+struct push<unsigned long> {
+  static void to_stack(lua_State * L, unsigned long u) {
+    push<long>::to_stack(L, detail::unsigned_to_signed<long>(u));
+  }
+};
+
+#if LUA_INT_TYPE > LUA_INT_LONG
+
+template <>
+struct push<long long> {
+  static void to_stack(lua_State * L, long long i) { lua_pushinteger(L, i); }
+};
+
+template <>
+struct push<unsigned long long> {
+  static void to_stack(lua_State * L, unsigned long long u) {
+    push<long long>::to_stack(L, detail::unsigned_to_signed<long long>(u));
+  }
+};
+
+#endif // LUA_INT_TYPE > LUA_INT_LONG
+
+#endif // LUA_INT_TYPE > LUA_INT_INT
+
 template <>
 struct push<float> {
   static void to_stack(lua_State * L, float f) { lua_pushnumber(L, f); }
 };
+
+// If lua is using double then allow to push that
+#if LUA_FLOAT_TYPE > LUA_FLOAT_FLOAT
+
+template <>
+struct push<double> {
+  static void to_stack(lua_State * L, double f) { lua_pushnumber(L, f); }
+};
+
+#endif
 
 // Userdata object
 template <typename T>
