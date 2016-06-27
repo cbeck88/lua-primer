@@ -1,7 +1,11 @@
 #include <primer/std.hpp>
 
+#include <primer/adapt.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
+#include <primer/result.hpp>
+#include <primer/support/function.hpp>
+#include <primer/support/userdata.hpp>
 
 #include "test_harness.hpp"
 #include <iostream>
@@ -291,6 +295,92 @@ void test_set_round_trip() {
   round_trip_value(L, std::set<bool>{true}, __LINE__);
 }
 
+/***
+ * Userdata tests
+ */
+
+struct userdata_test {
+  std::vector<std::string> list;
+};
+
+primer::result call_method(lua_State * L, userdata_test & u, std::string arg) {
+  u.list.emplace_back(std::move(arg));
+  primer::push(L, u.list.size());
+  return 1;
+}
+
+primer::result dump_method(lua_State * L, userdata_test & u) {
+  primer::push(L, u.list);
+  return 1;
+}
+
+constexpr const luaL_Reg method_list[] = {
+  {"__call", PRIMER_ADAPT(&call_method)},
+  {"dump", PRIMER_ADAPT(&dump_method)},
+  {nullptr, nullptr}
+};
+
+// Register it
+namespace primer {
+namespace traits {
+
+template <>
+struct userdata<userdata_test> {
+  static constexpr const char * name = "userdata_test_type";
+  static constexpr const luaL_Reg * const methods = method_list;
+};
+
+} // end namespace traits
+} // end namespace primer
+
+static_assert(primer::traits::is_userdata<userdata_test>::value, "our test userdata type did not count as userdata!");
+
+void test_userdata() {
+  lua_raii L;
+
+  // Install base library
+  luaL_requiref(L, "", luaopen_base, 1);
+  lua_pop(L, 1); // remove lib
+
+  CHECK_STACK(L, 0);
+
+  const char * const script = ""
+  "obj = ...                                      \n"
+  "assert(1 == obj('asdf'))                       \n"
+  "assert(2 == obj('jkl;'))                       \n"
+  "assert(3 == obj('awad'))                       \n"
+  "assert(4 == obj('waka'))                       \n"
+  "local d = obj:dump()                           \n"
+  "assert(4 == #d)                                \n"
+  "assert('asdf' == d[1])                         \n"
+  "assert('jkl;' == d[2])                         \n"
+  "assert('awad' == d[3])                         \n"
+  "assert('waka' == d[4])                         \n";
+
+  primer::push_udata<userdata_test>(L);
+  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  lua_pushvalue(L, 1);
+
+  CHECK_STACK(L, 3);
+
+  auto result = primer::fcn_call_no_ret(L, 1);
+  TEST_EXPECTED(result);
+
+  CHECK_STACK(L, 1);
+
+  TEST(primer::test_udata<userdata_test>(L, 1), "did not recover userdata from stack");
+
+  auto ref = primer::read<userdata_test &>(L, 1);
+  TEST_EXPECTED(ref);
+
+  TEST_EQ(ref->list.size(), 4);
+  TEST_EQ(ref->list[0], "asdf");
+  TEST_EQ(ref->list[1], "jkl;");
+  TEST_EQ(ref->list[2], "awad");
+  TEST_EQ(ref->list[3], "waka");
+}
+
+
 int main() {
   conf::log_conf();
 
@@ -304,6 +394,7 @@ int main() {
     {"test array roundtrip", &test_array_push},
     {"test map roundtrip", &test_map_push},
     {"test set roundtrip", &test_set_push},
+    {"test userdata", &test_userdata},
   };
   int num_fails = tests.run();
   std::cout << "\n";

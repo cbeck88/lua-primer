@@ -18,6 +18,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/traits/userdata.hpp>
 #include <primer/traits/util.hpp>
 
+#include <cstring>
 #include <type_traits>
 #include <utility>
 
@@ -61,11 +62,11 @@ struct udata_helper<
       bool saw_gc_metamethod = false;
       const char * gc_name = "__gc";
 
-      for (const auto ptr = udata::methods; ptr->name; ++ptr) {
+      for (auto ptr = udata::methods; ptr->name; ++ptr) {
         lua_pushcfunction(L, ptr->func);
         lua_setfield(L, -2, ptr->name);
 
-        if (strcmp(ptr->name, gc_name)) { saw_gc_metamethod = true; }
+        if (::strcmp(ptr->name, gc_name)) { saw_gc_metamethod = true; }
       }
 
       // If the user did not register __gc then it is potentially (likely) a

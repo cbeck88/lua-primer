@@ -241,11 +241,11 @@ public:
   }
 
   T & operator*() & { return **internal_; }
-  const T & operator*() const & { return **internal_; }
-  T && operator*() && { return std::move(**internal_); }
+  T & operator*() const & { return **internal_; }
+  T & operator*() && { return **internal_; }
 
   T * operator->() & { return *internal_; }
-  const T * operator->() const & { return *internal_; }
+  T * operator->() const & { return *internal_; }
 
   primer::error & err() & { return internal_.err(); }
   const primer::error & err() const & { return internal_.err(); }

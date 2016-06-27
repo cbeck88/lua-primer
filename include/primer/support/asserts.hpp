@@ -57,7 +57,11 @@ inline void fatal_error(const std::string & message) {
 
 #define PRIMER_ASSERT(C, X)                                                    \
   do {                                                                         \
-    if (!(C)) { PRIMER_FATAL_ERROR("Assertion " #C " failed!\n" << X); }       \
+    if (!(C)) {                                                                \
+      std::stringstream ss;                                                    \
+      ss << "Assertion " #C " failed!\n" << X;                                 \
+      ::primer::fatal_error(ss.str());                                         \
+    }                                                                          \
   } while (0)
 
 

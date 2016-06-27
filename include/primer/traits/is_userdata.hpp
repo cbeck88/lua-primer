@@ -67,7 +67,7 @@ struct assert_userdata {
                 "Type does not match userdata trait concept: T::name is not "
                 "static const char *");
   using methods_pointed_type =
-    remove_cv_t<remove_pointer_t<decltype(T::methods)>>;
+    remove_cv_t<remove_pointer_t<typename std::decay<decltype(T::methods)>::type>>;
   using check_L_Reg = assert_L_Reg<methods_pointed_type>;
 };
 
