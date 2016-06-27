@@ -36,12 +36,14 @@ script:
 
   - b2 clean --toolset=${CC}
   - ./run_tests.sh --toolset=${CC}
+  - ./lua_internal_tests.sh
 
   - b2 clean --toolset=${CC} --no-exceptions
   - ./run_tests.sh --toolset=${CC} --no-exceptions
 
   - b2 clean --toolset=${CC} --with-lua-32bit
   - ./run_tests.sh --toolset=${CC} --with-lua-32bit
+  - ./lua_internal_tests.sh
 
   - b2 clean --toolset=${CC} --no-exceptions --with-lua-32bit
   - ./run_tests.sh --toolset=${CC} --no-exceptions --with-lua-32bit
