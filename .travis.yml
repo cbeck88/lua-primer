@@ -34,14 +34,14 @@ script:
 
   - cd test
 
-  - b2 clean --toolset=${CC} --with-exceptions
-  - ./run_tests.sh --toolset=${CC} --with-exceptions
+  - b2 clean --toolset=${CC}
+  - ./run_tests.sh --toolset=${CC}
 
   - b2 clean --toolset=${CC} --no-exceptions
   - ./run_tests.sh --toolset=${CC} --no-exceptions
 
-  - b2 clean --toolset=${CC} --with-exceptions --with-lua-32bit
-  - ./run_tests.sh --toolset=${CC} --with-exceptions --with-lua-32bit
+  - b2 clean --toolset=${CC} --with-lua-32bit
+  - ./run_tests.sh --toolset=${CC} --with-lua-32bit
 
   - b2 clean --toolset=${CC} --no-exceptions --with-lua-32bit
   - ./run_tests.sh --toolset=${CC} --no-exceptions --with-lua-32bit

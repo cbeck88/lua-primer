@@ -4,29 +4,17 @@ project : default-build <optimization>off debug <cxxflags>"-std=c++11 -Wall -Wer
 
 import modules ;
 
+NO_EXCEPTIONS = ;
+
 if "--no-exceptions" in [ modules.peek : ARGV ] {
-  echo "no exceptions" ;
   NO_EXCEPTIONS = <define>PRIMER_NO_EXCEPTIONS ;
-} else {
-  NO_EXCEPTIONS = ;
 }
-
-if "--with-exceptions" in [ modules.peek : ARGV ] {
-  echo "with exceptions" ;
-  NO_EXCEPTIONS = ;
-}
-
-echo "value = " $(NO_EXCEPTIONS) ;
 
 if "--with-lua-32bit" in [ modules.peek : ARGV ] {
-  echo "with 32bit lua" ;
   LUA_DEFINE = <define>LUA_32BITS ;
 } else {
-  echo "default lua (usually 64bit)" ;
   LUA_DEFINE = ;
 }
-
-echo "value = " $(LUA_DEFINE) ;
 
 LUA_PATH = lua-5.3.1/src ;
 
