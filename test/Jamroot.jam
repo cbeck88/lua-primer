@@ -18,9 +18,24 @@ if "--with-exceptions" in [ modules.peek : ARGV ] {
 
 echo "value = " $(NO_EXCEPTIONS) ;
 
+if "--with-lua-32bit" in [ modules.peek : ARGV ] {
+  echo "with 32bit lua" ;
+  LUA_DEFINE = <define>LUA_32BITS ;
+} else {
+  echo "default lua (usually 64bit)" ;
+  LUA_DEFINE = ;
+}
+
+echo "value = " $(LUA_DEFINE) ;
+
 LUA_PATH = lua-5.3.1/src ;
 
-lib lua : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/luac.c ] : <link>static : : <include>$(LUA_PATH)/ ;
+ALL_LUA_FLAGS = <include>$(LUA_PATH)/  $(LUA_DEFINE) ;
+
+lib lualib : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/lua.c $(LUA_PATH)/luac.c ] : <link>static $(ALL_LUA_FLAGS) : : $(ALL_LUA_FLAGS) ;
+exe lua : $(LUA_PATH)/lua.c lualib : ;
+
+
 
 PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
 TEST_HARNESS = <include>include/ ;
@@ -29,16 +44,16 @@ FLAGS = $(TEST_HARNESS)  $(PRIMER) $(NO_EXCEPTIONS) ;
 
 echo "flags = " $(FLAGS) ;
 
-exe core : core.cpp lua : $(FLAGS) ;
-exe visitable : visitable.cpp lua : $(FLAGS) ;
-exe std : std.cpp lua : $(FLAGS) ;
+exe core : core.cpp lualib : $(FLAGS) ;
+exe visitable : visitable.cpp lualib : $(FLAGS) ;
+exe std : std.cpp lualib : $(FLAGS) ;
 
 
 # Need to get boost directory...
 TEST_HARNESS = <include>include/ <include>/usr/include ;
 FLAGS = $(TEST_HARNESS)  $(PRIMER) $(NO_EXCEPTIONS) ;
 
-exe boost : boost.cpp lua : $(FLAGS) ;
+exe boost : boost.cpp lualib : $(FLAGS) ;
 
 
-install install-bin : core visitable std boost : <location>stage/ ;
+install install-bin : core visitable std boost lua : <location>stage/ ;
