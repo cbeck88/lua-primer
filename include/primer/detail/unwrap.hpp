@@ -22,6 +22,8 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
+namespace detail {
+
 template <typename T>
 T unwrap(expected<T> e) {
   if (e) {
@@ -30,5 +32,7 @@ T unwrap(expected<T> e) {
     throw std::move(e).err();
   }
 }
+
+} // end namespace detail
 
 } // end namespace primer

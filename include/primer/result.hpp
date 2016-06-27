@@ -19,7 +19,7 @@
  * error is indicated by a primer::error object.
  *
  * Code to send corresponding signal to lua is in
- * `primer/support/implement_result.hpp`
+ * `primer/detail/implement_result.hpp`
  */
 
 #include <primer/base.hpp>

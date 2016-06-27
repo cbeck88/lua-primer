@@ -20,7 +20,8 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
-#include <primer/support/integral_conversions.hpp>
+#include <primer/detail/integral_conversions.hpp>
+
 #include <primer/support/userdata.hpp>
 
 #include <primer/traits/is_optional.hpp>

@@ -11,6 +11,8 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
+namespace detail {
+
 /***
  * Utility for manipulating lists of integers
  */
@@ -44,5 +46,7 @@ struct Count<0> {
 
 template <std::size_t n>
 using Count_t = typename Count<n>::type;
+
+} // end namespace detail
 
 } // end namespace primer

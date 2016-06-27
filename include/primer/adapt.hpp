@@ -45,11 +45,11 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/read.hpp>
 #include <primer/result.hpp>
 
-#include <primer/support/count.hpp>
-#include <primer/support/implement_result.hpp>
+#include <primer/detail/count.hpp>
+#include <primer/detail/implement_result.hpp>
 
 #ifndef PRIMER_NO_EXCEPTIONS
-#include <primer/support/unwrap.hpp>
+#include <primer/detail/unwrap.hpp>
 #endif
 
 #include <tuple>
@@ -102,7 +102,7 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
   struct impl;
 
   template <std::size_t... indices>
-  struct impl<primer::SizeList<indices...>> {
+  struct impl<primer::detail::SizeList<indices...>> {
 // We also mark this as "noexcept" in order to prevent bad exceptions from
 // propagating to lua.
 
@@ -112,7 +112,7 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
     // basically no copies
     static primer::result helper(lua_State * L) noexcept {
       try {
-        return target_func(L, primer::unwrap(
+        return target_func(L, primer::detail::unwrap(
                                 primer::read<Args>(L, indices + 1))...);
       } catch (primer::error & e) { return std::move(e); }
     }
@@ -150,7 +150,7 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
 public:
   static int adapted(lua_State * L) {
-    using I = Count_t<sizeof...(Args)>;
+    using I = detail::Count_t<sizeof...(Args)>;
 
     auto temp = detail::implement_result_step_one(L, impl<I>::helper(L));
     // primer::result is destroyed at the end of "full expression" in the above

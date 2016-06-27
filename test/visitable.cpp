@@ -3,8 +3,14 @@
 #include <primer/adapt.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
+
+#include <primer/support/function.hpp>
+
 #include <primer/traits/push_visitable.hpp>
 #include <primer/traits/read_visitable.hpp>
+
+#include <primer/api/callback_manager.hpp>
+#include <primer/api/callback_registrar.hpp>
 
 #include "test_harness.hpp"
 #include <iostream>
@@ -282,6 +288,77 @@ void visitable_function_params_test() {
   lua_pop(L, 1);
 }
 
+struct test_api : public primer::callback_registrar<test_api> {
+  lua_raii L_;
+  int internal_state_;
+  primer::api::callback_manager cb_man_;
+
+  test_api()
+    : L_()
+    , internal_state_(0)
+    , cb_man_(this->callbacks_array(), this)
+  {
+    cb_man_.on_init(L_);
+  }
+
+  NEW_LUA_CALLBACK(f1, "test function one")(lua_State *, int i) {
+    internal_state_ += i;
+    return 0;
+  }
+
+  NEW_LUA_CALLBACK(f2, "test function two")(lua_State * L, int i, int j) {
+    internal_state_ -= i;
+    internal_state_ *= j;
+    lua_pushinteger(L, internal_state_);
+    return 1;
+  }
+
+  struct f3_arg {
+    BEGIN_VISITABLES(f3_arg);
+    VISITABLE(int, plus);
+    VISITABLE(int, minus);
+    VISITABLE(int, times);
+    END_VISITABLES;
+  };
+
+  NEW_LUA_CALLBACK(f3, "test function three")(lua_State * L, f3_arg arg) {
+    internal_state_ += arg.plus;
+    internal_state_ -= arg.minus;
+    internal_state_ *= arg.times;
+    lua_pushinteger(L, internal_state_);
+    return 1;
+  }
+};
+
+void test_api_callbacks() {
+  test_api a;
+
+  lua_State * L = a.L_;
+
+  luaL_requiref(L, "", luaopen_base, 1);
+  lua_pop(L, 1);
+  CHECK_STACK(L, 0);
+
+  const char * script = ""
+  "f1(2)                                           \n"
+  "f1(3)                                           \n"
+  "assert(5 == f2(0, 1))                           \n"
+  "assert(12 == f2(-1, 2))                         \n"
+  "f1(-6)                                          \n"
+  "assert(-3 == f2(3, -1))                         \n"
+  "assert(0 == f3{plus = 1, minus = 1, times = 0}) \n"
+  "assert(4 == f3{plus = 3, minus = 1, times = 2}) \n";
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+
+  auto result = primer::fcn_call_no_ret(L, 0);
+  TEST_EXPECTED(result);
+
+  CHECK_STACK(L, 0);
+
+  TEST_EQ(4, a.internal_state_);
+}
+
 int main() {
   conf::log_conf();
 
@@ -291,6 +368,7 @@ int main() {
     {"visitable read test", &visitable_read_test},
     {"visitable round trip", &visitable_read_test},
     {"visitable params adapt test", &visitable_function_params_test}, 
+    {"api callbacks test", &test_api_callbacks},
   };
   int num_fails = tests.run();
   std::cout << "\n";
