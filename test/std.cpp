@@ -305,7 +305,7 @@ struct userdata_test {
 
 primer::result call_method(lua_State * L, userdata_test & u, std::string arg) {
   u.list.emplace_back(std::move(arg));
-  primer::push(L, u.list.size());
+  primer::push(L, static_cast<unsigned int>(u.list.size()));
   return 1;
 }
 
