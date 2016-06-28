@@ -57,7 +57,9 @@ public:
   // Accessors
 
   constexpr T & operator[](int i) const { return *(begin_ + i); }
-  constexpr std::size_t size() const { return static_cast<std::size_t>(end_ - begin_); }
+  constexpr std::size_t size() const {
+    return static_cast<std::size_t>(end_ - begin_);
+  }
 
   // Iterator
 

@@ -147,7 +147,8 @@ template <typename T>
 struct push<T, enable_if_t<traits::is_optional<T>::value>> {
   static void to_stack(lua_State * L, const T & t) {
     if (const auto ptr = traits::optional<T>::as_ptr(t)) {
-      // Todo: Should this be std::decay? I think we don't want to remove reference, right?
+      // Todo: Should this be std::decay? I think we don't want to remove
+      // reference, right?
       using clean_base = remove_cv_t<typename traits::optional<T>::base_type>;
       push<clean_base>::to_stack(L, *ptr);
       // primer::push(L, *ptr);

@@ -6,10 +6,11 @@
 #pragma once
 
 /***
- * Class callback_registrar is the base class which sets up a class to use the "LUA_DISPATCH" macros
- * and dispatch its member functions directly to lua as callbacks.
+ * Class callback_registrar is the base class which sets up a class to dispatch
+ * its member functions directly to lua as callbacks.
  *
- * callback_registrar is only concerned with producing a compile-time list of the callbacks.
+ * callback_registrar is only concerned with producing a compile-time list of
+ * the callbacks.
  * The actual LUA_FUNCTIONALITY is provided by class callback_manager.
  */
 
@@ -51,7 +52,9 @@ struct objlist_adaptor;
 
 template <typename T, typename... Ts>
 struct objlist_adaptor<T, TypeList<Ts...>> {
-  static constexpr std::array<T, sizeof...(Ts)> to_array() { return {{Ts::get()...}}; }
+  static constexpr std::array<T, sizeof...(Ts)> to_array() {
+    return {{Ts::get()...}};
+  }
 };
 
 } // end namespace detail
@@ -75,12 +78,16 @@ protected:
  * Methods to access the registries in a simple form at runtime.
  */
 
-  #define GET_CALLBACKS decltype(owner_type::GetCallbacks(primer::detail::Rank<maxCallbacks>{}))
+#define GET_CALLBACKS                                                          \
+  decltype(owner_type::GetCallbacks(primer::detail::Rank<maxCallbacks>{}))
 
   static detail::span<const luaW_Reg> callbacks_array() {
-    if (!GET_CALLBACKS::size) { return {}; } // arrays of size zero are not allowed
-                                             // this check silences clang ubsan
-    static auto static_instance(detail::objlist_adaptor<const luaW_Reg, GET_CALLBACKS>::to_array());
+    // arrays of size zero are not allowed
+    // this check silences clang ubsan
+    if (!GET_CALLBACKS::size) { return {}; }
+
+    static auto static_instance(
+      detail::objlist_adaptor<const luaW_Reg, GET_CALLBACKS>::to_array());
     return static_instance;
   }
 };
@@ -93,40 +100,42 @@ protected:
 
 /***
  * Use a given function pointer as a callback for this lua owner.
- * The function pointer is wrapped using LUA_DISPATCH
+ * The function pointer is wrapped using PRIMER_ADAPT_EXTRASPACE
  */
 
-#define USE_LUA_CALLBACK(name, help, fcn)                                                          \
-  static constexpr const char * lua_callback_name_##name() { return #name; }                       \
-  static constexpr const char * lua_callback_help_##name() { return help; }                        \
-  static constexpr lua_CFunction lua_get_member_ptr_##name() { return PRIMER_ADAPT_EXTRASPACE(owner_type, fcn); }    \
-  typedef primer::luaW_RegType<&owner_type::lua_callback_name_##name,                              \
-                               &owner_type::lua_callback_help_##name,                              \
-                               &owner_type::lua_get_member_ptr_##name> reg_type_##name;            \
-  static inline primer::detail::Append_t<GET_CALLBACKS, reg_type_##name> GetCallbacks(       \
-    primer::detail::Rank<GET_CALLBACKS::size + 1>);                                                \
+#define USE_LUA_CALLBACK(name, help, fcn)                                         \
+  static constexpr const char * lua_callback_name_##name() { return #name; }      \
+  static constexpr const char * lua_callback_help_##name() { return help; }       \
+  static constexpr lua_CFunction lua_get_member_ptr_##name() {                    \
+    return PRIMER_ADAPT_EXTRASPACE(owner_type, fcn);                              \
+  }                                                                               \
+  typedef primer::luaW_RegType<                                                   \
+    &owner_type::lua_callback_name_##name, &owner_type::lua_callback_help_##name, \
+    &owner_type::lua_get_member_ptr_##name> reg_type_##name;                      \
+  static inline primer::detail::Append_t<GET_CALLBACKS, reg_type_##name>          \
+    GetCallbacks(primer::detail::Rank<GET_CALLBACKS::size + 1>);                  \
   static_assert(true, "")
 
 
 /***
- * Declare & define inline a new lua callback. The return type primer::result.
- * You are expected to use the automatic argument parsing by putting the expected args in the
- * function signature. And signal errors by e.g. `return primer::error("...")`. Don't longjmp out of
- * this function, or it is a resource leak.
+ * Declare & define inline a new lua callback. Return type is primer::result.
+ * You are expected to use the automatic argument parsing by putting the
+ * expected args in the function signature.
+ * And signal errors by e.g. `return primer::error("...")`.
+ * Don't longjmp out of this function, or it is a resource leak.
  */
 
-#define NEW_LUA_CALLBACK(name, help)                                                               \
-  USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                                          \
+#define NEW_LUA_CALLBACK(name, help)                                           \
+  USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                      \
   primer::result intf_##name
 
 
 /***
- * Declare & define inline a new "raw" lua callback, i.e. one which takes lua_State * and
- * returns int. This function is called basically directly from lua, you have to call lua_error
- * yourself and take care of longjmp yourself if necessary.
+ * Declare & define inline a new "raw" lua callback, i.e. one which takes
+ * lua_State * and returns int. This function is called basically directly from
+ * lua, you have to call lua_error yourself and take care of longjmp yourself
+ * if necessary.
  */
-#define LUA_CALLBACK_RAW(name, help)                                                               \
-  USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                                          \
+#define LUA_CALLBACK_RAW(name, help)                                           \
+  USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                      \
   int intf_##name
-
-

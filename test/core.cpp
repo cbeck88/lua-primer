@@ -631,7 +631,6 @@ void primer_call_test() {
 
     TEST_EXPECTED(as_int);
     TEST_EQ(14, *as_int);
-
   }
   CHECK_STACK(L, 0);
 }

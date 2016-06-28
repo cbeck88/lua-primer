@@ -45,7 +45,7 @@ struct Append<TypeList<Ts...>, T> {
   typedef TypeList<Ts..., T> type;
 };
 
-template<class L, class T>
+template <class L, class T>
 using Append_t = typename Append<L, T>::type;
 
 } // end namespace detail

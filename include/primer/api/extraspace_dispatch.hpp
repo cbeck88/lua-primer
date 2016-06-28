@@ -25,16 +25,16 @@ namespace primer {
  * extraspace block. This block has size and alignment at least that of a void
  * pointer, and is free for us to use, so we just treat the pointer to the block
  * as a pointer to such an object.
- * 
+ *
  * access_extraspace_ptr returns a reference, which lets us manipulate this
  * pointer easily.
  */
 namespace detail {
-  using void_ptr = void *;
+using void_ptr = void *;
 
-  inline void_ptr & access_extraspace_ptr(lua_State * L) {
-    return *static_cast<void_ptr*>(lua_getextraspace(L));
-  }
+inline void_ptr & access_extraspace_ptr(lua_State * L) {
+  return *static_cast<void_ptr *>(lua_getextraspace(L));
+}
 } // end namespace detail
 
 namespace api {
@@ -55,41 +55,46 @@ void set_extraspace_ptr(lua_State * L, T * t) {
 
 template <typename T>
 T * get_extraspace_ptr(lua_State * L) {
-  return static_cast<T*>(detail::access_extraspace_ptr(L));
+  return static_cast<T *>(detail::access_extraspace_ptr(L));
 }
 
 /***
  * Dispatcher primary template. Constructs the delegate, falling back to the
  * basic adaptor if possible.
  *
- * Template parameter T represents the extraspace type. It is explicitly specified
+ * Template parameter T represents the extraspace type. It is explicitly
+ * specified
  * for safety. You will get a type mismatch if it does not match the base type
  * of the member pointer.
  */
 
 template <typename T, typename F, F f>
-struct extraspace_dispatcher : public adaptor <F, f> {};
+struct extraspace_dispatcher : public adaptor<F, f> {};
 
 /***
  * Specialize for a member function
  */
 
-template <typename T, typename R, typename... Args, R (T::*target_func)(lua_State *, Args...)>
-struct extraspace_dispatcher<T, R(T::*)(lua_State *, Args...), target_func> {
+template <typename T,
+          typename R,
+          typename... Args,
+          R (T::*target_func)(lua_State *, Args...)>
+struct extraspace_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
 
-  static R dispatch_target(lua_State * L, Args ... args) {
+  static R dispatch_target(lua_State * L, Args... args) {
     T * object_ptr = get_extraspace_ptr<T>(L);
     PRIMER_ASSERT(object_ptr, "Extraspace pointer was not initialized!");
     return (object_ptr->*target_func)(L, std::forward<Args>(args)...);
   }
 
   static int adapted(lua_State * L) {
-    using helper_t = adaptor<R(*)(lua_State *, Args...), dispatch_target>;
+    using helper_t = adaptor<R (*)(lua_State *, Args...), dispatch_target>;
     return helper_t::adapted(L);
   }
 };
 
-#define PRIMER_ADAPT_EXTRASPACE(t, f) &primer::api::extraspace_dispatcher<t, decltype(f), f>::adapted
+#define PRIMER_ADAPT_EXTRASPACE(t, f)                                          \
+  &primer::api::extraspace_dispatcher<t, decltype(f), f>::adapted
 
 } // end namespace api
 } // end namespace primer

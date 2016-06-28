@@ -16,10 +16,13 @@
  * provided to the lua state.
  *
  * Finally, it is initalizes the lua_extraspace pointer to the value "owner_ptr"
- * which is passed to it. This should point to the base class of any member functions
+ * which is passed to it. This should point to the base class of any member
+ * functions
  * that are passed to lua using the LUA_DELEGATE macro. This should generally be
- * the class deriving from api_base. There may only be one such class for each lua
- * state, otherwise, you must use a different mechanism for registering the other
+ * the class deriving from api_base. There may only be one such class for each
+ * lua
+ * state, otherwise, you must use a different mechanism for registering the
+ * other
  * functions.
  * (For example you could pass `std::function` objects as userdata to lua.)
  * Note that the extraspace method will be the most performant.
@@ -47,9 +50,10 @@ class callback_manager {
 
 public:
   template <typename T>
-  constexpr explicit callback_manager(const detail::span<const luaW_Reg> & _l, T * _owner_ptr)
+  constexpr explicit callback_manager(const detail::span<const luaW_Reg> & _l,
+                                      T * _owner_ptr)
     : list_(_l)
-    , owner_ptr_(static_cast<void*>(_owner_ptr))
+    , owner_ptr_(static_cast<void *>(_owner_ptr))
   {}
 
   static constexpr bool is_serial = false;

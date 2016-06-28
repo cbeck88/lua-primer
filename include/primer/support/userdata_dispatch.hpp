@@ -31,7 +31,7 @@ namespace primer {
  */
 
 template <typename T, typename F, F f>
-struct userdata_dispatcher : public adaptor <F, f> {};
+struct userdata_dispatcher : public adaptor<F, f> {};
 
 /***
  * Specialize for a member function
@@ -42,19 +42,23 @@ struct userdata_dispatcher : public adaptor <F, f> {};
  *  R (lua_State *, T &, Args...)
  */
 
-template <typename T, typename R, typename... Args, R (T::*target_func)(lua_State *, Args...)>
-struct userdata_dispatcher<T, R(T::*)(lua_State *, Args...), target_func> {
+template <typename T,
+          typename R,
+          typename... Args,
+          R (T::*target_func)(lua_State *, Args...)>
+struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
 
-  static R dispatch_target(lua_State * L, T & t, Args ... args) {
+  static R dispatch_target(lua_State * L, T & t, Args... args) {
     return (t.*target_func)(L, std::forward<Args>(args)...);
   }
 
   static int adapted(lua_State * L) {
-    using helper_t = adaptor<R(*)(lua_State *, T &, Args...), dispatch_target>;
+    using helper_t = adaptor<R (*)(lua_State *, T &, Args...), dispatch_target>;
     return helper_t::adapted(L);
   }
 };
 
-#define PRIMER_ADAPT_USERDATA(t, f) &primer::userdata_dispatcher<t, decltype(f), f>::adapted
+#define PRIMER_ADAPT_USERDATA(t, f)                                            \
+  &primer::userdata_dispatcher<t, decltype(f), f>::adapted
 
 } // end namespace primer

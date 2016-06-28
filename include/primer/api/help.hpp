@@ -27,7 +27,9 @@ inline void make_help_table(lua_State * L) { lua_newtable(L); }
  * set_help_string: Registers a help string for a function in the help database
  * for this lua state.
  */
-inline void set_help_string(lua_State * L, lua_CFunction f, const char * help_str) {
+inline void set_help_string(lua_State * L,
+                            lua_CFunction f,
+                            const char * help_str) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
 
   detail::push_cached<&make_help_table>(L);
@@ -77,7 +79,9 @@ inline int intf_help_impl(lua_State * L) {
     }
     return 1;
   } else if (lua_isfunction(L, 1)) {
-    lua_pushliteral(L, "Expected a built-in function: This is a user-defined function.");
+    lua_pushliteral(L,
+                    "Expected a built-in function: This is a user-defined "
+                    "function.");
   } else {
     lua_pushliteral(L, "Expected a function");
   }
