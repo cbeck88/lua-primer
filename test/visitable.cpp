@@ -296,7 +296,7 @@ struct test_api : public primer::callback_registrar<test_api> {
   test_api()
     : L_()
     , internal_state_(0)
-    , cb_man_(this->callbacks_array(), this)
+    , cb_man_(this)
   {
     cb_man_.on_init(L_);
   }

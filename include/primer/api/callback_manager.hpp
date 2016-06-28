@@ -56,6 +56,13 @@ public:
     , owner_ptr_(static_cast<void *>(_owner_ptr))
   {}
 
+  // This is the ctor you should usually use, when using callback_manger
+  // with an api_base object
+  template <typename T>
+  constexpr explicit callback_manager(T * _owner_ptr)
+    : callback_manager(T::callbacks_array(), _owner_ptr)
+  {}
+
   static constexpr bool is_serial = false;
 
   void on_init(lua_State * L) const {
