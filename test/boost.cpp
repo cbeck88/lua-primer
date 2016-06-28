@@ -216,11 +216,11 @@ int main() {
 
   std::cout << "Boost tests:" << std::endl;
   test_harness tests{
-    {"test optional push", &test_optional_push},
-    {"test optional read", &test_optional_read},
-    {"test flat set", &test_flat_set_round_trip},
-    {"test bound function", &test_bound_function},
-    {"test coroutine", &test_coroutine},
+    {"optional push", &test_optional_push},
+    {"optional read", &test_optional_read},
+    {"flat set", &test_flat_set_round_trip},
+    {"bound function", &test_bound_function},
+    {"coroutine", &test_coroutine},
   };
   int num_fails = tests.run();
   std::cout << "\n";

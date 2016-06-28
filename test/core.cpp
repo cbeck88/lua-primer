@@ -4,7 +4,6 @@
 #include <primer/read.hpp>
 #include <primer/result.hpp>
 #include <primer/lua_ref.hpp>
-#include <primer/set_funcs.hpp>
 #include <primer/detail/lua_state_ref.hpp>
 #include <primer/support/function.hpp>
 
@@ -723,13 +722,13 @@ int main() {
     {"push type simple values", &push_type_simple},
     {"roundtrip simple values", &roundtrip_simple},
     {"simple type safety", &typesafe_simple},
-    {"primer adapt test one", &primer_adapt_test_one},
-    {"primer adapt test two", &primer_adapt_test_two},
-    {"primer adapt test three", &primer_adapt_test_three},
+    {"primer adapt one", &primer_adapt_test_one},
+    {"primer adapt two", &primer_adapt_test_two},
+    {"primer adapt three", &primer_adapt_test_three},
     {"lua state ref validity", &lua_state_ref_validity},
     {"lua value ref validity", &primer_ref_test},
-    {"primer call test", &primer_call_test},
-    {"primer resume test", &primer_resume_test},
+    {"primer call", &primer_call_test},
+    {"primer resume", &primer_resume_test},
   };
   int num_fails = tests.run();
   std::cout << "\n";

@@ -29,6 +29,7 @@ PRIMER_ASSERT_FILESCOPE;
   static_cast<const void>(L);                                                  \
   static_assert(true, "")
 #define PRIMER_DEBUG_MSG(X)
+#deifne PRIMER_ASSERT_TABLE(L)
 
 #else // PRIMER_DEBUG
 
@@ -101,6 +102,17 @@ public:
     std::cerr << "      [" << __FILE__ << ":" << __LINE__ << "] " << X         \
               << std::endl;                                                    \
   } while (0)
+
+inline void assert_table(lua_State * L, const char * fname) {
+  auto t = lua_type(L, -1);
+  PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA ||
+                t == LUA_TLIGHTUSERDATA,
+                "In " << fname << ", no table or table-like thing was found!");
+}
+
+#define PRIMER_ASSERT_TABLE(L)                                                 \
+  primer::assert_table(L, __function__);                                       \
+  static_assert(true, "")
 
 } // end namespace primer
 

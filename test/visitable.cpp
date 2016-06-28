@@ -364,11 +364,11 @@ int main() {
 
   std::cout << "Visitable structure tests:" << std::endl;
   test_harness tests{
-    {"visitable push test", &visitable_push_test},
-    {"visitable read test", &visitable_read_test},
+    {"visitable push", &visitable_push_test},
+    {"visitable read", &visitable_read_test},
     {"visitable round trip", &visitable_read_test},
-    {"visitable params adapt test", &visitable_function_params_test}, 
-    {"api callbacks test", &test_api_callbacks},
+    {"visitable params adapt", &visitable_function_params_test}, 
+    {"api callbacks", &test_api_callbacks},
   };
   int num_fails = tests.run();
   std::cout << "\n";

@@ -485,16 +485,16 @@ int main() {
 
   std::cout << "Std container tests:" << std::endl;
   test_harness tests{
-    {"test vector push", &test_vector_push},
-    {"test array push", &test_array_push},
-    {"test map push", &test_map_push},
-    {"test set push", &test_set_push},
-    {"test vector roundtrip", &test_vector_push},
-    {"test array roundtrip", &test_array_push},
-    {"test map roundtrip", &test_map_push},
-    {"test set roundtrip", &test_set_push},
-    {"test userdata", &test_userdata},
-    {"test userdata two", &test_userdata},
+    {"vector push", &test_vector_push},
+    {"array push", &test_array_push},
+    {"map push", &test_map_push},
+    {"set push", &test_set_push},
+    {"vector roundtrip", &test_vector_push},
+    {"array roundtrip", &test_array_push},
+    {"map roundtrip", &test_map_push},
+    {"set roundtrip", &test_set_push},
+    {"userdata", &test_userdata},
+    {"userdata two", &test_userdata},
   };
   int num_fails = tests.run();
   std::cout << "\n";

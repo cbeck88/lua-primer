@@ -7,7 +7,9 @@
 
 /***
  * Useful function that registers a null-terminated array of luaL_Reg-like
- * objects with a table on top of the stack.
+ * objects with a table on top of the stack. Similar to luaL_setfuncs.
+ *
+ * set_funcs_reverse uses the fuction as a key, as needed for persist table.
  */
 
 #include <primer/base.hpp>
@@ -21,19 +23,26 @@ namespace primer {
 
 template <typename T>
 void set_funcs(lua_State * L, const T * ptr) {
-
-#ifdef PRIMER_DEBUG
-  {
-    auto t = lua_type(L, -1);
-    PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA ||
-                    t == LUA_TLIGHTUSERDATA,
-                  "In set_funcs, no table or table-like thing was found!");
-  }
-#endif // PRIMER_DEBUG
+  PRIMER_ASSERT_TABLE(L);
 
   for (; ptr->name; ++ptr) {
-    lua_pushcfunction(L, ptr->func);
-    lua_setfield(L, -2, ptr->name);
+    if (ptr->func) {
+      lua_pushcfunction(L, ptr->func);
+      lua_setfield(L, -2, ptr->name);
+    }
+  }
+}
+
+template <typename T>
+void set_funcs_reverse(lua_State * L, const T * ptr) {
+  PRIMER_ASSERT_TABLE(L);
+
+  for (; ptr->name; ++ptr) {
+    if (ptr->func) {
+      lua_pushstring(L, ptr->name);
+      lua_pushcfunction(L, ptr->func);
+      lua_settable(L, -3);
+    }
   }
 }
 
