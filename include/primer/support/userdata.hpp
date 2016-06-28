@@ -60,7 +60,7 @@ struct udata_helper<
       // Assign the methods to the metatable
       // Use auto in case we use an expanded reg type later.
       bool saw_gc_metamethod = false;
-      const char * gc_name = "__gc";
+      constexpr const char * gc_name = "__gc";
 
       for (auto ptr = udata::methods; ptr->name; ++ptr) {
         if (ptr->func) {
