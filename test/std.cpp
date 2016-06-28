@@ -6,6 +6,7 @@
 #include <primer/result.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/userdata.hpp>
+#include <primer/support/userdata_dispatch.hpp>
 
 #include "test_harness.hpp"
 #include <iostream>
@@ -380,6 +381,116 @@ void test_userdata() {
   TEST_EQ(ref->list[3], "waka");
 }
 
+/***
+ * Second test
+ */
+
+struct vec2_test {
+  float x;
+  float y;
+
+  primer::result add(lua_State *, vec2_test & other) {
+    x += other.x;
+    y += other.y;
+    return 0;
+  }
+
+  primer::result subtract(lua_State *, vec2_test & other) {
+    x -= other.x;
+    y -= other.y;
+    return 0;
+  }
+
+  primer::result negate(lua_State *) {
+    x = -x;
+    y = -y;
+    return 0;
+  }
+
+  primer::result less_than(lua_State * L, vec2_test & other) {
+    lua_pushboolean(L, (x < other.x) || (x == other.x && y < other.y));
+    return 1;
+  }
+
+  primer::result norm(lua_State * L) {
+    lua_pushnumber(L, (x * x) + (y * y));
+    return 1;
+  }
+
+  primer::result dump(lua_State * L) {
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+    return 2;
+  }
+};
+
+constexpr const luaL_Reg vec2_methods[] = {
+  { "__add", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::add)},
+  { "__sub", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::subtract)},
+  { "__unm", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::negate)},
+  { "__lt",  PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::less_than)},
+  { "norm",  PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::norm)},
+  { "dump",  PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::dump)},
+  { "__gc",  nullptr },
+  { nullptr, nullptr }
+};
+
+namespace primer {
+namespace traits {
+
+template <>
+struct userdata<vec2_test> {
+  static constexpr const char * name = "vec2";
+  static constexpr const luaL_Reg * const methods = static_cast<const luaL_Reg * const>(vec2_methods);
+};
+
+} // end namespace traits
+} // end namespace primer
+
+static_assert(primer::traits::is_userdata<vec2_test>::value, "our test userdata type did not count as userdata!");
+
+primer::result vec2_ctor(lua_State * L, float x, float y) {
+  primer::push_udata<vec2_test>(L, x, y);
+  return 1;
+}
+
+void test_userdata_two() {
+  lua_raii L;
+
+  // Install base library
+  luaL_requiref(L, "", luaopen_base, 1);
+  lua_pop(L, 1); // remove lib
+
+  // Install vec2 ctor
+  lua_pushcfunction(L, PRIMER_ADAPT(&vec2_ctor));
+  lua_setglobal(L, "vec2");
+
+  CHECK_STACK(L, 0);
+
+  const char * const script = ""
+  "local v1 = vec2(1, 1)                          \n"
+  "v1 + vec2(3, 4)                                \n"
+  "local x,y = v1:dump()                          \n"
+  "assert(x == 4)                                 \n"
+  "assert(y == 5)                                 \n"
+  "assert(v1:norm() == 41)                        \n"
+  "v1 + - vec2(3, 4)                              \n"
+  "assert(v1:norm() == 2)                         \n"
+  "v1 - vec2(3, 3)                                \n"
+  "assert(v1:norm() == 8)                         \n"
+  "assert(v1 < vec2(5, 5))                        \n";
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+
+  CHECK_STACK(L, 1);
+
+  auto result = primer::fcn_call_no_ret(L, 0);
+  TEST_EXPECTED(result);
+
+  CHECK_STACK(L, 0);
+}
+
+
 
 int main() {
   conf::log_conf();
@@ -395,6 +506,7 @@ int main() {
     {"test map roundtrip", &test_map_push},
     {"test set roundtrip", &test_set_push},
     {"test userdata", &test_userdata},
+    {"test userdata two", &test_userdata},
   };
   int num_fails = tests.run();
   std::cout << "\n";

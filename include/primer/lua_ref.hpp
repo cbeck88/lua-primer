@@ -203,7 +203,6 @@ public:
   template <typename T>
   expected<T> as() const noexcept {
     if (lua_State * L = this->push()) {
-      PRIMER_ASSERT_STACK_NEUTRAL(L);
       expected<T> result{primer::read<T>(L, -1)};
       lua_pop(L, 1);
       return result;
