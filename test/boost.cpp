@@ -12,6 +12,9 @@
 
 #include <boost/optional/optional.hpp>
 
+/***
+ * Test boost::optional
+ */
 void test_optional_push() {
   lua_raii L;
 
@@ -60,6 +63,37 @@ void test_optional_read() {
     lua_pop(L, 1);
   }
 }
+
+/***
+ * Test flat set
+ */
+
+template <typename T>
+std::ostream & operator << (std::ostream & o, const boost::container::flat_set<T> & s) {
+  o << "{ ";
+  for (const auto & i : s) {
+    o << i << ", ";
+  }
+  o << "}";
+  return o;
+}
+
+
+void test_flat_set_round_trip() {
+  lua_raii L;
+
+  using boost::container::flat_set;
+
+  round_trip_value(L, flat_set<int>{}, __LINE__);
+  round_trip_value(L, flat_set<int>{1, 5, 6, 10, 234}, __LINE__);
+  round_trip_value(L, flat_set<std::string>{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"}, __LINE__);
+  round_trip_value(L, flat_set<bool>{true}, __LINE__);
+}
+
+
+/***
+ * Test optional adapted, bound function, coroutine
+ */
 
 primer::result test_func(lua_State * L, int i, int j, boost::optional<std::string> k, boost::optional<std::string> l) {
   if (k && l && (*k != *l)) { return primer::error("Expected equal strings"); }
@@ -184,6 +218,7 @@ int main() {
   test_harness tests{
     {"test optional push", &test_optional_push},
     {"test optional read", &test_optional_read},
+    {"test flat set", &test_flat_set_round_trip},
     {"test bound function", &test_bound_function},
     {"test coroutine", &test_coroutine},
   };

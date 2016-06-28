@@ -14,3 +14,4 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/boost/optional.hpp>
+#include <primer/boost/flat_set.hpp>

@@ -245,18 +245,6 @@ std::ostream & operator << (std::ostream & o, const std::unordered_map<T, U> & m
   return o;
 }
 
-
-template <typename T>
-void round_trip_value(lua_State * L, const T & t, int line) {
-  PRIMER_ASSERT_STACK_NEUTRAL(L);
-
-  primer::push(L, t);
-  auto r = primer::read<T>(L, -1);
-  TEST(r, "Failed to read when roundtripping a value. line: " + std::to_string(line));
-  TEST_EQ(t, *r);
-  lua_pop(L, 1);
-}
-
 void test_vector_round_trip() {
   lua_raii L;
 

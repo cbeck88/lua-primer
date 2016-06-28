@@ -99,7 +99,7 @@ struct lua_raii {
   operator lua_State *() const { return L_; }
 };
 
-// Test exception, test assertion
+// Test exception type. Test assertion failures throw this.
 
 struct test_exception : std::exception {
   std::string message_;
@@ -113,11 +113,15 @@ struct test_exception : std::exception {
   }
 };
 
+/***
+ * Macros which create assertions
+ */
+
 #define TEST(C, X)                                                             \
   do {                                                                         \
     if (!(C)) {                                                                \
       std::ostringstream ss__;                                                 \
-      ss__ << "Condition " #C " failed: " << X;                                \
+      ss__ << "Condition " #C " failed (line " << __LINE__ << ") : " << X;     \
       throw test_exception{ss__.str()};                                        \
     }                                                                          \
   } while (0)
@@ -134,14 +138,6 @@ struct test_exception : std::exception {
 
 #define CHECK_STACK(L, I) TEST_EQ(lua_gettop(L), I)
 
-inline void test_type(lua_State * L, int idx, int expected, int line) {
-  if (lua_type(L, idx) != expected) {
-    TEST(false, "Expected '" << lua_typename(L, expected) << "', found '"
-                             << lua_typename(L, lua_type(L, idx))
-                             << "' line: " << line);
-  }
-}
-
 #define TEST_EXPECTED(C)                                                       \
   do {                                                                         \
     const auto & result__ = C;                                                 \
@@ -152,9 +148,38 @@ inline void test_type(lua_State * L, int idx, int expected, int line) {
     }                                                                          \
   } while (0)
 
+/***
+ * Test types on the stack
+ */
+
+inline void test_type(lua_State * L, int idx, int expected, int line) {
+  if (lua_type(L, idx) != expected) {
+    TEST(false, "Expected '" << lua_typename(L, expected) << "', found '"
+                             << lua_typename(L, lua_type(L, idx))
+                             << "' line: " << line);
+  }
+}
+
 inline void test_top_type(lua_State * L, int expected, int line) {
   test_type(L, -1, expected, line);
 }
+
+/***
+ * Test round tripping any given C++ value with lua stack
+ */
+
+template <typename T>
+void round_trip_value(lua_State * L, const T & t, int line) {
+  PRIMER_ASSERT_STACK_NEUTRAL(L);
+
+  primer::push(L, t);
+  auto r = primer::read<T>(L, -1);
+  TEST(r, "Failed to recover when roundtripping a value. line: " + std::to_string(line));
+  TEST_EQ(t, *r);
+  lua_pop(L, 1);
+}
+
+
 
 /***
  * Test registry object
