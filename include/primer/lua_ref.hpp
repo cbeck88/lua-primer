@@ -74,7 +74,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 #include <primer/read.hpp>
 
-#include <primer/lua_state_ref.hpp>
+#include <primer/detail/lua_state_ref.hpp>
 #include <primer/support/asserts.hpp>
 
 namespace primer {

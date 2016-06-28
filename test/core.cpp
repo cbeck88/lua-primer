@@ -3,9 +3,9 @@
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/result.hpp>
-#include <primer/lua_state_ref.hpp>
 #include <primer/lua_ref.hpp>
 #include <primer/set_funcs.hpp>
+#include <primer/detail/lua_state_ref.hpp>
 #include <primer/support/function.hpp>
 
 #include "test_harness.hpp"
