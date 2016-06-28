@@ -179,10 +179,20 @@ void round_trip_value(lua_State * L, const T & t, int line) {
   lua_pop(L, 1);
 }
 
+/***
+ * Load a script, and if it cannot be loaded, throw an error.
+ */
 
+primer::expected<void> try_load_script(lua_State * L, const char * script) {
+  int code = luaL_loadstring(L, script);
+  if (LUA_OK != code) {
+    return primer::detail::pop_error(L, code).prepend_error_line(script);
+  }
+  return {};
+}
 
 /***
- * Test registry object
+ * Test harness object
  */
 
 typedef void (*test_func_t)();

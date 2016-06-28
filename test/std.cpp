@@ -347,7 +347,7 @@ void test_userdata() {
   "assert('waka' == d[4])                         \n";
 
   primer::push_udata<userdata_test>(L);
-  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  TEST_EXPECTED(try_load_script(L, script));
   lua_pushvalue(L, 1);
 
   CHECK_STACK(L, 3);
@@ -377,22 +377,25 @@ struct vec2_test {
   float x;
   float y;
 
-  primer::result add(lua_State *, vec2_test & other) {
+  primer::result add(lua_State * L, vec2_test & other) {
     x += other.x;
     y += other.y;
-    return 0;
+    lua_pushvalue(L, 1);
+    return 1;
   }
 
-  primer::result subtract(lua_State *, vec2_test & other) {
+  primer::result subtract(lua_State * L, vec2_test & other) {
     x -= other.x;
     y -= other.y;
-    return 0;
+    lua_pushvalue(L, 1);
+    return 1;
   }
 
-  primer::result negate(lua_State *) {
+  primer::result negate(lua_State * L) {
     x = -x;
     y = -y;
-    return 0;
+    lua_pushvalue(L, 1);
+    return 1;
   }
 
   primer::result less_than(lua_State * L, vec2_test & other) {
@@ -457,18 +460,18 @@ void test_userdata_two() {
 
   const char * const script = ""
   "local v1 = vec2(1, 1)                          \n"
-  "v1 + vec2(3, 4)                                \n"
+  "_ = v1 + vec2(3, 4)                            \n"
   "local x,y = v1:dump()                          \n"
   "assert(x == 4)                                 \n"
   "assert(y == 5)                                 \n"
   "assert(v1:norm() == 41)                        \n"
-  "v1 + - vec2(3, 4)                              \n"
+  "_ = v1 + - vec2(3, 4)                          \n"
   "assert(v1:norm() == 2)                         \n"
-  "v1 - vec2(3, 3)                                \n"
+  "_ = v1 - vec2(3, 3)                            \n"
   "assert(v1:norm() == 8)                         \n"
   "assert(v1 < vec2(5, 5))                        \n";
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  TEST_EXPECTED(try_load_script(L, script));
 
   CHECK_STACK(L, 1);
 
@@ -494,7 +497,7 @@ int main() {
     {"map roundtrip", &test_map_push},
     {"set roundtrip", &test_set_push},
     {"userdata", &test_userdata},
-    {"userdata two", &test_userdata},
+    {"userdata two", &test_userdata_two},
   };
   int num_fails = tests.run();
   std::cout << "\n";

@@ -20,6 +20,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/lua_ref.hpp>
 #include <primer/support/push_cached.hpp>
+#include <primer/detail/error_capture.hpp>
 #include <tuple>
 #include <utility>
 
@@ -34,23 +35,6 @@ inline void fetch_traceback_function(lua_State * L) {
                 "could not find debug traceback function");
   static_cast<void>(result);
   lua_remove(L, -2);
-}
-
-inline const char * error_code_to_string(const int err_code) {
-  switch (err_code) {
-    case LUA_ERRSYNTAX:
-      return "a syntax error:";
-    case LUA_ERRRUN:
-      return "a runtime error:";
-    case LUA_ERRMEM:
-      return "a memory allocation error:";
-    case LUA_ERRERR:
-      return "an error in the error handler function:";
-    case LUA_OK:
-      return "this error code means there was no error... please report this:";
-    default:
-      return "an unknown type of error:";
-  }
 }
 
 // Expects: Function, followed by narg arguments, on top of the stack.
@@ -88,18 +72,6 @@ inline std::tuple<int, int> resume_helper(lua_State * L, int narg) {
   }
 
   return std::tuple<int, int>{result_code, result_index};
-}
-
-// Gets an error string from the top of the stack, forms a primer::error from
-// it.
-// Pops the error string.
-inline primer::error pop_error(lua_State * L, int err_code) {
-  PRIMER_ASSERT(lua_gettop(L), "No error object to pop!");
-  primer::error e{lua_isstring(L, -1) ? lua_tostring(L, -1)
-                                      : "(no description available)"};
-  e.prepend_error_line(detail::error_code_to_string(err_code));
-  lua_pop(L, 1);
-  return e;
 }
 
 } // end namespace detail
