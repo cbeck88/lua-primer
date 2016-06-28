@@ -69,6 +69,11 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+
+#include <primer/error.hpp>
+#include <primer/expected.hpp>
+#include <primer/read.hpp>
+
 #include <primer/lua_state_ref.hpp>
 #include <primer/support/asserts.hpp>
 
@@ -192,6 +197,19 @@ public:
   // operator bool
   explicit operator bool() const noexcept {
     return static_cast<bool>(this->check_engaged());
+  }
+
+  // Attempt to cast the lua value to a C++ value, using primer::read
+  template <typename T>
+  expected<T> as() const noexcept {
+    if (lua_State * L = this->push()) {
+      PRIMER_ASSERT_STACK_NEUTRAL(L);
+      expected<T> result{primer::read<T>(L, -1)};
+      lua_pop(L, 1);
+      return result;
+    } else {
+      return primer::error("Could not lock lua state");
+    }
   }
 };
 

@@ -63,8 +63,10 @@ struct udata_helper<
       const char * gc_name = "__gc";
 
       for (auto ptr = udata::methods; ptr->name; ++ptr) {
-        lua_pushcfunction(L, ptr->func);
-        lua_setfield(L, -2, ptr->name);
+        if (ptr->func) {
+          lua_pushcfunction(L, ptr->func);
+          lua_setfield(L, -2, ptr->name);
+        }
 
         if (::strcmp(ptr->name, gc_name)) { saw_gc_metamethod = true; }
       }

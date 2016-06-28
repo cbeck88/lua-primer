@@ -12,14 +12,6 @@
 #include <iostream>
 #include <string>
 
-#ifdef PRIMER_LUA_AS_CPP
-#include <lualib.h>
-#else
-extern "C" {
-#include <lualib.h>
-}
-#endif
-
 template <typename T>
 void test_push_type(lua_State * L, T t, int expected, int line) {
   CHECK_STACK(L, 0);
@@ -593,7 +585,7 @@ void primer_call_test() {
 
     auto result = primer::fcn_call_no_ret(L, 3);
     CHECK_STACK(L, 0);
-    TEST(result, "expected success");
+    TEST_EXPECTED(result);
   }
 
   lua_CFunction f2 = PRIMER_ADAPT(&test_func_two);
@@ -616,7 +608,7 @@ void primer_call_test() {
     auto result = primer::fcn_call_one_ret(L, 2);
 
     CHECK_STACK(L, 0);
-    TEST(result, "expected success");
+    TEST_EXPECTED(result);
     TEST(result->push(), "expected to be able to push");
     CHECK_STACK(L, 1);
     test_top_type(L, LUA_TNUMBER, __LINE__);
@@ -624,6 +616,23 @@ void primer_call_test() {
     lua_pop(L, 1);
   }
 
+  {
+    lua_pushcfunction(L, f4);
+    lua_pushinteger(L, 19);
+    lua_pushinteger(L, -5);
+
+    auto result = primer::fcn_call_one_ret(L, 2);
+
+    CHECK_STACK(L, 0);
+    TEST_EXPECTED(result);
+
+    auto as_int = result->as<int>();
+    CHECK_STACK(L, 0);
+
+    TEST_EXPECTED(as_int);
+    TEST_EQ(14, *as_int);
+
+  }
   CHECK_STACK(L, 0);
 }
 
