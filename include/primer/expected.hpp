@@ -48,6 +48,9 @@ class expected {
   };
   bool have_ham_;
 
+  // static_assert(std::is_nothrow_move_constructible<T>::value,
+  //              "This class can only be used with types that are no-throw "
+  //              "move constructible and destructible.");
 
 public:
   // Basic accessors & dereference semantics
@@ -98,7 +101,7 @@ public:
 private:
   // Internal manipulation: deinitialize, init_ham, init_spam
 
-  void deinitialize() {
+  void deinitialize() noexcept {
     if (have_ham_) {
       ham_.~T();
     } else {
@@ -133,7 +136,7 @@ private:
   }
 
   template <typename E>
-  void init_from_rvalue_ref(E && e) {
+  void init_from_rvalue_ref(E && e) noexcept {
     if (e) {
       this->init_ham(std::move(*e));
     } else {
@@ -146,17 +149,17 @@ public:
 
   expected(const T & t) { this->init_ham(t); }
 
-  expected(T && t) { this->init_ham(std::move(t)); }
+  expected(T && t) noexcept { this->init_ham(std::move(t)); }
 
   // this is to make it so that we can return error structs from functions that
   // return expected
   expected(const primer::error & e) { this->init_spam(e); }
 
-  expected(primer::error && e) { this->init_spam(std::move(e)); }
+  expected(primer::error && e) noexcept { this->init_spam(std::move(e)); }
 
-  expected() { this->init_spam(primer::error{std::string{"uninit"}}); }
+  expected() noexcept { this->init_spam(primer::error{"uninit"}); }
 
-  ~expected() { this->deinitialize(); }
+  ~expected() noexcept { this->deinitialize(); }
 
   // Copy ctor
   expected(const expected & e) { this->init_from_const_ref(e); }
@@ -174,7 +177,7 @@ public:
   /***
    * Same thing with move constructors.
    */
-  expected(expected && e) { this->init_from_rvalue_ref(std::move(e)); }
+  expected(expected && e) noexcept { this->init_from_rvalue_ref(std::move(e)); }
 
   template <typename U>
   expected(expected<U> && u)
@@ -207,14 +210,14 @@ public:
    *
    * Same thing
    */
-  expected & operator=(expected && e) {
+  expected & operator=(expected && e) noexcept {
     this->deinitialize();
     this->init_from_rvalue_ref(std::move(e));
     return *this;
   }
 
   template <typename U>
-  expected & operator=(expected<U> && u) {
+  expected & operator=(expected<U> && u) noexcept {
     this->deinitialize();
     this->init_from_rvalue_ref(std::move(u));
     return *this;
@@ -223,8 +226,8 @@ public:
   /***
    * Succinct access to error string
    */
-  const std::string & err_str() const { return this->err().str(); }
-  const char * err_c_str() const { return this->err_str().c_str(); }
+  const std::string & err_str() const noexcept { return this->err().str(); }
+  const char * err_c_str() const noexcept { return this->err_str().c_str(); }
 };
 
 /***
@@ -252,27 +255,27 @@ public:
   const primer::error & err() const & { return internal_.err(); }
   primer::error && err() && { return std::move(internal_.err()); }
 
-  const std::string & err_str() const { return this->err().str(); }
-  const char * err_c_str() const { return this->err_str().c_str(); }
+  const std::string & err_str() const noexcept { return this->err().str(); }
+  const char * err_c_str() const noexcept { return this->err_str().c_str(); }
 
   // Ctors
-  expected() = default;
+  expected() noexcept = default;
   expected(const expected &) = default;
-  expected(expected &&) = default;
+  expected(expected &&) noexcept = default;
   expected & operator=(const expected &) = default;
-  expected & operator=(expected &&) = default;
-  ~expected() = default;
+  expected & operator=(expected &&) noexcept = default;
+  ~expected() noexcept = default;
 
-  expected(T & t)
-    : internal_(&t)
+  expected(T & t) noexcept //
+    : internal_(&t)        //
   {}
 
   expected(const primer::error & e)
     : internal_(e)
   {}
 
-  expected(primer::error && e)
-    : internal_(std::move(e))
+  expected(primer::error && e) noexcept //
+    : internal_(std::move(e))           //
   {}
 
   // Don't allow converting from other kinds of expected, since could get a
@@ -302,14 +305,13 @@ public:
     , error_(e)
   {}
 
-  expected(primer::error && e)
-    : no_error_(false)
-    , error_(std::move(e))
+  expected(primer::error && e) noexcept : no_error_(false),
+                                          error_(std::move(e)) 
+  // This is noexcept correct as primer::error is no-throw moveable
   {}
 
-  expected()
-    : no_error_(true)
-    , error_("uninit")
+  expected() noexcept : no_error_(true),
+                        error_("uninit")
   // : payload(util::error("uninit"))
   // ^ note the difference! default constructing this means "no error",
   //   for other expected types it means error
@@ -324,30 +326,30 @@ public:
   {}
 
   template <typename U>
-  expected(expected<U> && u)
-    : expected(std::move(u.err()))
+  expected(expected<U> && u) noexcept //
+    : expected(std::move(u.err()))    //
   {}
 
   // Copy and move operations
   expected(const expected &) = default;
-  expected(expected &&) = default;
+  expected(expected &&) noexcept = default;
   expected & operator=(const expected &) = default;
-  expected & operator=(expected &&) = default;
+  expected & operator=(expected &&) noexcept = default;
 
   // Public interface
   explicit operator bool() const noexcept { return no_error_; }
 
-  const primer::error & err() const & {
+  const primer::error & err() const & noexcept {
     PRIMER_BAD_ACCESS(!no_error_);
     return error_;
   }
-  primer::error && error() && {
+  primer::error && error() && noexcept {
     PRIMER_BAD_ACCESS(!no_error_);
     return std::move(error_);
   }
 
-  const std::string & err_str() const { return this->err().str(); }
-  const char * err_c_str() const { return this->err_str().c_str(); }
+  const std::string & err_str() const noexcept { return this->err().str(); }
+  const char * err_c_str() const noexcept { return this->err_str().c_str(); }
 };
 
 #undef PRIMER_BAD_ACCESS
