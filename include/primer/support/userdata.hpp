@@ -68,7 +68,7 @@ struct udata_helper<
           lua_setfield(L, -2, ptr->name);
         }
 
-        if (::strcmp(ptr->name, gc_name)) { saw_gc_metamethod = true; }
+        if (0 == ::strcmp(ptr->name, gc_name)) { saw_gc_metamethod = true; }
       }
 
       // If the user did not register __gc then it is potentially (likely) a
