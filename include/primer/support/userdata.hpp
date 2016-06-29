@@ -19,6 +19,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/traits/util.hpp>
 
 #include <cstring>
+#include <new>
 #include <type_traits>
 #include <utility>
 

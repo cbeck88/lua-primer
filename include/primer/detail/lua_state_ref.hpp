@@ -37,6 +37,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <nonstd/weak_ref.hpp>
 
+#include <new>
 #include <utility>
 
 namespace primer {

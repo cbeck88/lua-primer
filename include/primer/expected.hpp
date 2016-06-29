@@ -13,6 +13,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/error.hpp>
 #include <primer/support/asserts.hpp>
 
+#include <new>
 #include <string>
 #include <type_traits>
 #include <utility>
