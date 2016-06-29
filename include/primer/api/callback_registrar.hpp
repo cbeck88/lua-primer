@@ -75,7 +75,6 @@ protected:
   static constexpr int maxCallbacks = 100;
 
 public:
-
 /***
  * Methods to access the registries in a simple form at runtime.
  */

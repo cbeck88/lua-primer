@@ -6,7 +6,8 @@
 #pragma once
 
 /***
- * How to push `boost::flat_set` to the stack, as a table, using the lua "set" idiom.
+ * How to push `boost::flat_set` to the stack, as a table, using the lua "set"
+ * idiom.
  */
 
 #include <primer/base.hpp>
@@ -21,10 +22,12 @@ namespace primer {
 namespace traits {
 
 template <typename T>
-struct push<boost::container::flat_set<T>> : detail::set_push_helper<boost::container::flat_set<T>> {};
+struct push<boost::container::flat_set<T>>
+  : detail::set_push_helper<boost::container::flat_set<T>> {};
 
 template <typename T>
-struct read<boost::container::flat_set<T>> : detail::set_read_helper<boost::container::flat_set<T>> {};
+struct read<boost::container::flat_set<T>>
+  : detail::set_read_helper<boost::container::flat_set<T>> {};
 
 } // end namespace traits
 

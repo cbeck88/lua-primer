@@ -56,18 +56,22 @@ struct std_function_udata {
     lua_setfield(L, -2, "__metatable");
   }
 
-  static R closure_function(lua_State * L, Args ... args) {
+  static R closure_function(lua_State * L, Args... args) {
     PRIMER_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)),
-                 "closure_function called but first upvalue is not userdata");
-    this_type * t = static_cast<this_type *>(lua_touserdata(L, lua_upvalueindex(1)));
+                  "closure_function called but first upvalue is not userdata");
+    void * v = lua_touserdata(L, lua_upvalueindex(1));
+    this_type * t = static_cast<this_type *>(v);
     return (t->func_)(L, std::forward<Args>(args)...);
   }
 
   static void push_instance(lua_State * L, function_type f) {
-    new(lua_newuserdata(L, sizeof(std_function_udata))) std_function_udata{std::move(f)};
+    new (lua_newuserdata(L, sizeof(std_function_udata)))
+      std_function_udata{std::move(f)};
     push_cached<&this_type::push_metatable>(L);
     lua_setmetatable(L, -2);
-    lua_pushcclosure(L, &adaptor<R(*)(lua_State *, Args...), &this_type::closure_function>::adapted, 1);
+    lua_pushcclosure(L, &adaptor<R (*)(lua_State *, Args...),
+                                 &this_type::closure_function>::adapted,
+                     1);
   }
 };
 

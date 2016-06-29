@@ -174,7 +174,8 @@ void round_trip_value(lua_State * L, const T & t, int line) {
 
   primer::push(L, t);
   auto r = primer::read<T>(L, -1);
-  TEST(r, "Failed to recover when roundtripping a value. line: " + std::to_string(line));
+  TEST(r, "Failed to recover when roundtripping a value. line: " +
+            std::to_string(line));
   TEST_EQ(t, *r);
   lua_pop(L, 1);
 }

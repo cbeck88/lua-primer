@@ -105,8 +105,7 @@ public:
 
 inline void assert_table(lua_State * L, const char * fname) {
   auto t = lua_type(L, -1);
-  PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA ||
-                t == LUA_TLIGHTUSERDATA,
+  PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA || t == LUA_TLIGHTUSERDATA,
                 "In " << fname << ", no table or table-like thing was found!");
 }
 
