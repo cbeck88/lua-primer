@@ -9,6 +9,8 @@
 #include "test_harness.hpp"
 #include <iostream>
 #include <string>
+#include <set>
+#include <vector>
 
 #include <boost/optional/optional.hpp>
 
@@ -92,9 +94,19 @@ void test_flat_set_round_trip() {
   using boost::container::flat_set;
 
   round_trip_value(L, flat_set<int>{}, __LINE__);
-  round_trip_value(L, flat_set<int>{1, 5, 6, 10, 234}, __LINE__);
-  round_trip_value(L, flat_set<std::string>{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"}, __LINE__);
-  round_trip_value(L, flat_set<bool>{true}, __LINE__);
+
+  {
+    std::vector<int> temp{1, 5, 6, 23, 1231};
+    round_trip_value(L, flat_set<int>{temp.begin(), temp.end()}, __LINE__);
+  }
+  {
+    std::vector<std::string> temp{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"};
+    round_trip_value(L, flat_set<std::string>{temp.begin(), temp.end()}, __LINE__);
+  }
+  {
+    std::set<bool> temp{true};
+    round_trip_value(L, flat_set<bool>{temp.begin(), temp.end()}, __LINE__);
+  }
 }
 
 
