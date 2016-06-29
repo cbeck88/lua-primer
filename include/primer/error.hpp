@@ -49,7 +49,9 @@ public:
 
   const std::string & str() const noexcept { return msg_; }
 
-  virtual const char * what() const throw() override { return this->str().c_str(); }
+  virtual const char * what() const throw() override {
+    return this->str().c_str();
+  }
 };
 
 } // end namespace primer

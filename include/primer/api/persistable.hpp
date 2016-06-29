@@ -68,15 +68,15 @@ protected:
 
   static constexpr int maxFeatures = 100;
 
-#define GET_API_FEATURES                                                        \
+#define GET_API_FEATURES                                                       \
   decltype(root_type::GetApiFeatures(primer::detail::Rank<maxFeatures>{}))
 
 private:
-
   // Apply a visitor to the feature_list
   template <typename V>
   void visit_features(V && v) {
-    detail::typelist_iterator<GET_API_FEATURES>::apply_visitor(std::forward<V>(v), *static_cast<T*>(this));
+    using helper_t = detail::typelist_iterator<GET_API_FEATURES>;
+    helper_t::apply_visitor(std::forward<V>(v), *static_cast<T *>(this));
   }
 
   void make_persist_table(lua_State * L) {
@@ -119,10 +119,9 @@ private:
   }
 
 protected:
-
-/***
- * Forward-facing interface for derived classes. Initialization / persistance.
- */
+  /***
+   * Forward-facing interface for derived classes. Initialization / persistance.
+   */
 
   void initialize_api(lua_State * L) {
     this->visit_features(on_init_visitor{L});
@@ -150,12 +149,11 @@ protected:
     this->make_unpersist_table(L);
 
     detail::reader_helper rh{buffer};
-    eris_undump(L, detail::trivial_string_reader, &rh);   // [_unpersist] [target]
+    eris_undump(L, detail::trivial_string_reader, &rh); // [_unpersist] [target]
 
-    lua_remove(L, 1);                                     // [target]
+    lua_remove(L, 1); // [target]
     this->consume_target_table(L);
   }
-
 };
 
 } // end namespace api
@@ -169,12 +167,9 @@ protected:
 #define API_FEATURE(TYPE, NAME)                                                \
   TYPE NAME;                                                                   \
   static constexpr const char * feature_name_##NAME() { return #NAME; }        \
-  typedef detail::ptr_to_member<root_type,                                     \
-                                TYPE,                                          \
-                                &root_type::NAME,                              \
+  typedef detail::ptr_to_member<root_type, TYPE, &root_type::NAME,             \
                                 &root_type::feature_name_##NAME>               \
     feature_reg_##NAME;                                                        \
   static inline Append_t<GET_API_FEATURES, feature_reg_##NAME> GetApiFeatures( \
     primer::detail::Rank<GET_API_FEATURES::size + 1>);                         \
   static_assert(true, "")
-

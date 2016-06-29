@@ -25,8 +25,11 @@ struct typelist_iterator;
 template <typename... Ts>
 struct typelist_iterator<TypeList<Ts...>> {
   template <typename V, typename... Args>
-  static /* constexpr */ void apply_visitor(V && v, Args && ... args) {
-    int dummy[] = { (std::forward<V>(v).template visit_type<Ts>(std::forward<Args>(args)...), 0)..., 0 };
+  static /* constexpr */ void apply_visitor(V && v, Args &&... args) {
+    int dummy[] = //
+      {(std::forward<V>(v).template visit_type<Ts>(std::forward<Args>(args)...),
+        0)...,
+       0};
     static_cast<void>(dummy);
     static_cast<void>(v);
   }

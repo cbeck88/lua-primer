@@ -31,7 +31,9 @@ struct reader_helper {
 };
 
 // Expects 2nd argument to be reader_helper *
-inline const char * trivial_string_reader(lua_State *, void * data, size_t * size) {
+inline const char * trivial_string_reader(lua_State *,
+                                          void * data,
+                                          size_t * size) {
   auto & h = *reinterpret_cast<reader_helper *>(data);
   if (h.sent) {
     *size = 0;
@@ -43,7 +45,10 @@ inline const char * trivial_string_reader(lua_State *, void * data, size_t * siz
 }
 
 // Expects 4th argument to be std::string *
-inline int trivial_string_writer(lua_State *, const void * b, size_t size, void * B) {
+inline int trivial_string_writer(lua_State *,
+                                 const void * b,
+                                 size_t size,
+                                 void * B) {
   std::string & output = *reinterpret_cast<std::string *>(B);
   const char * incoming = reinterpret_cast<const char *>(b);
   for (uint i = 0; i < size; ++i) {
