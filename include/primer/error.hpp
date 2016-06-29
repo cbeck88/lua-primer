@@ -28,12 +28,12 @@ class error final : public std::exception {
   std::string msg_;
 
 public:
-  error() = default;
+  error() noexcept = default;
   error(const error &) = default;
-  error(error &&) = default;
+  error(error &&) noexcept = default;
   error & operator=(const error &) = default;
-  error & operator=(error &&) = default;
-  ~error() = default;
+  error & operator=(error &&) noexcept = default;
+  ~error() noexcept = default;
 
   // Helper constructor
   template <typename... Args>
@@ -47,9 +47,9 @@ public:
     return *this;
   }
 
-  const std::string & str() const { return msg_; }
+  const std::string & str() const noexcept { return msg_; }
 
-  virtual const char * what() const throw() override { return str().c_str(); }
+  virtual const char * what() const throw() override { return this->str().c_str(); }
 };
 
 } // end namespace primer
