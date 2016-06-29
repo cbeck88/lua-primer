@@ -194,6 +194,8 @@ void test_set_push() {
  * Stream ops for containers
  */
 
+namespace std {
+
 template <typename T>
 std::ostream & operator << (std::ostream & o, const std::vector<T> & vec) {
   o << "{ ";
@@ -244,6 +246,8 @@ std::ostream & operator << (std::ostream & o, const std::unordered_map<T, U> & m
   o << "}";
   return o;
 }
+
+} // end namespace std
 
 void test_vector_round_trip() {
   lua_raii L;

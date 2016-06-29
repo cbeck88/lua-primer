@@ -68,6 +68,10 @@ void test_optional_read() {
  * Test flat set
  */
 
+namespace boost {
+
+namespace container {
+
 template <typename T>
 std::ostream & operator << (std::ostream & o, const boost::container::flat_set<T> & s) {
   o << "{ ";
@@ -78,6 +82,9 @@ std::ostream & operator << (std::ostream & o, const boost::container::flat_set<T
   return o;
 }
 
+} // end namespace container
+
+} // end namespace boost
 
 void test_flat_set_round_trip() {
   lua_raii L;
