@@ -86,6 +86,8 @@ struct push<uint> {
 };
 
 
+/*
+
 // If lua was compiled with larger integer types then enable them
 #if LUA_INT_TYPE > LUA_INT_INT
 
@@ -119,11 +121,15 @@ struct push<unsigned long long> {
 
 #endif // LUA_INT_TYPE > LUA_INT_INT
 
+*/
+
 template <>
 struct push<float> {
   static void to_stack(lua_State * L, float f) { lua_pushnumber(L, f); }
 };
 
+
+/*
 // If lua is using double then allow to push that
 #if LUA_FLOAT_TYPE > LUA_FLOAT_FLOAT
 
@@ -133,6 +139,8 @@ struct push<double> {
 };
 
 #endif
+*/
+
 
 // Userdata object
 template <typename T>
