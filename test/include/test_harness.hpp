@@ -9,6 +9,9 @@
 #include <primer/lua.hpp>
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
+#include <primer/push.hpp>
+#include <primer/read.hpp>
+#include <primer/detail/error_capture.hpp>
 
 #include <cstring>
 #include <exception>

@@ -62,13 +62,13 @@ namespace api {
 
 typedef const char * (*str_func_ptr_t)();
 
-template <typename T, typename U, U::*T member_ptr, str_func_ptr_t name_func>
+template <typename T, typename U, U T::*member_ptr, str_func_ptr_t name_func>
 struct ptr_to_member {
   typedef T base_type;
   typedef U target_type;
-  static constexpr U::*T get_ptr() { return member_ptr; }
+  static constexpr U T::* get_ptr() { return member_ptr; }
   static U & get_target(T & t) { return t.*member_ptr; }
-  static constexpr str_func_ptr_t get_name_func() { return name_func(); }
+  static constexpr str_func_ptr_t get_name_func() { return name_func; }
 };
 
 struct on_init_visitor {
@@ -112,7 +112,7 @@ struct on_serialize_visitor {
   }
 
   template <typename H, typename T>
-  typename std::enable_if<!H::target_type::is_serial>::type visit_type(T & t) {}
+  typename std::enable_if<!H::target_type::is_serial>::type visit_type(T &) {}
 };
 
 struct on_deserialize_visitor {
@@ -126,7 +126,7 @@ struct on_deserialize_visitor {
   }
 
   template <typename H, typename T>
-  typename std::enable_if<!H::target_type::is_serial>::type visit_type(T & t) {}
+  typename std::enable_if<!H::target_type::is_serial>::type visit_type(T &) {}
 };
 
 } // end namespace api

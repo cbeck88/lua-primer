@@ -110,7 +110,7 @@ inline void assert_table(lua_State * L, const char * fname) {
 }
 
 #define PRIMER_ASSERT_TABLE(L)                                                 \
-  primer::assert_table(L, __function__);                                       \
+  primer::assert_table(L, __func__);                                           \
   static_assert(true, "")
 
 } // end namespace primer

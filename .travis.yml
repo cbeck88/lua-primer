@@ -34,6 +34,13 @@ script:
 
   - cd test
 
+  - b2 clean --toolset=${CC} --without-eris
+  - ./run_tests.sh --toolset=${CC} --without-eris
+  - ./lua_internal_tests.sh
+
+  - b2 clean --toolset=${CC} --without-eris --with-lua-32bit
+  - ./run_tests.sh --toolset=${CC} --without-eris --with-lua-32bit
+
   - b2 clean --toolset=${CC}
   - ./run_tests.sh --toolset=${CC}
   - ./lua_internal_tests.sh
