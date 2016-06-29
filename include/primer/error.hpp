@@ -18,13 +18,12 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/support/str_cat.hpp>
 
-#include <exception>
 #include <string>
 #include <utility>
 
 namespace primer {
 
-class error final : public std::exception {
+class error final {
   std::string msg_;
 
 public:
@@ -48,10 +47,6 @@ public:
   }
 
   const std::string & str() const noexcept { return msg_; }
-
-  virtual const char * what() const throw() override {
-    return this->str().c_str();
-  }
 };
 
 } // end namespace primer

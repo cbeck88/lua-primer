@@ -12,6 +12,7 @@
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/detail/error_capture.hpp>
+#include <primer/detail/exception.hpp>
 
 #include <cstring>
 #include <exception>
@@ -232,8 +233,8 @@ struct test_harness {
       } catch (test_exception & te) {
         std::cout << " FAILED\n      A test condition was not met.\n      "
                   << te.what() << std::endl;
-      } catch (primer::error & pe) {
-        std::cout << " FAILED\n      A primer error was thrown.\n      "
+      } catch (primer::detail::exception & pe) {
+        std::cout << " FAILED\n      A primer exception was thrown.\n      "
                   << pe.what() << std::endl;
       } catch (std::exception & e) {
         std::cout << " FAILED\n      A standard exception was thrown.\n      "

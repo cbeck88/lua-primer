@@ -49,7 +49,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/detail/implement_result.hpp>
 
 #ifndef PRIMER_NO_EXCEPTIONS
-#include <primer/detail/unwrap.hpp>
+#include <primer/detail/exception.hpp>
 #endif
 
 #include <tuple>
@@ -114,7 +114,9 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
       try {
         return target_func(L, primer::detail::unwrap(
                                 primer::read<Args>(L, indices + 1))...);
-      } catch (primer::error & e) { return std::move(e); }
+      } catch (primer::detail::exception & e) {
+        return primer::error(e.what());
+      }
     }
 
 #else // PRIMER_NO_EXCEPTIONS
