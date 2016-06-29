@@ -485,7 +485,44 @@ void test_userdata_two() {
   CHECK_STACK(L, 0);
 }
 
+void test_std_function() {
+  lua_raii L;
 
+  std::function<primer::result(lua_State * L, int x, int y)> f =
+    [](lua_State * L, int x, int y) -> primer::result {
+      if (y == x) { return primer::error{"bad input"}; }
+      lua_pushinteger(L, x - y);
+      return 1;
+    };
+
+  primer::push_std_function(L, std::move(f));
+  CHECK_STACK(L, 1);
+
+  {
+    lua_pushvalue(L, 1);
+
+    lua_pushinteger(L, 3);
+    lua_pushinteger(L, 2);
+
+    auto result = primer::fcn_call_one_ret(L, 2);
+    CHECK_STACK(L, 1);
+    TEST_EXPECTED(result);
+    auto maybe_int = result->as<int>();
+    CHECK_STACK(L, 1);
+    TEST_EXPECTED(maybe_int);
+    TEST_EQ(*maybe_int, 1);
+  }
+
+  {
+    lua_pushvalue(L, 1);
+    lua_pushinteger(L, 4);
+    lua_pushinteger(L, 4);
+
+    auto result = primer::fcn_call_one_ret(L, 2);
+    CHECK_STACK(L, 1);
+    TEST(!result, "expected failure");
+  }
+}
 
 int main() {
   conf::log_conf();
@@ -502,6 +539,7 @@ int main() {
     {"set roundtrip", &test_set_push},
     {"userdata", &test_userdata},
     {"userdata two", &test_userdata_two},
+    {"std function", &test_std_function},
   };
   int num_fails = tests.run();
   std::cout << "\n";

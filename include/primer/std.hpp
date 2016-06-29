@@ -14,6 +14,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/std/array.hpp>
+#include <primer/std/function.hpp>
 #include <primer/std/map.hpp>
 #include <primer/std/set.hpp>
 #include <primer/std/unordered_map.hpp>
