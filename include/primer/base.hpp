@@ -24,7 +24,6 @@ PRIMER_ASSERT_FILESCOPE;
 
 /* #define PRIMER_DEBUG */
 /* #define PRIMER_LUA_AS_CPP */
-/* #define PRIMER_NO_EXCEPTIONS */
 
 // Forward declare some lua types
 struct lua_State;

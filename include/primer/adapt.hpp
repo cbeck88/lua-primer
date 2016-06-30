@@ -48,10 +48,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/detail/count.hpp>
 #include <primer/detail/implement_result.hpp>
 
-#ifndef PRIMER_NO_EXCEPTIONS
-#include <primer/detail/exception.hpp>
-#endif
-
 #include <type_traits>
 #include <utility>
 
@@ -102,24 +98,8 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
   template <std::size_t... indices>
   struct impl<primer::detail::SizeList<indices...>> {
-// We also mark this as "noexcept" in order to prevent bad exceptions from
-// propagating to lua.
-
-#ifndef PRIMER_NO_EXCEPTIONS
-
-    // This version is simpler to read, but after refactors, I don't think it is
-    // substantially more efficient than the no_exceptions version. At least in
-    // terms of extra copies.
-    static primer::result adapted(lua_State * L) noexcept {
-      try {
-        return target_func(L, primer::detail::unwrap(
-                                primer::read<Args>(L, indices + 1))...);
-      } catch (primer::detail::exception & e) {
-        return std::move(e).as_error();
-      }
-    }
-
-#else // PRIMER_NO_EXCEPTIONS
+  // We also mark this as "noexcept" just in case, to prevent bad exceptions
+  // from propagating to lua.
 
     static primer::result adapted(lua_State * L) noexcept {
       // Create a flag that all the readers can use in order to signal an error
@@ -155,8 +135,6 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
       // allows it to work with expected<T&>
       // TODO: In C++17, can we omit the std::move here and still avoid a copy?
     }
-
-#endif // PRIMER_NO_EXCEPTIONS
   };
 
 public:

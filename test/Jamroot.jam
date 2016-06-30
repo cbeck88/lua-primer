@@ -5,12 +5,6 @@ project : default-build <optimization>off debug <cxxflags>"-std=c++11 -Wall -Wer
 
 import modules ;
 
-NO_EXCEPTIONS = ;
-
-if "--no-exceptions" in [ modules.peek : ARGV ] {
-  NO_EXCEPTIONS = <define>PRIMER_NO_EXCEPTIONS ;
-}
-
 if "--with-lua-32bit" in [ modules.peek : ARGV ] {
   LUA_DEFINE = <define>LUA_32BITS ;
 } else {
@@ -37,7 +31,7 @@ exe lua : $(LUA_PATH)/lua.c lualib : ;
 PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
 TEST_HARNESS = <include>include/ ;
 
-FLAGS = $(TEST_HARNESS)  $(PRIMER) $(NO_EXCEPTIONS) ;
+FLAGS = $(TEST_HARNESS) $(PRIMER) ;
 
 echo "flags = " $(FLAGS) ;
 
@@ -55,7 +49,7 @@ if $(HAVE_ERIS) {
 # Boost tests
 # Need to get boost directory...
 TEST_HARNESS = <include>include/ <include>/usr/include ;
-FLAGS = $(TEST_HARNESS)  $(PRIMER) $(NO_EXCEPTIONS) ;
+FLAGS = $(TEST_HARNESS) $(PRIMER) ;
 
 exe boost : boost.cpp lualib : $(FLAGS) ;
 

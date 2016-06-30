@@ -12,7 +12,6 @@
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/detail/error_capture.hpp>
-#include <primer/detail/exception.hpp>
 
 #include <cstring>
 #include <exception>
@@ -50,14 +49,6 @@ static constexpr bool primer_debug =
 #endif
   ;
 
-static constexpr bool primer_no_exceptions =
-#ifdef PRIMER_NO_EXCEPTIONS
-  true
-#else
-  false
-#endif
-  ;
-
 static constexpr bool primer_lua_as_cpp =
 #ifdef PRIMER_LUA_AS_CPP
   true
@@ -75,7 +66,6 @@ static void log_conf() {
   std::cout << std::endl;
   std::cout << PRIMER_RELEASE << std::endl;
   std::cout << "  PRIMER_DEBUG         = " << primer_debug << std::endl;
-  std::cout << "  PRIMER_NO_EXCEPTIONS = " << primer_no_exceptions << std::endl;
   std::cout << "  PRIMER_LUA_AS_CPP    = " << primer_lua_as_cpp << std::endl;
   std::cout << std::endl;
 }
@@ -234,9 +224,6 @@ struct test_harness {
       } catch (test_exception & te) {
         std::cout << " FAILED\n      A test condition was not met.\n      "
                   << te.what() << std::endl;
-      } catch (primer::detail::exception & pe) {
-        std::cout << " FAILED\n      A primer exception was thrown.\n      "
-                  << pe.what() << std::endl;
       } catch (std::exception & e) {
         std::cout << " FAILED\n      A standard exception was thrown.\n      "
                   << e.what() << std::endl;
