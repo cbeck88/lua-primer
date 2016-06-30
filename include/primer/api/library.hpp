@@ -20,13 +20,13 @@ namespace api {
 
 struct lua_base_lib {
   static constexpr const char * name = "";
-  static constexpr lua_CFunction func = luaopen_base;
+  static constexpr lua_CFunction func = &luaopen_base;
 };
 
 #define CORE_LIB_DEFN(STR)                                                     \
 struct lua_##STR##_lib {                                                       \
   static constexpr const char * name = #STR;                                   \
-  static constexpr lua_CFunction func = luaopen_##STR;                         \
+  static constexpr lua_CFunction func = &luaopen_##STR;                        \
 };                                                                             \
 static_assert(true, "")
 
@@ -90,6 +90,8 @@ public:
     static_cast<void>(dummy);
   }
 };
+
+using basic_libraries = libraries<lua_base_lib, lua_table_lib, lua_math_lib, lua_string_lib>;
 
 } // end namespace api
 } // end namespace primer
