@@ -136,7 +136,7 @@ private:
   }
 
   template <typename E>
-  void init_from_rvalue_ref(E && e) noexcept {
+  void init_from_rvalue_ref(E && e) {
     if (e) {
       this->init_ham(std::move(*e));
     } else {
@@ -148,7 +148,7 @@ private:
   // and use move assignment operator of T or primer::error.
   // If not then deinitialize and reinitialize.
   template <typename E>
-  void move_assign(E && e) noexcept {
+  void move_assign(E && e) {
     if (this->have_ham_) {
       if (e) {
         ham_ = std::move(*e);
@@ -226,7 +226,7 @@ public:
   }
 
   template <typename U>
-  expected & operator=(expected<U> && e) noexcept {
+  expected & operator=(expected<U> && e) {
     this->move_assign(std::move(e));
     return *this;
   }
