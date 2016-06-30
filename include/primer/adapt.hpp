@@ -115,7 +115,7 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
         return target_func(L, primer::detail::unwrap(
                                 primer::read<Args>(L, indices + 1))...);
       } catch (primer::detail::exception & e) {
-        return primer::error(e.what());
+        return std::move(e).as_error();
       }
     }
 

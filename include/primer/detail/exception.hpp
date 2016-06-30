@@ -31,11 +31,20 @@ namespace detail {
  * Actual exception object which can be thrown
  */
 
-class exception : public std::runtime_error {
+class exception : public std::exception {
+  std::string msg_;
 public:
+  // Construct from a primer::error object
   explicit exception(primer::error e)
-    : std::runtime_error(e.str())
+    : msg_(e.str())
   {}
+
+  // Convert back to a primer::error object
+  primer::error as_error() && {
+    return primer::error(std::move(msg_));
+  }
+
+  virtual const char * what() const throw() override { return msg_.c_str(); }
 };
 
 /***

@@ -312,7 +312,6 @@ public:
 
   expected() noexcept : no_error_(true),
                         error_("uninit")
-  // : payload(util::error("uninit"))
   // ^ note the difference! default constructing this means "no error",
   //   for other expected types it means error
   {}
@@ -334,7 +333,7 @@ public:
   expected(const expected &) = default;
   expected(expected &&) noexcept = default;
   expected & operator=(const expected &) = default;
-  expected & operator=(expected &&) noexcept = default;
+  expected & operator=(expected &&) = default;
 
   // Public interface
   explicit operator bool() const noexcept { return no_error_; }
