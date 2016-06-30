@@ -52,7 +52,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/detail/exception.hpp>
 #endif
 
-#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -108,9 +107,10 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
 #ifndef PRIMER_NO_EXCEPTIONS
 
-    // There is some overhead for exception support, but this version makes
-    // basically no copies
-    static primer::result helper(lua_State * L) noexcept {
+    // This version is simpler to read, but after refactors, I don't think it is
+    // substantially more efficient than the no_exceptions version. At least in
+    // terms of extra copies.
+    static primer::result adapted(lua_State * L) noexcept {
       try {
         return target_func(L, primer::detail::unwrap(
                                 primer::read<Args>(L, indices + 1))...);
@@ -121,31 +121,42 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
 #else // PRIMER_NO_EXCEPTIONS
 
+    // When we don't use exceptions, we can't use "unwrap".
+    // This version simulates manually the short-circuiting logic.
     template <typename T>
     static expected<T> short_circuiting_reader(lua_State * L,
                                                int index,
                                                expected<void> & ok) {
+      expected<T> result;
+
       // short circuit if we would have thrown an exception by now
-      if (!ok) { return primer::error{}; }
-      expected<T> result{primer::read<T>(L, index)};
-      if (!result) {
-        ok = result.err();
-        PRIMER_ASSERT(!ok, "Bad copy assign");
+      if (ok) {
+        result = primer::read<T>(L, index);
+        // move any errors onto the "global" channel
+        if (!result) {
+          ok = std::move(result.err());
+        }
       }
+
       return result;
     }
 
-    static primer::result helper(lua_State * L) noexcept {
-      using tuple_t = std::tuple<expected<Args>...>;
+    // Before calling the target_func, we need to check the "global" channel
+    // for an error. Then, unpack all the `expected` into the function call.
+    static primer::result call_helper(lua_State * L, expected<void> & ok,
+                                      expected<Args>... args) {
+      if (!ok) { return std::move(ok.err()); }
+      return target_func(L, (*std::move(args))...);
+      // Note: * std::move(...) rather than std::move(* ...)` is important, that
+      // allows it to work with expected<T&>
+    }
 
+    static primer::result adapted(lua_State * L) noexcept {
+      // Create a flag that all the readers can use in order to signal an error
       expected<void> ok;
       // indices + 1 is because lua counts from 1
-      tuple_t tup{short_circuiting_reader<Args>(L, indices + 1, ok)...};
-      if (!ok) { return ok.err(); }
-      return target_func(L, *std::move(std::get<indices>(tup))...);
+      return call_helper(L, ok, short_circuiting_reader<Args>(L, indices + 1, ok)...);
     }
-// Note: * std::move(...) rather than std::move(* ...)` is important, that
-// allows it to work with expected<T&>
 
 #endif // PRIMER_NO_EXCEPTIONS
   };
@@ -154,7 +165,7 @@ public:
   static int adapted(lua_State * L) {
     using I = detail::Count_t<sizeof...(Args)>;
 
-    auto temp = detail::implement_result_step_one(L, impl<I>::helper(L));
+    auto temp = detail::implement_result_step_one(L, impl<I>::adapted(L));
     // primer::result is destroyed at the end of "full expression" in the above
     // line, so it is safe to
     // longjmp after this.
