@@ -23,16 +23,16 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-class error final {
+class error {
   std::string msg_;
 
 public:
-  error() noexcept = default;
+  error() = default;
   error(const error &) = default;
-  error(error &&) noexcept = default;
+  error(error &&) = default;
   error & operator=(const error &) = default;
-  error & operator=(error &&) noexcept = default;
-  ~error() noexcept = default;
+  error & operator=(error &&) = default;
+  ~error() = default;
 
   // Helper constructor
   template <typename... Args>
