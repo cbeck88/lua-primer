@@ -146,7 +146,7 @@ protected:
 
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    this->make_unpersist_table(L);                      // [_unpersist]
+    this->make_unpersist_table(L); // [_unpersist]
 
     detail::reader_helper rh{buffer};
     eris_undump(L, detail::trivial_string_reader, &rh); // [_unpersist] [target]
@@ -167,8 +167,9 @@ protected:
 #define API_FEATURE(TYPE, NAME)                                                \
   TYPE NAME;                                                                   \
   static constexpr const char * feature_name_##NAME() { return #NAME; }        \
-  using feature_reg_##NAME = primer::api::ptr_to_member<root_type, TYPE, &root_type::NAME,                \
-                                &root_type::feature_name_##NAME>;               \
-  static inline primer::detail::Append_t<GET_API_FEATURES, feature_reg_##NAME> GetApiFeatures( \
-    primer::detail::Rank<GET_API_FEATURES::size + 1>);                         \
+  using feature_reg_##NAME =                                                   \
+    primer::api::ptr_to_member<root_type, TYPE, &root_type::NAME,              \
+                               &root_type::feature_name_##NAME>;               \
+  static inline primer::detail::Append_t<GET_API_FEATURES, feature_reg_##NAME> \
+    GetApiFeatures(primer::detail::Rank<GET_API_FEATURES::size + 1>);          \
   static_assert(true, "")

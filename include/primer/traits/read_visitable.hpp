@@ -61,7 +61,8 @@ struct read_helper {
     if (auto result = traits::read<traits::remove_cv_t<T>>::from_stack(L, -1)) {
       value = std::move_if_noexcept(*result);
     } else {
-      ok = std::move(result.err().prepend_error_line("In field name '", name , "',"));
+      ok = std::move(
+        result.err().prepend_error_line("In field name '", name, "',"));
     }
     lua_pop(L, 1);
   }

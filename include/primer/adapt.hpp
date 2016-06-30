@@ -131,18 +131,14 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
     // When we don't use exceptions, we can't use "unwrap".
     // This version simulates manually the short-circuiting logic.
     template <typename T>
-    static expected<T> read_helper(lua_State * L,
-                                   int index,
-                                   expected<void> & ok) {
+    static expected<T> read_helper(lua_State * L, int index, expected<void> & ok) {
       expected<T> result;
 
       // short-circuit if we would have thrown an exception by now
       if (ok) {
         result = primer::read<T>(L, index);
         // move any errors onto the "global" channel
-        if (!result) {
-          ok = std::move(result.err());
-        }
+        if (!result) { ok = std::move(result.err()); }
       }
 
       return result;
@@ -150,7 +146,8 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
     // Before calling the target_func, we need to check the "global" channel
     // for an error. Then, unpack all the `expected` into the function call.
-    static primer::result call_helper(lua_State * L, expected<void> & ok,
+    static primer::result call_helper(lua_State * L,
+                                      expected<void> & ok,
                                       expected<Args>... args) {
       if (!ok) { return std::move(ok.err()); }
       return target_func(L, (*std::move(args))...);

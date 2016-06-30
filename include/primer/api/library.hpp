@@ -24,11 +24,11 @@ struct lua_base_lib {
 };
 
 #define CORE_LIB_DEFN(STR)                                                     \
-struct lua_##STR##_lib {                                                       \
-  static constexpr const char * name = #STR;                                   \
-  static constexpr lua_CFunction func = &luaopen_##STR;                        \
-};                                                                             \
-static_assert(true, "")
+  struct lua_##STR##_lib {                                                     \
+    static constexpr const char * name = #STR;                                 \
+    static constexpr lua_CFunction func = &luaopen_##STR;                      \
+  };                                                                           \
+  static_assert(true, "")
 
 CORE_LIB_DEFN(table);
 CORE_LIB_DEFN(string);
@@ -72,26 +72,26 @@ class libraries {
 
 
 public:
-
   static constexpr bool is_serial = false;
 
   void on_init(lua_State * L) {
-    int dummy[] = { (load_lib_globally<Ts>(L), 0)..., 0};
+    int dummy[] = {(load_lib_globally<Ts>(L), 0)..., 0};
     static_cast<void>(dummy);
   }
 
   void on_persist_table(lua_State * L) {
-    int dummy[] = { (load_lib_into_table<Ts, false>(L), 0)..., 0 };
+    int dummy[] = {(load_lib_into_table<Ts, false>(L), 0)..., 0};
     static_cast<void>(dummy);
   }
 
   void on_unpersist_table(lua_State * L) {
-    int dummy[] = { (load_lib_into_table<Ts, true>(L), 0)..., 0 };
+    int dummy[] = {(load_lib_into_table<Ts, true>(L), 0)..., 0};
     static_cast<void>(dummy);
   }
 };
 
-using basic_libraries = libraries<lua_base_lib, lua_table_lib, lua_math_lib, lua_string_lib>;
+using basic_libraries =
+  libraries<lua_base_lib, lua_table_lib, lua_math_lib, lua_string_lib>;
 
 } // end namespace api
 } // end namespace primer

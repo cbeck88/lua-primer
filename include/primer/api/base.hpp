@@ -21,7 +21,7 @@ namespace primer {
 namespace api {
 
 template <typename T>
-struct base : public callback_registrar<T> , public persistable<T> {};
+struct base : public callback_registrar<T>, public persistable<T> {};
 
 } // end namespace api
 

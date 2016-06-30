@@ -8,7 +8,7 @@
 /***
  * Primer exception is a simple exception type used by the library. It is not
  * thrown to user generated code, it is only used internally, in one
- * implementation of the "adapt" mechanism. 
+ * implementation of the "adapt" mechanism.
  *
  * This file should not be used in PRIMER_NO_EXCEPTIONS builds
  */
@@ -33,6 +33,7 @@ namespace detail {
 
 class exception : public std::exception {
   std::string msg_;
+
 public:
   // Construct from a primer::error object
   explicit exception(primer::error e)
@@ -40,9 +41,7 @@ public:
   {}
 
   // Convert back to a primer::error object
-  primer::error as_error() && {
-    return primer::error(std::move(msg_));
-  }
+  primer::error as_error() && { return primer::error(std::move(msg_)); }
 
   virtual const char * what() const throw() override { return msg_.c_str(); }
 };

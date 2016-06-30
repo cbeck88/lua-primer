@@ -188,7 +188,9 @@ public:
   // When incoming expected has a different type, we allow conversion if U is
   // convertible to T.
   template <typename U>
-  expected(const expected<U> & u) { this->init_from_const_ref(u); }
+  expected(const expected<U> & u) {
+    this->init_from_const_ref(u);
+  }
 
   /***
    * Same thing with move constructors.
@@ -196,7 +198,9 @@ public:
   expected(expected && e) noexcept { this->init_from_rvalue_ref(std::move(e)); }
 
   template <typename U>
-  expected(expected<U> && u) { this->init_from_rvalue_ref(std::move(u)); }
+  expected(expected<U> && u) {
+    this->init_from_rvalue_ref(std::move(u));
+  }
 
   /***
    * Copy assignment operator
@@ -314,7 +318,7 @@ public:
   {}
 
   expected(primer::error && e) noexcept : no_error_(false),
-                                          error_(std::move(e)) 
+                                          error_(std::move(e))
   // This is noexcept correct as primer::error is no-throw moveable
   {}
 
