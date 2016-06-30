@@ -121,15 +121,22 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
 #else // PRIMER_NO_EXCEPTIONS
 
+    static primer::result adapted(lua_State * L) noexcept {
+      // Create a flag that all the readers can use in order to signal an error
+      expected<void> ok;
+      // indices + 1 is because lua counts from 1
+      return call_helper(L, ok, read_helper<Args>(L, indices + 1, ok)...);
+    }
+
     // When we don't use exceptions, we can't use "unwrap".
     // This version simulates manually the short-circuiting logic.
     template <typename T>
-    static expected<T> short_circuiting_reader(lua_State * L,
-                                               int index,
-                                               expected<void> & ok) {
+    static expected<T> read_helper(lua_State * L,
+                                   int index,
+                                   expected<void> & ok) {
       expected<T> result;
 
-      // short circuit if we would have thrown an exception by now
+      // short-circuit if we would have thrown an exception by now
       if (ok) {
         result = primer::read<T>(L, index);
         // move any errors onto the "global" channel
@@ -149,13 +156,7 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
       return target_func(L, (*std::move(args))...);
       // Note: * std::move(...) rather than std::move(* ...)` is important, that
       // allows it to work with expected<T&>
-    }
-
-    static primer::result adapted(lua_State * L) noexcept {
-      // Create a flag that all the readers can use in order to signal an error
-      expected<void> ok;
-      // indices + 1 is because lua counts from 1
-      return call_helper(L, ok, short_circuiting_reader<Args>(L, indices + 1, ok)...);
+      // TODO: In C++17, can we omit the std::move here and still avoid a copy?
     }
 
 #endif // PRIMER_NO_EXCEPTIONS
