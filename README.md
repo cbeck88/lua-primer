@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/cbeck88/lua-primer/badge.svg?branch=master&service=github)](https://coveralls.io/github/cbeck88/lua-primer?branch=master)
 [![Boost licensed](https://img.shields.io/badge/license-Boost-blue.svg)](./LICENSE)
 
-**lua primer** is a modern C++ library that creates bindings between [lua](http://lua.org/) and to C++ code.
+**lua primer** is a modern C++ library that creates bindings between [**lua**](http://lua.org/) and to C++ code.
 It is header-only, and has no external dependencies besides lua and the standard library.
 **primer** was specifically designed to support [**lua-eris**](https://github.com/fnuecke/eris). 
 
@@ -17,7 +17,7 @@ C++ objects and functions, with many closures over hidden objects, suspended cor
 The save format is largely portable as well -- see eris' documentation.
 
 By contrast, this can be very difficult to do correctly with other lua binding libraries, which
-may be cumbersome to use in concert with `eris`.
+may be cumbersome to use in concert with **eris**.
 
 Licensing and Distribution
 ==========================
@@ -89,6 +89,7 @@ Features
     VISITABLE_STRUCTURE(h_arguments, name, id, group, task);
 
     primer::result h(lua_State, h_arguments args) {
+      auto it = database.find(args.id);
       ...
     }
   ```
@@ -129,9 +130,14 @@ Features
       
 
 - Provides a thin framework for you to assemble a C++ api with various custom features, such that the
-  state will at all times be *persistable* using the `lua-eris` library. This framework doesn't seek to get
-  between you and the VM -- you still have all the low-level access you care for, but it makes it trivial to
-  do powerful things like save and restore the VM, or make duplicates of a VM state. (TODO: Example)
+  state and ancillary data will at all times be *persistable* using the **lua-eris** library. This framework
+  doesn't seek to get between you and the VM -- you still have all the low-level access you care for, but it
+  makes it trivial to do powerful things like save and restore the VM, or make duplicates of a VM state. (TODO: Example)
+
+- Primer is written in modern C++11 code, with substantial documentation and unit tests.
+
+- Primer is tested against **lua 5.3**, but should also work with lua 5.2. lua 5.1 is not supported. We should
+  in general be able to support lua version that eris supports.
 
 Documentation
 =============
