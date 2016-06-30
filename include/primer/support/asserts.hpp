@@ -23,13 +23,15 @@ PRIMER_ASSERT_FILESCOPE;
 
 #ifndef PRIMER_DEBUG
 
+#define PRIMER_DEBUG_MSG(X)
 #define PRIMER_FATAL_ERROR(X)
 #define PRIMER_ASSERT(C, X)
 #define PRIMER_ASSERT_STACK_NEUTRAL(L)                                         \
   static_cast<const void>(L);                                                  \
   static_assert(true, "")
-#define PRIMER_DEBUG_MSG(X)
-#deifne PRIMER_ASSERT_TABLE(L)
+#define PRIMER_ASSERT_TABLE(L)                                                 \
+  static_cast<const void>(L);                                                  \
+  static_assert(true, "")
 
 #else // PRIMER_DEBUG
 
