@@ -16,7 +16,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/support/str_cat.hpp>
+#include <primer/detail/str_cat.hpp>
 
 #include <string>
 #include <utility>
