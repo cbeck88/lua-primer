@@ -57,7 +57,7 @@ Features
 
   C++:
   ```
-    primer::result reverse(lua_State *, std::vector<int> numbers) {
+    primer::result reverse(lua_State * L, std::vector<int> numbers) {
       std::reverse(numbers.begin(), numbers.end());
       primer::push(L, numbers);
       return 1;
@@ -88,7 +88,7 @@ Features
 
     VISITABLE_STRUCTURE(h_arguments, name, id, group, task);
 
-    primer::result h(lua_State, h_arguments args) {
+    primer::result h(lua_State * L, h_arguments args) {
       auto it = database.find(args.id);
       ...
     }
