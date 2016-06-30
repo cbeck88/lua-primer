@@ -144,6 +144,27 @@ private:
     }
   }
 
+  // Does the actual work. First check if we can avoid deinitializing,
+  // and use move assignment operator of T or primer::error.
+  // If not then deinitialize and reinitialize.
+  template <typename E>
+  void move_assign(E && e) noexcept {
+    if (this->have_ham_) {
+      if (e) {
+        ham_ = std::move(*e);
+        return;
+      }
+    } else {
+      if (!e) {
+        spam_ = std::move(e.err());
+        return;
+      }
+    }
+
+    this->deinitialize();
+    this->init_from_rvalue_ref(std::move(e));
+  }
+
 public:
   explicit expected(default_construct_in_place_tag) { this->init_ham(); }
 
@@ -166,13 +187,8 @@ public:
 
   // When incoming expected has a different type, we allow conversion if U is
   // convertible to T.
-  // Defer to copy assignment operator.
   template <typename U>
-  expected(const expected<U> & u)
-    : expected() // default ctor first
-  {
-    *this = u;
-  }
+  expected(const expected<U> & u) { this->init_from_const_ref(u); }
 
   /***
    * Same thing with move constructors.
@@ -180,46 +196,38 @@ public:
   expected(expected && e) noexcept { this->init_from_rvalue_ref(std::move(e)); }
 
   template <typename U>
-  expected(expected<U> && u)
-    : expected()
-  {
-    *this = u;
-  }
+  expected(expected<U> && u) { this->init_from_rvalue_ref(std::move(u)); }
 
   /***
    * Copy assignment operator
    *
-   * We allow constructing expected<T> from expected<U> if U is convertible to
-   * T.
+   * Use copy and move idiom.
    */
   expected & operator=(const expected & e) {
-    this->deinitialize();
-    this->init_from_const_ref(e);
+    expected temp{e};
+    *this = std::move(temp);
     return *this;
   }
 
   template <typename U>
   expected & operator=(const expected<U> & u) {
-    this->deinitialize();
-    this->init_from_const_ref(u);
+    expected temp{u};
+    *this = std::move(temp);
     return *this;
   }
 
   /***
    * Move assignment operator
    *
-   * Same thing
    */
   expected & operator=(expected && e) noexcept {
-    this->deinitialize();
-    this->init_from_rvalue_ref(std::move(e));
+    this->move_assign(std::move(e));
     return *this;
   }
 
   template <typename U>
-  expected & operator=(expected<U> && u) noexcept {
-    this->deinitialize();
-    this->init_from_rvalue_ref(std::move(u));
+  expected & operator=(expected<U> && e) noexcept {
+    this->move_assign(std::move(e));
     return *this;
   }
 
