@@ -24,7 +24,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
-#include <primer/support/str_cat.hpp>
 #include <primer/traits/read.hpp>
 #include <primer/traits/util.hpp>
 
@@ -62,8 +61,7 @@ struct read_helper {
     if (auto result = traits::read<traits::remove_cv_t<T>>::from_stack(L, -1)) {
       value = std::move_if_noexcept(*result);
     } else {
-      ok = std::move(result.err().prepend_error_line(
-        primer::detail::str_cat("In field name '", name, "',")));
+      ok = std::move(result.err().prepend_error_line("In field name '", name , "',"));
     }
     lua_pop(L, 1);
   }
