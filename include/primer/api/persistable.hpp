@@ -42,7 +42,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/eris.hpp>
 
-#include <primer/api/lua_functionality.hpp>
+#include <primer/api/feature.hpp>
 #include <primer/detail/lua_read_write.hpp>
 #include <primer/detail/rank.hpp>
 #include <primer/detail/typelist.hpp>
@@ -146,7 +146,7 @@ protected:
 
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    this->make_unpersist_table(L);
+    this->make_unpersist_table(L);                      // [_unpersist]
 
     detail::reader_helper rh{buffer};
     eris_undump(L, detail::trivial_string_reader, &rh); // [_unpersist] [target]
@@ -167,9 +167,8 @@ protected:
 #define API_FEATURE(TYPE, NAME)                                                \
   TYPE NAME;                                                                   \
   static constexpr const char * feature_name_##NAME() { return #NAME; }        \
-  typedef detail::ptr_to_member<root_type, TYPE, &root_type::NAME,             \
-                                &root_type::feature_name_##NAME>               \
-    feature_reg_##NAME;                                                        \
-  static inline Append_t<GET_API_FEATURES, feature_reg_##NAME> GetApiFeatures( \
+  using feature_reg_##NAME = primer::api::ptr_to_member<root_type, TYPE, &root_type::NAME,                \
+                                &root_type::feature_name_##NAME>;               \
+  static inline primer::detail::Append_t<GET_API_FEATURES, feature_reg_##NAME> GetApiFeatures( \
     primer::detail::Rank<GET_API_FEATURES::size + 1>);                         \
   static_assert(true, "")

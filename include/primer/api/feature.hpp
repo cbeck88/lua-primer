@@ -6,19 +6,26 @@
 #pragma once
 
 /***
- * These visitors define the concept of "lua functionality".
- * A lua functionality installs a feature in a lua state and also sets up
- * whatever
- * is necessary to make sure that the state can still be saved and reloaded
- * using eris.
+ * These visitors define the concept of "api feature".
+ * Am api feature is some component or collection of components installed in a
+ * lua State which requires support for persistence.
+ *
+ * An api feature is a lua-state-wide entity, usually existing as a member of an
+ * api::base. It must provide methods for initialization, which makes it
+ * available to use scripts, for persistence, in which it registers whatever
+ * objects it needs to in the permanent objects table / persistence target
+ * table, and and in which it restores itself from the saved data.
+ *
+ * The purpose is to help manage the book-keeping associated to pushing C++
+ * api entities to lua, while making sure that we still know how to save and
+ * restore the lua state afterwards using eris.
  *
  * Generally, that means any "opaque" things like C function pointers which is
- * pushes
- * to lua, must also be placed in the persistent objects table.
+ * pushes to lua, must also be placed in the persistent objects table.
  *
  * If the functionality is a userdata type, it usually means that some function
- * associated
- * to the "__persist" function must be stored in the persistent objects table.
+ * associated to the "__persist" function must be stored in the persistent
+ * objects table.
  *
  * CONCEPT:
  *
@@ -97,7 +104,7 @@ struct on_unpersist_table_visitor {
   template <typename H, typename T>
   void visit_type(T & t) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
-    H::get_target(t).on_persist_table(L);
+    H::get_target(t).on_unpersist_table(L);
   }
 };
 

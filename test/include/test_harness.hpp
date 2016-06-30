@@ -90,6 +90,7 @@ struct lua_raii {
     : L_(luaL_newstate())
   {
     // std::cerr << "opened state: L = " << L_ << std::endl;
+    luaL_checkversion(L_);
   }
 
   ~lua_raii() {

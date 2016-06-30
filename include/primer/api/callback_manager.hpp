@@ -6,26 +6,21 @@
 #pragma once
 
 /***
- * This lua functionality takes a list of callbacks with names and help strings,
+ * This api feature manages a list of callbacks with names and help strings,
  * as is produced by lua::callback_registrar.
  *
  * It provides them as global functions to the lua state, and ensures that they
  * are in the persistent objects table.
  *
- * It also registers their help strings. The "help" function implementation is
- * provided to the lua state.
+ * It also registers their help strings.
  *
  * Finally, it is initalizes the lua_extraspace pointer to the value "owner_ptr"
  * which is passed to it. This should point to the base class of any member
- * functions
- * that are passed to lua using the LUA_DELEGATE macro. This should generally be
- * the class deriving from api_base. There may only be one such class for each
- * lua
- * state, otherwise, you must use a different mechanism for registering the
- * other
- * functions.
- * (For example you could pass `std::function` objects as userdata to lua.)
- * Note that the extraspace method will be the most performant.
+ * functions that are passed to lua using the ADAPT_EXTRASPACE macro. This
+ * should generally be the class deriving from api::base.
+ *
+ * Note that you can use other methods for registering / dispatching callbacks,
+ * but the extraspace method will be the most performant.
  */
 
 #include <primer/base.hpp>
