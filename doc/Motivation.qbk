@@ -264,8 +264,8 @@ objects table.
 Even ignoring the issue of getting the function pointers, just keeping track of the function pointers and their aliases for a large
 C++ api is a actually pretty complex book-keeping problem that can lead to subtle runtime errors, if one just hacks away at it procedurally.
 All userdata, libraries, and global callbacks need to be registered at VM initialization, again at the permanent objects table,
-and again at the inverse permanent objects table -- if one of these is missing, you may just get a runtime error on deserialization,
-so one may end up with a long list of manual registrations that need to be synchronized. It can easily become confusing, especially if
+and again at the inverse permanent objects table. If one of these is missing, you may just get a runtime error on deserialization.
+It can easily become confusing, especially if
 there are several different lua APIs used for several different components in your application.
 
 Ideally, one would like to solve this problem with a "lazy registration" strategy. I.e. make the permanent objects table as we go,
@@ -275,8 +275,8 @@ afford to "experimentally determine" the permanent objects table, since when des
 first VM we have created in this run of our application.
 
 The most robust and reliable strategy, for using automatic lua bindings together with eris, seems to be to use a *compile-time* registration
-system. This way, the contents of the permanent objects table is known at compile-time, and we can fail fast if the program attempts to push
-something to a lua VM that we don't know how to serialize.
+system. This way, for any given API that we expose, we know exactly how to construct the permanent objects table for serialization and destructoin
+at compile time, and we can fail fast if the program attempts to push something to a lua VM that we don't know how to serialize.
 
 [h2 Concept: API Features]
 
