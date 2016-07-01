@@ -7,8 +7,9 @@ Primer generally translates lua errors into `primer::error` when it performs an
 operation which fails, and will translate `primer::error` into a lua error when
 adapting callbacks.
 
-`primer::error` is a simple class type that contains a `std::string`. It is
-constructible from a string or a sequence of strings, which it concatenates
+[primer_error]
+
+`primer::error` is constructible from a string or a sequence of strings, which it concatenates
 together.
 
 `primer::error` has a useful method, `prepend_error_line` which takes a string

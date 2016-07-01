@@ -98,8 +98,8 @@ class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
 
   template <std::size_t... indices>
   struct impl<primer::detail::SizeList<indices...>> {
-  // We also mark this as "noexcept" just in case, to prevent bad exceptions
-  // from propagating to lua.
+    // We also mark this as "noexcept" just in case, to prevent bad exceptions
+    // from propagating to lua.
 
     static primer::result adapted(lua_State * L) noexcept {
       // Create a flag that all the readers can use in order to signal an error
