@@ -1,5 +1,126 @@
 [section Design]
 
-TODO
+Primer is a header-only C++ library. It is intended to be a thin layer over lua/eris.
+As such, we don't make any use of "heavy" C++ features like virtual functions, exceptions,
+or RTTI.
+
+We do however make heavy use of templates. Primer's headers generate many tiny
+functions which, in an optimized build, the compiler will inline. It is recommended
+also to statically link to lua or lua-eris, as for current compilers, this is the best
+way to take advantage of link-time optimizations.
+
+[h3 `primer::error`]
+
+`primer::error` is the basic object which Primer uses to represent a runtime error.
+Primer generally translates lua errors into `primer::error` when it performs an operation
+which fails, and will translate `primer::error` into a lua error when adapting callbacks.
+
+[h3 `primer::expected`]
+
+`primer::expected` is the basic object which Primer uses to do error handling. This is
+analogous to the proposed `std::expected` type, or to `Result<T, E>` in the Rust programming
+language. Basically, `primer::expected<T>` is a discriminated union which represents either
+a `T` or a `primer::error`. You can use `operator *` to access the `T` value, and you can use
+`operator bool` to test if there is a value or an error (`true` indicates a value.) You can
+use the `err()` method to access the error.
+
+`primer::expected` is also specialized to support reference types `T&` in the natural way.
+It can also represent `void`, which conceptually represents either "success" or an error.
+
+[h3 `primer::read` and `primer::push`]
+
+`primer::read` and `primer::push` are template functions which establish how to transfer
+C++ values to and from the lua stack. They have the following signatures:
+
+``
+  template <typename T>
+  void push(lua_State * L, const T & t);
+
+  template <typename T>
+  expected<T> read(lua_State * L, int index);
+``
+
+These functions should not be overloaded or specialized. Instead, both functions are backed up
+by a ['type trait], which may be specialized to customize primer's behavior.
+
+Many other functions in primer's repertoire use the `push` and `read` traits implicitly, so specializing
+these makes primer universally "aware" of your custom types.
+
+[h3 Userdata types]
+
+Userdata types are registered by specializing a trait, `primer::traits::userdata`.
+
+The specialized trait is required to provide enough information to construct the metatable of the userdata.
+
+While primitive types like numbers and tables are often read ['by value], using e.g. `primer::read<float>` or
+`primer::read<std::vector<int>>`, generally it is much more useful to read userdata types ['by reference].
+
+If `my_type` has been registered as userdata, then `primer::read` has a built-in specialization for the type
+`my_type &`. If a userdata of type `my_type` is found at that stack position, then a reference to the underlying
+`my_type` is returned, otherwise, an error.
+
+`primer::push_udata` is used to create new userdata on the stack of a given type.
+
+[h3 Adapting functions]
+
+`PRIMER_ADAPT` is the mechanism which implements type-safe parameter reading and error handling.
+It takes a function pointer of a general signature, and constructs a delegate of the form `lua_CFunction` which
+can be pushed to lua.
+
+`PRIMER_ADAPT` uses `primer::read` under the hood. If you specialize the read trait for a special type or container,
+then that type or container can be used as a parameter in any lua callback which you expose using primer. 
+A reference or const reference to any userdata type can also be used as a function parameter, since `primer::read`
+recognizes it.
+
+[h3 Adapting userdata methods]
+
+`PRIMER_ADAPT_USERDATA` is an extension of `PRIMER_ADAPT` which handles member functions of a userdata type.
+Functions thus adapted expect to be called using the standard `object:method(arg1, arg2)` syntax in lua, meaning that
+the base `object` is actually the first element on the stack.
+
+This is convenient because sometimes its a little nicer to implement userdata methods as C++ methods rather than free
+functions. `PRIMER_ADAPT` can only directly handle free functions.
+
+[h3 Constructing APIs]
+
+`primer::api::base` is the base type which you use to construct an API.
+
+It has two special features:
+
+* Function objects which are data members of the API base can be declared as an "API feature", using the `API_FEATURE`
+  macro. Such objects are expected to provide `on_init, on_persist_table, on_unpersist_table` methods, and optionally,
+  `on_serialize` and `on_deserialize`. This allows the function object to declare permanent objects, and provide additional
+  serialized data besides what is visible in the global table.
+
+* Member functions of an API base can be dispatched using a technique called "extraspace dispatch". In this technique,
+  a pointer to the API base object is stored in a region of memory called the lua extraspace.
+  Member functions can be declared and registered using the macro `NEW_LUA_CALLBACK`. This also uses a special version
+  of primer adapt, which recovers the base pointer from the extraspace.
+
+
+In order for member functions to be registered with the lua state, there must be a `primer::api::callback_manager` which
+is explicitly declared as an `API_FEATURE` within the api. This callback manager is initialized using the `this` pointer
+of the `api::base`. On initialization, it stores the this pointer in the lua extraspace, and loads all of the methods
+into the global table, and into the permenant object tables at appropriate times.
+
+[h3 References to lua objects]
+
+`primer::lua_ref` is a C++ object which represents a reference to a particular lua value inside of some lua VM.
+
+This object will not be garbage collected by lua as long as the `lua_ref` exists. However, the `primer::lua_ref` does
+not / cannot take ownership of the lua VM itself. If the lua VM is destroyed, `primer::lua_ref` is still safe, it will
+simply fail to lock. In this sense, it is like a weak pointer into the VM -- even if it is left dangling, UB does not ensue.
+
+[h3 References to lua functions]
+
+`primer::bound_function` is a `primer::lua_ref` which is known to point to an object of function type.
+`primer::bound_function` can be used to create safe C++ function objects which refer to functions implemented in lua by a
+script, and passed to other components of your program.
+
+[h3 References to lua coroutines]
+`primer::coroutine` is a `primer::lua_ref` which represents a lua coroutine (or thread, as they are variously called).
+A `primer::coroutine` can only be created from    a `primer::bound_function`. A `primer::coroutine`, after being
+initialized, may be called and its results obtained. If it yields, it may continue to be called, until eventually it returns or produces an error. The coroutine object exists in the
+registry -- this helper object is provided to abstract away the details of manipulating thread stacks.
 
 [endsect]

@@ -1,0 +1,14 @@
+[section lua_ref]
+
+This object is like a "weak pointer" into the VM, in the sense that, obtaining the value from the reference may fail,
+if for instance, the VM has already been destroyed. `primer::lua_ref` is safe in the sense that it will fail to lock
+in that case, rather than giving undefined behavior. However, `primer::lua_ref` cannot take ownership of a lua VM, nor
+is it thread-safe.
+
+You must not pass these objects across threads. Lua is generally not thread safe anyways, so this
+should come as no surprise.
+
+As long as the lua state is alive, it will not garbage collect an object referred to by `primer::lua_ref`. This is
+achieved using the `luaL_ref` mechanism, see lua docs.
+
+[endsect]

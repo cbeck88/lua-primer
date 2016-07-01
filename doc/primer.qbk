@@ -23,6 +23,7 @@
 [endsect]
 
 [section:reference Reference]
-[include PushRead.qbk]
-[include Adapt.qbk]
+[include Core.qbk]
+[include Api.qbk]
+[include Containers.qbk]
 [endsect]

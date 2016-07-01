@@ -1,0 +1,30 @@
+[section Userdata]
+
+userdata types are recognized using a trait, `primer::traits::userdata`.
+This trait must be specialized for any type which primer will recognize as userdata, and this must provide
+
+* `static const char * name`: A name associated to the userdata. The metatable will be constructed using `luaL_newmetatable`,
+  using this name as the key. This name may also be displayed in certain error messages, e.g. if userdata of this type was expected and not found.
+
+* `static const luaL_Reg * methods`: A null-terminated list of metamethods for this userdata. This must include a `__persist` metamethod, or the
+  userdata cannot be persisted correctly. See eris' documentation.
+
+* `static const luaL_Reg * other_functions`: A null-terminated list of other functions related to this userdata which must be listed in the permanent
+  objects table. Commonly this list contains constructors or other functions related to the type and exposed to the user or via the `__persist` metamethod.
+
+`primer::push_udata` is a template function which is used to construct new userdata objects on the stack.
+
+`push_udata` expects the userdata type as an explicit template parameter, and forwards all arguments to the constructor.
+
+```
+  template <typename T, typename... Args>
+  void push_udata(lua_State * L, Args && ... args);
+```
+
+While primitive types like `number`, `string`, and `table` are generally read from the lua stack by value, as C++ primitives or containers, for userdata types this is usually much less useful.
+
+Instead, userdata types are generally read from the stack *by reference*.
+
+TODO
+
+[endsect]
