@@ -2,10 +2,7 @@
 
 `primer::read` is a template function used to read a C++ value from the lua stack.
 
-``
-  template <typename T>
-  expected<T> read(lua_State * L, int index);
-``
+[primer_read]
 
 * `read` returns a value of type `T`, or a human-readable error message explaining
   why the value on the stack could not be converted to `T`.
@@ -19,12 +16,15 @@ then applying `operator *` will result in undefined behavior.
 
 The following core types are supported:
 
-* `bool`:          Checks `lua_isboolean`, calls `lua_toboolean`.
-* `int`:           Checks `lua_isinteger`, calls `lua_tointeger`.
-* `unsigned int`:  Checks `lua_isinteger`, calls `lua_tointeger`. Fails if the value is negative.
-* `float`:         Checks `lua_isnumber`, calls `lua_tonumber`.
-* `const char *`:  Checks `lua_isstring`, calls `lua_tostring`.
-* `std::string` :  Checks `lua_isstring`, calls `lua_tostring`.
+[table
+ [[Type] [Action]]
+ [[ `bool` ]         [ Checks `lua_isboolean`, calls `lua_toboolean`. ]]
+ [[ `int`  ]         [ Checks `lua_isinteger`, calls `lua_tointeger`. ]]
+ [[ `unsigned int` ] [ Checks `lua_isinteger`, calls `lua_tointeger`. Fails if the value is negative. ]]
+ [[ `float` ]        [ Checks `lua_isnumber`, calls `lua_tonumber`. ]]
+ [[ `const char *` ] [ Checks `lua_isstring`, calls `lua_tostring`. ]]
+ [[ `std::string`  ] [ Checks `lua_isstring`, calls `lua_tostring`. ]]
+]
 
 Primer includes additional headers to support some C++ standard containers and
 and boost containers, which tables may be converted to. See the containers section for
