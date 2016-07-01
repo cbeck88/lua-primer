@@ -104,3 +104,5 @@ A few things to note about this code:
 * One consequence of this is that we don't need to worry about the case that `index` is negative. In general, one can use `lua_absindex` to convert negative indices to positive indices. If the top of the stack is changing, then this may be necessary for correctness.
 * The `primer::error` constructor can take any number of strings, and concatenates them together. `primer::describe_lua_value` is used to generate a diagnostic message describing a value on the stack.
 * The `primer::error` member function `prepend_error_line` is used to give context to errors reported by subsidiary operations.
+
+[endsect]

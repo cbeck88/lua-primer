@@ -71,3 +71,5 @@ struct push<vec2i> {
 } // end namespace traits
 } // end namespace primer
 ``
+
+[endsect]
