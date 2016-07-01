@@ -31,10 +31,12 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
+//[ primer_bound_function
 class bound_function {
   lua_ref ref_;
 
 public:
+  // Special member functions
   bound_function() noexcept = default;
   bound_function(const bound_function &) noexcept = default;
   bound_function(bound_function &&) noexcept = default;
@@ -56,26 +58,30 @@ public:
 
   // Call methods
   template <typename... Args>
-  expected<void> call_no_ret(Args &&... args) const noexcept {
+  expected<void> call_no_ret(Args &&... args) const noexcept /*<
+    Calls the function, discards an return values. (But not errors.) >*/
+  {
     if (lua_State * L = ref_.push()) {
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_no_ret(L, sizeof...(args));
     } else {
-      // TODO: Better way to signal this?
       return primer::error("Could not lock lua state");
     }
   }
 
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
+  expected<lua_ref> call_one_ret(Args &&... args) const noexcept /*<
+    Calls the function, returns a reference to the first return value.
+    (Or an error.) >*/
+  {
     if (lua_State * L = ref_.push()) {
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_one_ret(L, sizeof...(args));
     } else {
-      // TODO: Better way to signal this?
       return primer::error("Could not lock lua state");
     }
   }
 };
+//]
 
 } // end namespace primer
