@@ -36,7 +36,7 @@ class lua_ref {
 
   //<-
 
-  // Initialize to empty / disengaged state
+  // Set to empty / disengaged state
   void set_empty() noexcept {
     sref_.reset();
     iref_ = LUA_NOREF;
@@ -67,7 +67,7 @@ class lua_ref {
     this->set_empty();
   }
 
-  // Release the ref if we are in an engaged state.
+  // Release the ref if we are in an engaged state. Ends in empty state.
   void release() noexcept {
     if (lua_State * L = this->check_engaged()) {
       luaL_unref(L, LUA_REGISTRYINDEX, iref_);
@@ -79,6 +79,7 @@ class lua_ref {
   void move(lua_ref & other) noexcept {
     sref_ = std::move(other.sref_);
     iref_ = other.iref_;
+    other.iref_ = LUA_NOREF;
     other.set_empty();
   }
 
@@ -104,11 +105,12 @@ public:
   }
 
   // Primary constructor
-  explicit lua_ref(lua_State * L) noexcept {
+  explicit lua_ref(lua_State * L) noexcept /*<
+    Pops an object from the top of given stack, and binds to it. If no object is
+    on top, enters the empty state. >*/
+  {
     this->init(L);
-  } /*<
-Pops an object from the top of given stack, and binds to it. If no object is
-on top, enters the empty state. >*/
+  }
 
 
   // Push to main stack
@@ -158,7 +160,7 @@ on top, enters the empty state. >*/
   }
 
   void reset() noexcept /*<
-Releases the lua reference, reverts to empty state. >*/
+    Releases the lua reference, reverts to empty state. >*/
   {
     this->release();
   }
