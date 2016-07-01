@@ -6,20 +6,7 @@
 #pragma once
 
 /***
- * Primer result is a structure that signals how to terminate a lua
- * function call.
- *
- * There are three possible signals:
- *   return
- *   yield
- *   error
- *
- * Return and yield both take an int, indicating how many arguments went on the
- * stack.
- * error is indicated by a primer::error object.
- *
- * Code to send corresponding signal to lua is in
- * `primer/detail/implement_result.hpp`
+ * Signaling object used to indicate how to terminate a lua function call.
  */
 
 #include <primer/base.hpp>
@@ -30,7 +17,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-// Tag used by the user to signal yield.
+//[ primer_result
+
+// Tag used by the user to indicate a yield.
 struct yield {
   int n_;
 };
@@ -44,7 +33,7 @@ struct return_or_yield {
 };
 
 
-// Actual object
+// Result object
 class result {
 
   expected<return_or_yield> payload_;
@@ -65,5 +54,6 @@ public:
   const expected<return_or_yield> & get_payload() const & { return payload_; }
   expected<return_or_yield> & get_payload() & { return payload_; }
 };
+//]
 
 } // end namespace primer
