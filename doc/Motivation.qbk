@@ -47,7 +47,7 @@ look at [@https://github.com/luabind/luabind luabind] or [@https://github.com/vi
 For concreteness, LuaBridge registration syntax for functions and variables looks like this:
 
 ```
-getGlobalNamespace (L)
+LuaBridge::getGlobalNamespace (L)
   .beginNamespace ("test")
     .addVariable ("var1", &globalVar)
     .addVariable ("var2", &staticVar, false)     // read-only
@@ -62,7 +62,7 @@ getGlobalNamespace (L)
 and for classes looks like this:
 
 ```
-getGlobalNamespace (L)
+LuaBridge::getGlobalNamespace (L)
   .beginNamespace ("test")
     .beginClass <A> ("A")
       .addStaticData ("staticData", &A::staticData)
@@ -107,7 +107,7 @@ Instead, users are encouraged to roll their own quick copy / print functions
 and so on, as the language is quite expressive and it is easy to do this for
 simple purposes in pure lua.
 
-For instance, here's an example that does a "recursive" deep-copy of a table. [@http://stackoverflow.com/questions/640642/how-do-you-copy-a-lua-table-by-value c.f. stackoverflow]
+For instance, here's an example that does a "recursive" deep-copy of a table, [@http://stackoverflow.com/questions/640642/how-do-you-copy-a-lua-table-by-value c.f. stackoverflow].
 
 ```
   function copy(obj, seen)
@@ -133,7 +133,7 @@ then the objects essentially become "private property" of the closure. This is s
 lambda capture. These captured values are called "upvalues" of the closure, in lua documentation.
 
 When copying a closure, should we also "copy" the upvalues? How can we, given that we cannot even
-access them, as they are private?
+access them from "outside" of the closure?
 
 In this case, a solution can be achieved with the help of the `debug` library. The debug library is
 a standard library in lua which contains some additional functionality for help in writing debuggers.
@@ -168,9 +168,9 @@ Second, the debug library doesn't actually completely solve such problems. For i
 provide you sufficiently powerful tools to examine the state of suspended threads such that you can
 duplicate them. "Suspended threads" may sound like a pretty unimportant edge case, but actually, it is
 pretty common in some lua libraries to use lua coroutines to implement custom iterators. In this case,
-any such iterator is actually a coroutine which contains a suspended thread as an upvalue.
+any such iterator is actually a closure which contains a suspended thread as an upvalue.
 
-From the application developer's point of view, the lack of built-in support for magic-bullet serialization
+From the application developer's point of view, the lack of built-in support for "magic-bullet" serialization
  is understandable, but disappointing. On the one hand, many other scripting languages like Python and Ruby don't provide this
 either. On the other hand, lua is quite commonly used in games, or for scripting the operation of a
 webserver. For many kinds of games, it's pretty important to be able to save and restore the game accurately.
@@ -312,6 +312,6 @@ The API features framework is there merely to assist in organization.
 
 Eris is a really nice and useful technology, and it is perfectly possible to use it with your C++ applications without
 using Primer. Primer just handles some of the book-keeping and plumbing for you. This lets you have the benefits of using a library like
-*luabind* or *LuaBridge* while also enjoying the power of Eris.
+*luabind* or *LuaBridge* while also enjoying the power of *Eris*.
 
 [endsect]

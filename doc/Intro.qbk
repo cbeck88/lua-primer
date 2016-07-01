@@ -73,11 +73,13 @@ provide built-in faciltiies to deep copy a VM, or to provide built-in
 serialization facilities.
 
 There are several common reasons for this:
+
 * Many possible implementations, no "right" one. Different applications need different solutions with different performance characteristics.
 * These VMs can be pretty complicated. Oftentimes scripting langauges provide some FFI or binding facility so that they can talk to external libraries -- how can one generically serialize or copy a pointer, or an object obtained from some C library?
 * Many applications dont *actually* need this. They just need to run their script and be done, and it will be different every time. Or, the script may be cheap to run, and they can recrate the state by just rerunning the script, and serialize it by just writing down the script.
 
 However, in some applications, it's really extremely important to be able to do these things.
+
 For instance, in a strategy game engine, a scripting language VM might be used to represent the game logic and
  the state of the game. Then, you really want to be able to deep copy the VM, if one wants to create "simulation-based" AIs
 which can experiment with a position without messing up the "actual" position. You really want to be able to serialize and deserialize the state faithfully,
@@ -88,7 +90,7 @@ Another popular use of scripting languages is in Webservers. In web frameworks l
 Serializing and deserializing a VM state has an obvious potential use in load balancing -- if a server gets bogged down,
 some of its threads could pause and their VM states written to disk. Then they could be moved and booted back up again on a different machine seamlessly.
 
-*Primer* is a C++ library that makes it easy to expose complex APIs to *lua* while also preserving its serializibility,
+[*Primer] is a C++ library that makes it easy to expose complex APIs to *lua* while also preserving its ['serializibility],
 using a lua technology called *eris*. *eris* is a very powerful serialization facility for lua 5.2 and 5.3, but many of
 the strategies traditionally used to expose C++ apis to lua don't work very well together with serializability or with eris.
 
