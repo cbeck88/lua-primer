@@ -5,44 +5,32 @@
 It is broadly similar in motivation, design, and implementation to the `std::expected`
 type which was proposed for the C++17 standard.
 
-It is a template class with the following signature:
-
-``
-  template <typename T>
-  class expected;
-``
-
-This class is implemented as a discriminated union. It contains either a value
+It is a template class implementing a discriminated union. `expected<T>` contains either a value
 of type `T`, or a `primer::error`.
 
-It is implicitly constructible from a value of type `T` or a `primer::error`.
+[primer_bad_access]
+[primer_expected]
 
-If `T` is constructible from `U`, then `expected<T>` may be constructed from
-`expected<U>`.
+[h3 Specialization: references]
 
-[h3 Accessors]
+`primer::expected<T&>` is specialized, since unions cannot contain references.
 
-The state of the union is queried using `operator bool`, which returns true if
-a value is present, and false if an error is present.
-
-The value is accessed using `operator *`.
-The error is accessed using member function `err()`.
-
-These both give UB if the union is in the wrong state.
-
-[h3 Specializations]
-
-There are two important specializations of `expected`.
-
-* `primer::expected<T&>` is specialized, since unions cannot contain references.
 Instead, `primer::expected<T&>` is implemented as a wrapper over `expected<T*>`.
-It is copyable and moveable, and can be reassigned like a pointer. However, when
-it is dereferenced, it always returns `T&`, even if the `expected<T&>` is const.
 
-* `primer::expected<void>` is specialized, so that it is essentially a `boost::optional<primer::error>`.
-However, the semantics are such that it agrees with the other `expected` types. That is, `operator bool`
-returns `false` when there is an error. `expected<void>` has no `operator *` and is not implicitly convertible
-to or from any of the other expected types. It is default constructed in the "no error" state, unlike the others.
-It is used to represent "operation proceeded successfully" or to report an error in carrying out some operation.
+It is copyable and moveable, and can be reassigned like a pointer. However, when it is dereferenced, it always returns `T&`, even if the `expected<T&>` is const.
+
+[primer_expected_ref]
+
+[h3 Specialization: void]
+
+`primer::expected<void>` is specialized, in order to represent "successful completion of an operation, or an error".
+
+`expected<void>` mostly has a similar interface to the others, in that `operator bool` returns `false` in the
+presence of an error. However, `expected<void>` has no `operator *` and is not implicitly convertible to other
+kinds of `expected`.
+
+It is default constructed in the "no error" state, unlike the others.
+
+[primer_expected_void]
 
 [endsect]
