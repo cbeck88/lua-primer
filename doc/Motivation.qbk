@@ -4,11 +4,13 @@ Lua is a popular scripting language. The standard lua implementation is written
 in C, and provides several facilities to permit application writers to create
 APIs or "bindings", by exposing their functions and objects to lua.
 
-Functions are exposed by creating a C-style function with signature 
+In the lua C api, the handle to a lua VM is an opaque pointer of type `lua_State *`.
+
+Functions are exposed to a VM by creating a C-style function with signature 
 `int (lua_State*)`, and pushing a pointer to this function to lua, e.g.:
 
 ```
-  void lua_pushcfunction (lua_State *L, lua_CFunction f);
+  void lua_pushcfunction (lua_State * L, lua_CFunction f);
 
   // Pushes a C function onto the stack. This function receives a pointer to a C
   // function and pushes onto the stack a Lua value of type function that, when
@@ -226,7 +228,7 @@ Then, when the state is restored, you are required to provide the "inverse" of t
     // the value to persist at the specified index value. It will push the
     // resulting binary string onto the stack on success.
 
-    void eris_unpersist(lua_State *L, int perms, int value); [-0, +1, e]
+    void eris_unpersist(lua_State *L, int perms, int value); // [-0, +1, e]
     // It expects the permanent object table at the specified index perms and
     // the binary string containing persisted data at the specified index value.
     // It will push the resulting value onto the stack on success.
