@@ -53,7 +53,6 @@ class expected {
   //              "move constructible and destructible.");
 
 public:
-
   // Accessors and dereference semantics
   explicit operator bool() const noexcept { return have_ham_; }
 
@@ -101,7 +100,7 @@ public:
   const std::string & err_str() const noexcept { return this->err().str(); }
   const char * err_c_str() const noexcept { return this->err_str().c_str(); }
 
-//<- Don't put internals in the docu
+  //<- Don't put internals in the docu
 private:
   // Internal manipulation: deinitialize, init_ham, init_spam
 
@@ -334,8 +333,8 @@ public:
                                        `primer::error`, so we can return those
                                        from functions that return
                                        `expected<void>`. >*/
-    : no_error_(false)
-    , error_(e)
+    : no_error_(false),
+      error_(e) //
   {}
 
   expected(primer::error && e) noexcept : no_error_(false),
@@ -356,8 +355,6 @@ public:
   expected(expected<U> && u) noexcept //
     : expected(std::move(u.err()))    //
   {}
-
-
 };
 //]
 

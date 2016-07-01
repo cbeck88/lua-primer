@@ -30,9 +30,9 @@ namespace primer {
 class lua_ref {
   lua_state_ref sref_; /*< A weak reference to a lua state. See
                            `<primer/detail/lua_state_ref.hpp>` for details. >*/
-  mutable int iref_; /*< Holds the registry index to the object.
-                         Mutable because, if `sref_` becomes empty, we want to
-                         set `iref_` to `LUA_NOREF` immediately. >*/
+  mutable int iref_;   /*< Holds the registry index to the object.
+                           Mutable because, if `sref_` becomes empty, we want to
+                           set `iref_` to `LUA_NOREF` immediately. >*/
 
   //<-
 
@@ -104,9 +104,11 @@ public:
   }
 
   // Primary constructor
-  explicit lua_ref(lua_State * L) noexcept { this->init(L); } /*<
-    Pops an object from the top of given stack, and binds to it. If no object is
-    on top, enters the empty state. >*/
+  explicit lua_ref(lua_State * L) noexcept {
+    this->init(L);
+  } /*<
+Pops an object from the top of given stack, and binds to it. If no object is
+on top, enters the empty state. >*/
 
 
   // Push to main stack
@@ -132,7 +134,7 @@ public:
 
          Returns true if push was successful, returns false and pushes nil to
          the given stack if the original VM is gone.
-                                    
+
          N.B. If you try to push onto a stack from another lua VM, undefined and
          unspecified behavior will result. If PRIMER_DEBUG is defined, then
          primer will check for this and call std::abort if it finds that you
@@ -155,8 +157,11 @@ public:
     }
   }
 
-  void reset() noexcept { this->release(); } /*<
-    Releases the lua reference, reverts to empty state. >*/
+  void reset() noexcept /*<
+Releases the lua reference, reverts to empty state. >*/
+  {
+    this->release();
+  }
 
 
   // operator bool
