@@ -24,3 +24,7 @@ clang-format.sh
 
 # find_and_replace
 find_and_replace.sh
+
+# docs
+/doc/bin
+/doc/html

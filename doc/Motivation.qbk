@@ -1,0 +1,202 @@
+[section Motivation]
+
+Lua is a popular scripting language. The standard lua implementation is written
+in C, and provides several facilities to permit application writers to create
+APIs or "bindings", by exposing their functions and objects to lua.
+
+Functions are exposed by creating a C-style function with signature 
+`int (lua_State*)`, and pushing a pointer to this function to lua.
+
+Objects are exposed by creating a "userdata" object with the lua VM. A userdata
+object represents a block of memory allocated by the lua VM, in which you can
+construct your object. Then, you assign may assign a lua "metatable" which can
+give the object custom methods and semantics, and provide for cleanup when the
+object is garbage collected.
+
+There are two basic challenges in using this interface with C++ code.
+
+[h1 Binding]
+
+The first is that, it is somewhat inconvenient to write all your functions as
+`int (lua_State *)`. This requires the programmer to manually read arguments
+to the function off the stack and perform standard error reporting for each
+function. Additionally, it forces the function to be a "free"-function, which
+is at odds with an object-oriented programming style. Usually, in a
+well-designed program, not all of the resources will be allocated in global
+variables, so the function which is passed to lua must somehow obtain a
+handle to the resources that it is supposed to use to carry out its task.
+
+This is generally solved by using templates to create generic "delegates" which
+can be passed to lua comfortably. A template is created which can take a
+function pointer of a more general signature, or a pointer to member function.
+Generic code is written which parses the arguments off the stack and signals an
+error. In the case of a member function, some mechanism must be used to store
+and recover a pointer to the correct base object, which can be recovered from
+lua so that the appropriate method can be invoked. There are several possible
+strategies for this -- for examples of popular open-source libraries which accomplish this,
+look at [luabind](https://github.com/luabind/luabind) or [LuaBridge](https://github.com/vinniefalco/LuaBridge).
+
+[h1 Serializing]
+
+The second challenge has to do with *serializing* the lua VM and restoring it.
+
+The lua developers generally take a very conservative approach to exposing 
+language features in lua, or in adding features to its standard libraries. For
+instance, there is no built-in function which prints the contents of a table to
+the screen, or which copies a table. 
+
+> There is no copy function sufficiently widely agreed upon to be called "standard".
+
+Should it be deep-copying, or shallow copying? How should it handle metatables?
+What exactly does deep-copying mean, given that some types are inherently opaque
+and not copyable (userdata, functions). What if the table structure is recursive?
+
+Instead, users are encouraged to roll their own quick copy / print functions
+and so on, as the language is quite expressive and it is easy to do this for
+simple purposes in pure lua.
+
+For instance, here's an example that does a "recursive" deep-copy of a table. [c.f. stackoverflow](http://stackoverflow.com/questions/640642/how-do-you-copy-a-lua-table-by-value)
+
+```
+  function copy(obj, seen)
+    if type(obj) ~= 'table' then return obj end
+    if seen and seen[obj] then return seen[obj] end
+    local s = seen or {}
+    local res = setmetatable({}, getmetatable(obj))
+    s[obj] = res
+    for k, v in pairs(obj) do res[copy(k, s)] = copy(v, s) end
+    return res
+  end
+```
+
+This function attempts to copy a table, making analogous copies of each constituent table,
+while preserving the referential structure. That is if `obj.x` and `obj.y` were both
+references to the same table, then they will be references to an analaogous table, in the result.
+
+This works well when the only types we consider are tables and primitive values.
+What about the case of functions, or specifically, closures? In lua, it is easy to create
+lexical closures, which capture and extend the lifetime of any objects in their scope. If those
+objects then go out of the global scope, i.e., if the function is returned by another function,
+then the objects essentially become "private property" of the closure. This is somewhat like C++
+lambda capture. These captured values are called "upvalues" of the closure, in lua documentation.
+
+When copying a closure, should we also "copy" the upvalues? How can we, given that we cannot even
+access them, as they are private?
+
+In this case, a solution can be achieved with the help of the `debug` library. The debug library is
+a standard library in lua which contains some additional functionality for help in writing debuggers.
+The debug library contains some low-level functions which allow to access the byte-code associated
+to a lua function, as well as to access the up-values of a closure.
+
+However, this solution is unsatisfactory for several reasons. For one, you often don't want to expose
+the debug library to user scripts. Doing so breaks encapsulation, as now the user can grab the
+private variables of any closure or library function. It allows them to do other intrusive things
+which usually the user doesn't want or need to do, and generally can make it harder to reason about
+your code.
+
+Second, the debug library doesn't actually completely solve such problems. For instance, it doesn't
+provide you sufficiently powerful tools to examine the state of suspended threads such that you can
+duplicate them. There are a few such datatypes that the user can create that pure lua is simply unable
+to copy or serialize.
+
+From the application developer's point of view, the lack of built-in support for this is understandable,
+but disappointing. On the one hand, other scripting languages like Python and Ruby don't provide this
+either. On the other hand, lua is quite commonly used in games, or for scripting the operation of a
+webserver. For many kinds of games, it's pretty important to be able to save and restore the game accurately.
+For the case of a server, you may want to be able to suspend the operation of the server, and seamlessly
+relaunch the process on a different server, for purposes of load balancing.
+
+If one is using a hand-rolled serialization function which handles "most but not all" datatypes that
+can occur in a lua state, the result is pretty disasterous. In the case of a game, the user is told
+"the game could not be saved because [obscure lua type system message]". Or, worse, the game appears to
+be saved, but on restoration, something is subtly not correct. In the case of a server, the system may
+work great for years with "simple" scripts, and then one day a clever programmer is developing the
+application and constructs a type which goes just out of bounds of the assumptions of the serialization
+script, and now he gets down-time or corrupted states at runtime, when serialization is actually attempted.
+
+In such applications, it is very desirable to have a comprehensive serialization solution which one can
+confidently deploy, which can handle correctly any possible state. In strategy games,
+this is so important that in many cases the developer may choose to avoid technologies like Lua and Python,
+and instead just role their own small scripting language in C++, which they know can be easily serialized and restored,
+by virtue of using only transparent C++ data structures in its implementation.
+
+[h1 Eris]
+
+Lua is unique in that the core language really is significantly smaller than that of technologies like
+Python and Ruby, and its implementation is very small and clean. As a result, Lua enjoys a very robust
+approach to serialization, which is the technique created first by "Pluto" and later by "Eris". [Pluto](link) and [Eris](link)
+are essentially a small body of patches to the core lua implementation, which create a "heavy-duty" persistence
+capability. These patches dig into the core libraries in order to gain access to the various "anonymous" functions
+that lua may push into its state, in order to support their serialization, and they are able to serialize closures
+and threads directly, without accessing them via the debug library.
+
+Pluto was developed to support lua 5.1. Eris is a rewrite of Pluto that supports lua 5.2 and 5.3. Both are
+robust technologies, widely used by applications that need this capability. They have a collection of unit tests
+and are regularly updated as new versions of lua are released.
+
+[h1 Eris + Bindings?]
+
+Eris is able to serialize essentially any "natural" lua object, i.e., that arises by using the built-in lua features
+and libraries. However, some objects are inherently opaque -- function pointers to functions from your application,
+and userdata types created by your application.
+
+To handle such objects, Eris requires you to provide a table called the "permanent objects table". For objects like
+function pointers into your application, that a lua VM cannot recreate on its own, you are required to create an entry
+for them in the permanent objects table which gives them an easily-serialized alias. Then, when the state is restored,
+you are required to provide the "inverse" of the permanent objects table, so that these aliases can be replaced with
+"new", properly-constructed instances of those objects.
+
+For userdata, oftentimes there may be a very large number of userdata of a given *class* and it would be infeasible to
+add them all to the permanent objects table. Instead, you can create a special metamethod called `__persist`. When eris
+needs to serialize your userdata type, it calls this method, and expects it to return a closure type, which will be
+serialized in place of the object. The closure should essentially be a call to some kind of "constructor" for this
+userdata type, together with appropriate arguments. Conveniently, it is okay for this constructor to be implemented in
+C / C++ rather than pure lua, so long as that function pointer is in the permanent objects table. Similarly, the upvalues
+may also be userdata or some other complex type, so long as it is possible to serialize them with support from the permanent
+objects table.
+
+This is all well and good. Essentially, Eris is able to serialize anything that it can recursively decompose -- any function
+pointers that you push into the lua environment for the user to call, you need to keep track of them in a permanent objects
+table. And moreover, when you restore the lua state, your permanent objects table needs to contain all the function pointers
+that could possibly have been pushed. supposed to have. As long as you *also* put the constructor functions for your userdata
+types in the permanent objects table, then you can save and restore faithfully.
+
+While from the point of view of Eris, the contract of use is pretty simple, from the point of view of a large C++ application
+with a complex API, there are some difficulties with using this interface directly.
+
+[h2 Where are the function pointers?]
+
+The first is that if you are using a binding system like `luabind` or `LuaBridge`, often you don't really have the function
+pointers on hand -- those are hidden from you by the binding system, which seeks to give you the most elegant syntax possible
+and hide the plumbing. 
+
+
+It may be very difficult to dig these function pointers out so that you can put them into the permanent
+objects table.
+
+[h2 Compile-time vs run-time registration]
+
+Even ignoring the issue of getting the function pointers, just keeping track of the function pointers and their aliases for a large
+C++ api is a actually pretty complex book-keeping problem that can lead to subtle runtime errors, if one just hacks away at it procedurally.
+All userdata, libraries, and global callbacks need to be registered at state initialization, again at the permanent objects table,
+and again at the inverse permanent objects table -- if one of these is missing, you may just get a runtime error on deserialization,
+so one may end up with a long list of manual registrations that need to be synchronized. It can easily become confusing, especially if
+there are several different lua APIs used for several different components in your application.
+
+Ideally, one would like to solve this problem with a "lazy registration" strategy. I.e. make the permanent objects table as we go,
+only adding function pointers to it at the time that we actually push them into the lua state. This is most consistent with `luabind` and
+`LuaBridge` anyways, which view userdata and function registration as a *runtime* event. However, this is broken with Eris -- we cannot
+afford to "experimentally determine" the permanent objects table, since when deserializing a lua state, it's possible that this is the
+first lua VM we have created in this run of our application.
+
+The most robust and reliable strategy, for using automatic lua bindings together with eris, seems to be to use a *compile-time* registration
+system. This way, the contents of the permanent objects table is known at compile-time, and we can fail fast if the program attempts to push
+something to a lua VM that we don't know how to serialize.
+
+[h1 Summary]
+
+Eris is a really nice and useful technology, and it is perfectly possible to use it with your C++ applications without
+using Primer. Primer just handles some of the book-keeping and plumbing for you. This lets you have the benefits of using a library like
+`luabind` or `LuaBridge` while also enjoying the power of Eris.
+
+[endsect]
