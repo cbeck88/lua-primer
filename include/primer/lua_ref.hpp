@@ -6,62 +6,7 @@
 #pragma once
 
 /***
- * A lua_ref is a reference to an object in a lua VM.
- *
- * A lua_ref is created by pushing the object onto the stop of the stack, then
- * constructing lua_ref from the pointer `lua_State *`. This pops the object
- * from the stack.
- *
- * If the stack is empty, then the lua_ref is also in an
- * empty state. It can be default constructed in the empty state as well.
- *
- * If the lua_State * is destroyed (closed), the lua_ref reverts to the empty
- * state the next time it tries to be accessed.
- *
- * While the lua_State * is not closed, the referred object will not be garbage
- * collected by lua. There may simultaneously be other references to it
- * elsewhere in the VM.
- *
- * `class lua_ref` has three primary methods:
-
-   - void reset()       // Releases the lua reference, reverts to empty state.
-
-   - lua_State * push() const; // Attempts to push the object to the top of the
-                               // *original* stack, used to create this lua_ref.
-                               // Returns true if successful, (in fact, the
-                               // original state). False (nullptr) if that
-                               // lua_State is closed, or if we are in the empty
-                               // state.
-
-   - bool push(lua_State * L) const; // Attempts to push the object onto the top
-                                     // of a given *thread stack*. It *must* be
-                                     // a thread in the same VM as the original
-                                     // stack, or the same as the original
-                                     // stack.
-                                     // Returns true if push was successful,
-                                     // returns false and pushes nil to the
-                                     // given state if the original stack is
-                                     // gone.
-                                     //
-                                     // N.B. If you try to push onto a stack
-                                     // from another lua VM, undefined and
-                                     // unspecified behavior will result.
-                                     // If PRIMER_DEBUG is defined, then primer
-                                     // will check for this and call std::abort
-                                     // if it finds that you broke this rule.
-                                     // If PRIMER_DEBUG is not defined...
-                                     // very bad things are likely to happen,
-                                     // including stack corruption of lua VMs.
- *
- * Note that lua_ref is not thread-safe, it must not be passed among different
- * threads.
- *
- * Also note that while it is copyable, copying it is not recommended as it has
- * side-effects for the referred lua VM. If you need to copy a lua_ref, and your
- * lua VMs are very busy, it might be preferrable to put `lua_ref` in a
- * `std::shared_ptr` and copy those so that the `lua_ref` itself is not copied.
- * It would likely be worth profiling to compare the performance in your
- * application.
+ * A lua_ref is a safe reference to an object in a lua VM.
  */
 
 #include <primer/base.hpp>
@@ -77,12 +22,19 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/detail/lua_state_ref.hpp>
 #include <primer/support/asserts.hpp>
 
+#include <utility>
+
 namespace primer {
 
+//[ primer_lua_ref
 class lua_ref {
-  lua_state_ref sref_;
-  // If sref_ becomes empty, we want to set iref_ to LUA_NOREF immediately.
-  mutable int iref_;
+  lua_state_ref sref_; /*< A weak reference to a lua state. See
+                           `<primer/detail/lua_state_ref.hpp>` for details. >*/
+  mutable int iref_; /*< Holds the registry index to the object.
+                         Mutable because, if `sref_` becomes empty, we want to
+                         set `iref_` to `LUA_NOREF` immediately. >*/
+
+  //<-
 
   // Initialize to empty / disengaged state
   void set_empty() noexcept {
@@ -130,23 +82,18 @@ class lua_ref {
     other.set_empty();
   }
 
+  //->
 public:
-  // Ctors
-  explicit lua_ref(lua_State * L) noexcept { this->init(L); }
+  // Special member functions
 
   lua_ref() noexcept { this->set_empty(); }
-
   lua_ref(lua_ref && other) noexcept { this->move(other); }
-
   lua_ref(const lua_ref & other) noexcept { this->init(other.push()); }
-
-  // Dtor
   ~lua_ref() noexcept { this->release(); }
 
-  // Assignment
   lua_ref & operator=(const lua_ref & other) noexcept {
     lua_ref temp{other};
-    this->swap(temp);
+    *this = std::move(temp);
     return *this;
   }
 
@@ -156,17 +103,20 @@ public:
     return *this;
   }
 
-  // Swap
-  void swap(lua_ref & other) noexcept {
-    sref_.swap(other.sref_);
+  // Primary constructor
+  explicit lua_ref(lua_State * L) noexcept { this->init(L); } /*<
+    Pops an object from the top of given stack, and binds to it. If no object is
+    on top, enters the empty state. >*/
 
-    int temp = other.iref_;
-    other.iref_ = this->iref_;
-    this->iref_ = temp;
-  }
 
-  // Push
-  lua_State * push() const noexcept {
+  // Push to main stack
+  lua_State * push() const noexcept /*<
+        Attempts to push the object to the top of the primary stack of the state
+        used to create this lua_ref.
+        Returns a (valid) `lua_State *` if successfully locked.
+        Returns nullptr if that VM is closed, or if we are in the empty state.
+      >*/
+  {
     if (lua_State * L = this->check_engaged()) {
       lua_rawgeti(L, LUA_REGISTRYINDEX, iref_);
       return L;
@@ -174,7 +124,21 @@ public:
     return nullptr;
   }
 
-  bool push(lua_State * T) const noexcept {
+  // Push to a thread stack
+  bool push(lua_State * T) const noexcept /*<
+         Attempts to push the object onto the top of a given *thread stack*.
+         It *must* be a thread in the same VM as the original stack, or the same
+         as the original stack.
+
+         Returns true if push was successful, returns false and pushes nil to
+         the given stack if the original VM is gone.
+                                    
+         N.B. If you try to push onto a stack from another lua VM, undefined and
+         unspecified behavior will result. If PRIMER_DEBUG is defined, then
+         primer will check for this and call std::abort if it finds that you
+         broke this rule. If PRIMER_DEBUG is not defined... very bad things are
+         likely to happen, including stack corruption of lua VMs. >*/
+  {
     if (lua_State * L = this->check_engaged()) {
 #ifdef PRIMER_DEBUG
       // This causes a lua_assert failure if states are unrelated
@@ -191,17 +155,22 @@ public:
     }
   }
 
-  // Reset
-  void reset() noexcept { this->release(); }
+  void reset() noexcept { this->release(); } /*<
+    Releases the lua reference, reverts to empty state. >*/
+
 
   // operator bool
-  explicit operator bool() const noexcept {
+  explicit operator bool() const noexcept /*<
+    Test if we are not in the empty state and can still be locked. >*/
+  {
     return static_cast<bool>(this->check_engaged());
   }
 
-  // Attempt to cast the lua value to a C++ value, using primer::read
+  // Try to interpret the value as a specific C++ type
   template <typename T>
-  expected<T> as() const noexcept {
+  expected<T> as() const noexcept /*<
+    Attempt to cast the lua value to a C++ value, using primer::read >*/
+  {
     if (lua_State * L = this->push()) {
       expected<T> result{primer::read<T>(L, -1)};
       lua_pop(L, 1);
@@ -211,5 +180,6 @@ public:
     }
   }
 };
+//]
 
 } // end namespace primer
