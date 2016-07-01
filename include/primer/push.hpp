@@ -17,16 +17,17 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/traits/push.hpp>
 #include <utility>
 
-struct lua_State;
-
 namespace primer {
 
+//[ primer_push
 template <typename T>
 void push(lua_State * L, const T & t) {
   ::primer::traits::push<T>::to_stack(L, t);
 }
+//]
 
-/// Variadic push: Push a sequence of objects onto the stack.
+//[ primer_push_each
+// Variadic push: Push a sequence of objects onto the stack.
 template <typename... Args>
 void push_each(lua_State * L, Args &&... args) {
   int dummy[] = {(::primer::push(L, std::forward<Args>(args)), 0)..., 0};
@@ -34,5 +35,6 @@ void push_each(lua_State * L, Args &&... args) {
   // If args is empty this may resolve to a no-op
   static_cast<void>(L);
 }
+//]
 
 } // end namespace primer
