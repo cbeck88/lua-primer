@@ -37,10 +37,13 @@ Here's a sketch, using the PIMPL idiom:
     void load_and_execute_script(const std::string & script);
 
     // Send message from the application logic to the script inside the VM.
+    //   (Means, call a function which was earlier constructed and registered by
+    //   the script, to be the message handler).
     // May throw exceptions in case of an error (?)
     void send_message(message m);
 
     // Get output messages from the script
+    //   (e.g., which were emitted using an api function "send_message")
     bool has_output_messages() const;
     const message & top_message() const;
     void pop_message();
@@ -52,6 +55,7 @@ Here's a sketch, using the PIMPL idiom:
 ```
 
 Given this kind of an interface, the details of the VM are quite well encapsulated.
+
 From the point of view of the rest of the application, the VM is just a "moveable, copyable,
 serializable black box that can send and recieve messages." Nothing about the
 particular scripting language is even visible at all.
@@ -76,7 +80,7 @@ There are several common reasons for this:
 
 * Many possible implementations, no "right" one. Different applications need different solutions with different performance characteristics.
 * These VMs can be pretty complicated. Oftentimes scripting langauges provide some FFI or binding facility so that they can talk to external libraries -- how can one generically serialize or copy a pointer, or an object obtained from some C library?
-* Many applications dont *actually* need this. They just need to run their script and be done, and it will be different every time. Or, the script may be cheap to run, and they can recrate the state by just rerunning the script, and serialize it by just writing down the script.
+* Many applications dont ['actually] need this. They just need to run their script and be done, and it will be different every time. Or, the script may be cheap to run, and they can recrate the state by just rerunning the script, and serialize it by just writing down the script.
 
 However, in some applications, it's really extremely important to be able to do these things.
 
