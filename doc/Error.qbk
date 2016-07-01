@@ -1,4 +1,4 @@
-[section Error]
+[section error]
 
 `primer::error` is a minimalistic object which represents a runtime or load-time
 error, either in a lua script, or at the lua interface.

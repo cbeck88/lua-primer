@@ -1,4 +1,4 @@
-[section Expected]
+[section expected]
 
 `primer::expected` is our primary error handling mechanism.
 

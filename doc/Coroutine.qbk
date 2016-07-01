@@ -1,4 +1,4 @@
-[section Coroutine]
+[section coroutine]
 
 A `primer::coroutine` is a `primer::lua_ref` which represents a lua coroutine, or thread, as they are variously called in the documentation.
 

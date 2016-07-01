@@ -1,4 +1,4 @@
-[section Adapt]
+[section adapt]
 
 `PRIMER_ADAPT` is the basic dispatch mechanism that implements type-safe parameter reading and error handling.
 
