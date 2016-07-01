@@ -1,0 +1,106 @@
+[section Read]
+
+`primer::read` is a template function used to read a C++ value from the lua stack.
+
+``
+  template <typename T>
+  expected<T> read(lua_State * L, int index);
+``
+
+* `read` returns a value of type `T`, or a human-readable error message explaining
+  why the value on the stack could not be converted to `T`.
+* `read` is not permitted to leave the stack in a different state than it was found.
+
+You should always test the result of `primer::read` for safety, and not
+assume that it will succeed in any given case. If the result is in an error state,
+then applying `operator *` will result in undefined behavior.
+
+[h3 Supported Types]
+
+The following core types are supported:
+
+* `bool`:          Checks `lua_isboolean`, calls `lua_toboolean`.
+* `int`:           Checks `lua_isinteger`, calls `lua_tointeger`.
+* `unsigned int`:  Checks `lua_isinteger`, calls `lua_tointeger`. Fails if the value is negative.
+* `float`:         Checks `lua_isnumber`, calls `lua_tonumber`.
+* `const char *`:  Checks `lua_isstring`, calls `lua_tostring`.
+* `std::string` :  Checks `lua_isstring`, calls `lua_tostring`.
+
+Primer includes additional headers to support some C++ standard containers and
+and boost containers, which tables may be converted to. See the containers section for
+details.
+
+* `std::vector`
+* `std::array`
+* `std::set`
+* `std::map`
+* `std::unordered_map`
+* `boost::flat_set`
+
+[h3 Customization]
+
+`primer::read`'s implementation is quite simple -- it delegates work to a ['type trait].
+This trait, named `primer::traits::read`, can be specialized to override primer's behavior
+for certain types, or to add new behavior for these custom types.
+
+For example, suppose we have a simple vector type:
+
+``
+   struct vec2i {
+     int x;
+     int y;
+   };
+``
+
+Primer could be taught to read `vec2i` objects, represented in lua as a table with entries `t[1]` and `t[2]`
+using the following code:
+
+``
+namespace primer {
+namespace traits {
+
+template <>
+struct read<> {
+  static expected<vec2i> from_stack(lua_State * L, int index) {
+    expected<vec2i> result;
+
+    if (!lua_istable(L, index)) {
+      result = primer::error("Expected a table, found ", primer::describe_lua_value(L, index));
+    } else {
+      lua_rawgeti(L, index, 1);
+      expected<int> t1 = read<int>::from_stack(L, -1);
+      lua_pop(L, 1);
+
+      if (!t1) {
+        t1.err().prepend_error_line("In position [1]");
+        result = std::move(t1.err());
+      } else {
+
+        lua_rawgeti(L, index, 2);
+        expected<int> t2 = read<int>::from_stack(L, -1));
+        lua_pop(L, 1);
+
+        if (!t2) {
+          t2.err().prepend_error_line("In position [2]");
+          result = std::move(t2.err());
+        } else {
+          result = vec2i{*t1, *t2};
+        }
+      }
+    }
+
+    return result;
+  }
+};
+
+} // end namespace traits
+} // end namespace primer
+``
+
+A few things to note about this code:
+
+* The returned local variable is declared at the top, and only one return statement exists, at the end. This ensures that named return value optimization can take place.
+* We avoid using the stack excessively. When a new value is pushed onto the stack using `lua_rawgeti`, we read it immediately and then pop it. This means we need only one extra stack space rather than two.
+* One consequence of this is that we don't need to worry about the case that `index` is negative. In general, one can use `lua_absindex` to convert negative indices to positive indices. If the top of the stack is changing, then this may be necessary for correctness.
+* The `primer::error` constructor can take any number of strings, and concatenates them together. `primer::describe_lua_value` is used to generate a diagnostic message describing a value on the stack.
+* The `primer::error` member function `prepend_error_line` is used to give context to errors reported by subsidiary operations.

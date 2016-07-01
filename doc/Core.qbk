@@ -1,18 +1,22 @@
 [section:core Core]
 
 The core features of primer are general-purpose lua binding facilities.
+
 They do not rely on *lua eris*, and can be useful in an application which only
 uses vanilla lua 5.3 or 5.2. They also don't particularly rely on much of the
 standard library.
 
 These features serve such purposes as:
 
-* transfer C++ objects to and from the lua stack
+* transferring C++ objects to and from the lua stack
 * constructing C++ objects as lua userdata
-* transform C++ functions into functions that can be called from lua scripts
-* construct C++ objects that represent references to pure lua values in a VM, such as functions and coroutines.
+* transforming C++ functions into functions that can be called from lua scripts
+* constructing C++ objects that represent references to pure lua values in a VM, such as functions and coroutines.
 
-[include PushRead.qbk]
+[include Error.qbk]
+[include Expected.qbk]
+[include Push.qbk]
+[include Read.qbk]
 [include Adapt.qbk]
 [include Userdata.qbk]
 [include LuaRef.qbk]

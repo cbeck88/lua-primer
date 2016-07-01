@@ -10,6 +10,8 @@ Functions are exposed to a VM by creating a C-style function with signature
 `int (lua_State*)`, and pushing a pointer to this function to lua, e.g.:
 
 ```
+  using lua_CFunction = int(*)(lua_State *);
+
   void lua_pushcfunction (lua_State * L, lua_CFunction f);
 
   // Pushes a C function onto the stack. This function receives a pointer to a C
@@ -25,7 +27,7 @@ object is garbage collected.
 
 There are two basic challenges in using this interface with C++ code.
 
-[h1 Binding]
+[h2 Binding]
 
 The first is that, it is somewhat inconvenient to write all your functions as
 `int (lua_State *)`. This requires the programmer to manually read arguments
@@ -90,7 +92,7 @@ templated member functions to carry out bindings tasks, taking function pointers
 of arbitrary signatures and wrapping them appropriately to get a `int (luaState*)`
 which can be passed to lua.
 
-[h1 Serializing]
+[h2 Serialization]
 
 The second challenge has to do with *serializing* the lua VM and restoring it.
 
@@ -196,7 +198,7 @@ In strategy games, this is so important that in many cases the developer may cho
 and instead just role their own small scripting language in C++, which they know can be easily serialized and restored,
 by virtue of using only transparent C++ data structures in its implementation.
 
-[h1 Eris]
+[h2 Eris]
 
 Lua is unique in that the core language really is significantly smaller than that of technologies like
 Python and Ruby, and its implementation is very small and clean. As a result, Lua enjoys a very robust
@@ -210,7 +212,7 @@ Pluto was developed to support lua 5.1. Eris is a rewrite of Pluto that supports
 robust technologies, widely used by applications that need this capability. They have a collection of unit tests
 and are regularly updated as new versions of lua are released.
 
-[h1 Eris + Bindings?]
+[h2 Eris + Bindings?]
 
 Eris is able on its own to serialize essentially any "natural" lua object, i.e., that arises by using the built-in lua features
 and libraries. However, some objects are inherently opaque -- function pointers to functions from your application,
@@ -252,14 +254,14 @@ in the permanent objects table, then you can save and restore faithfully.
 While from the point of view of Eris, the contract of use is pretty simple, from the point of view of a large C++ application
 with a complex API, there are some difficulties with using this interface directly.
 
-[h2 Where are the function pointers?]
+[h3 Where are the function pointers?]
 
 The first is that if you are using a binding system like `luabind` or `LuaBridge`, often you don't really have the function
 pointers on hand -- those are hidden from you by the binding system, which seeks to give you the most elegant syntax possible
 and hide the plumbing. It may be very difficult to dig these pointers out so that you can put them into the permanent
 objects table.
 
-[h2 Compile-time vs run-time registration]
+[h3 Compile-time vs run-time registration]
 
 Even ignoring the issue of getting the function pointers, just keeping track of the function pointers and their aliases for a large
 C++ api is a actually pretty complex book-keeping problem that can lead to subtle runtime errors, if one just hacks away at it procedurally.
@@ -278,7 +280,7 @@ The most robust and reliable strategy, for using automatic lua bindings together
 system. This way, for any given API that we expose, we know exactly how to construct the permanent objects table for serialization and destructoin
 at compile time, and we can fail fast if the program attempts to push something to a lua VM that we don't know how to serialize.
 
-[h2 Concept: API Features]
+[h3 Concept: API Features]
 
 Primer ultimately organizes all such things, that is, lua callbacks, libraries, and userdata, under a C++ concept called an "api feature".
 
@@ -310,7 +312,7 @@ If the concept is too restrictive for a feature that need to add, fortunately, p
 always do whatever initialization or setup you need outside of these functions, before or after the `initialize_api` and `persist` methods.
 The API features framework is there merely to assist in organization.
 
-[h1 Summary]
+[h2 Summary]
 
 Eris is a really nice and useful technology, and it is perfectly possible to use it with your C++ applications without
 using Primer. Primer just handles some of the book-keeping and plumbing for you. This lets you have the benefits of using a library like

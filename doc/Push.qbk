@@ -1,0 +1,73 @@
+[section Push]
+
+`primer::push` is a template function used to push a C++ value to the stack.
+
+``
+  template <typename T>
+  void push(lua_State * L, const T & t);
+``
+
+* `push` is not permitted to fail -- any C++ value that currently can be pushed,
+can be pushed without fail.
+
+* `push` always pushes exactly one object onto the stack.
+
+[h3 Supported Types]
+
+The following core types are supported:
+
+* `primer::nil_t`: Calls `lua_pushnil`.
+* `bool`:          Calls `lua_pushboolean`.
+* `int`:           Calls `lua_pushinteger`.
+* `unsigned int`:  Calls `lua_pushinteger`.
+* `float`:         Calls `lua_pushnumber`.
+* `const char *`:  Calls `lua_pushstring`.
+* `std::string` :  Calls `lua_pushstring`.
+
+Primer includes additional headers to support some C++ standard containers and
+and boost containers, which are pushed as tables. See the containers section for
+details.
+
+* `std::vector`
+* `std::array`
+* `std::set`
+* `std::map`
+* `std::unordered_map`
+* `boost::flat_set`
+
+[h3 Customization]
+
+`primer::push`'s implementation is quite simple -- it delegates work to a ['type trait].
+This trait, named `primer::traits::push`, can be specialized to override primer's behavior
+for certain types, or to add new behavior for these custom types.
+
+For example, suppose we have a simple vector type:
+
+``
+   struct vec2i {
+     int x;
+     int y;
+   };
+``
+
+Primer could be taught to push `vec2i` objects as a table with entries `t[1]` and `t[2]`
+using the following code:
+
+``
+namespace primer {
+namespace traits {
+
+template <>
+struct push<vec2i> {
+  static void to_stack(lua_State * L, const vec2i & v) {
+    lua_newtable(L);
+    lua_pushinteger(L, v.x);
+    lua_rawseti(L, -2, 1);
+    lua_pushinteger(L, v.y);
+    lua_rawseti(L, -2, 2);
+  }
+};
+
+} // end namespace traits
+} // end namespace primer
+``

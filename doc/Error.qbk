@@ -1,0 +1,19 @@
+[section Error]
+
+`primer::error` is a minimalistic object which represents a runtime or load-time
+error, either in a lua script, or at the lua interface.
+
+Primer generally translates lua errors into `primer::error` when it performs an
+operation which fails, and will translate `primer::error` into a lua error when
+adapting callbacks.
+
+`primer::error` is a simple class type that contains a `std::string`. It is
+constructible from a string or a sequence of strings, which it concatenates
+together.
+
+`primer::error` has a useful method, `prepend_error_line` which takes a string
+and concatenates this in front of the current error message on its own line.
+This can be used to add human-readable context to an error message as it goes up
+the stack.
+
+[endsect]

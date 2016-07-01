@@ -6,10 +6,8 @@
 #pragma once
 
 /***
- * Primer error is a simple exception type used by the library. It is not thrown
- * to user generated code, it is only used internally.
- *
- * It contains a standard string with the error message.
+ * Primer error is a simple error type used by the library. It is not an
+ * exception, and it is not thrown.
  */
 
 #include <primer/base.hpp>
