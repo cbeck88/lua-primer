@@ -51,10 +51,12 @@ Here's a sketch, using the PIMPL idiom:
   };
 ```
 
-Given this kind of an interface, most of the details of the VM are encapsulated,
-and in engineering the rest of the application we can treat it as a "black box".
+Given this kind of an interface, the details of the VM are quite well encapsulated.
+From the point of view of the rest of the application, the VM is just a "moveable, copyable,
+serializable black box that can send and recieve messages." Nothing about the
+particular scripting language is even visible at all.
 
-Possibly, one would want a richer interface, allowing the VM to interact more
+Quite possibly, one would want a richer interface, allowing the VM to interact more
 directly with other components of the application rather than having to make
 requests via message objects. But for purposes of exposition, this should be
 sufficient for now.
@@ -62,18 +64,18 @@ sufficient for now.
 Most of these member functions are straightforward to implement when using a
 language like Python or Lua, but three of them, perhaps surprisingly, are not:
 
-- Copy constructor: `VM(const VM &);`
-- Serialization: `std::string serialize();`
-- Deserialization: `static VM deserialize(std::string);`
+* Copy constructor: `VM(const VM &);`
+* Serialization: `std::string serialize();`
+* Deserialization: `static VM deserialize(std::string);`
 
 Indeed, it's relatively uncommon for a scripting language implementation to
 provide built-in faciltiies to deep copy a VM, or to provide built-in
 serialization facilities.
 
 There are several common reasons for this:
-- Many possible implementations, no "right" one. Different applications need different solutions with different performance characteristics.
-- These VMs can be pretty complicated. Oftentimes scripting langauges provide some FFI or binding facility so that they can talk to external libraries -- how can one generically serialize or copy a pointer, or an object obtained from some C library?
-- Many applications dont *actually* need this. They just need to run their script and be done, and it will be different every time. Or, the script may be cheap to run, and they can recrate the state by just rerunning the script, and serialize it by just writing down the script.
+* Many possible implementations, no "right" one. Different applications need different solutions with different performance characteristics.
+* These VMs can be pretty complicated. Oftentimes scripting langauges provide some FFI or binding facility so that they can talk to external libraries -- how can one generically serialize or copy a pointer, or an object obtained from some C library?
+* Many applications dont *actually* need this. They just need to run their script and be done, and it will be different every time. Or, the script may be cheap to run, and they can recrate the state by just rerunning the script, and serialize it by just writing down the script.
 
 However, in some applications, it's really extremely important to be able to do these things.
 For instance, in a strategy game engine, a scripting language VM might be used to represent the game logic and
@@ -86,16 +88,16 @@ Another popular use of scripting languages is in Webservers. In web frameworks l
 Serializing and deserializing a VM state has an obvious potential use in load balancing -- if a server gets bogged down,
 some of its threads could pause and their VM states written to disk. Then they could be moved and booted back up again on a different machine seamlessly.
 
-**Primer** is a C++ library that makes it easy to expose complex APIs to **lua** while also preserving its serializibility,
-using a lua technology called **eris**. **eris** is a very powerful serialization facility for lua 5.2 and 5.3, but many of
+*Primer* is a C++ library that makes it easy to expose complex APIs to *lua* while also preserving its serializibility,
+using a lua technology called *eris*. *eris* is a very powerful serialization facility for lua 5.2 and 5.3, but many of
 the strategies traditionally used to expose C++ apis to lua don't work very well together with serializability or with eris.
 
 In this quick-start, you'll see
 
-- a crash course in lua C api, establishing some basic concepts and terminology.
-- an example implementation of a VM object like the above, exposing a "sample" API
+* a crash course in lua C api, establishing some basic concepts and terminology.
+* an example implementation of a VM object like the above, exposing a "sample" API
   using Primer.
-- some further examples, and pointers into the documentation for specific info on
+* some further examples, and pointers into the documentation for specific info on
   various topics of interest.
 
 [endsect]
