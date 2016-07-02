@@ -163,7 +163,7 @@ struct read<nil_t> {
 template <>
 struct read<truthy> {
   static expected<truthy> from_stack(lua_State * L, int idx) {
-    return primer::truthy{lua_toboolean(L, idx)};
+    return primer::truthy{static_cast<bool>(lua_toboolean(L, idx))};
   }
 };
 
