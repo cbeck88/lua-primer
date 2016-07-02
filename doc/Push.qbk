@@ -39,6 +39,8 @@ The following core types are supported:
   [[`unsigned long`]       []]
   [[`unsigned long long`]  []]
   [[`float`]               [ Calls `lua_pushnumber`. ]]
+  [[`double`]              []]
+  [[`long double`]         []]
   [[`const char *`]        [ Calls `lua_pushstring`. ]]
   [[`std::string`]         []]
 ]

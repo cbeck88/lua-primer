@@ -128,15 +128,19 @@ struct read<T, typename std::enable_if<std::is_same<T, unsigned int>::value || s
   : unsigned_read_helper<typename std::make_signed<T>::type> {};
 
 // Floating point types
-template <>
-struct read<float> {
-  static expected<float> from_stack(lua_State * L, int idx) {
+template <typename T>
+struct read<T, typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value || std::is_same<T, long double>::value>::type> {
+  static expected<T> from_stack(lua_State * L, int idx) {
+    expected<T> result;
+
     if (lua_isnumber(L, idx)) {
-      return lua_tonumber(L, idx);
+      result = static_cast<T>(lua_tonumber(L, idx));
     } else {
-      return primer::error{"Expected number, found ",
-                           primer::describe_lua_value(L, idx)};
+      result = primer::error{"Expected number, found ",
+                             primer::describe_lua_value(L, idx)};
     }
+
+    return result;
   }
 };
 
