@@ -115,8 +115,8 @@ public:
   }
 
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args &&... args) noexcept  /*<
-    Calls or resumes the coroutine, returns one value, or an error >*/
+  expected<lua_ref> call_one_ret(Args &&... args) noexcept /*<
+   Calls or resumes the coroutine, returns one value, or an error >*/
   {
     expected<lua_ref> result;
 
@@ -135,8 +135,10 @@ public:
     return result;
   }
 
-  explicit operator bool() const noexcept { return thread_stack_ && ref_; } /*<
-    Check if the coroutine is valid to call >*/
+  explicit operator bool() const noexcept {
+    return thread_stack_ && ref_;
+  } /*<
+Check if the coroutine is valid to call >*/
 
   void reset() noexcept /*< Reset to the empty state >*/
   {

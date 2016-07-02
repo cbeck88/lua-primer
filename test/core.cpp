@@ -39,7 +39,8 @@ void test_truthy(lua_State * L, bool expected, int line) {
   CHECK_STACK(L, 1);
   auto result = primer::read<primer::truthy>(L, 1);
   TEST_EXPECTED(result);
-  TEST(result->value == expected, "Expected '" << (expected ? "true" : "false") << "'. Line: " << line);
+  TEST(result->value == expected, "Expected '" << (expected ? "true" : "false")
+                                               << "'. Line: " << line);
   lua_pop(L, 1);
 }
 
@@ -71,14 +72,16 @@ void test_stringy(lua_State * L, std::string expected, int line) {
   CHECK_STACK(L, 1);
   auto result = primer::read<primer::stringy>(L, 1);
   TEST_EXPECTED(result);
-  TEST(result->value == expected, "Expected '" << expected << "'. Line: " << line);
+  TEST(result->value == expected, "Expected '" << expected
+                                               << "'. Line: " << line);
   lua_pop(L, 1);
 }
 
 void test_not_stringy(lua_State * L, int line) {
   CHECK_STACK(L, 1);
   auto result = primer::read<primer::stringy>(L, 1);
-  TEST(!result, "Expected failure, found '" << result->value << "'. Line: " << line);
+  TEST(!result, "Expected failure, found '" << result->value
+                                            << "'. Line: " << line);
   lua_pop(L, 1);
 }
 

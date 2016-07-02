@@ -73,7 +73,9 @@ struct signed_read_helper;
 
 // No narrowing
 template <typename T>
-struct signed_read_helper<T, typename std::enable_if<sizeof(T) >= sizeof(LUA_INTEGER)>::type> {
+struct signed_read_helper<
+  T,
+  typename std::enable_if<sizeof(T) >= sizeof(LUA_INTEGER)>::type> {
   static expected<T> from_stack(lua_State * L, int idx) {
     if (lua_isinteger(L, idx)) {
       return static_cast<T>(lua_tointeger(L, idx));
@@ -86,11 +88,14 @@ struct signed_read_helper<T, typename std::enable_if<sizeof(T) >= sizeof(LUA_INT
 
 // Narrowing, must do overflow check
 template <typename T>
-struct signed_read_helper<T, typename std::enable_if<sizeof(T) < sizeof(LUA_INTEGER)>::type> {
+struct signed_read_helper<
+  T,
+  typename std::enable_if<sizeof(T) < sizeof(LUA_INTEGER)>::type> {
   static expected<T> from_stack(lua_State * L, int idx) {
     if (lua_isinteger(L, idx)) {
       LUA_INTEGER i = lua_tointeger(L, idx);
-      if (i > std::numeric_limits<T>::max() || i < std::numeric_limits<T>::min()) {
+      if (i > std::numeric_limits<T>::max() ||
+          i < std::numeric_limits<T>::min()) {
         return primer::error{"Integer overflow occurred: ", std::to_string(i)};
       }
       return static_cast<T>(i);
@@ -104,11 +109,13 @@ struct signed_read_helper<T, typename std::enable_if<sizeof(T) < sizeof(LUA_INTE
 // When reading unsigned, must do 0 check
 template <typename T>
 struct unsigned_read_helper {
-  static expected<typename std::make_unsigned<T>::type> from_stack(lua_State * L, int idx) {
+  static expected<typename std::make_unsigned<T>::type> from_stack(lua_State * L,
+                                                                   int idx) {
     auto maybe = read<T>::from_stack(L, idx);
 
     if (maybe && *maybe < 0) {
-      maybe = primer::error{"Expected nonnegative integer, found ", std::to_string(*maybe)};
+      maybe = primer::error{"Expected nonnegative integer, found ",
+                            std::to_string(*maybe)};
     }
 
     // implicit conversion to expected<unsigned T> here, in expected ctor
@@ -117,19 +124,29 @@ struct unsigned_read_helper {
 };
 
 // Specialize read, using the helpers
-// Note: It is done this way, as a partial specialization rather than a series of full-specializations,
+// Note: It is done this way, as a partial specialization rather than a series
+// of full-specializations,
 // so that the user is free to supply full specializations.
 template <typename T>
-struct read<T, typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, long>::value || std::is_same<T, long long>::value>::type> 
+struct read<T,
+            typename std::enable_if<std::is_same<T, int>::value ||
+                                    std::is_same<T, long>::value ||
+                                    std::is_same<T, long long>::value>::type>
   : signed_read_helper<T> {};
 
 template <typename T>
-struct read<T, typename std::enable_if<std::is_same<T, unsigned int>::value || std::is_same<T, unsigned long>::value || std::is_same<T, unsigned long long>::value>::type>
+struct read<T,
+            typename std::enable_if<std::is_same<T, unsigned int>::value ||
+                                    std::is_same<T, unsigned long>::value ||
+                                    std::is_same<T, unsigned long long>::value>::type>
   : unsigned_read_helper<typename std::make_signed<T>::type> {};
 
 // Floating point types
 template <typename T>
-struct read<T, typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value || std::is_same<T, long double>::value>::type> {
+struct read<T,
+            typename std::enable_if<std::is_same<T, float>::value ||
+                                    std::is_same<T, double>::value ||
+                                    std::is_same<T, long double>::value>::type> {
   static expected<T> from_stack(lua_State * L, int idx) {
     expected<T> result;
 
@@ -196,8 +213,11 @@ struct read<T,
 template <>
 struct read<nil_t> {
   static expected<nil_t> from_stack(lua_State * L, int idx) {
-    if (lua_isnoneornil(L, idx)) { return nil_t{}; }
-    else return primer::error{"Expected nil, found ", primer::describe_lua_value(L, idx)};
+    if (lua_isnoneornil(L, idx)) {
+      return nil_t{};
+    } else
+      return primer::error{"Expected nil, found ",
+                           primer::describe_lua_value(L, idx)};
   }
 };
 
@@ -217,7 +237,9 @@ struct read<stringy> {
       if (const char * str = lua_tostring(L, -1)) {
         result = stringy{str};
       } else {
-        result = primer::error{"__tostring metamethod did not produce a string: ", primer::describe_lua_value(L, idx)};
+        result =
+          primer::error{"__tostring metamethod did not produce a string: ",
+                        primer::describe_lua_value(L, idx)};
       }
       lua_pop(L, 1);
     } else {
@@ -233,7 +255,8 @@ struct read<stringy> {
           break;
         }
         default:
-          result = primer::error{"Could not convert to string: ", primer::describe_lua_value(L, idx)};
+          result = primer::error{"Could not convert to string: ",
+                                 primer::describe_lua_value(L, idx)};
       }
     }
     return result;

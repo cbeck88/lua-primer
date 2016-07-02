@@ -29,8 +29,4 @@ PRIMER_ASSERT_FILESCOPE;
 struct lua_State;
 typedef int (*lua_CFunction)(lua_State *);
 
-namespace primer {
-
-typedef unsigned int uint;
-
-} // end namespace primer
+namespace primer { typedef unsigned int uint; } // end namespace primer
