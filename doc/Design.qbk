@@ -5,7 +5,7 @@ As such, we don't make any use of "heavy" C++ features like virtual functions, e
 or RTTI.
 
 We do however make heavy use of templates. Primer's headers generate many tiny
-functions which, in an optimized build, the compiler will inline.
+functions which, in an optimized build, the compiler will inline (god willing).
 
 It is recommended also to statically link to lua or lua-eris, as for current compilers, this is the best
 way to take advantage of link-time optimizations.
@@ -105,24 +105,14 @@ into the global table, and into the permenant object tables at appropriate times
 
 [h3 References to lua objects]
 
-`primer::lua_ref` is a C++ object which represents a reference to a particular lua value inside of some lua VM.
+* `primer::lua_ref` is a C++ object which represents a reference to a particular lua value inside of some lua VM.
+The object need not be visible in the "global" state to user scripts. The object will not be garbage collected by lua
+as long as the `lua_ref` exists.
 
-This object will not be garbage collected by lua as long as the `lua_ref` exists. However, the `primer::lua_ref` does
-not / cannot take ownership of the lua VM itself. If the lua VM is destroyed, `primer::lua_ref` is still safe, it will
-simply fail to lock. In this sense, it is like a weak pointer into the VM -- even if it is left dangling, UB does not ensue.
+* `primer::bound_function` is a `primer::lua_ref` which is known to point to an object of function type. It has extra
+member functions in order to support calling the function easily from C++.
 
-[h3 References to lua functions]
-
-`primer::bound_function` is a `primer::lua_ref` which is known to point to an object of function type.
-
-`primer::bound_function` can be used to create safe C++ function objects which refer to functions implemented in lua by a
-script, and passed to other components of your program.
-
-[h3 References to lua coroutines]
-`primer::coroutine` is a `primer::lua_ref` which represents a lua coroutine (or thread, as they are variously called).
-
-A `primer::coroutine` can only be created from    a `primer::bound_function`. A `primer::coroutine`, after being
-initialized, may be called and its results obtained. If it yields, it may continue to be called, until eventually it returns or produces an error. The coroutine object exists in the
-registry -- this helper object is provided to abstract away the details of manipulating thread stacks.
+* `primer::coroutine` is a `primer::lua_ref` which represents a lua coroutine. It serves a similar purpose as
+`primer::bound_function`, providing an easy-to-use interface to use such objects safely.
 
 [endsect]

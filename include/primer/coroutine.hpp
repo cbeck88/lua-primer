@@ -61,6 +61,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
+//[ primer_coroutine
 class coroutine {
 
   lua_ref ref_;
@@ -68,12 +69,14 @@ class coroutine {
 
 
 public:
+  // Special member functions
   coroutine() noexcept : ref_(), thread_stack_(nullptr) {}
 
   coroutine(coroutine &&) noexcept = default;
   coroutine & operator=(coroutine &&) noexcept = default;
   ~coroutine() noexcept = default;
 
+  // Noncopyable, delete these.
   coroutine(const coroutine &) = delete;
   coroutine & operator=(const coroutine &) = delete;
 
@@ -91,7 +94,9 @@ public:
 
 
   template <typename... Args>
-  expected<void> call_no_ret(Args &&... args) noexcept {
+  expected<void> call_no_ret(Args &&... args) noexcept /*<
+    Calls or resumes the coroutine, discards return values. (But not errors.)>*/
+  {
     expected<void> result;
 
     if (thread_stack_ && ref_) {
@@ -110,7 +115,9 @@ public:
   }
 
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args &&... args) noexcept {
+  expected<lua_ref> call_one_ret(Args &&... args) noexcept  /*<
+    Calls or resumes the coroutine, returns one value, or an error >*/
+  {
     expected<lua_ref> result;
 
     if (thread_stack_ && ref_) {
@@ -128,12 +135,15 @@ public:
     return result;
   }
 
-  explicit operator bool() const noexcept { return thread_stack_ && ref_; }
+  explicit operator bool() const noexcept { return thread_stack_ && ref_; } /*<
+    Check if the coroutine is valid to call >*/
 
-  void reset() noexcept {
+  void reset() noexcept /*< Reset to the empty state >*/
+  {
     ref_.reset();
     thread_stack_ = nullptr;
   }
 };
+//]
 
 } // end namespace primer

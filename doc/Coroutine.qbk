@@ -2,16 +2,25 @@
 
 A `primer::coroutine` is a `primer::lua_ref` which represents a lua coroutine, or thread, as they are variously called in the documentation.
 
+In lua, a coroutine is like a function call which is permitted to `yield`, rather than return a value or produce an error.
+`yield` stops the execution at the point of yield. If the coroutine is "resumed" later, then execution starts up again at the
+yield point, not at the beginning of the function.
+
+A `primer::coroutine`, unlike a general coroutine,
+
+* Can only be created from `primer::bound_function`.
+* Exists only in the registry.
+
+`primer::coroutine` is merely a helper object to give a nice interface for "calling" the coroutine, similar to `primer::bound_function`.
+It abstracts away the details of manipulating thread stacks. Not all uses of coroutines are well-served by the `primer::coroutine` object.
+
+The coroutine can be called again and again, provided that it yields each time. After it returns or produces an error, it goes to an
+empty state and needs to be recreated from a `primer::bound_function`.
+
 [caution lua thread's have nothing to do with operating system threads, it an unfortunate name collision.
 
  Lua is not thread-safe, and coroutines are not a way to make it thread-safe somehow.]
 
-A `primer::coroutine` can only be created from    a `primer::bound_function`. A `primer::coroutine`, after being
-initialized, may be called and its results obtained. If it yields, it may continue to be called, until eventually it returns or produces an error.
-In this regard, it has interface similarity with `primer::bound_function`. The main difference is that the coroutine resumes from where it left off
-at the end of the last call, while a `primer::bound_function` makes a new call each time.
-
-The coroutine object exists in the registry -- this helper object is provided to abstract away the details of manipulating thread stacks.
-It's not suitable for every use of lua coroutines -- sometimes you do want to pass those to the user and such. In this case you shouldn't use this object.
+[primer_coroutine]
 
 [endsect]
