@@ -1,0 +1,72 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Core</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="../reference.html" title="Reference">
+<link rel="next" href="core/error.html" title="error">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../reference.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="core/error.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="lua_primer.reference.core"></a><a class="link" href="core.html" title="Core">Core</a>
+</h3></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="core/error.html">error</a></span></dt>
+<dt><span class="section"><a href="core/expected.html">expected</a></span></dt>
+<dt><span class="section"><a href="core/push.html">push</a></span></dt>
+<dt><span class="section"><a href="core/read.html">read</a></span></dt>
+<dt><span class="section"><a href="core/adapt.html">adapt</a></span></dt>
+<dt><span class="section"><a href="core/userdata.html">Userdata</a></span></dt>
+<dt><span class="section"><a href="core/lua_ref.html">lua_ref</a></span></dt>
+<dt><span class="section"><a href="core/bound_function.html">bound_function</a></span></dt>
+<dt><span class="section"><a href="core/coroutine.html">coroutine</a></span></dt>
+</dl></div>
+<p>
+        The core features of primer are general-purpose lua binding facilities.
+      </p>
+<p>
+        They do not rely on <span class="bold"><strong>lua eris</strong></span>, and can be
+        useful in an application which only uses vanilla lua 5.3 or 5.2. They also
+        don't particularly rely on much of the standard library.
+      </p>
+<p>
+        These features serve such purposes as:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            transferring C++ objects to and from the lua stack
+          </li>
+<li class="listitem">
+            constructing C++ objects as lua userdata
+          </li>
+<li class="listitem">
+            transforming C++ functions into functions that can be called from lua
+            scripts
+          </li>
+<li class="listitem">
+            constructing C++ objects that represent references to pure lua values
+            in a VM, such as functions and coroutines.
+          </li>
+</ul></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../reference.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="core/error.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

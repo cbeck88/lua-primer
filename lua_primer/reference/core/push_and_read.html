@@ -1,0 +1,110 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Push and Read</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="../core.html" title="Core">
+<link rel="next" href="adapt.html" title="Adapt">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../core.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="adapt.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.push_and_read"></a><a class="link" href="push_and_read.html" title="Push and Read">Push and Read</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>
+          are template functions which provide the foundation of primer. They are
+          used to transfer C++ values to and from the lua stack. They have the following
+          signatures:
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">);</span>
+</pre>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> cannot fail -- any C++ value that
+          can be pushed, can be pushed without fail.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> may fail. Commonly, it will fail
+          if the value at that stack position cannot be interpreted in the form of
+          the requested type.
+        </p>
+<p>
+          You should always test the result of <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>
+          for safety, and not assume that it will succeed in any given case. In case
+          of a failure, the object <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> will be in an error state and will
+          contain a human-readable explanation of the failure.
+        </p>
+<h4>
+<a name="lua_primer.reference.core.push_and_read.h0"></a>
+          <span><a name="lua_primer.reference.core.push_and_read.side_effects"></a></span><a class="link" href="push_and_read.html#lua_primer.reference.core.push_and_read.side_effects">Side effects</a>
+        </h4>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> always should push exactly one object
+          onto the stack.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> always should leave the stack exactly
+          as it found it. It should not change the values or types of any object
+          on the stack.
+        </p>
+<h4>
+<a name="lua_primer.reference.core.push_and_read.h1"></a>
+          <span><a name="lua_primer.reference.core.push_and_read.customization"></a></span><a class="link" href="push_and_read.html#lua_primer.reference.core.push_and_read.customization">Customization</a>
+        </h4>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>
+          are each backed up by a <span class="emphasis"><em>trait</em></span>, which may be specialized
+          to add customized behavior. You can see the primary template in <code class="computeroutput"><span class="identifier">primer</span><span class="special">/</span><span class="identifier">traits</span><span class="special">/</span><span class="identifier">push</span><span class="special">.</span><span class="identifier">hpp</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">/</span><span class="identifier">traits</span><span class="special">/</span><span class="identifier">read</span><span class="special">.</span><span class="identifier">hpp</span></code>.
+          An example specialization looks like this:
+        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">my_type</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">my_type</span><span class="special">&gt;</span> <span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">)</span> <span class="special">{</span>
+    <span class="special">...</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">my_type</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">my_type</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+    <span class="special">...</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<p>
+          Traits are used because it provides for more precise and powerful customization.
+          For instance, if we merely used function overloading, then all kinds of
+          implicit conversions can come into play, and you also cannot provide partial
+          specializations.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../core.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="adapt.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
