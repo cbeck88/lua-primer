@@ -53,7 +53,7 @@ In the above table, "Checks" means that, the checked function must report "true"
 
 The following extra types are supported, which allow "flexible" reads.
 
-Mainly this is useful for writing functions which allow in their parameters
+This is useful for writing functions which allow in their parameters
 certain implicit conversions typical of lua.
 
 [primer_support_types]
