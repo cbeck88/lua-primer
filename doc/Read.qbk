@@ -39,7 +39,9 @@ In the above table, "Checks" means that, the checked function must report "true"
       to be as large as `LUA_INTEGER`.
 
       Or, consider compiling lua using `-DLUA_32BITS` to force lua to
-      use a 32 bit type for integers and floating point numbers internally. ]
+      use a 32 bit type for integers and floating point numbers internally.
+
+      Alternatively, see "customization" below and specialize reading for `int`, `unsigned int`, etc. as you like. ]
 
 The following extra types are supported, which allow "flexible" reads.
 

@@ -25,6 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <limits>
 #include <string>
+#include <type_traits>
 
 namespace primer {
 namespace traits {
@@ -110,31 +111,23 @@ struct unsigned_read_helper {
       maybe = primer::error{"Expected nonnegative integer, found ", std::to_string(*maybe)};
     }
 
-    // implicit static cast to expected<unsigned> here, in expected ctor
+    // implicit conversion to expected<unsigned T> here, in expected ctor
     return maybe;
   }
 };
 
-// Instantiate read, using the helpers
+// Specialize read, using the helpers
+// Note: It is done this way, as a partial specialization rather than a series of full-specializations,
+// so that the user is free to supply full specializations.
+template <typename T>
+struct read<T, typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, long>::value || std::is_same<T, long long>::value>::type> 
+  : signed_read_helper<T> {};
 
-template <>
-struct read<int> : signed_read_helper<int> {};
+template <typename T>
+struct read<T, typename std::enable_if<std::is_same<T, unsigned int>::value || std::is_same<T, unsigned long>::value || std::is_same<T, unsigned long long>::value>::type>
+  : unsigned_read_helper<typename std::make_signed<T>::type> {};
 
-template <>
-struct read<long> : signed_read_helper<long> {};
-
-template <>
-struct read<long long> : signed_read_helper<long long> {};
-
-template <>
-struct read<unsigned int> : unsigned_read_helper<int>{};
-
-template <>
-struct read<unsigned long> : unsigned_read_helper<long>{};
-
-template <>
-struct read<unsigned long long> : unsigned_read_helper<long long>{};
-
+// Floating point types
 template <>
 struct read<float> {
   static expected<float> from_stack(lua_State * L, int idx) {
