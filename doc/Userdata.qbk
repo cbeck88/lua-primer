@@ -27,4 +27,15 @@ Instead, userdata types are generally read from the stack *by reference*.
 
 TODO
 
+
+[h4 Adapting userdata methods]
+
+`PRIMER_ADAPT_USERDATA` is an extension of `PRIMER_ADAPT` which handles member functions of a userdata type.
+
+Functions thus adapted expect to be called using the standard `object:method(arg1, arg2)` syntax in lua, meaning that
+the base `object` is actually the first element on the stack.
+
+This is convenient because sometimes its a little nicer to implement userdata methods as C++ methods rather than free
+functions. `PRIMER_ADAPT` can only directly handle free functions.
+
 [endsect]
