@@ -49,22 +49,24 @@ The following core types are supported:
       occur, and primer will not perform overflow checks.
 
       ['If a push operation
-      requires a narrowing conversion to `LUA_INTEGER`, a `static_assert` will
-      fail and your code will not compile.]]
+      requires a narrowing conversion of a signed integer type to `LUA_INTEGER`,
+      a `static_assert` will fail and your code will not compile.]]
 
-[caution When pushing an unsigned integral type which is larger than `LUA_INTEGER`,
-      primer will implicitly narrow the type to the unsigned version of `LUA_INTEGER`,
+[caution When pushing a floating point type, primer will not check for overflow or
+      loss of precision.
+
+      ['If a push operation requires a narrowing conversion of a floating point
+      type to `LUA_NUMBER`,
+      a `static_assert` will fail and your code will not compile.]]
+
+[note When pushing an unsigned integral type which is larger than `LUA_INTEGER`,
+      primer will implicitly narrow it to the unsigned version of `LUA_INTEGER`,
       then perform a portable conversion from that type to `LUA_INTEGER`.
 
       This behavior is well-defined by the standard, but for your code to be
-      portable in the sense of giving similar results on
-      different machines, you must avoid such narrowing conversions.]
-
-[caution When pushing a floating point type, primer will not checks for overflow or
-      loss of precision.
-
-      ['If a push operaiton requires a narrowing conversion to `LUA_NUMBER`, a
-      `static_assert` will fail and your code will not compile.]]
+      portable in the sense of giving similar results on different machines where
+      lua may be configured to use 32-bit or 64-bit integers,
+      you must avoid such narrowing conversions.]
 
 [note For maximum portability, consider:
 
@@ -72,7 +74,7 @@ The following core types are supported:
         platforms.
 
       - Using `LUA_INTEGER` and the unsigned version of that in your code, and
-        only pushing these.
+        only push these.
 
       If you just want to compile and don't care about overflow, you can do so
       with expressions like
@@ -82,7 +84,7 @@ The following core types are supported:
         primer::push(L, static_cast<LUA_INTEGER>(i));
       ``
 
-      Or, install custom handling for `long long`, see below.
+      Or, install custom handling for integer types like `long` and `long long`, see below.
       ]
 
 
