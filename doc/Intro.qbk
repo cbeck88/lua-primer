@@ -2,12 +2,15 @@
 
 Let's suppose that you are designing a C++ application which employs a scripting
 langauge in order to customize its behavior. For instance, maybe it embeds
-*Python* or *lua*. Most likely, there is some dedicated object in your
-application that represents an instance of a VM, and acts as an RAII object
-wrapping over functionality provided by a C implmentation.
+*Python* or *lua*.
+
+Most likely, there is some dedicated object in your
+application that represents an instance of a virtual machine, and acts as an RAII object
+wrapping over functionality provided by a C implementation of your scripting language of choice.
 
 In modern C++, how would we expect that the interface to such an object might
 look, and what are some basic functionalities that we might hope for or expect?
+
 Here's a sketch, using the PIMPL idiom:
 
 ```
@@ -17,6 +20,7 @@ Here's a sketch, using the PIMPL idiom:
     std::string parameters;
   };
 
+  // Represents a virtual machine
   class VM {
     struct impl;
 
@@ -68,9 +72,9 @@ sufficient for now.
 Most of these member functions are straightforward to implement when using a
 language like Python or Lua, but three of them, perhaps surprisingly, are not:
 
-* Copy constructor: `VM(const VM &);`
-* Serialization: `std::string serialize();`
-* Deserialization: `static VM deserialize(std::string);`
+* Copy constructor:   `VM(const VM &);`
+* Serialization:      `std::string serialize();`
+* Deserialization:    `static VM deserialize(std::string);`
 
 Indeed, it's relatively uncommon for a scripting language implementation to
 provide built-in faciltiies to deep copy a VM, or to provide built-in
@@ -82,7 +86,7 @@ There are several common reasons for this:
 * These VMs can be pretty complicated. Oftentimes scripting langauges provide some FFI or binding facility so that they can talk to external libraries -- how can one generically serialize or copy a pointer, or an object obtained from some C library?
 * Many applications dont ['actually] need this. They just need to run their script and be done, and it will be different every time. Or, the script may be cheap to run, and they can recrate the state by just rerunning the script, and serialize it by just writing down the script.
 
-However, in some applications, it's really extremely important to be able to do these things.
+However, in some applications, it's very important to be able to do these things.
 
 For instance, in a strategy game engine, a scripting language VM might be used to represent the game logic and
  the state of the game. Then, you really want to be able to deep copy the VM, if one wants to create "simulation-based" AIs
