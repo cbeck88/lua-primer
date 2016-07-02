@@ -75,7 +75,8 @@ namespace boost {
 namespace container {
 
 template <typename T>
-std::ostream & operator << (std::ostream & o, const boost::container::flat_set<T> & s) {
+std::ostream & operator<<(std::ostream & o,
+                          const boost::container::flat_set<T> & s) {
   o << "{ ";
   for (const auto & i : s) {
     o << i << ", ";
@@ -101,7 +102,8 @@ void test_flat_set_round_trip() {
   }
   {
     std::vector<std::string> temp{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"};
-    round_trip_value(L, flat_set<std::string>{temp.begin(), temp.end()}, __LINE__);
+    round_trip_value(L, flat_set<std::string>{temp.begin(), temp.end()},
+                     __LINE__);
   }
   {
     std::set<bool> temp{true};
@@ -114,9 +116,13 @@ void test_flat_set_round_trip() {
  * Test optional adapted, bound function, coroutine
  */
 
-primer::result test_func(lua_State * L, int i, int j, boost::optional<std::string> k, boost::optional<std::string> l) {
+primer::result test_func(lua_State * L,
+                         int i,
+                         int j,
+                         boost::optional<std::string> k,
+                         boost::optional<std::string> l) {
   if (k && l && (*k != *l)) { return primer::error("Expected equal strings"); }
-  lua_pushboolean(L, (i==j));
+  lua_pushboolean(L, (i == j));
   return 1;
 }
 
@@ -167,9 +173,7 @@ void test_bound_function() {
   }
 }
 
-int yield_helper(lua_State * L) {
-  return lua_yield(L, 1);
-}
+int yield_helper(lua_State * L) { return lua_yield(L, 1); }
 
 void test_coroutine() {
   lua_raii L;
@@ -178,18 +182,19 @@ void test_coroutine() {
   lua_setglobal(L, "yield_helper");
   CHECK_STACK(L, 0);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, ""
-    " local function make_closure()         \n"
-    "   local counter = 0;                  \n"
-    "   local function f(input)             \n"
-    "     while true do                     \n"
-    "       counter = counter + input;      \n"
-    "       input = yield_helper(counter);  \n"
-    "     end                               \n"
-    "   end                                 \n"
-    "   return f;                           \n"
-    " end                                   \n"
-    " return make_closure()                 \n"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  ""
+                                  " local function make_closure()         \n"
+                                  "   local counter = 0;                  \n"
+                                  "   local function f(input)             \n"
+                                  "     while true do                     \n"
+                                  "       counter = counter + input;      \n"
+                                  "       input = yield_helper(counter);  \n"
+                                  "     end                               \n"
+                                  "   end                                 \n"
+                                  "   return f;                           \n"
+                                  " end                                   \n"
+                                  " return make_closure()                 \n"));
   TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   TEST_EQ(true, lua_isfunction(L, 1));
@@ -208,7 +213,7 @@ void test_coroutine() {
   TEST(result1->push(L), "expected to be able to push");
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TNUMBER, __LINE__);
-  TEST_EQ(lua_tonumber(L, 1), 6);  
+  TEST_EQ(lua_tonumber(L, 1), 6);
   lua_pop(L, 1);
 
   auto result2 = c.call_one_ret(7);
@@ -217,7 +222,7 @@ void test_coroutine() {
   TEST(result2->push(L), "expected to be able to push");
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TNUMBER, __LINE__);
-  TEST_EQ(lua_tonumber(L, 1), 13);  
+  TEST_EQ(lua_tonumber(L, 1), 13);
   lua_pop(L, 1);
 
   auto result3 = c.call_one_ret(8);
@@ -226,7 +231,7 @@ void test_coroutine() {
   TEST(result3->push(L), "expected to be able to push");
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TNUMBER, __LINE__);
-  TEST_EQ(lua_tonumber(L, 1), 21);  
+  TEST_EQ(lua_tonumber(L, 1), 21);
   lua_pop(L, 1);
 }
 

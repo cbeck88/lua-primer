@@ -17,9 +17,7 @@ struct test_api_one : primer::api::persistable<test_api_one> {
     return result;
   }
 
-  void restore(const std::string & buffer) {
-    this->unpersist(L, buffer);
-  }
+  void restore(const std::string & buffer) { this->unpersist(L, buffer); }
 
   void create_mock_state() {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
@@ -38,7 +36,7 @@ struct test_api_one : primer::api::persistable<test_api_one> {
   }
 
   bool test_mock_state() {
-    //PRIMER_ASSERT_STACK_NEUTRAL(L);
+    // PRIMER_ASSERT_STACK_NEUTRAL(L);
 
     lua_getglobal(L, "bah");
     if (!lua_istable(L, -1)) { return false; }
@@ -85,7 +83,7 @@ void test_persist_simple() {
     test_api_one a;
     TEST_EQ(false, a.test_mock_state());
 
-    a.restore(buffer);    
+    a.restore(buffer);
 
     TEST_EQ(true, a.test_mock_state());
   }
@@ -94,7 +92,7 @@ void test_persist_simple() {
     test_api_one a;
     TEST_EQ(false, a.test_mock_state());
 
-    a.restore(buffer);    
+    a.restore(buffer);
 
     TEST_EQ(true, a.test_mock_state());
 
@@ -105,7 +103,7 @@ void test_persist_simple() {
     test_api_one a;
     TEST_EQ(false, a.test_mock_state());
 
-    a.restore(buffer);    
+    a.restore(buffer);
 
     TEST_EQ(true, a.test_mock_state());
   }
@@ -119,27 +117,29 @@ struct test_api_two : primer::api::base<test_api_two> {
 
   NEW_LUA_CALLBACK(f, "this is the f help")(lua_State * L, int i, int j) {
     if (i < j) {
-     lua_pushinteger(L, -1);
+      lua_pushinteger(L, -1);
     } else if (i > j) {
-     lua_pushinteger(L, 1);
+      lua_pushinteger(L, 1);
     } else {
-     return primer::error("bad bad");
+      return primer::error("bad bad");
     }
     return 1;
   }
 
   NEW_LUA_CALLBACK(g, "this is the g help")(lua_State * L, std::string i, std::string j) {
     if (i < j) {
-     lua_pushinteger(L, -1);
+      lua_pushinteger(L, -1);
     } else if (i > j) {
-     lua_pushinteger(L, 1);
+      lua_pushinteger(L, 1);
     } else {
-     return primer::error("bad bad");
+      return primer::error("bad bad");
     }
     return 1;
   }
 
-  USE_LUA_CALLBACK(help, "get help for a built-in function", &primer::api::intf_help_impl);
+  USE_LUA_CALLBACK(help,
+                   "get help for a built-in function",
+                   &primer::api::intf_help_impl);
 
   test_api_two()
     : L_()
@@ -162,24 +162,23 @@ struct test_api_two : primer::api::base<test_api_two> {
     return result;
   }
 
-  void restore(const std::string & buffer) {
-    this->unpersist(L_, buffer);
-  }
+  void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
 };
 
 void test_api_base() {
   std::string buffer;
 
-  const char * script = ""
-  "x = 4;                                          \n"
-  "y = 5;                                          \n"
-  "assert(f(x,y) == -1);                           \n"
-  "x = x + 4                                       \n"
-  "assert(f(x,y) == 1);                            \n"
-  "                                                \n"
-  "assert(g('asdf', 'jkl;') == -1)                 \n"
-  "assert(pcall(g, 'asdf', 'afsd'))                \n"
-  "assert(not pcall(g, 'asdf', 'asdf'))            \n";
+  const char * script =
+    ""
+    "x = 4;                                          \n"
+    "y = 5;                                          \n"
+    "assert(f(x,y) == -1);                           \n"
+    "x = x + 4                                       \n"
+    "assert(f(x,y) == 1);                            \n"
+    "                                                \n"
+    "assert(g('asdf', 'jkl;') == -1)                 \n"
+    "assert(pcall(g, 'asdf', 'afsd'))                \n"
+    "assert(not pcall(g, 'asdf', 'asdf'))            \n";
 
 
   {
@@ -221,9 +220,10 @@ void test_api_help() {
 
   lua_State * L = a.L_;
 
-  const char * script = ""
-  "assert(help(f) == 'this is the f help')         \n"
-  "assert(help(g) == 'this is the g help')         \n";
+  const char * script =
+    ""
+    "assert(help(f) == 'this is the f help')         \n"
+    "assert(help(g) == 'this is the g help')         \n";
 
   TEST_EQ(LUA_OK, luaL_loadstring(L, script));
 

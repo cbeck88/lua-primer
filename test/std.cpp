@@ -20,7 +20,7 @@
 void test_vector_push() {
   lua_raii L;
 
-  std::vector<int> vec {{5, 6, 7, 8}};
+  std::vector<int> vec{{5, 6, 7, 8}};
 
   primer::push(L, vec);
   CHECK_STACK(L, 1);
@@ -57,7 +57,7 @@ void test_vector_push() {
 void test_array_push() {
   lua_raii L;
 
-  std::array<int, 4> arr {{5, 6, 7, 8}};
+  std::array<int, 4> arr{{5, 6, 7, 8}};
 
   primer::push(L, arr);
   CHECK_STACK(L, 1);
@@ -93,7 +93,9 @@ void test_array_push() {
 
 void test_map_push() {
   {
-    std::map<std::string, std::string> my_map{{"a", "1"}, {"b", "2"}, {"c", "3"}};
+    std::map<std::string, std::string> my_map{{"a", "1"},
+                                              {"b", "2"},
+                                              {"c", "3"}};
 
     lua_raii L;
 
@@ -197,7 +199,7 @@ void test_set_push() {
 namespace std {
 
 template <typename T>
-std::ostream & operator << (std::ostream & o, const std::vector<T> & vec) {
+std::ostream & operator<<(std::ostream & o, const std::vector<T> & vec) {
   o << "{ ";
   for (const auto & i : vec) {
     o << i << ", ";
@@ -208,7 +210,7 @@ std::ostream & operator << (std::ostream & o, const std::vector<T> & vec) {
 
 
 template <typename T, std::size_t N>
-std::ostream & operator << (std::ostream & o, const std::array<T, N> & vec) {
+std::ostream & operator<<(std::ostream & o, const std::array<T, N> & vec) {
   o << "{ ";
   for (const auto & i : vec) {
     o << i << ", ";
@@ -218,7 +220,7 @@ std::ostream & operator << (std::ostream & o, const std::array<T, N> & vec) {
 }
 
 template <typename T>
-std::ostream & operator << (std::ostream & o, const std::set<T> & s) {
+std::ostream & operator<<(std::ostream & o, const std::set<T> & s) {
   o << "{ ";
   for (const auto & i : s) {
     o << i << ", ";
@@ -228,7 +230,7 @@ std::ostream & operator << (std::ostream & o, const std::set<T> & s) {
 }
 
 template <typename T, typename U>
-std::ostream & operator << (std::ostream & o, const std::map<T, U> & m) {
+std::ostream & operator<<(std::ostream & o, const std::map<T, U> & m) {
   o << "{ ";
   for (const auto & p : m) {
     o << "( " << p.first << ", " << p.second << ") ";
@@ -238,7 +240,7 @@ std::ostream & operator << (std::ostream & o, const std::map<T, U> & m) {
 }
 
 template <typename T, typename U>
-std::ostream & operator << (std::ostream & o, const std::unordered_map<T, U> & m) {
+std::ostream & operator<<(std::ostream & o, const std::unordered_map<T, U> & m) {
   o << "{ ";
   for (const auto & p : m) {
     o << "( " << p.first << ", " << p.second << ") ";
@@ -253,30 +255,43 @@ void test_vector_round_trip() {
   lua_raii L;
 
   round_trip_value(L, std::vector<int>{}, __LINE__);
-  round_trip_value(L, std::vector<int>{1,5, -1, 2932}, __LINE__);
-  round_trip_value(L, std::vector<int>{99999,99999}, __LINE__);
+  round_trip_value(L, std::vector<int>{1, 5, -1, 2932}, __LINE__);
+  round_trip_value(L, std::vector<int>{99999, 99999}, __LINE__);
   round_trip_value(L, std::vector<float>{-0.5f, .5f, 6.5f}, __LINE__);
-  round_trip_value(L, std::vector<std::string>{"asdf", "jkl;", "", "wer"}, __LINE__);
+  round_trip_value(L, std::vector<std::string>{"asdf", "jkl;", "", "wer"},
+                   __LINE__);
 }
 
 void test_array_round_trip() {
   lua_raii L;
 
-  round_trip_value(L, std::array<int,0>{{}}, __LINE__);
-  round_trip_value(L, std::array<int,4>{{1,5, -1, 2932}}, __LINE__);
-  round_trip_value(L, std::array<int,2>{{99999,99999}}, __LINE__);
-  round_trip_value(L, std::array<float,3>{{-0.5f, .5f, 6.5f}}, __LINE__);
-  round_trip_value(L, std::array<std::string, 4>{{"asdf", "jkl;", "", "wer"}}, __LINE__);
+  round_trip_value(L, std::array<int, 0>{{}}, __LINE__);
+  round_trip_value(L, std::array<int, 4>{{1, 5, -1, 2932}}, __LINE__);
+  round_trip_value(L, std::array<int, 2>{{99999, 99999}}, __LINE__);
+  round_trip_value(L, std::array<float, 3>{{-0.5f, .5f, 6.5f}}, __LINE__);
+  round_trip_value(L, std::array<std::string, 4>{{"asdf", "jkl;", "", "wer"}},
+                   __LINE__);
 }
 
 void test_map_round_trip() {
   lua_raii L;
 
   round_trip_value(L, std::map<std::string, std::string>{}, __LINE__);
-  round_trip_value(L, std::map<std::string, std::string>{{"a", "jk"}, {"l", "wer"}, {"_@34", "wasd"}}, __LINE__);
-  round_trip_value(L, std::map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}}, __LINE__);
-  round_trip_value(L, std::map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}}, __LINE__);
-  round_trip_value(L, std::map<int, std::vector<std::string>>{{1, {}}, {2, {}}, {3, {"a", "b", "c"}}, {9, {"asdf", "jkl;"}}}, __LINE__); 
+  round_trip_value(L, std::map<std::string, std::string>{{"a", "jk"},
+                                                         {"l", "wer"},
+                                                         {"_@34", "wasd"}},
+                   __LINE__);
+  round_trip_value(L, std::map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}},
+                   __LINE__);
+  round_trip_value(L, std::map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}},
+                   __LINE__);
+  round_trip_value(L,
+                   std::map<int, std::vector<std::string>>{{1, {}},
+                                                           {2, {}},
+                                                           {3, {"a", "b", "c"}},
+                                                           {9,
+                                                            {"asdf", "jkl;"}}},
+                   __LINE__);
 }
 
 void test_set_round_trip() {
@@ -284,7 +299,9 @@ void test_set_round_trip() {
 
   round_trip_value(L, std::set<int>{}, __LINE__);
   round_trip_value(L, std::set<int>{1, 5, 6, 10, 234}, __LINE__);
-  round_trip_value(L, std::set<std::string>{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"}, __LINE__);
+  round_trip_value(L, std::set<std::string>{"wer", "qWQE", "asjdkljweWERWERE",
+                                            "", "foo"},
+                   __LINE__);
   round_trip_value(L, std::set<bool>{true}, __LINE__);
 }
 
@@ -307,11 +324,9 @@ primer::result dump_method(lua_State * L, userdata_test & u) {
   return 1;
 }
 
-constexpr const luaL_Reg method_list[] = {
-  {"__call", PRIMER_ADAPT(&call_method)},
-  {"dump", PRIMER_ADAPT(&dump_method)},
-  {nullptr, nullptr}
-};
+constexpr const luaL_Reg method_list[] = {{"__call", PRIMER_ADAPT(&call_method)},
+                                          {"dump", PRIMER_ADAPT(&dump_method)},
+                                          {nullptr, nullptr}};
 
 // Register it
 namespace primer {
@@ -320,13 +335,15 @@ namespace traits {
 template <>
 struct userdata<userdata_test> {
   static constexpr const char * name = "userdata_test_type";
-  static constexpr const luaL_Reg * const methods = static_cast<const luaL_Reg*>(method_list);
+  static constexpr const luaL_Reg * const methods =
+    static_cast<const luaL_Reg *>(method_list);
 };
 
 } // end namespace traits
 } // end namespace primer
 
-static_assert(primer::traits::is_userdata<userdata_test>::value, "our test userdata type did not count as userdata!");
+static_assert(primer::traits::is_userdata<userdata_test>::value,
+              "our test userdata type did not count as userdata!");
 
 void test_userdata() {
   lua_raii L;
@@ -337,18 +354,19 @@ void test_userdata() {
 
   CHECK_STACK(L, 0);
 
-  const char * const script = ""
-  "obj = ...                                      \n"
-  "assert(1 == obj('asdf'))                       \n"
-  "assert(2 == obj('jkl;'))                       \n"
-  "assert(3 == obj('awad'))                       \n"
-  "assert(4 == obj('waka'))                       \n"
-  "local d = obj:dump()                           \n"
-  "assert(4 == #d)                                \n"
-  "assert('asdf' == d[1])                         \n"
-  "assert('jkl;' == d[2])                         \n"
-  "assert('awad' == d[3])                         \n"
-  "assert('waka' == d[4])                         \n";
+  const char * const script =
+    ""
+    "obj = ...                                      \n"
+    "assert(1 == obj('asdf'))                       \n"
+    "assert(2 == obj('jkl;'))                       \n"
+    "assert(3 == obj('awad'))                       \n"
+    "assert(4 == obj('waka'))                       \n"
+    "local d = obj:dump()                           \n"
+    "assert(4 == #d)                                \n"
+    "assert('asdf' == d[1])                         \n"
+    "assert('jkl;' == d[2])                         \n"
+    "assert('awad' == d[3])                         \n"
+    "assert('waka' == d[4])                         \n";
 
   primer::push_udata<userdata_test>(L);
   TEST_EXPECTED(try_load_script(L, script));
@@ -361,7 +379,8 @@ void test_userdata() {
 
   CHECK_STACK(L, 1);
 
-  TEST(primer::test_udata<userdata_test>(L, 1), "did not recover userdata from stack");
+  TEST(primer::test_udata<userdata_test>(L, 1),
+       "did not recover userdata from stack");
 
   auto ref = primer::read<userdata_test &>(L, 1);
   TEST_EXPECTED(ref);
@@ -419,16 +438,15 @@ struct vec2_test {
   }
 };
 
-constexpr const luaL_Reg vec2_methods[] = {
-  { "__add", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::add)},
-  { "__sub", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::subtract)},
-  { "__unm", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::negate)},
-  { "__lt",  PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::less_than)},
-  { "norm",  PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::norm)},
-  { "dump",  PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::dump)},
-  { "__gc",  nullptr },
-  { nullptr, nullptr }
-};
+constexpr const luaL_Reg vec2_methods[] =
+  {{"__add", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::add)},
+   {"__sub", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::subtract)},
+   {"__unm", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::negate)},
+   {"__lt", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::less_than)},
+   {"norm", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::norm)},
+   {"dump", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::dump)},
+   {"__gc", nullptr},
+   {nullptr, nullptr}};
 
 namespace primer {
 namespace traits {
@@ -436,13 +454,15 @@ namespace traits {
 template <>
 struct userdata<vec2_test> {
   static constexpr const char * name = "vec2";
-  static constexpr const luaL_Reg * const methods = static_cast<const luaL_Reg * const>(vec2_methods);
+  static constexpr const luaL_Reg * const methods =
+    static_cast<const luaL_Reg * const>(vec2_methods);
 };
 
 } // end namespace traits
 } // end namespace primer
 
-static_assert(primer::traits::is_userdata<vec2_test>::value, "our test userdata type did not count as userdata!");
+static_assert(primer::traits::is_userdata<vec2_test>::value,
+              "our test userdata type did not count as userdata!");
 
 primer::result vec2_ctor(lua_State * L, float x, float y) {
   primer::push_udata<vec2_test>(L, x, y);
@@ -462,18 +482,19 @@ void test_userdata_two() {
 
   CHECK_STACK(L, 0);
 
-  const char * const script = ""
-  "local v1 = vec2(1, 1)                          \n"
-  "_ = v1 + vec2(3, 4)                            \n"
-  "local x,y = v1:dump()                          \n"
-  "assert(x == 4)                                 \n"
-  "assert(y == 5)                                 \n"
-  "assert(v1:norm() == 41)                        \n"
-  "_ = v1 + - vec2(3, 4)                          \n"
-  "assert(v1:norm() == 2)                         \n"
-  "_ = v1 - vec2(3, 3)                            \n"
-  "assert(v1:norm() == 8)                         \n"
-  "assert(v1 < vec2(5, 5))                        \n";
+  const char * const script =
+    ""
+    "local v1 = vec2(1, 1)                          \n"
+    "_ = v1 + vec2(3, 4)                            \n"
+    "local x,y = v1:dump()                          \n"
+    "assert(x == 4)                                 \n"
+    "assert(y == 5)                                 \n"
+    "assert(v1:norm() == 41)                        \n"
+    "_ = v1 + - vec2(3, 4)                          \n"
+    "assert(v1:norm() == 2)                         \n"
+    "_ = v1 - vec2(3, 3)                            \n"
+    "assert(v1:norm() == 8)                         \n"
+    "assert(v1 < vec2(5, 5))                        \n";
 
   TEST_EXPECTED(try_load_script(L, script));
 
@@ -490,10 +511,10 @@ void test_std_function() {
 
   std::function<primer::result(lua_State * L, int x, int y)> f =
     [](lua_State * L, int x, int y) -> primer::result {
-      if (y == x) { return primer::error{"bad input"}; }
-      lua_pushinteger(L, x - y);
-      return 1;
-    };
+    if (y == x) { return primer::error{"bad input"}; }
+    lua_pushinteger(L, x - y);
+    return 1;
+  };
 
   primer::push_std_function(L, std::move(f));
   CHECK_STACK(L, 1);

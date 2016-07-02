@@ -48,21 +48,21 @@ void visitable_push_test() {
     test_top_type(L, LUA_TTABLE, __LINE__);
 
     {
-      lua_getfield(L, -1, "a");  
+      lua_getfield(L, -1, "a");
       test_top_type(L, LUA_TNUMBER, __LINE__);
       TEST_EQ(true, lua_isinteger(L, -1));
       lua_pop(L, 1);
     }
 
     {
-      lua_getfield(L, -1, "b");  
+      lua_getfield(L, -1, "b");
       test_top_type(L, LUA_TBOOLEAN, __LINE__);
       TEST_EQ(true, lua_toboolean(L, -1));
       lua_pop(L, 1);
     }
 
     {
-      lua_getfield(L, -1, "c");  
+      lua_getfield(L, -1, "c");
       test_top_type(L, LUA_TNUMBER, __LINE__);
       TEST_EQ(11.75f, lua_tonumber(L, -1));
       lua_pop(L, 1);
@@ -89,14 +89,14 @@ void visitable_push_test() {
       test_top_type(L, LUA_TTABLE, __LINE__);
 
       {
-        lua_getfield(L, -1, "b");  
+        lua_getfield(L, -1, "b");
         test_top_type(L, LUA_TBOOLEAN, __LINE__);
         TEST_EQ(true, lua_toboolean(L, -1));
         lua_pop(L, 1);
       }
-  
+
       {
-        lua_getfield(L, -1, "c");  
+        lua_getfield(L, -1, "c");
         test_top_type(L, LUA_TNUMBER, __LINE__);
         TEST_EQ(11.75f, lua_tonumber(L, -1));
         lua_pop(L, 1);
@@ -112,14 +112,14 @@ void visitable_push_test() {
       test_top_type(L, LUA_TTABLE, __LINE__);
 
       {
-        lua_getfield(L, -1, "b");  
+        lua_getfield(L, -1, "b");
         test_top_type(L, LUA_TBOOLEAN, __LINE__);
         TEST_EQ(false, lua_toboolean(L, -1));
         lua_pop(L, 1);
       }
-  
+
       {
-        lua_getfield(L, -1, "c");  
+        lua_getfield(L, -1, "c");
         test_top_type(L, LUA_TNUMBER, __LINE__);
         TEST_EQ(-1.0f, lua_tonumber(L, -1));
         lua_pop(L, 1);
@@ -158,7 +158,7 @@ void visitable_read_test() {
 void visitable_round_trip() {
   lua_raii L;
 
-  test::foo f{ true, 5, 9 };
+  test::foo f{true, 5, 9};
 
   {
     primer::push(L, f);
@@ -205,7 +205,7 @@ void visitable_round_trip() {
   }
 
 
-  test::bar h{ "wasd", f, f };
+  test::bar h{"wasd", f, f};
   h.f.a -= 77;
   h.f.b = true;
 
@@ -228,7 +228,7 @@ void visitable_round_trip() {
 }
 
 primer::result test_func_one(lua_State * L, test::foo f, test::foo g) {
-  test::foo result{ f.b != g.b, f.a - g.a, f.c + g.c };
+  test::foo result{f.b != g.b, f.a - g.a, f.c + g.c};
   primer::push(L, result);
   return 1;
 }
@@ -241,7 +241,9 @@ void visitable_function_params_test() {
   lua_pushcfunction(L, f);
   lua_setglobal(L, "f");
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = 7}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f({ b = true, c = 5.5, a = 7}, {a= "
+                                  "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
 
   CHECK_STACK(L, 1);
@@ -252,37 +254,51 @@ void visitable_function_params_test() {
   TEST_EQ(maybe_foo->c, 8);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, d = 7}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f({ b = true, c = 5.5, d = 7}, {a= "
+                                  "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = '7'}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f({ b = true, c = 5.5, a = '7'}, {a= "
+                                  "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = -15.5}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f({ b = true, c = 5.5, a = -15.5}, "
+                                  "{a= 9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = {}, a = 3}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f({ b = true, c = {}, a = 3}, {a= 9, "
+                                  "b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = 1, c = 5.5, a = 3}, {a= 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f({ b = 1, c = 5.5, a = 3}, {a= 9, b "
+                                  "= false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f{{ b = true, c = {}, a = 3}, {a= 9, b = false, c = 2.5}}"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f{{ b = true, c = {}, a = 3}, {a= 9, "
+                                  "b = false, c = 2.5}}"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "return f({ b = true, c = 5.5, a = 7}, {q = 9, b = false, c = 2.5})"));
+  TEST_EQ(LUA_OK, luaL_loadstring(L,
+                                  "return f({ b = true, c = 5.5, a = 7}, {q = "
+                                  "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
@@ -339,15 +355,16 @@ void test_api_callbacks() {
   lua_pop(L, 1);
   CHECK_STACK(L, 0);
 
-  const char * script = ""
-  "f1(2)                                           \n"
-  "f1(3)                                           \n"
-  "assert(5 == f2(0, 1))                           \n"
-  "assert(12 == f2(-1, 2))                         \n"
-  "f1(-6)                                          \n"
-  "assert(-3 == f2(3, -1))                         \n"
-  "assert(0 == f3{plus = 1, minus = 1, times = 0}) \n"
-  "assert(4 == f3{plus = 3, minus = 1, times = 2}) \n";
+  const char * script =
+    ""
+    "f1(2)                                           \n"
+    "f1(3)                                           \n"
+    "assert(5 == f2(0, 1))                           \n"
+    "assert(12 == f2(-1, 2))                         \n"
+    "f1(-6)                                          \n"
+    "assert(-3 == f2(3, -1))                         \n"
+    "assert(0 == f3{plus = 1, minus = 1, times = 0}) \n"
+    "assert(4 == f3{plus = 3, minus = 1, times = 2}) \n";
 
   TEST_EQ(LUA_OK, luaL_loadstring(L, script));
 
@@ -367,7 +384,7 @@ int main() {
     {"visitable push", &visitable_push_test},
     {"visitable read", &visitable_read_test},
     {"visitable round trip", &visitable_read_test},
-    {"visitable params adapt", &visitable_function_params_test}, 
+    {"visitable params adapt", &visitable_function_params_test},
     {"api callbacks", &test_api_callbacks},
   };
   int num_fails = tests.run();
