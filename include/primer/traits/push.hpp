@@ -89,9 +89,11 @@ struct push<T, typename std::enable_if<std::is_same<T, unsigned int>::value || s
   }
 };
 
+// Floating point types
 template <>
-struct push<float> {
-  static void to_stack(lua_State * L, float f) { lua_pushnumber(L, f); }
+struct push<T, typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value || std::is_same<T, long double>::value>::type> {
+  static_assert(sizeof(T) <= sizeof(LUA_NUMBER), "Cannot push this type to lua, floating point overflow could occur! Please convert to a smaller type.");
+  static void to_stack(lua_State * L, T t) { lua_pushnumber(L, t); }
 };
 
 
