@@ -18,15 +18,63 @@ can be pushed without fail.
 The following core types are supported:
 
 [table
-  [[Type] [Action]]
-  [[`primer::nil_t`] [ Calls `lua_pushnil`. ]]
-  [[`bool`]          [ Calls `lua_pushboolean`. ]]
-  [[`int`]           [ Calls `lua_pushinteger`. ]]
-  [[`unsigned int`]  [ Calls `lua_pushinteger`. ]]
-  [[`float`]         [ Calls `lua_pushnumber`. ]]
-  [[`const char *`]  [ Calls `lua_pushstring`. ]]
-  [[`std::string`]   [ Calls `lua_pushstring`. ]]
+  [[Type] [`primer::push`]]
+  [[`bool`]                [ Calls `lua_pushboolean`. ]]
+  [[`int`]                 [ Calls `lua_pushinteger`. ]]
+  [[`long`]                []]
+  [[`long long`]           []]
+  [[`unsigned int`]        [ Calls `lua_pushinteger`. ]]
+  [[`unsigned long`]       []]
+  [[`unsigned long long`]  []]
+  [[`float`]               [ Calls `lua_pushnumber`. ]]
+  [[`const char *`]        [ Calls `lua_pushstring`. ]]
+  [[`std::string`]         []]
 ]
+
+[note When pushing a signed integral type, integer overflow is not permitted to
+      occur, and primer will not perform overflow checks.
+
+      ['If a push operation
+      requires a narrowing conversion to `LUA_INTEGER`, a `static_assert` will
+      fail and your code will not compile.]
+
+      When pushing an unsigned integral type which is larger than `LUA_INTEGER`,
+      primer will implicitly narrow the type to the unsigned version of `LUA_INTEGER`,
+      then perform a portable conversion from that type to `LUA_INTEGER`.
+
+      For your code to be portable in the sense of giving similar results on
+      different machines, you must avoid such narrowing conversions.
+
+      For maximum portability, consider:
+
+      - Only pushing 32 bit types, e.g., `int`, `unsigned int`, `float` on most
+        platforms.
+
+      - Using `LUA_INTEGER` and the unsigned version of that in your code, and
+        only pushing these.
+
+
+
+
+      If you just want to compile and don't care about overflow, you can do so
+      with expressions like
+
+      ``
+        long long i;
+        primer::push(L, static_cast<LUA_INTEGER>(i));
+      ``
+      ]
+
+
+The following ancillary types are supported (see `primer::read` docs for more info).
+
+[table
+  [[Type] [`primer::push`]]
+  [[`primer::nil_t`]   [ Calls `lua_pushnil`. ]]
+  [[`primer::truthy`]  [ Calls `lua_pushboolean`. ]]
+  [[`primer::stringy`] [ Calls `lua_pushstring`. ]]
+]
+
 
 Primer includes additional headers to support some C++ standard containers and
 and boost containers, which are pushed as tables. See the containers section for

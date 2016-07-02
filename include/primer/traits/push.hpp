@@ -68,55 +68,26 @@ struct push<bool> {
   static void to_stack(lua_State * L, bool b) { lua_pushboolean(L, b); }
 };
 
-template <>
-struct push<int> {
-  static void to_stack(lua_State * L, int i) { lua_pushinteger(L, i); }
+// Signed types
+template <typename T>
+struct push<T, typename std::enable_if<std::is_same<T, int>::value || std::is_same<T, long>::value || std::is_same<T, long long>::value>::type> {
+  static_assert(sizeof(T) <= sizeof(LUA_INTEGER), "Cannot push this type to lua, integer overflow could occur! Please convert to a smaller type.");
+  static void to_stack(lua_State * L, T t) { lua_pushinteger(L, t); }
 };
 
-template <>
-struct push<uint> {
-  static void to_stack(lua_State * L, uint u) {
-    push<int>::to_stack(L, detail::unsigned_to_signed<int>(u));
+// Unsigned types
+template <typename T>
+struct push<T, typename std::enable_if<std::is_same<T, unsigned int>::value || std::is_same<T, unsigned long>::value || std::is_same<T, unsigned long long>::value>::type> {
+  static void to_stack(lua_State * L, T t) {
+    // Pad or truncate to the size of LUA_INTEGER
+    using unsigned_lua_int_t = std::make_unsigned<LUA_INTEGER>::type;
+    const unsigned_lua_int_t temp = static_cast<unsigned_lua_int_t>(t);
+    // Convert to signed value in a portable way
+    const LUA_INTEGER temp2 = detail::unsigned_to_signed<LUA_INTEGER>(temp);
+    // Defer to push<LUA_INTEGER>
+    push<LUA_INTEGER>::to_stack(L, temp2);
   }
 };
-
-
-/*
-
-// If lua was compiled with larger integer types then enable them
-#if LUA_INT_TYPE > LUA_INT_INT
-
-template <>
-struct push<long> {
-  static void to_stack(lua_State * L, long i) { lua_pushinteger(L, i); }
-};
-
-template <>
-struct push<unsigned long> {
-  static void to_stack(lua_State * L, unsigned long u) {
-    push<long>::to_stack(L, detail::unsigned_to_signed<long>(u));
-  }
-};
-
-#if LUA_INT_TYPE > LUA_INT_LONG
-
-template <>
-struct push<long long> {
-  static void to_stack(lua_State * L, long long i) { lua_pushinteger(L, i); }
-};
-
-template <>
-struct push<unsigned long long> {
-  static void to_stack(lua_State * L, unsigned long long u) {
-    push<long long>::to_stack(L, detail::unsigned_to_signed<long long>(u));
-  }
-};
-
-#endif // LUA_INT_TYPE > LUA_INT_LONG
-
-#endif // LUA_INT_TYPE > LUA_INT_INT
-
-*/
 
 template <>
 struct push<float> {

@@ -17,7 +17,7 @@ then applying `operator *` will result in undefined behavior.
 The following core types are supported:
 
 [table
- [[Type] [Action]]
+ [[Type] [`primer::read`]]
  [[ `bool` ]              [ Checks `lua_isboolean`, returns value of `lua_toboolean`. ]]
  [[ `int`]                [ Checks `lua_isinteger`, returns value of `lua_tointeger`. ]]
  [[ `long`]               []]
@@ -49,7 +49,7 @@ certain implicit conversions typical of lua.
 [primer_support_types]
 
 [table
-  [[Type] [Action]]
+  [[Type] [`primer::read`]]
   [[ `primer::truthy`  ] [ Returns value of `lua_toboolean`. Does not fail. ]]
   [[ `primer::stringy` ] [ Returns value of `lua_tostring` if argument is string or number. Returns result of `__tostring` if metamethod is present. Otherwise fails. ]]
   [[ `primer::nil_t`   ] [ Checks `lua_isnoneornil`. ]]
