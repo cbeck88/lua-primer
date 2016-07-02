@@ -24,6 +24,6 @@
 
 [section:reference Reference]
 [include Core.qbk]
-[include Api.qbk]
 [include Containers.qbk]
+[include Api.qbk]
 [endsect]
