@@ -11,6 +11,18 @@ can be pushed without fail.
 
 `primer::push_each` is an extension which pushes a sequence of objects.
 
+``
+  primer::push_each(L, a, b, c);
+``
+
+is equivalent to
+
+``
+  primer::push(L, a);
+  primer::push(L, b);
+  primer::push(L, c);
+``
+
 [/ primer_push_each]
 
 [h3 Supported Types]
@@ -67,6 +79,8 @@ The following core types are supported:
         long long i;
         primer::push(L, static_cast<LUA_INTEGER>(i));
       ``
+
+      Or, install custom handling for `long long`, see below.
       ]
 
 
