@@ -27,7 +27,7 @@ On [github pages](https://cbeck88.github.io/lua-primer/index.html).
 Features
 ========
 
-- Primer is written in modern C++11 code, with substantial documentation and unit tests.
+- Primer is written to the C++11 standard, with substantial documentation and unit tests.
 
 - Primer is tested against **lua 5.3**, but should also work with lua 5.2. We should
   in general be able to support lua versions that eris supports.

@@ -1,0 +1,146 @@
+[section Embedded Lua Crash Course]
+
+This is a quick overview of the lua C api, sufficient for getting an idea of how
+lua works, using `primer`, and making sense of the examples. It is not a substitute for [@http://www.lua.org/manual/5.3/manual.html the manual].
+
+[h3 Basics]
+
+The reference implementation of lua is written in C, and is designed to be
+embedded into larger programs. Lua has the following basic features:
+
+* Dynamic typing. Every lua value has one of the following types:
+  * `boolean`
+  * `number`
+  * `string`
+  * `table`
+  * `nil`
+  * `function`
+  * `thread`
+  * `userdata`
+* Garbage collection. Lua has an internal memory allocator and performs its own
+  memory management.
+
+[h3 The Stack]
+
+An essential part of the lua C api is the [@http://www.lua.org/manual/5.3/manual.html#4.1 ['lua stack]].
+
+Lua transfers values to and from your application by means of a stack, in which
+each item is a lua value.
+
+You can ['adjust] the stack by means of calls like `lua_gettop` and `lua_settop`.
+
+You can ['query] the type of a value in the stack by calling `lua_type`.
+
+You can ['push] values onto the stack using calls like `lua_pushnumber` or `lua_pushstring`.
+
+You can ['recover] values from the stack using calls like `lua_tonumber` or `lua_tostring`.
+
+These functions all take as input a ['handle] to the stack. The handle is an ['opaque pointer],
+of type `lua_State *`.
+
+[h4 Calling a function]
+
+When you wish for lua to call a function, first the function is pushed onto
+the lua stack, then the arguments to the function are pushed.
+
+A special API function, usually `lua_pcall`, triggers the call. The return values appear on the stack afterwards.
+
+[h4 Calling a C++ function]
+
+When lua calls a C++ function from your application, it gives you a handle to the
+stack, where you will find the inputs.
+
+Your function is expected to place return values on the stack before it returns.
+
+A pointer to your function can be pushed onto the stack using `lua_pushcfunction`, provided
+that it has the signature `int (*)(lua_State *)`. The resulting lua value will have type `function`.
+
+[h3 Userdata]
+
+Userdata is a way to create C++ objects in memory that lua owns, and which lua will treat as a lua value.
+
+A userdata, from the point of view of the lua language, is a ['reference] type
+which can be passed around and assigned to variables just like tables or functions.
+
+Creating a userdata with C++ type `T` typically looks like this:
+
+``
+  void * storage = lua_newuserdata(L, sizeof(T));
+  new (storage) T(argument1, argument2, ...);
+``
+
+The call `lua_newuserdata` creates a new userdata on the top of the stack, associated
+to a block of memory of size `sizeof(T)` acquired by lua.
+
+The second line uses placement-new to invoke an appropriate C++ constructor of `T`
+at that location.
+
+[h4 Metatables]
+
+Userdata can be given an interface by specifying a ['metatable].
+
+A metatable is a lua table in which the keys are strings with special meaning, and the values are
+ (typically) functions. These functions are invoked when the userdata value is
+used in certain ways by a script.
+
+For instance, the `__index` metamethod is called
+when the user uses dot (`.`) or subscript `[ ... ]` notation to access the object.
+
+(For a list, check [@http://www.lua.org/manual/5.3/manual.html#2.4 the manual].)
+
+Functions written in C++ can be added to the metatable, and they can recover the
+underlying C++ object when they are called, in order to interact with it.
+
+Here's some example code using the "raw" lua C api:
+
+``
+  int my_index(lua_State *);
+  int my_new_index(lua_State *);
+  int my_gc(lua_State *);
+
+  void push_T(lua_State *, const T & t) {
+    // Create userdata and construct T
+    void * storage = lua_newuserdata(L, sizeof(T));
+    if (!storage) { throw std::bad_alloc(); } // Or could use an assert
+    new (storage) T(t);
+
+    // Create table which will be the metatable
+    lua_newtable(L);
+    lua_pushcfunction(L, &my_index);
+    lua_setfield(L, -2, "__index");
+    lua_pushcfunction(L, &my_new_index);
+    lua_setfield(L, -2, "__new_index");
+    lua_pushcfunction(L, &my_gc);
+    lua_setfield(L, -2, "__gc");
+
+    // Make it the metatable
+    lua_setmetatable(L, -2);
+  }
+``
+
+[h4 Lifetime]
+
+Because lua is garbage collected, userdata objects may not be destroyed immediately
+when they go out of scope.
+
+If the userdata is a nontrivial C++ object, it requires
+a `__gc` metamethod in its metatable, in order to avoid leaks. This ['finalizer]
+is called just before lua frees the memory.
+
+Generally, the finalizer should call the destructor of the C++ object.
+
+[h4 References]
+
+Sometimes, you want to create a value which a lua script can manipulate, but you
+don't want lua actually to own the object, you want the object to be owned by
+your application.
+
+Lua provides a mechanism called "lightuserdata" which is essentially a userdata
+which contains a void pointer. You can use this to store a pointer to some C++
+object in lua, and in the interface functions, cast it to a pointer to the
+appropriate type.
+
+In many applications, it is a better design not to use "lightuserdata" for this,
+and instead to use regular userdata which contains a smart pointer.
+
+[endsect]

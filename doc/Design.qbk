@@ -44,6 +44,8 @@ Traits are used because it provides for more precise and powerful customization.
 function overloading, then all kinds of implicit conversions can come into play, and your ability to provide partial
 specializations is limited.
 
+(The type traits approach is well-established in libraries like `boost::spirit` -- see for instance an intro [@http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html here].)
+
 [h3 Reflecting C++ into lua]
 
 [h4 Adapting classes as userdata types]
@@ -93,9 +95,10 @@ This is simple and it works -- a drawback is that it imposes syntactic constrain
 methods must be invoked as object methods.
 
 `extraspace` dispatch is used for callbacks in an API object. In this method,
-member functions of the API object are exposed as *free* functions in lua -- from the point of view of the script,
+member functions of the API object are exposed as ['free] functions in lua -- from the point of view of the script,
 they are not attached to any object. But in their implementation, they have access to data members of the API object
-associated to the lua state. `extraspace` dispatch works by storing a pointer in the lua extraspace region. It may
+associated to the lua state. `extraspace` dispatch works by storing a pointer in the
+[@http://www.lua.org/manual/5.3/manual.html#lua_getextraspace lua extraspace] region. It may
 be significantly faster than other dispatch methods. But, only one object may have its members dispatched this way.
 It is only appropriate for "global" functionalities that your api exposes.
 
@@ -108,18 +111,62 @@ in general lua applications.
 
 [h3 Reflecting lua into C++]
 
-* `primer::lua_ref` is a C++ object which represents a reference to a particular lua value inside of some lua VM.
-The object need not be visible in the "global" state to user scripts. The object will not be garbage collected by lua
-as long as the `lua_ref` exists. A `lua_ref` can be "casted" to a C++ value using the `as` template member function.
-This uses `primer::read` under the hood.
+[h4 Lua values]
 
-* `primer::bound_function` is a `primer::lua_ref` which is known to point to an object of function type. It has extra
+`primer::lua_ref` is a lightweight C++ object which represents a reference to a particular lua value inside of some VM.
+
+First, the value is pushed on top of the stack. Then, `lua_ref` is constructed, which pops the values and stores a link
+to it in the registry.
+
+The value can later be retrieved by using the `lua_ref::push()` function, which pushes it back on top of the stack. This
+only fails if the lua VM has already been destroyed, and this is safe in the sense of producing a failure signal rather
+than undefined behavior.
+
+You can simply convert the value to a C++ value by using
+the `lua_ref::as` function, which uses `lua::read` to try to convert it. This is
+stack-neutral.
+
+``
+  if (expected<int> i = ref.as<int>()) {
+    std::cout << "The integer is '" << *i << "'\n";
+  }
+``
+
+[h4 Lua functions]
+
+Some lua values cannot be converted to C++ values.
+
+`primer::bound_function` is a `primer::lua_ref` which is known to point to an object of function type. It has extra
 member functions in order to support calling the function easily from C++. A `primer::bound_function` can be called
 by passing it C++ objects (which it passes to lua using `primer::push`), and it can return the results as
 e.g. `expected<lua_ref>` or similar.
 
-* `primer::coroutine` is a `primer::lua_ref` which represents a lua coroutine. It serves a similar purpose as
-`primer::bound_function`, providing an easy-to-use interface to use such objects safely.
+This makes it easy to construct typical-looking C++ function objects which actually call lua functions.
+
+``
+  struct my_function_object {
+    primer::bound_function func_;
+
+    int call(int input) {
+      if (auto result = func_.call_one_ret(input)) {
+        if (auto maybe_int = result->as<int>()) {
+          return *maybe_int;
+        } else {
+          // The lua function did not return an integer
+          throw std::runtime_error(maybe_int.err_str());
+        }
+      } else {
+        // The function call failed
+        throw std::runtime_error(result.err_str());
+      }
+    }
+  };
+``
+
+[h4 Lua coroutines]
+
+`primer::coroutine` is a `primer::lua_ref` which represents a lua coroutine. It serves a similar purpose as
+`primer::bound_function`, providing a safe and easy-to-use interface.
 
 [h3 Constructing APIs]
 
