@@ -35,6 +35,94 @@ void push_type_simple() {
   test_push_type<bool>(L, false, LUA_TBOOLEAN, __LINE__);
 }
 
+void test_truthy(lua_State * L, bool expected, int line) {
+  CHECK_STACK(L, 1);
+  auto result = primer::read<primer::truthy>(L, 1);
+  TEST_EXPECTED(result);
+  TEST(result->value == expected, "Expected '" << (expected ? "true" : "false") << "'. Line: " << line);
+  lua_pop(L, 1);
+}
+
+void test_read_truthy() {
+  lua_raii L;
+
+  {
+    lua_pushnil(L);
+    test_truthy(L, false, __LINE__);
+
+    lua_pushboolean(L, true);
+    test_truthy(L, true, __LINE__);
+
+    lua_pushboolean(L, false);
+    test_truthy(L, false, __LINE__);
+
+    lua_pushinteger(L, 5);
+    test_truthy(L, true, __LINE__);
+
+    lua_pushstring(L, "asdf");
+    test_truthy(L, true, __LINE__);
+
+    lua_newtable(L);
+    test_truthy(L, true, __LINE__);
+  }
+}
+
+void test_stringy(lua_State * L, std::string expected, int line) {
+  CHECK_STACK(L, 1);
+  auto result = primer::read<primer::stringy>(L, 1);
+  TEST_EXPECTED(result);
+  TEST(result->value == expected, "Expected '" << expected << "'. Line: " << line);
+  lua_pop(L, 1);
+}
+
+void test_not_stringy(lua_State * L, int line) {
+  CHECK_STACK(L, 1);
+  auto result = primer::read<primer::stringy>(L, 1);
+  TEST(!result, "Expected failure, found '" << result->value << "'. Line: " << line);
+  lua_pop(L, 1);
+}
+
+int dummy_to_string_method(lua_State * L) {
+  lua_pushstring(L, "asdf");
+  return 1;
+}
+
+void test_read_stringy() {
+  lua_raii L;
+
+  {
+    lua_pushnil(L);
+    test_not_stringy(L, __LINE__);
+
+    lua_pushboolean(L, true);
+    test_not_stringy(L, __LINE__);
+
+    lua_pushboolean(L, false);
+    test_not_stringy(L, __LINE__);
+
+    lua_pushinteger(L, 5);
+    test_stringy(L, "5", __LINE__);
+
+    lua_pushstring(L, "asdf");
+    test_stringy(L, "asdf", __LINE__);
+
+    lua_newtable(L);
+    test_not_stringy(L, __LINE__);
+
+    lua_newtable(L);
+    lua_newtable(L);
+    lua_setmetatable(L, -2);
+    test_not_stringy(L, __LINE__);
+
+    lua_newtable(L);
+    lua_newtable(L);
+    lua_pushcfunction(L, dummy_to_string_method);
+    lua_setfield(L, -2, "__tostring");
+    lua_setmetatable(L, -2);
+    test_stringy(L, "asdf", __LINE__);
+  }
+}
+
 template <typename T>
 void test_roundtrip_value(lua_State * L, T t, int line) {
   CHECK_STACK(L, 0);
@@ -722,6 +810,8 @@ int main() {
     {"push type simple values", &push_type_simple},
     {"roundtrip simple values", &roundtrip_simple},
     {"simple type safety", &typesafe_simple},
+    {"read truthy", &test_read_truthy},
+    {"read stringy", &test_read_stringy},
     {"primer adapt one", &primer_adapt_test_one},
     {"primer adapt two", &primer_adapt_test_two},
     {"primer adapt three", &primer_adapt_test_three},

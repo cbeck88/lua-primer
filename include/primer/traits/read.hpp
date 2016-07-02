@@ -20,6 +20,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/traits/optional.hpp>
 #include <primer/traits/is_userdata.hpp>
 #include <primer/support/diagnostics.hpp>
+#include <primer/support/types.hpp>
 #include <primer/support/userdata.hpp>
 
 #include <string>
@@ -149,6 +150,55 @@ struct read<T,
     }
   }
 };
+
+// Misc support types
+template <>
+struct read<nil_t> {
+  static expected<nil_t> from_stack(lua_State * L, int idx) {
+    if (lua_isnoneornil(L, idx)) { return nil_t{}; }
+    else return primer::error{"Expected nil, found ", primer::describe_lua_value(L, idx)};
+  }
+};
+
+template <>
+struct read<truthy> {
+  static expected<truthy> from_stack(lua_State * L, int idx) {
+    return primer::truthy{lua_toboolean(L, idx)};
+  }
+};
+
+template <>
+struct read<stringy> {
+  static expected<stringy> from_stack(lua_State * L, int idx) {
+    expected<stringy> result;
+
+    if (luaL_callmeta(L, idx, "__tostring")) {
+      if (const char * str = lua_tostring(L, -1)) {
+        result = stringy{str};
+      } else {
+        result = primer::error{"__tostring metamethod did not produce a string: ", primer::describe_lua_value(L, idx)};
+      }
+      lua_pop(L, 1);
+    } else {
+      switch (lua_type(L, idx)) {
+        case LUA_TSTRING: {
+          result = stringy{lua_tostring(L, idx)};
+          break;
+        }
+        case LUA_TNUMBER: {
+          lua_pushvalue(L, idx);
+          result = stringy{lua_tostring(L, -1)};
+          lua_pop(L, 1);
+          break;
+        }
+        default:
+          result = primer::error{"Could not convert to string: ", primer::describe_lua_value(L, idx)};
+      }
+    }
+    return result;
+  }
+};
+
 
 } // end namespace traits
 } // end namespace primer

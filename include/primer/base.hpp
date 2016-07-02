@@ -33,8 +33,4 @@ namespace primer {
 
 typedef unsigned int uint;
 
-// Use this type if you want to push nil onto the stack using primer::push
-// interface.
-struct nil_t {};
-
 } // end namespace primer

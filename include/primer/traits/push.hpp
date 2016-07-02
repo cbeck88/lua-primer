@@ -22,6 +22,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/detail/integral_conversions.hpp>
 
+#include <primer/support/types.hpp>
 #include <primer/support/userdata.hpp>
 
 #include <primer/traits/is_optional.hpp>
@@ -38,12 +39,6 @@ namespace traits {
 // Primary template
 template <typename T, typename ENABLE = void>
 struct push;
-
-// Nil (tag-dispatch)
-template <>
-struct push<primer::nil_t> {
-  static void to_stack(lua_State * L, primer::nil_t) { lua_pushnil(L); }
-};
 
 // Strings
 template <>
@@ -163,6 +158,26 @@ struct push<T, enable_if_t<traits::is_optional<T>::value>> {
     } else {
       lua_pushnil(L);
     }
+  }
+};
+
+// Misc support types
+template <>
+struct push<primer::nil_t> {
+  static void to_stack(lua_State * L, primer::nil_t) { lua_pushnil(L); }
+};
+
+template <>
+struct push<truthy> {
+  static void to_stack(lua_State * L, const truthy & t) {
+    push<bool>::to_stack(L, t.value);
+  }
+};
+
+template <>
+struct push<stringy> {
+  static void to_stack(lua_State * L, const stringy & s) {
+    push<std::string>::to_stack(L, s.value);
   }
 };
 
