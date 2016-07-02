@@ -18,15 +18,28 @@ The following core types are supported:
 
 [table
  [[Type] [Action]]
- [[ `bool` ]         [ Checks `lua_isboolean`, returns value of `lua_toboolean`. ]]
- [[ `int`  ]         [ Checks `lua_isinteger`, returns value of `lua_tointeger`. ]]
- [[ `unsigned int` ] [ Checks `lua_isinteger`, returns value of `lua_tointeger`. Fails if the value is negative. ]]
- [[ `float` ]        [ Checks `lua_isnumber`, returns value of `lua_tonumber`. ]]
- [[ `const char *` ] [ Checks `lua_isstring`, returns value of `lua_tostring`. ]]
- [[ `std::string`  ] [ (Same as `const char *`) ]]
+ [[ `bool` ]              [ Checks `lua_isboolean`, returns value of `lua_toboolean`. ]]
+ [[ `int`]                [ Checks `lua_isinteger`, returns value of `lua_tointeger`. ]]
+ [[ `long`]               []]
+ [[ `long long`]          []]
+ [[ `unsigned int` ]      [ Checks `lua_isinteger`, returns value of `lua_tointeger`. Fails if the value is negative. ]]
+ [[ `unsigned long`]      []]
+ [[ `unsigned long long`] []]
+ [[ `float` ]             [ Checks `lua_isnumber`, returns value of `lua_tonumber`. ]]
+ [[ `const char *` ]      [ Checks `lua_isstring`, returns value of `lua_tostring`. ]]
+ [[ `std::string`  ]      []]
 ]
 
 In the above table, "Checks" means that, the checked function must report "true" or an error is reported.
+
+[note In the above table, when an integral type is read, if the target type is *narrower* than `LUA_INTEGER`, then an overflow check is performed,
+      and an overflow error will be reported if it occurs.
+
+      To avoid the overhead of overflow checks, consider using the type `LUA_INTEGER` in your code, or only using `primer::read` with integral types known
+      to be as large as `LUA_INTEGER`.
+
+      Or, consider compiling lua using `-DLUA_32BITS` to force lua to
+      use a 32 bit type for integers and floating point numbers internally. ]
 
 The following extra types are supported, which allow "flexible" reads.
 

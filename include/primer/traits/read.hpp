@@ -23,6 +23,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/types.hpp>
 #include <primer/support/userdata.hpp>
 
+#include <limits>
 #include <string>
 
 namespace primer {
@@ -53,13 +54,28 @@ struct read<std::string> {
 };
 
 template <>
-struct read<int> {
-  static expected<int> from_stack(lua_State * L, int idx) {
+struct read<bool> {
+  static expected<bool> from_stack(lua_State * L, int idx) {
+    if (lua_isboolean(L, idx)) {
+      return static_cast<bool>(lua_toboolean(L, idx));
+    } else {
+      return primer::error{"Expected boolean, found ",
+                           primer::describe_lua_value(L, idx)};
+    }
+  }
+};
+
+// Integral types
+
+template <typename T, typename ENABLE = void>
+struct signed_read_helper;
+
+// No narrowing
+template <typename T>
+struct signed_read_helper<T, typename std::enable_if<sizeof(T) >= sizeof(LUA_INTEGER)>::type> {
+  static expected<T> from_stack(lua_State * L, int idx) {
     if (lua_isinteger(L, idx)) {
-      return static_cast<int>(lua_tointeger(L, idx)); // TODO: Should this be
-                                                      // different if
-                                                      // LUA_INTEGER is larger
-                                                      // than int? :/
+      return static_cast<T>(lua_tointeger(L, idx));
     } else {
       return primer::error{"Expected integer, found ",
                            primer::describe_lua_value(L, idx)};
@@ -67,17 +83,57 @@ struct read<int> {
   }
 };
 
-template <>
-struct read<uint> {
-  static expected<uint> from_stack(lua_State * L, int idx) {
-    auto maybe_int = read<int>::from_stack(L, idx);
-    if (maybe_int && *maybe_int < 0) {
-      return primer::error{"Expected nonnegative integer, found ",
-                           std::to_string(*maybe_int)};
+// Narrowing, must do overflow check
+template <typename T>
+struct signed_read_helper<T, typename std::enable_if<sizeof(T) < sizeof(LUA_INTEGER)>::type> {
+  static expected<T> from_stack(lua_State * L, int idx) {
+    if (lua_isinteger(L, idx)) {
+      LUA_INTEGER i = lua_tointeger(L, idx);
+      if (i > std::numeric_limits<T>::max() || i < std::numeric_limits<T>::min()) {
+        return primer::error{"Integer overflow occurred: ", std::to_string(i)};
+      }
+      return static_cast<T>(i);
+    } else {
+      return primer::error{"Expected integer, found ",
+                           primer::describe_lua_value(L, idx)};
     }
-    return maybe_int; // implicit static cast to uint, in expected ctor.
   }
 };
+
+// When reading unsigned, must do 0 check
+template <typename T>
+struct unsigned_read_helper {
+  static expected<typename std::make_unsigned<T>::type> from_stack(lua_State * L, int idx) {
+    auto maybe = read<T>::from_stack(L, idx);
+
+    if (maybe && *maybe < 0) {
+      maybe = primer::error{"Expected nonnegative integer, found ", std::to_string(*maybe)};
+    }
+
+    // implicit static cast to expected<unsigned> here, in expected ctor
+    return maybe;
+  }
+};
+
+// Instantiate read, using the helpers
+
+template <>
+struct read<int> : signed_read_helper<int> {};
+
+template <>
+struct read<long> : signed_read_helper<long> {};
+
+template <>
+struct read<long long> : signed_read_helper<long long> {};
+
+template <>
+struct read<unsigned int> : unsigned_read_helper<int>{};
+
+template <>
+struct read<unsigned long> : unsigned_read_helper<long>{};
+
+template <>
+struct read<unsigned long long> : unsigned_read_helper<long long>{};
 
 template <>
 struct read<float> {
@@ -86,18 +142,6 @@ struct read<float> {
       return lua_tonumber(L, idx);
     } else {
       return primer::error{"Expected number, found ",
-                           primer::describe_lua_value(L, idx)};
-    }
-  }
-};
-
-template <>
-struct read<bool> {
-  static expected<bool> from_stack(lua_State * L, int idx) {
-    if (lua_isboolean(L, idx)) {
-      return static_cast<bool>(lua_toboolean(L, idx));
-    } else {
-      return primer::error{"Expected boolean, found ",
                            primer::describe_lua_value(L, idx)};
     }
   }
