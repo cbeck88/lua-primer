@@ -1,0 +1,53 @@
+[section Standard Containers]
+
+Primer contains some auxiliary headers which can make it aware of many standard
+C++ containers.
+
+These auxiliary headers are optional, and may be included individually as needed
+using e.g.
+
+`#include <primer/std/vector.hpp>`,
+
+`#include <primer/boost/optional.hpp>`
+
+or wholesale:
+
+* `#include <primer/std.hpp>` pulls in all available headers for standard library containers.
+* `#include <primer/boost.hpp>` pulls in all available headers for boost containers.
+
+In all cases, these containers are mapped to tables, using lua idioms as follows:
+
+[h3 Lua Map Idiom]
+
+['maps] such as `std::map` and `std::unordered_map` are translated to lua directly as tables.
+
+When such a map is pushed, each key-value pair in the map becomes a key-value pair in the table, and the keys
+and values are converted recursively using `primer::push`.
+
+When such a map is read, the argument is expected to be a table, and it is recursed over using `lua_next`.
+Each key value pair is attempted to be converted using `primer::read`, and added to the table.
+If reading of any key or value as the expected type fails, then reading the map fails.
+
+[h3 Lua Array Idiom]
+
+['arrays] such as `std::vector` and `std::array` are translated to lua as tables, in which
+only the "array part" of the table is used.
+
+When an array `v` is pushed, the entry `v[0]` becomes entry `t[1]` of a lua table `t` upon
+pushing.
+
+When a vector is read, the lua value is expected to be a table. `lua_rawlen` is used to determine
+its length. Then `lua_rawgeti` is used to query entries `t[1], t[2], ...`. If any of these cannot
+be read as the expected type, then reading the vector fails.
+
+[h3 Lua Set Idiom]
+
+['sets] such as `std::set` are translated to lua as tables, in which the value in every key-value pair is `true`.
+
+It is otherwise similar to `std::map` in terms of pushing and reading.
+
+In lua, tables cannot have custom "comparators" for their keys. If you have something more complex than
+`std::set<int>` or `std::set<std::string>`, e.g. containing tables or userdata, you will most likely
+want to create custom semantics for it rather than using the primer built-in `std::set` semantics.
+
+[endsect]
