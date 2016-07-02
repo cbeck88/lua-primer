@@ -25,6 +25,9 @@ clang-format.sh
 # find_and_replace
 find_and_replace.sh
 
+# update_docu
+update_docu.sh
+
 # docs
 /doc/bin
 /doc/html

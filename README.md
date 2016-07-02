@@ -12,26 +12,27 @@ In short, if you use **lua-eris** and expose your C++ api via **primer**, then y
 application in a nice idiomatic C++ style, expose designated features to lua VMs, and you get
 for free the ability to **save and restore** essentially all of the user-visible aspects of the VM,
 even if user scripts have created a very complicated state referring to many custom
-C++ objects and functions, with many closures over hidden objects, suspended coroutines, etc.
+C++ objects and functions, with closures over hidden objects, suspended coroutines, etc.
 
 The save format is largely portable as well -- see eris' documentation.
 
 By contrast, this can be very difficult to do correctly with other lua binding libraries, which
 may be cumbersome to use in concert with **eris**.
 
-Licensing and Distribution
-==========================
+Documentation
+=============
 
-**lua primer** is available under the boost software license. To my knowledge, this is in all cases compatible with the MIT license (which is used by lua).
-
-Just in case, it is also available under the MIT license.
-
-Not generous enough? Contact me, I am flexible.
+On [github pages](https://cbeck88.github.io/lua-primer/index.html).
 
 Features
 ========
 
-- Provides automatic, type-safe binding of lua arguments to C++ function parameters.
+- Primer is written in modern C++11 code, with substantial documentation and unit tests.
+
+- Primer is tested against **lua 5.3**, but should also work with lua 5.2. We should
+  in general be able to support lua versions that eris supports.
+
+- Automatic, type-safe binding of lua arguments to C++ function parameters.
   This includes built-in support for translating fundamental C++ types and lua types.
 
   Lua:
@@ -47,8 +48,6 @@ Features
   ```
 
 - Primer can also translate fundamental C++ containers like `map`, `set`, and `vector`.
-  It can automatically handle recursive combinations of such containers -- as long as it knows how
-  to handle all the fundamental types in such a combination.
 
   Lua:
   ```
@@ -64,13 +63,7 @@ Features
     }
   ```
 
-- Provides extensive customization points. Any type not in one of the earlier two categories
-  can be given arbitrary read / write semantics, and containers can also be given custom semantics if you
-  don't like the ones we provided. (TODO: Example)
-
-- Provides an easy mechanism to register your POD structure types so that they can be effortlessly translated
-  to and from lua. This gives an easy way to implement
-  a "named parameter" idiom for your C++ callback functions that you expose to lua.
+- A "named parameter" idiom for C++ callback functions that you expose to lua.
 
   Lua:
   ```
@@ -94,8 +87,6 @@ Features
     }
   ```
 
-- Provides three different mechanisms to create delegates, binding member functions of various kinds of
-  objects to lua. (userdata, extraspace, `std::function` objects) (TODO: Example)
 - Makes it easy for C++ to refer to and use lua objects which exist in a VM, such as functions.
 
   Lua:
@@ -118,33 +109,23 @@ Features
     }
 
     primer::result bind_click(lua_State * L) {
-      if (!lua_isfunction(L, 1)) { return primer::error("Expected a function!"); }
       lua_pushvalue(L, 1);
-
       primer::bound_function func{L};
+
+      if (!func) { return primer::error("Expected a function!"); }
 
       my_gui::bind_click(lua_callback_runner{std::move(func)});
       return 0;
     }
   ```
       
+- Provides extensive customization points.
 
-- Provides a thin framework for you to assemble a C++ api with various custom features, such that the
-  state and ancillary data will at all times be *persistable* using the **lua-eris** library. This framework
-  doesn't seek to get between you and the VM -- you still have all the low-level access you care for, but it
-  makes it trivial to do powerful things like save and restore the VM, or make duplicates of a VM state. (TODO: Example)
+Licensing and Distribution
+==========================
 
-- Primer is written in modern C++11 code, with substantial documentation and unit tests.
+**lua primer** is available under the boost software license. To my knowledge, this is in all cases compatible with the MIT license (which is used by lua).
 
-- Primer is tested against **lua 5.3**, but should also work with lua 5.2. lua 5.1 is not supported. We should
-  in general be able to support lua version that eris supports.
+Just in case, it is also available under the MIT license.
 
-Documentation
-=============
-
-Tests and Examples
-==================
-
----------
-
-More info to come... check back later.
+Not generous enough? Contact me, I am flexible.
