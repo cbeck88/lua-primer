@@ -42,6 +42,10 @@ struct common_meta<T, traits::enable_if_t<primer::traits::is_userdata<T>::value>
                        << udata::name << "' called on object of type '"
                        << describe_lua_value(L, 1) << "'");
     static_cast<T *>(d)->~T();
+    // Set metatable to nil. This prevents further access to the userdata, as
+    // can happen in some obscure corner cases
+    lua_pushnil(L);
+    lua_setmetatable(L, 1);
     return 0;
   }
 };
