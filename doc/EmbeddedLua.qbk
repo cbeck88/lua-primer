@@ -100,9 +100,7 @@ Here's some example code using the "raw" lua C api:
 
   void push_T(lua_State *, const T & t) {
     // Create userdata and construct T
-    void * storage = lua_newuserdata(L, sizeof(T));
-    if (!storage) { throw std::bad_alloc(); } // Or could use an assert
-    new (storage) T(t);
+    new (lua_newuserdata(L, sizeof(T))) T(t);
 
     // Create table which will be the metatable
     lua_newtable(L);
