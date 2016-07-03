@@ -14,7 +14,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/std/set_base.hpp>
+#include <primer/container/set_base.hpp>
 #include <boost/container/flat_set.hpp>
 
 namespace primer {
