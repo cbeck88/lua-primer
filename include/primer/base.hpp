@@ -45,6 +45,6 @@ namespace primer { typedef unsigned int uint; } // end namespace primer
 #  define PRIMER_RETHROW throw
 #else
 #  define PRIMER_TRY if (1)
-#  define PRIMER_CATCH(X) else
+#  define PRIMER_CATCH(X) if (0)
 #  define PRIMER_RETHROW static_assert(true, "")
 #endif
