@@ -25,6 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 /* #define PRIMER_DEBUG */
 /* #define PRIMER_LUA_AS_CPP */
 /* #define PRIMER_NO_STATIC_ASSERTS */
+/* #define PRIMER_NO_EXCEPTIONS */
 
 // Forward declare some lua types
 struct lua_State;
@@ -36,4 +37,14 @@ namespace primer { typedef unsigned int uint; } // end namespace primer
 #define PRIMER_STATIC_ASSERT(C, M) static_assert(true, "")
 #else
 #define PRIMER_STATIC_ASSERT(C, M) static_assert(C, M)
+#endif
+
+#ifndef PRIMER_NO_EXCEPTIONS
+#  define PRIMER_TRY try
+#  define PRIMER_CATCH(X) catch (X)
+#  define PRIMER_RETHROW throw
+#else
+#  define PRIMER_TRY if (1)
+#  define PRIMER_CATCH(X) else
+#  define PRIMER_RETHROW static_assert(true, "")
 #endif
