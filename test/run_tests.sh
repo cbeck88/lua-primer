@@ -12,17 +12,14 @@ cd ..
 cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./std
 cd ..
 
-cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./boost
-cd ..
-
-if [ -e stage/persist ]
+if [ -e stage/boost ]
 then
-  cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./persist
+  cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./boost
   cd ..
 fi
 
-# b2 clean
-# b2 cxxflags="-std=c++11 -DLUA_32BITS"
-# echo
-# cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./core
-# cd ..
+if [ -e stage/api ]
+then
+  cd stage && gdb -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./api
+  cd ..
+fi

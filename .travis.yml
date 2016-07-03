@@ -62,7 +62,6 @@ script:
 
 #  - if [[ "${NO_STATIC_ASSERTS}" != "" ]]; then export FLAGS="--toolset=${CC} --no-static-asserts"; else export FLAGS="--toolset=${CC}"; fi
 #  TODO: How can get a more recent standard library on trusty?
-
   - export FLAGS="--toolset=${CC} --no-static-asserts";
 
   - export LUA_ROOT=lua-5.3.1

@@ -89,10 +89,11 @@ install install-bin : core visitable std : $(INSTALL_LOC) ;
 
 # Persistence tests...
 
+# API tests...
 if $(HAVE_ERIS) {
-  exe persist : persist.cpp lualib : $(FLAGS) ;
+  exe api : api.cpp lualib : $(FLAGS) ;
 
-  install install-persist-bin : persist : $(INSTALL_LOC) ;
+  install install-api-bin : api : $(INSTALL_LOC) ;
 }
 
 
