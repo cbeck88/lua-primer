@@ -21,8 +21,7 @@ namespace primer {
 namespace traits {
 
 template <typename T>
-struct push<boost::optional<T>>
-  : detail::optional_push<boost::optional<T>> {};
+struct push<boost::optional<T>> : detail::optional_push<boost::optional<T>> {};
 
 template <typename T>
 struct read<boost::optional<T>>

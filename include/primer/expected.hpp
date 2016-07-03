@@ -48,9 +48,10 @@ class expected {
   };
   bool have_ham_;
 
-  PRIMER_STATIC_ASSERT(std::is_nothrow_move_constructible<T>::value,
-                "This class can only be used with types that are no-throw "
-                "move constructible and destructible.");
+  PRIMER_STATIC_ASSERT(
+    std::is_nothrow_move_constructible<T>::value,
+    "This class can only be used with types that are no-throw "
+    "move constructible and destructible.");
 
 public:
   // Accessors and dereference semantics

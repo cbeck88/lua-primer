@@ -51,9 +51,9 @@ struct read_seq_helper {
   using value_type = traits::remove_cv_t<typename T::value_type>;
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<T>::value,
-                "sequence type must be nothrow default constructible");
+                       "sequence type must be nothrow default constructible");
   PRIMER_STATIC_ASSERT(std::is_nothrow_move_constructible<value_type>::value,
-                "value type must be nothrow move constructible");
+                       "value type must be nothrow move constructible");
 
   // Reserve, if possible
   // Assume that it has same semantics as std::vector
@@ -108,7 +108,7 @@ struct read_fixed_seq_helper {
   using value_type = traits::remove_cv_t<typename T::value_type>;
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<T>::value,
-                "sequence type must be nothrow default constructible");
+                       "sequence type must be nothrow default constructible");
 
   static expected<T> from_stack(lua_State * L, int idx) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);

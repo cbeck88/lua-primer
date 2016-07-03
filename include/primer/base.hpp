@@ -33,7 +33,7 @@ typedef int (*lua_CFunction)(lua_State *);
 namespace primer { typedef unsigned int uint; } // end namespace primer
 
 #ifdef PRIMER_NO_STATIC_ASSERTS
-#  define PRIMER_STATIC_ASSERT(C, M) static_assert(true, "")
+#define PRIMER_STATIC_ASSERT(C, M) static_assert(true, "")
 #else
-#  define PRIMER_STATIC_ASSERT(C, M) static_assert(C, M)
+#define PRIMER_STATIC_ASSERT(C, M) static_assert(C, M)
 #endif

@@ -51,12 +51,13 @@ struct optional_access {
   using value_type = typename T::value_type;
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<T>::value,
-                        "optional must be nothrow constructible");
+                       "optional must be nothrow constructible");
 
   // TODO: boost::optional doesn't do this...
   // PRIMER_STATIC_ASSERT(noexcept(T{std::declval<value_type>()}),
-  //                      "optional must be nothrow constructible from r-value reference to value type");
-                      
+  //                      "optional must be nothrow constructible from r-value
+  //                      reference to value type");
+
 
   static const value_type * as_ptr(const T & t) noexcept {
     return t ? &*t : nullptr;
@@ -80,8 +81,9 @@ struct optional_push {
   using helper_t = traits::optional_access<T>;
   using value_t = traits::remove_cv_t<typename helper_t::value_type>;
 
-  PRIMER_STATIC_ASSERT(noexcept(helper_t::as_ptr(*static_cast<const T *>(nullptr))),
-                       "as_ptr method of optional_access must be noexcept");
+  PRIMER_STATIC_ASSERT(
+    noexcept(helper_t::as_ptr(*static_cast<const T *>(nullptr))),
+    "as_ptr method of optional_access must be noexcept");
 
   static void to_stack(lua_State * L, const T & t) {
     if (const typename helper_t::value_type * ptr = helper_t::as_ptr(t)) {
@@ -99,19 +101,21 @@ struct optional_push {
 template <typename T>
 struct optional_strict_read {
   using helper_t = traits::optional_access<T>;
-  using value_t = traits::remove_cv_t<typename helper_t::value_type>;
+  using value_t = typename helper_t::value_type;
 
   PRIMER_STATIC_ASSERT(noexcept(helper_t::make_empty()),
                        "make_empty method of optional_access must be noexcept");
 
-  PRIMER_STATIC_ASSERT(noexcept(helper_t::from_value_type(std::declval<typename helper_t::value_type>())),
-                       "from_value_type method of optional_access must be noexcept");
+  PRIMER_STATIC_ASSERT(
+    noexcept(helper_t::from_value_type(std::declval<value_t>())),
+    "from_value_type method of optional_access must be noexcept");
 
+  using clean_val_t = traits::remove_cv_t<value_t>;
 
   static expected<T> from_stack(lua_State * L, int index) {
     if (lua_isnoneornil(L, index)) {
       return helper_t::make_empty();
-    } else if (auto result = traits::read<value_t>::from_stack(L, index)) {
+    } else if (auto result = traits::read<clean_val_t>::from_stack(L, index)) {
       return helper_t::from_value_type(*std::move(result));
     } else {
       return std::move(result).err();
@@ -127,16 +131,19 @@ template <typename T>
 struct optional_relaxed_read : traits::optional_access<T> {
 
   using helper_t = traits::optional_access<T>;
-  using value_t = traits::remove_cv_t<typename helper_t::value_type>;
+  using value_t = typename helper_t::value_type;
 
   PRIMER_STATIC_ASSERT(noexcept(helper_t::make_empty()),
                        "make_empty method of optional_access must be noexcept");
 
-  PRIMER_STATIC_ASSERT(noexcept(helper_t::from_value_type(std::declval<typename helper_t::value_type>())),
-                       "from_value_type method of optional_access must be noexcept");
+  PRIMER_STATIC_ASSERT(
+    noexcept(helper_t::from_value_type(std::declval<value_t>())),
+    "from_value_type method of optional_access must be noexcept");
+
+  using clean_val_t = traits::remove_cv_t<value_t>;
 
   static expected<T> from_stack(lua_State * L, int index) {
-    if (auto result = traits::read<value_t>::from_stack(L, index)) {
+    if (auto result = traits::read<clean_val_t>::from_stack(L, index)) {
       return helper_t::from_value_type(*std::move(result));
     } else {
       return helper_t::make_empty();

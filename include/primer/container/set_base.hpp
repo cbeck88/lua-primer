@@ -53,9 +53,9 @@ struct set_read_helper {
   using first_t = typename M::key_type;
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<M>::value,
-                "set must be nothrow default constructible");
+                       "set must be nothrow default constructible");
   PRIMER_STATIC_ASSERT(std::is_nothrow_move_constructible<first_t>::value,
-                "key type must be nothrow move constructible");
+                       "key type must be nothrow move constructible");
 
   // TODO: Exception safety, emplace can throw std::bad_alloc
   static expected<M> from_stack(lua_State * L, int index) {
