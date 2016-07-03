@@ -28,8 +28,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq gdb
 
-
-  - if [[ ${COMPILER}" == "clang++-3.7" ]]; then wget -nv -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -; sudo apt-add-repository -y 'deb http://llvm.org/apt/trusty llvm-toolchain-trusty-3.7 main'; sudo apt-get update -qq; sudo apt-get install -qq clang-3.7; fi
+  - if [[ ${COMPILER}" == "clang++-3.7" ]]; then sudo ./travis/install_clang_3_7.sh fi
 
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
