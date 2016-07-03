@@ -25,6 +25,28 @@ if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
   BOOST_INCLUDE_DIR = ;
 }
 
+### Lua directory
+
+local LUA_ROOT = [ os.environ LUA_ROOT ] ;
+if ! $(LUA_ROOT) {
+  LUA_ROOT = eris-1.1.0-5.3 ;
+}
+
+if [ GLOB $(LUA_ROOT)/src/ : lua.h ] {
+  echo "Using LUA_ROOT = '" $(LUA_ROOT) "'" ;
+  LUA_PATH = $(LUA_ROOT)/src ;
+} else {
+  error "Could not find lua!" ;
+}
+
+HAVE_ERIS = ;
+if [ GLOB $(LUA_PATH)/ : eris.h ] {
+  echo "Found eris headers" ;
+  HAVE_ERIS = true ;
+} else {
+  echo "Could not find eris, skipping eris tests" ;
+}
+
 ### Interpret flags
 
 import modules ;
@@ -33,13 +55,6 @@ if "--with-lua-32bit" in [ modules.peek : ARGV ] {
   LUA_DEFINE = <define>LUA_32BITS ;
 } else {
   LUA_DEFINE = ;
-}
-
-HAVE_ERIS = true ;
-LUA_PATH = eris-1.1.0-5.3/src ;
-if "--without-eris" in [ modules.peek : ARGV ] {
-  HAVE_ERIS = ;
-  LUA_PATH = lua-5.3.1/src ;
 }
 
 NO_STATIC_ASSERTS = ;
