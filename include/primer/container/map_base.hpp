@@ -55,9 +55,12 @@ struct map_read_helper {
   using first_t = typename M::key_type;
   using second_t = typename M::mapped_type;
 
-  static_assert(std::is_nothrow_constructible<M>::value, "map type must be nothrow default constructible");
-  static_assert(std::is_nothrow_move_constructible<first_t>::value, "key type must be nothrow move constructible");
-  static_assert(std::is_nothrow_move_constructible<second_t>::value, "value type must be nothrow move constructible");
+  static_assert(std::is_nothrow_constructible<M>::value,
+                "map type must be nothrow default constructible");
+  static_assert(std::is_nothrow_move_constructible<first_t>::value,
+                "key type must be nothrow move constructible");
+  static_assert(std::is_nothrow_move_constructible<second_t>::value,
+                "value type must be nothrow move constructible");
 
   static expected<M> from_stack(lua_State * L, int index) {
     if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {

@@ -52,8 +52,10 @@ template <typename M>
 struct set_read_helper {
   using first_t = typename M::key_type;
 
-  static_assert(std::is_nothrow_constructible<M>::value, "set must be nothrow default constructible");
-  static_assert(std::is_nothrow_move_constructible<first_t>::value, "key type must be nothrow move constructible");
+  static_assert(std::is_nothrow_constructible<M>::value,
+                "set must be nothrow default constructible");
+  static_assert(std::is_nothrow_move_constructible<first_t>::value,
+                "key type must be nothrow move constructible");
 
   // TODO: Exception safety, emplace can throw std::bad_alloc
   static expected<M> from_stack(lua_State * L, int index) {

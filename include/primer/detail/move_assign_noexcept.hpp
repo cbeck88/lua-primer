@@ -24,7 +24,8 @@ namespace primer {
 namespace detail {
 
 template <typename T>
-auto move_assign_noexcept(T & dest, T && src) noexcept -> traits::enable_if_t<std::is_nothrow_move_assignable<T>::value> {
+auto move_assign_noexcept(T & dest, T && src) noexcept
+  -> traits::enable_if_t<std::is_nothrow_move_assignable<T>::value> {
   dest = std::move(src);
 }
 
@@ -32,18 +33,24 @@ template <typename T, typename ENABLE = void>
 struct is_nothrow_swappable : std::false_type {};
 
 template <typename T>
-struct is_nothrow_swappable<T, traits::enable_if_t<noexcept(std::swap(*static_cast<T*>(nullptr), *static_cast<T*>(nullptr)))>> : std::true_type {};
+struct is_nothrow_swappable<
+  T,
+  traits::enable_if_t<noexcept(
+    std::swap(*static_cast<T *>(nullptr), *static_cast<T *>(nullptr)))>>
+  : std::true_type {};
 
 template <typename T>
-auto move_assign_noexcept(T & dest, T && src) noexcept -> traits::enable_if_t<!std::is_nothrow_move_assignable<T>::value
-                                                                   && is_nothrow_swappable<T>::value> {
+auto move_assign_noexcept(T & dest, T && src) noexcept
+  -> traits::enable_if_t<!std::is_nothrow_move_assignable<T>::value &&
+                         is_nothrow_swappable<T>::value> {
   std::swap(dest, src);
 }
 
 template <typename T>
-auto move_assign_noexcept(T & dest, T && src) noexcept -> traits::enable_if_t<!std::is_nothrow_move_assignable<T>::value
-                                                                   && !is_nothrow_swappable<T>::value
-                                                                   && std::is_nothrow_move_constructible<T>::value> {
+auto move_assign_noexcept(T & dest, T && src) noexcept
+  -> traits::enable_if_t<!std::is_nothrow_move_assignable<T>::value &&
+                         !is_nothrow_swappable<T>::value &&
+                         std::is_nothrow_move_constructible<T>::value> {
   dest.~T();
   new (&dest) T(std::move(src));
 }
