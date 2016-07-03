@@ -6,14 +6,27 @@
 #pragma once
 
 /***
- * How to push `std::set` to the stack, as a table, using the lua "set" idiom.
+ * How to transfer `boost::optional` to and from the stack, using relaxed
+ * optional semantics
  */
 
 #include <primer/base.hpp>
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/traits/optional.hpp>
+#include <primer/container/optional_base.hpp>
 #include <boost/optional/optional.hpp>
 
-PRIMER_DECLARE_OPTIONAL_TEMPLATE_TYPE(boost::optional);
+namespace primer {
+namespace traits {
+
+template <typename T>
+struct push<boost::optional<T>>
+  : detail::optional_push<boost::optional<T>> {};
+
+template <typename T>
+struct read<boost::optional<T>>
+  : detail::optional_strict_read<boost::optional<T>> {};
+
+} // end namespace traits
+} // end namespace primer

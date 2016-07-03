@@ -16,8 +16,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
-#include <primer/traits/is_optional.hpp>
-#include <primer/traits/optional.hpp>
 #include <primer/traits/is_userdata.hpp>
 #include <primer/traits/util.hpp>
 #include <primer/support/diagnostics.hpp>
@@ -168,40 +166,6 @@ struct read<T &, enable_if_t<primer::traits::is_userdata<T>::value>> {
     } else {
       return primer::error{"Expected userdata '", primer::udata_name<T>(),
                            "', found ", primer::describe_lua_value(L, idx)};
-    }
-  }
-};
-
-// Strict optional
-template <typename T>
-struct read<T,
-            enable_if_t<primer::traits::is_optional<T>::value &&
-                        !primer::traits::is_relaxed_optional<T>::value>> {
-  using helper = primer::traits::optional<T>;
-  static expected<T> from_stack(lua_State * L, int idx) {
-    if (lua_isnoneornil(L, idx)) { return helper::make_empty(); }
-    if (auto maybe_result =
-          primer::traits::read<typename helper::base_type>::from_stack(L, idx)) {
-      return helper::from_base(*std::move(maybe_result));
-    } else {
-      return std::move(maybe_result).err();
-    }
-  }
-};
-
-// Relaxed optional
-template <typename T>
-struct read<T,
-            enable_if_t<primer::traits::is_optional<T>::value &&
-                        primer::traits::is_relaxed_optional<T>::value>> {
-  using helper = primer::traits::optional<T>;
-
-  static expected<T> from_stack(lua_State * L, int idx) {
-    if (auto maybe_result =
-          primer::traits::read<typename helper::base_type>::from_stack(L, idx)) {
-      return helper::from_base(*std::move(maybe_result));
-    } else {
-      return helper::make_empty();
     }
   }
 };
