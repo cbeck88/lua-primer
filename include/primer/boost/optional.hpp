@@ -6,7 +6,7 @@
 #pragma once
 
 /***
- * How to transfer `boost::optional` to and from the stack, using relaxed
+ * How to transfer `boost::optional` to and from the stack, using strict
  * optional semantics
  */
 
