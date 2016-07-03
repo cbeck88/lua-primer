@@ -12,6 +12,7 @@
 #include <set>
 #include <vector>
 
+#include <boost/version.hpp>
 #include <boost/optional/optional.hpp>
 
 /***
@@ -237,6 +238,9 @@ void test_coroutine() {
 
 int main() {
   conf::log_conf();
+  std::cout << "Boost:\n";
+  std::cout << "  BOOST_LIB_VERSION    = " << BOOST_LIB_VERSION << std::endl;
+  std::cout << std::endl;
 
   std::cout << "Boost tests:" << std::endl;
   test_harness tests{

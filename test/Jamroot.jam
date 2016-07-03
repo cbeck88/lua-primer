@@ -1,6 +1,30 @@
 project : default-build <optimization>off debug <cxxflags>"-std=c++11 -Wall -Werror -Wextra -pedantic" ;
 # project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
 
+INSTALL_LOC = <location>stage/ ;
+
+### Boost directory
+
+import os ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+if $(BOOST_ROOT) {
+  # echo "BOOST_ROOT = '" $(BOOST_ROOT) "'" ;
+  BOOST_INCLUDE_DIR = $(BOOST_ROOT) ;
+} else {
+  echo "BOOST_ROOT variable not set!" ;
+  BOOST_INCLUDE_DIR = "/usr/include" ;
+}
+
+# Try to find boost/version.hpp
+
+if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
+  echo "Using BOOST_INCLUDE_DIR = '" $(BOOST_INCLUDE_DIR) "'" ;  
+} else {
+  echo "Could not find boost, skipping boost tests" ;
+  BOOST_INCLUDE_DIR = ;
+}
+
 ### Interpret flags
 
 import modules ;
@@ -25,6 +49,7 @@ ALL_LUA_FLAGS = <include>$(LUA_PATH)/  $(LUA_DEFINE) ;
 lib lualib : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/lua.c $(LUA_PATH)/luac.c ] : <link>static $(ALL_LUA_FLAGS) : : $(ALL_LUA_FLAGS) ;
 exe lua : $(LUA_PATH)/lua.c lualib : ;
 
+install install-lua-bin : lua : <location>stage/ ;
 
 ### Build primer
 
@@ -39,23 +64,25 @@ exe core : core.cpp lualib : $(FLAGS) ;
 exe visitable : visitable.cpp lualib : $(FLAGS) ;
 exe std : std.cpp lualib : $(FLAGS) ;
 
+install install-bin : core visitable std : $(INSTALL_LOC) ;
+
 # Persistence tests...
 
 if $(HAVE_ERIS) {
   exe persist : persist.cpp lualib : $(FLAGS) ;
+
+  install install-persist-bin : persist : $(INSTALL_LOC) ;
 }
 
 
 # Boost tests
-# Need to get boost directory...
-TEST_HARNESS = <include>include/ <include>/usr/include ;
-FLAGS = $(TEST_HARNESS) $(PRIMER) ;
 
-exe boost : boost.cpp lualib : $(FLAGS) ;
+if $(BOOST_INCLUDE_DIR) {
 
+  BOOST = <include>$(BOOST_INCLUDE_DIR) ;
+  FLAGS = $(TEST_HARNESS) $(BOOST) $(PRIMER) ;
 
-install install-bin : core visitable std boost lua : <location>stage/ ;
+  exe boost : boost.cpp lualib : $(FLAGS) ;
 
-if $(HAVE_ERIS) {
-  install install-extra-bin : persist : <location>stage/ ;
+  install install-boost-bin : boost : $(INSTALL_LOC) ;
 }
