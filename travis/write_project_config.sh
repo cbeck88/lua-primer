@@ -2,4 +2,5 @@
 set -e
 
 echo $PWD
-echo "using ${CC} : : ${CXX} ; " > project_config.jam
+echo "using ${CC} : : ${CXX} ; " > project-config.jam
+ls
