@@ -66,17 +66,33 @@ script:
   - export FLAGS="--toolset=${CC} --no-static-asserts";
 
   - export LUA_ROOT=lua-5.3.1
+  - echo ${LUA_ROOT}
 
   - b2 clean
   - rm -rf stage
   - ./run_tests.sh ${FLAGS}
-  - ./lua_internal_tests.sh
+  - ./lua-5.3.1-tests.sh
 
   - b2 clean
   - rm -rf stage
   - ./run_tests.sh ${FLAGS} --with-lua-32bit
+  - ./lua-5.3.1-tests.sh
+
+  - export LUA_ROOT=lua-5.3.3
+  - echo ${LUA_ROOT}
+
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS}
+  - ./lua-5.3.3-tests.sh
+
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} --with-lua-32bit
+  - ./lua-5.3.3-tests.sh
 
   - export LUA_ROOT=eris-1.1.0-5.3
+  - echo ${LUA_ROOT}
 
   - b2 clean
   - rm -rf stage

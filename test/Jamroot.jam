@@ -29,7 +29,7 @@ if [ GLOB $(BOOST_INCLUDE_DIR)/boost/ : version.hpp ] {
 
 local LUA_ROOT = [ os.environ LUA_ROOT ] ;
 if ! $(LUA_ROOT) {
-  LUA_ROOT = eris-1.1.0-5.3 ;
+  LUA_ROOT = eris-master-lua5.3 ;
 }
 
 if [ GLOB $(LUA_ROOT)/src/ : lua.h ] {
