@@ -96,9 +96,9 @@ script:
   - b2 clean
   - rm -rf stage
   - ./run_tests.sh ${FLAGS}
-#  - ./lua_internal_tests.sh
+  - ./eris-internal-tests.sh
 
   - b2 clean
   - rm -rf stage
   - ./run_tests.sh ${FLAGS} --with-lua-32bit
-#  - ./lua_internal_tests.sh
+  - ./eris-internal-tests.sh

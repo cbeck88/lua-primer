@@ -88,12 +88,19 @@ exe std : std.cpp lualib : $(FLAGS) ;
 install install-bin : core visitable std : $(INSTALL_LOC) ;
 
 # Persistence tests...
-
-# API tests...
 if $(HAVE_ERIS) {
   exe api : api.cpp lualib : $(FLAGS) ;
 
   install install-api-bin : api : $(INSTALL_LOC) ;
+
+  # Eris internal tests
+  exe persist : $(LUA_ROOT)/test/persist.c lualib : ;
+  exe unpersist : $(LUA_ROOT)/test/unpersist.c lualib : ;
+
+  install install-eris-test-bin : persist unpersist : $(INSTALL_LOC) ;
+
+  install install-persist-lua : $(LUA_ROOT)/test/persist.lua : $(INSTALL_LOC) ;
+  install install-unpersist-lua : $(LUA_ROOT)/test/unpersist.lua : $(INSTALL_LOC) ;
 }
 
 
