@@ -33,7 +33,7 @@ struct udata_helper;
 template <typename T>
 struct udata_helper<
   T,
-  typename std::enable_if<primer::traits::is_userdata<T>::value>::type> {
+  traits::enable_if_t<primer::traits::is_userdata<T>::value>> {
   using udata_check = primer::traits::assert_userdata<T>;
   using udata = primer::traits::userdata<T>;
 

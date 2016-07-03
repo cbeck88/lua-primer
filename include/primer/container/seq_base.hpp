@@ -57,9 +57,9 @@ struct read_seq_helper {
 
   template <typename U>
   struct reserve_helper<U,
-                        typename std::enable_if<std::is_same<
+                        traits::enable_if_t<std::is_same<
                           decltype(std::declval<U>().reserve(0)),
-                          decltype(std::declval<U>().reserve(0))>::value>::type> {
+                          decltype(std::declval<U>().reserve(0))>::value>> {
     static void reserve(U & u, int n) { u.reserve(n); }
   };
 

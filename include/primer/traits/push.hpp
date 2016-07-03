@@ -29,6 +29,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/traits/optional.hpp>
 #include <primer/traits/is_userdata.hpp>
 #include <primer/traits/userdata.hpp>
+#include <primer/traits/util.hpp>
 
 #include <string>
 #include <utility>
@@ -71,9 +72,9 @@ struct push<bool> {
 // Signed types
 template <typename T>
 struct push<T,
-            typename std::enable_if<std::is_same<T, int>::value ||
+            enable_if_t<std::is_same<T, int>::value ||
                                     std::is_same<T, long>::value ||
-                                    std::is_same<T, long long>::value>::type> {
+                                    std::is_same<T, long long>::value>> {
   static_assert(sizeof(T) <= sizeof(LUA_INTEGER),
                 "Cannot push this type to lua, integer overflow could occur! "
                 "Please convert to a smaller type.");
@@ -84,9 +85,9 @@ struct push<T,
 template <typename T>
 struct push<
   T,
-  typename std::enable_if<std::is_same<T, unsigned int>::value ||
+  enable_if_t<std::is_same<T, unsigned int>::value ||
                           std::is_same<T, unsigned long>::value ||
-                          std::is_same<T, unsigned long long>::value>::type> {
+                          std::is_same<T, unsigned long long>::value>> {
   static void to_stack(lua_State * L, T t) {
     // Pad or truncate to the size of LUA_INTEGER
     using unsigned_lua_int_t = std::make_unsigned<LUA_INTEGER>::type;
@@ -101,9 +102,9 @@ struct push<
 // Floating point types
 template <typename T>
 struct push<T,
-            typename std::enable_if<std::is_same<T, float>::value ||
+            enable_if_t<std::is_same<T, float>::value ||
                                     std::is_same<T, double>::value ||
-                                    std::is_same<T, long double>::value>::type> {
+                                    std::is_same<T, long double>::value>> {
   static_assert(sizeof(T) <= sizeof(LUA_NUMBER),
                 "Cannot push this type to lua, floating point overflow could "
                 "occur! Please convert to a smaller type.");
