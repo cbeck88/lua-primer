@@ -6,13 +6,14 @@
 #pragma once
 
 /***
- * How to read "visitable structures" from the stack, as tables (or userdata)
+ * How to transfer "visitable structures" to and from the stack, as tables
  *
- * The members must be default-constructible and move-constructible or
- * copy-constructible to be used here.
+ * Note:
+ * In order to be read, the members must be default-constructible and
+ * move-constructible or copy-constructible to be used here.
  *
  * TODO: This whole implementation here should be conditioned on
- * `std::is_nothrow_move_constructible` and
+ * `std::is_nothrow_move_constructible` and possibly
  * try-catch should be used with user-defined types for safety. For now we just
  * assume that it's okay.
  */
@@ -24,6 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
+#include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
 #include <primer/traits/util.hpp>
 
@@ -32,6 +34,40 @@ PRIMER_ASSERT_FILESCOPE;
 #include <utility>
 
 namespace primer {
+
+/***
+ * Visitor which pushes members to a table in lua
+ */
+
+namespace detail {
+
+struct push_helper {
+  lua_State * L;
+
+  template <typename T>
+  void operator()(const char * name, const T & value) {
+    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    traits::push<T>::to_stack(L, value);
+    lua_setfield(L, -2, name);
+  }
+};
+
+} // end namespace detail
+
+
+namespace traits {
+
+template <typename T>
+struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
+  static void to_stack(lua_State * L, const T & t) {
+    lua_newtable(L);
+    detail::push_helper vis{L};
+
+    visit_struct::apply_visitor(vis, t);
+  }
+};
+
+} // end namespace traits
 
 /***
  * Visitor which pushes members to a table in lua

@@ -16,5 +16,4 @@ PRIMER_ASSERT_FILESCOPE;
 #include <visit_struct/visit_struct.hpp>
 #include <visit_struct/visit_struct_intrusive.hpp>
 
-#include <primer/traits/push_visitable.hpp>
-#include <primer/traits/read_visitable.hpp>
+#include <primer/container/visit_struct.hpp>

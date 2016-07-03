@@ -6,9 +6,6 @@
 
 #include <primer/support/function.hpp>
 
-#include <primer/traits/push_visitable.hpp>
-#include <primer/traits/read_visitable.hpp>
-
 #include <primer/api/callback_manager.hpp>
 #include <primer/api/callback_registrar.hpp>
 
