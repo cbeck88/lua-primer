@@ -21,12 +21,15 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - clang-3.7
+            - g++-5
       env: COMPILER=clang++-3.7
 
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq gdb
+
+
+  - if [[ ${COMPILER}" == "clang++-3.7" ]]; then wget -nv -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -; sudo apt-add-repository -y 'deb http://llvm.org/apt/trusty llvm-toolchain-trusty-3.7 main'; sudo apt-get update -qq; sudo apt-get install -qq clang-3.7; fi
 
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
@@ -55,7 +58,8 @@ script:
 
   - cd test
 
-  - ./../travis/write_project_config.sh
+  - cp ../travis/write_project_config.sh .
+  - ./write_project_config.sh
   - cat project-config.jam
 
   - if [[ ${NO_STATIC_ASSERTS} != "" ]]; then export FLAGS="--toolset=${CC} --no-static-asserts"; else export FLAGS="--toolset=${CC}"; fi
