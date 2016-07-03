@@ -75,7 +75,7 @@ struct push<T,
             enable_if_t<std::is_same<T, int>::value ||  //
                         std::is_same<T, long>::value || //
                         std::is_same<T, long long>::value>> {
-  static_assert(sizeof(T) <= sizeof(LUA_INTEGER),
+  PRIMER_STATIC_ASSERT(sizeof(T) <= sizeof(LUA_INTEGER),
                 "Cannot push this type to lua, integer overflow could occur! "
                 "Please convert to a smaller type.");
   static void to_stack(lua_State * L, T t) { lua_pushinteger(L, t); }
@@ -104,7 +104,7 @@ struct push<T,
             enable_if_t<std::is_same<T, float>::value ||  //
                         std::is_same<T, double>::value || //
                         std::is_same<T, long double>::value>> {
-  static_assert(sizeof(T) <= sizeof(LUA_NUMBER),
+  PRIMER_STATIC_ASSERT(sizeof(T) <= sizeof(LUA_NUMBER),
                 "Cannot push this type to lua, floating point overflow could "
                 "occur! Please convert to a smaller type.");
   static void to_stack(lua_State * L, T t) { lua_pushnumber(L, t); }
