@@ -20,14 +20,10 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
-#include <primer/userdata.hpp>
-
 #include <primer/detail/integral_conversions.hpp>
 
 #include <primer/support/types.hpp>
 
-#include <primer/traits/is_userdata.hpp>
-#include <primer/traits/userdata.hpp>
 #include <primer/traits/util.hpp>
 
 #include <string>
@@ -109,14 +105,6 @@ struct push<T,
     "Cannot push this type to lua, floating point overflow could "
     "occur! Please convert to a smaller type.");
   static void to_stack(lua_State * L, T t) { lua_pushnumber(L, t); }
-};
-
-// Userdata object
-template <typename T>
-struct push<T, enable_if_t<traits::is_userdata<T>::value>> {
-  static void to_stack(lua_State * L, const T & t) {
-    primer::push_udata<T>(L, t);
-  }
 };
 
 // Misc support types
