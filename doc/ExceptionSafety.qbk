@@ -8,9 +8,9 @@ Primer is designed with the following constraints in mind:
 We also take as a given that it is *not* okay to throw foreign exceptions
 through lua, no matter how it is compiled.
 
-* c.f. [@http://lua-users.org/lists/lua-l/2007-10/msg00473.html] lua mailing list
-* c.f. [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus] lua users wiki
-* c.f. [@http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua] stackoverflow
+* c.f. [@http://lua-users.org/lists/lua-l/2007-10/msg00473.html lua mailing list]
+* c.f. [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus lua users wiki]
+* c.f. [@http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua stackoverflow]
 
 So, we don't throw any exceptions ourselves, and since many components of
 Primer are designed to be called by functions that will be passed to lua as function
