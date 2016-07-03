@@ -33,6 +33,6 @@ struct truthy {
 struct stringy {
   std::string value;
 };
-//]
 
 } // end namespace primer
+//]
