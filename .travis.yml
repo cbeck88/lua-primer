@@ -55,7 +55,7 @@ script:
 
   - cd test
 
-  - echo "using ${CC} : : ${CXX} ;" > project-config.jam
+  - ./../travis/write_project_config.sh
   - cat project-config.jam
 
   - if [[ ${NO_STATIC_ASSERTS} != "" ]]; then export FLAGS="--toolset=${CC} --no-static-asserts"; else export FLAGS="--toolset=${CC}"; fi
