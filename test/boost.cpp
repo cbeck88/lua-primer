@@ -68,7 +68,7 @@ void test_optional_read() {
 }
 
 /***
- * Test flat set
+ * Test boost::vector
  */
 
 namespace boost {
@@ -106,8 +106,7 @@ void test_vector_round_trip() {
   }
   {
     std::vector<std::string> temp{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"};
-    round_trip_value(L, T<std::string>{temp.begin(), temp.end()},
-                     __LINE__);
+    round_trip_value(L, T<std::string>{temp.begin(), temp.end()}, __LINE__);
   }
   {
     std::set<bool> temp{true};

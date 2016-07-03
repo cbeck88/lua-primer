@@ -56,10 +56,11 @@ struct read_seq_helper {
   };
 
   template <typename U>
-  struct reserve_helper<U, typename std::enable_if< std::is_same<decltype(std::declval<U>().reserve(0)), decltype(std::declval<U>().reserve(0))>::value >::type> {
-    static void reserve(U & u, int n) {
-      u.reserve(n);
-    }
+  struct reserve_helper<U,
+                        typename std::enable_if<std::is_same<
+                          decltype(std::declval<U>().reserve(0)),
+                          decltype(std::declval<U>().reserve(0))>::value>::type> {
+    static void reserve(U & u, int n) { u.reserve(n); }
   };
 
   static expected<T> from_stack(lua_State * L, int idx) {
@@ -112,7 +113,8 @@ struct read_fixed_seq_helper {
     {
       int m = lua_rawlen(L, idx);
       if (m > n) {
-        result = primer::error{"Too many elements, found ", std::to_string(m), " expected ", std::to_string(n)};
+        result = primer::error{"Too many elements, found ", std::to_string(m),
+                               " expected ", std::to_string(n)};
       }
     }
 
@@ -121,8 +123,9 @@ struct read_fixed_seq_helper {
       if (auto object = traits::read<value_type>::from_stack(L, -1)) {
         (*result)[i] = std::move(*object);
       } else {
-        result = std::move(object.err().prepend_error_line(
-          "In index [", std::to_string(i + 1), "],"));
+        result = std::move(
+          object.err().prepend_error_line("In index [", std::to_string(i + 1),
+                                          "],"));
       }
       lua_pop(L, 1);
     }
