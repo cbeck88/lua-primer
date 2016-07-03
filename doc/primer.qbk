@@ -21,6 +21,7 @@
 [section:overview Overview]
 [include Motivation.qbk]
 [include Design.qbk]
+[include BuildConfiguration.qbk]
 [endsect]
 
 [section:reference Reference]
