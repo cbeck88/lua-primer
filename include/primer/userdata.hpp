@@ -29,22 +29,23 @@ T * test_udata(lua_State * L, int idx) {
 
 /// Create a userdata of the given type on the stack, using perfect forwarding.
 template <typename T, typename... Args>
-auto push_udata(lua_State * L, Args &&... args) -> traits::enable_if_t<detail::nothrow_newable<T, Args...>::value>
-{
+auto push_udata(lua_State * L, Args &&... args)
+  -> traits::enable_if_t<detail::nothrow_newable<T, Args...>::value> {
   new (lua_newuserdata(L, sizeof(T))) T{std::forward<Args>(args)...};
   detail::udata_helper<T>::set_metatable(L);
 }
 
 /// Use correct stack discipline if an exception is thrown
 template <typename T, typename... Args>
-auto push_udata(lua_State * L, Args &&... args) -> traits::enable_if_t<!detail::nothrow_newable<T, Args...>::value>
-{
+auto push_udata(lua_State * L, Args &&... args)
+  -> traits::enable_if_t<!detail::nothrow_newable<T, Args...>::value> {
   void * storage = lua_newuserdata(L, sizeof(T));
 
   PRIMER_TRY {
     new (storage) T{std::forward<Args>(args)...};
     detail::udata_helper<T>::set_metatable(L);
-  } PRIMER_CATCH(...) {
+  }
+  PRIMER_CATCH(...) {
     lua_pop(L, 1);
     PRIMER_RETHROW;
   }

@@ -22,7 +22,8 @@ namespace detail {
 
 template <typename T, typename... Args>
 struct nothrow_newable {
-  static constexpr bool value = noexcept(new (nullptr) T{std::forward<Args>(std::declval<Args>())...});
+  static constexpr bool value =
+    noexcept(new (nullptr) T{std::forward<Args>(std::declval<Args>())...});
 };
 
 } // end namespace detail
