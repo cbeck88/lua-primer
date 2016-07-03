@@ -48,7 +48,7 @@ class expected {
   };
   bool have_ham_;
 
-  static_assert(std::is_nothrow_move_constructible<T>::value,
+  PRIMER_STATIC_ASSERT(std::is_nothrow_move_constructible<T>::value,
                 "This class can only be used with types that are no-throw "
                 "move constructible and destructible.");
 
