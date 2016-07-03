@@ -48,6 +48,10 @@ class expected {
   };
   bool have_ham_;
 
+  // TODO: This fails with boost::container::flat_set, even at boost version
+  // 1.61, need to figure out if the static_assert is worth it, or invent a
+  // fallback
+  //
   // static_assert(std::is_nothrow_move_constructible<T>::value,
   //              "This class can only be used with types that are no-throw "
   //              "move constructible and destructible.");
