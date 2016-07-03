@@ -14,13 +14,14 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
+#include <primer/userdata.hpp>
 #include <primer/traits/is_userdata.hpp>
 #include <primer/traits/util.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/types.hpp>
-#include <primer/support/userdata.hpp>
 
 #include <limits>
 #include <string>

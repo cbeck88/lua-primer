@@ -109,28 +109,4 @@ struct udata_helper<T, traits::enable_if_t<primer::traits::is_userdata<T>::value
 
 } // end namespace detail
 
-/***
- * Forward facing interface
- */
-
-/// Test if an entry on the stack is userdata of the given type, and if so,
-/// return a pointer to it.
-template <typename T>
-T * test_udata(lua_State * L, int idx) {
-  return detail::udata_helper<T>::test_udata(L, idx);
-}
-
-/// Create a userdata of the given type on the stack, using perfect forwarding.
-template <typename T, typename... Args>
-void push_udata(lua_State * L, Args &&... args) {
-  new (lua_newuserdata(L, sizeof(T))) T{std::forward<Args>(args)...};
-  detail::udata_helper<T>::set_metatable(L);
-}
-
-/// Easy, checked access to udata::name
-template <typename T>
-const char * udata_name() {
-  return detail::udata_helper<T>::udata::name;
-}
-
 } // end namespace primer
