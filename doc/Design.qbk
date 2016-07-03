@@ -44,7 +44,7 @@ Traits are used because it provides for more precise and powerful customization.
 function overloading, then all kinds of implicit conversions can come into play, and your ability to provide partial
 specializations is limited.
 
-(The type traits approach is well-established in libraries like `boost::spirit` -- see for instance an intro [@http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html here].)
+(The type traits approach to providing customization points is well-established in libraries like `boost::spirit` -- see for instance an intro [@http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html here].)
 
 [h3 Reflecting C++ into lua]
 
@@ -100,7 +100,7 @@ they are not attached to any object. But in their implementation, they have acce
 associated to the lua state. `extraspace` dispatch works by storing a pointer in the
 [@http://www.lua.org/manual/5.3/manual.html#lua_getextraspace lua extraspace] region. It may
 be significantly faster than other dispatch methods. But, only one object may have its members dispatched this way.
-It is only appropriate for "global" functionalities that your api exposes.
+It is only appropriate for "global" functionalities that your API exposes.
 
 `std::function` dispatch is a third method. In an extra header, primer provides the ability to push any `std::function`
 object to lua. This mechanism is very flexible, but it comes with all the caveats of using `std::function` -- you must
@@ -108,6 +108,9 @@ make sure that any pointers concealed inside it are not left dangling, and you p
 `std::function`. Also, `std::function` is usually impossible to serialize. This dispatch mechanism is not usually
 appropriate to use when you are hoping to use eris to serialize your lua state, it is only provided for convenience
 in general lua applications.
+
+These are viewed as low-level decisions -- usually, the choice is obvious from the context and primer does this for
+you. However, it is not difficult to access or modify the three different mechanisms directly if you want to.
 
 [h3 Reflecting lua into C++]
 
@@ -174,20 +177,28 @@ This makes it easy to construct typical-looking C++ function objects which actua
 
 It has two special features:
 
-* Function objects which are data members of the API base can be declared as an "API feature", using the `API_FEATURE`
-  macro. Such objects are expected to provide `on_init, on_persist_table, on_unpersist_table` methods, and optionally,
+* Data members of the API base can be declared as an "API feature", using the macro `API_FEATURE`.
+  Such objects are expected to provide `on_init, on_persist_table, on_unpersist_table` methods, and optionally,
   `on_serialize` and `on_deserialize`. This allows the function object to declare permanent objects, and provide additional
   serialized data besides what is visible in the global table.
 
-* Member functions of an API base can be dispatched using a technique called "extraspace dispatch". In this technique,
-  a pointer to the API base object is stored in a region of memory called the lua extraspace.
-  Member functions can be declared and registered using the macro `NEW_LUA_CALLBACK`. This also uses a special version
-  of primer adapt, which recovers the base pointer from the extraspace.
+* Member functions of an API base can be automatically registered as "global" functions in your lua api.
+  This is done using the macro `NEW_LUA_CALLBACK`. 
 
+The `primer::api` namespace contains many additional API feature objects which may be useful.
+
+[table
+  [[ name ] [ functionality ]]
+  [[ `callback_manager` ] [ Sets up the extraspace dispatch and moves API callbacks into the global table. ]]
+  [[ `userdata_manager` ] [ Registers a list of userdata types with the state, and makes sure their permanent objects go in the permanent objects table. ]]
+  [[ `library_manager` ] [ Registers a subset of the standard lua libraries with the state, and makes sure their functions go in the permanent objects table. ]]
+  [[ `print_manager` ] [ Sets up a custom channel where `print` signals from lua will go, and provides an interface for a temporary "interpreter" session useful for debugging. ]]
+  [[ `vfs`] [ Sets up a custom vfs to which functions like `loadfile`, `dofile`, and `require` become attached, replacing the default implementations which access the filesystem directly. ]]
+]
 
 In order for member functions to be registered with the lua state, there must be a `primer::api::callback_manager` which
 is explicitly declared as an `API_FEATURE` within the api. This callback manager is initialized using the `this` pointer
 of the `api::base`. On initialization, it stores the this pointer in the lua extraspace, and loads all of the methods
-into the global table, and into the permenant object tables at appropriate times.
+into the global table, and into the permanent object tables at appropriate times.
 
 [endsect]

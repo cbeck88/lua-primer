@@ -31,3 +31,6 @@ update_docu.sh
 # docs
 /doc/bin
 /doc/html
+
+# aspell backup files
+*.bak

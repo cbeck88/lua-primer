@@ -88,7 +88,7 @@ LuaBridge::getGlobalNamespace (L)
 ```
 
 In other words, LuaBridge is providing various bindings proxy objects which provide
-templated member functions to carry out bindings tasks, taking function pointers
+template member functions to carry out bindings tasks, taking function pointers
 of arbitrary signatures and wrapping them appropriately to get a `int (luaState*)`
 which can be passed to lua.
 
@@ -127,7 +127,7 @@ For instance, here's an example that does a "recursive" deep-copy of a table, [@
 
 This function attempts to copy a table, making analogous copies of each constituent table,
 while preserving the referential structure. That is if `obj.x` and `obj.y` were both
-references to the same table, then they will be references to an analaogous table, in the result.
+references to the same table, then they will be references to an analogous table, in the result.
 
 This works well when the only types we consider are tables and primitive values.
 What about the case of functions, or specifically, closures? In lua, it is easy to create
@@ -181,8 +181,8 @@ webserver. For many kinds of games, it's pretty important to be able to save and
 For the case of a server, you may want to be able to suspend the operation of the server, and seamlessly
 relaunch the process on a different server, for purposes of load balancing.
 
-If one is using a hand-rolled serialization function which handles "most but not all" datatypes that
-can occur in a lua state, the result is pretty disasterous.
+If one is using a hand-rolled serialization function which handles "most but not all" data types that
+can occur in a lua state, the result is pretty disastrous.
 
 In the case of a game, the user is told [:"the game could not be saved because (obscure lua type system message)"] Or, worse, the game appears to
 be saved, but on restoration, some parts are subtly incorrect. 
@@ -277,7 +277,7 @@ afford to "experimentally determine" the permanent objects table, since when des
 first VM we have created in this run of our application.
 
 The most robust and reliable strategy, for using automatic lua bindings together with eris, seems to be to use a *compile-time* registration
-system. This way, for any given API that we expose, we know exactly how to construct the permanent objects table for serialization and destructoin
+system. This way, for any given API that we expose, we know exactly how to construct the permanent objects table for serialization and destruction
 at compile time, and we can fail fast if the program attempts to push something to a lua VM that we don't know how to serialize.
 
 [h3 Concept: API Features]
