@@ -107,7 +107,7 @@ template <typename T>
 struct read_fixed_seq_helper {
   using value_type = traits::remove_cv_t<typename T::value_type>;
 
-  static_assert(std::is_nothrow_constructible<T>::value,
+  PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<T>::value,
                 "sequence type must be nothrow default constructible");
 
   static expected<T> from_stack(lua_State * L, int idx) {

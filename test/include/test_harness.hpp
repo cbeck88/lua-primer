@@ -57,16 +57,25 @@ static constexpr bool primer_lua_as_cpp =
 #endif
   ;
 
+static constexpr bool primer_no_asserts =
+#ifdef PRIMER_NO_STATIC_ASSERTS
+  true
+#else
+  false
+#endif
+  ;
+
 static void log_conf() {
   std::cout << LUA_RELEASE << std::endl;
-  std::cout << "  LUA_32BITS           = " << lua_32bits << std::endl;
-  std::cout << "  LUA_USE_C89          = " << lua_usec89 << std::endl;
-  std::cout << "  sizeof(LUA_INTEGER)  = " << sizeof(LUA_INTEGER) << std::endl;
-  std::cout << "  sizeof(LUA_NUMBER)   = " << sizeof(LUA_NUMBER) << std::endl;
+  std::cout << "  LUA_32BITS               = " << lua_32bits << "\n";
+  std::cout << "  LUA_USE_C89              = " << lua_usec89 << "\n";
+  std::cout << "  sizeof(LUA_INTEGER)      = " << sizeof(LUA_INTEGER) << "\n";
+  std::cout << "  sizeof(LUA_NUMBER)       = " << sizeof(LUA_NUMBER) << "\n";
   std::cout << std::endl;
-  std::cout << PRIMER_RELEASE << std::endl;
-  std::cout << "  PRIMER_DEBUG         = " << primer_debug << std::endl;
-  std::cout << "  PRIMER_LUA_AS_CPP    = " << primer_lua_as_cpp << std::endl;
+  std::cout << PRIMER_RELEASE << "\n";
+  std::cout << "  PRIMER_DEBUG             = " << primer_debug << "\n";
+  std::cout << "  PRIMER_LUA_AS_CPP        = " << primer_lua_as_cpp << "\n";
+  std::cout << "  PRIMER_NO_STATIC_ASSERTS = " << primer_no_asserts << "\n";
   std::cout << std::endl;
 }
 }

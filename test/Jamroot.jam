@@ -42,6 +42,13 @@ if "--without-eris" in [ modules.peek : ARGV ] {
   LUA_PATH = lua-5.3.1/src ;
 }
 
+NO_STATIC_ASSERTS = ;
+if "--no-static-asserts" in [ modules.peek : ARGV ] {
+  PRIMER = <include>../include/ <define>PRIMER_DEBUG <define>PRIMER_NO_STATIC_ASSERTS ;
+} else {
+  PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
+}
+
 ### Build lua
 
 ALL_LUA_FLAGS = <include>$(LUA_PATH)/  $(LUA_DEFINE) ;
@@ -53,7 +60,6 @@ install install-lua-bin : lua : <location>stage/ ;
 
 ### Build primer
 
-PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
 TEST_HARNESS = <include>include/ ;
 
 FLAGS = $(TEST_HARNESS) $(PRIMER) ;

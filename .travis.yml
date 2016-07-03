@@ -1,15 +1,28 @@
 sudo: required
 dist: trusty
 language: cpp
-compiler:
-  - gcc
-  - clang
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-5
+matrix:
+  include:
+    - compiler: gcc
+      env: NO_STATIC_ASSERTS=true
+    - compiler: clang
+      env: NO_STATIC_ASSERTS=true
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env: COMPILER=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang++-3.7
+      env: COMPILER=clang++-3.7
 
 before_install:
   - sudo apt-get update -qq
@@ -42,17 +55,23 @@ script:
 
   - cd test
 
-  - b2 clean --toolset=${CC} --without-eris
-  - ./run_tests.sh --toolset=${CC} --without-eris
+  - if [[ ${NO_STATIC_ASSERTS} != "" ]]; then export FLAGS="--toolset=${CC} --no-static-asserts"; else export FLAGS="--toolset=${CC}"; fi
+
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} --without-eris
   - ./lua_internal_tests.sh
 
-  - b2 clean --toolset=${CC} --without-eris --with-lua-32bit
-  - ./run_tests.sh --toolset=${CC} --without-eris --with-lua-32bit
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} --without-eris --with-lua-32bit
 
-  - b2 clean --toolset=${CC}
-  - ./run_tests.sh --toolset=${CC}
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS}
 #  - ./lua_internal_tests.sh
 
-  - b2 clean --toolset=${CC} --with-lua-32bit
-  - ./run_tests.sh --toolset=${CC} --with-lua-32bit
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} --with-lua-32bit
 #  - ./lua_internal_tests.sh

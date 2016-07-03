@@ -109,7 +109,7 @@ namespace traits {
 template <typename T>
 struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
   static expected<T> from_stack(lua_State * L, int index) noexcept {
-    static_assert(std::is_nothrow_constructible<T>::value,
+    PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<T>::value,
                   "Primer cannot read this structure because it is not "
                   "no-throw constructible");
 

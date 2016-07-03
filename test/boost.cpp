@@ -242,7 +242,7 @@ void test_coroutine() {
 int main() {
   conf::log_conf();
   std::cout << "Boost:\n";
-  std::cout << "  BOOST_LIB_VERSION    = " << BOOST_LIB_VERSION << std::endl;
+  std::cout << "  BOOST_LIB_VERSION        = " << BOOST_LIB_VERSION << "\n";
   std::cout << std::endl;
 
   std::cout << "Boost tests:" << std::endl;
