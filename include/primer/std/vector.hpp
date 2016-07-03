@@ -6,21 +6,14 @@
 #pragma once
 
 /***
- * How to push `std::vector` to the stack, as a tables
+ * How to transport `std::vector` to and from the stack, as a tables
  */
 
 #include <primer/base.hpp>
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/lua.hpp>
-#include <primer/support/asserts.hpp>
-#include <primer/traits/push.hpp>
-#include <primer/traits/read.hpp>
-#include <primer/traits/util.hpp>
-
-#include <string>
-#include <utility>
+#include <primer/container/seq_base.hpp>
 #include <vector>
 
 namespace primer {
@@ -28,50 +21,10 @@ namespace primer {
 namespace traits {
 
 template <typename T>
-struct push<std::vector<T>> {
-  static void to_stack(lua_State * L, const std::vector<T> & vec) {
-    lua_newtable(L);
-
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
-    int n = static_cast<int>(vec.size());
-    for (int i = 0; i < n; ++i) {
-      traits::push<remove_cv_t<T>>::to_stack(L, vec[i]);
-      lua_rawseti(L, -2, (i + 1));
-    }
-  }
-};
+struct push<std::vector<T>> : detail::push_seq_helper<std::vector<T>> {};
 
 template <typename T>
-struct read<std::vector<T>> {
-  static expected<std::vector<T>> from_stack(lua_State * L, int idx) {
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
-
-    expected<std::vector<T>> result{primer::default_construct_in_place_tag{}};
-
-    idx = lua_absindex(L, idx);
-    if (lua_istable(L, idx)) {
-      int n = lua_rawlen(L, idx);
-      result->reserve(n);
-
-      for (int i = 0; (i < n) && result; ++i) {
-        lua_rawgeti(L, idx, i + 1);
-        if (auto object = traits::read<remove_cv_t<T>>::from_stack(L, -1)) {
-          result->emplace_back(std::move(*object));
-        } else {
-          result = std::move(object.err());
-          result.err().prepend_error_line("In index [" + std::to_string(i + 1) +
-                                          "],");
-        }
-        lua_pop(L, 1);
-      }
-    } else {
-      result = primer::error("Expected: table, found ",
-                             primer::describe_lua_value(L, idx));
-    }
-
-    return result;
-  }
-};
+struct read<std::vector<T>> : detail::read_seq_helper<std::vector<T>> {};
 
 } // end namespace traits
 
