@@ -6,12 +6,15 @@ lua_primer/quickstart/example_usage.html
 lua_primer/overview.html
 lua_primer/overview/motivation.html
 lua_primer/overview/design.html
+lua_primer/overview/build_configuration.html
+lua_primer/overview/exception_safety.html
 lua_primer/reference.html
 lua_primer/reference/core.html
 lua_primer/reference/core/error.html
 lua_primer/reference/core/expected.html
 lua_primer/reference/core/push.html
 lua_primer/reference/core/read.html
+lua_primer/reference/core/result.html
 lua_primer/reference/core/adapt.html
 lua_primer/reference/core/userdata.html
 lua_primer/reference/core/lua_ref.html
@@ -19,7 +22,7 @@ lua_primer/reference/core/bound_function.html
 lua_primer/reference/core/coroutine.html
 lua_primer/reference/containers.html
 lua_primer/reference/containers/standard_containers.html
-lua_primer/reference/containers/heterogenous_containers.html
+lua_primer/reference/containers/heterogeneous_containers.html
 lua_primer/reference/containers/optionals.html
 lua_primer/reference/api.html
 lua_primer/reference/api/api_callback.html

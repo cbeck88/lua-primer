@@ -6,35 +6,20 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../core.html" title="Core">
-<link rel="prev" href="read.html" title="read">
+<link rel="prev" href="result.html" title="result">
 <link rel="next" href="userdata.html" title="Userdata">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="read.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="userdata.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="lua_primer.reference.core.adapt"></a><a class="link" href="adapt.html" title="adapt">adapt</a>
 </h4></div></div></div>
 <p>
-          <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> is the basic
-          dispatch mechanism that implements type-safe parameter reading and error
-          handling.
-        </p>
-<p>
-          Given a function pointer e.g.
-        </p>
-<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">x</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">y</span><span class="special">);</span>
-</pre>
-<p>
-          it can be pushed directly to lua using
-        </p>
-<pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">my_func</span><span class="special">));</span>
-</pre>
-<p>
-          That is, the type of <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">my_func</span><span class="special">)</span></code> is <code class="computeroutput"><span class="identifier">lua_CFunction</span><span class="special">,</span> <span class="identifier">i</span><span class="special">.</span><span class="identifier">e</span><span class="special">.</span> <span class="keyword">int</span>
-          <span class="special">(*)(</span><span class="identifier">lua_State</span><span class="special">*)</span></code>.
+          <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> refers to
+          the mechanism that implements type-safe parameter reading for user functions.
         </p>
 <p>
           The core object is a template
@@ -45,47 +30,81 @@
 <span class="keyword">class</span> <span class="identifier">adaptor</span><span class="special">;</span>
 </pre>
 <p>
-          which, given a function pointer <code class="computeroutput"><span class="identifier">f</span></code>,
-          is expected to provide a static member function of signature <code class="computeroutput"><span class="keyword">int</span> <span class="special">(</span><span class="identifier">lua_State</span>
+          When given a function pointer <code class="computeroutput"><span class="identifier">f</span></code>,
+          <code class="computeroutput"><span class="identifier">adaptor</span></code> is expected to
+          provide a static member function of signature <code class="computeroutput"><span class="keyword">int</span>
+          <span class="special">(</span><span class="identifier">lua_State</span>
           <span class="special">*)</span></code> which is named <code class="computeroutput"><span class="identifier">adapted</span></code>.
         </p>
 <p>
-          For example:
+          Given a function pointer of the form,
         </p>
-<pre class="programlisting"><span class="comment">// Traditional "raw" C-style lua callbacks. They aren't even member functions.</span>
-<span class="comment">// We don't have to do any work</span>
-<span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">lua_CFunction</span> <span class="identifier">target_func</span><span class="special">&gt;</span>
-<span class="keyword">class</span> <span class="identifier">adaptor</span><span class="special">&lt;</span><span class="identifier">lua_CFunction</span><span class="special">,</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
-<span class="keyword">public</span><span class="special">:</span>
-  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">target_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
-<span class="special">};</span>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo</span><span class="special">,</span> <span class="keyword">bool</span> <span class="identifier">bar</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">baz</span><span class="special">);</span>
 </pre>
 <p>
-          When given a function pointer which returns <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code>,
-          the adaptor wraps it in some boilerplate which when invoked, attempts to
-          read values off of the lua stack which match the function signature, using
-          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>.
+          the adaptor converts it to a function somewhat similar to the following:
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func_helper</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">arg1</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+  <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">arg1</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">arg1</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">auto</span> <span class="identifier">arg2</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
+  <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">arg2</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">arg2</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">auto</span> <span class="identifier">arg3</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">);</span>
+  <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">arg3</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">arg3</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">return</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">*</span><span class="identifier">arg1</span><span class="special">,</span> <span class="special">*</span><span class="identifier">arg2</span><span class="special">,</span> <span class="special">*</span><span class="identifier">arg3</span><span class="special">);</span>
+<span class="special">}</span>
+
+<span class="keyword">int</span> <span class="identifier">my_func_adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">r</span> <span class="special">=</span> <span class="identifier">my_func_helper</span><span class="special">(</span><span class="identifier">L</span><span class="special">))</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">r</span><span class="special">-&gt;</span><span class="identifier">is_return_</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">r</span><span class="special">-&gt;</span><span class="identifier">n_</span><span class="special">;</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">lua_yield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">r</span><span class="special">-&gt;</span><span class="identifier">n_</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">().</span><span class="identifier">c_str</span><span class="special">());</span>
+    <span class="keyword">return</span> <span class="identifier">lua_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+</pre>
+<p>
+          Each parameter is read from the stack in succession using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>. If any cannot be read, then the
+          input is invalid and an error is returned. If all can be read, then the
+          user function is invoked, and its result returned.
         </p>
 <p>
-          In case this fails, it immediately reports an argument error to the lua
-          code, with index and expected type. If it succeeds, it passes the parsed
-          arguments on to <code class="computeroutput"><span class="identifier">f</span></code>.
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is implemented by a simple return
+          in the case of a return, by calling <code class="computeroutput"><span class="identifier">lua_yield</span></code>
+          in case of a yield, and by signaling a lua error in case of an error. This
+          part is quite trivial -- the only subtlety in the actual implementation
+          involves making sure that it works with no leaks, whether lua is compiled
+          as C or C++.
         </p>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
 <p>
-          The adaptor is wraps a given function pointer with some boilerplate which
-          when invoked, will attempt to read values off of the lua stack which match
-          the function signature, using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>.
-          In case this fails, it immediately reports an error to lua code with the
-          argument index and expected type. If it succeeds, it passes the arguments
-          to <code class="computeroutput"><span class="identifier">f</span></code>.
-        </p>
+            When using the adapt mechanism, if lua is compiled as C, the user function
+            <code class="computeroutput"><span class="identifier">my_func</span></code> must not trigger
+            a lua error directly -- it must return objects of the form <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> instead.
+          </p>
 <p>
-          The adapted function is supposed to push its return values onto the stack,
-          if it plans to return or yield. If it wants a lua error to be signaled,
-          then it returns a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
-          containing the error message. The wrapped function will translate the
-          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> into corresponding lua C api calls.
-        </p>
+            If it does not, then a lua error triggers a call to <code class="computeroutput"><span class="identifier">longjmp</span></code>
+            which will toss any automatic objects on the stack without calling destructors.
+            This will leak all of the input parameters, and technically causes undefined
+            behavior according to the C++ standard.
+          </p>
+<p>
+            A similar statement holds for calling <code class="computeroutput"><span class="identifier">lua_yield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">n</span><span class="special">)</span></code>. You should instead return <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">yield</span><span class="special">(</span><span class="identifier">n</span><span class="special">)</span></code>.
+          </p>
+</td></tr>
+</table></div>
 <p>
           The <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> macro
           is defined:
@@ -96,77 +115,26 @@
 <span class="comment">//</span>
 <span class="preprocessor">#define</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(</span><span class="identifier">F</span><span class="special">)</span> <span class="special">&amp;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adaptor</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">F</span><span class="special">),</span> <span class="special">(</span><span class="identifier">F</span><span class="special">)&gt;::</span><span class="identifier">adapted</span>
 </pre>
-<h3>
-<a name="lua_primer.reference.core.adapt.h0"></a>
-          <span><a name="lua_primer.reference.core.adapt.primer_result"></a></span><a class="link" href="adapt.html#lua_primer.reference.core.adapt.primer_result"><code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code></a>
-        </h3>
 <p>
-          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is a structure that signals how
-          to terminate a lua function call.
+          so that <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> can
+          be used to push complex functions directly to lua, e.g.:
         </p>
+<pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">my_func</span><span class="special">));</span>
+</pre>
 <p>
-          There are three possible signals:
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adaptor</span></code> also has a trivial specialization
+          for functions which are already <code class="computeroutput"><span class="identifier">lua_CFunction</span></code>:
         </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-              return
-            </li>
-<li class="listitem">
-              yield
-            </li>
-<li class="listitem">
-              error
-            </li>
-</ul></div>
-<p>
-          Return and yield both take an <code class="computeroutput"><span class="keyword">int</span></code>,
-          indicating how many return values went on the stack.
-        </p>
-<p>
-          error is indicated by a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
-          object.
-        </p>
-<p>
-          Code to send corresponding signal to lua is in <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">detail</span><span class="special">/</span><span class="identifier">implement_result</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
-        </p>
-<pre class="programlisting"><span class="comment">// Tag used by the user to indicate a yield.</span>
-<span class="keyword">struct</span> <span class="identifier">yield</span> <span class="special">{</span>
-  <span class="keyword">int</span> <span class="identifier">n_</span><span class="special">;</span>
-<span class="special">};</span>
-
-<span class="comment">// Helper object: Represents a return or yield signal.</span>
-<span class="keyword">struct</span> <span class="identifier">return_or_yield</span> <span class="special">{</span>
-  <span class="keyword">int</span> <span class="identifier">n_</span><span class="special">;</span>
-  <span class="keyword">bool</span> <span class="identifier">is_return_</span><span class="special">;</span>
-
-  <span class="keyword">bool</span> <span class="identifier">is_valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">n_</span> <span class="special">&gt;=</span> <span class="number">0</span><span class="special">;</span> <span class="special">}</span>
-<span class="special">};</span>
-
-
-<span class="comment">// Result object</span>
-<span class="keyword">class</span> <span class="identifier">result</span> <span class="special">{</span>
-
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="identifier">payload_</span><span class="special">;</span>
-
+<pre class="programlisting"><span class="comment">// Traditional "raw" C-style lua callbacks. They aren't even member functions.</span>
+<span class="comment">// We don't have to do any work</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">lua_CFunction</span> <span class="identifier">target_func</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">adaptor</span><span class="special">&lt;</span><span class="identifier">lua_CFunction</span><span class="special">,</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
-  <span class="comment">// Ctors (implicit for ease of use)</span>
-  <span class="identifier">result</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">i</span><span class="special">)</span>
-    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">i</span><span class="special">,</span> <span class="keyword">true</span><span class="special">})</span>
-  <span class="special">{}</span>
-  <span class="identifier">result</span><span class="special">(</span><span class="identifier">yield</span> <span class="identifier">y</span><span class="special">)</span>
-    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">y</span><span class="special">.</span><span class="identifier">n_</span><span class="special">,</span> <span class="keyword">false</span><span class="special">})</span>
-  <span class="special">{}</span>
-  <span class="identifier">result</span><span class="special">(</span><span class="identifier">error</span> <span class="identifier">e</span><span class="special">)</span>
-    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span>
-  <span class="special">{}</span>
-
-  <span class="comment">// Accessor</span>
-  <span class="keyword">const</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">get_payload</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">payload_</span><span class="special">;</span> <span class="special">}</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">get_payload</span><span class="special">()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">payload_</span><span class="special">;</span> <span class="special">}</span>
+  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">target_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
 <span class="special">};</span>
 </pre>
 <h3>
-<a name="lua_primer.reference.core.adapt.h1"></a>
+<a name="lua_primer.reference.core.adapt.h0"></a>
           <span><a name="lua_primer.reference.core.adapt.customization"></a></span><a class="link" href="adapt.html#lua_primer.reference.core.adapt.customization">Customization</a>
         </h3>
 <p>
@@ -192,7 +160,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="read.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="userdata.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

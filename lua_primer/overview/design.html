@@ -7,11 +7,11 @@
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../overview.html" title="Overview">
 <link rel="prev" href="motivation.html" title="Motivation">
-<link rel="next" href="../reference.html" title="Reference">
+<link rel="next" href="build_configuration.html" title="Build Configuration">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="motivation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="motivation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="build_configuration.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -85,7 +85,8 @@
         is limited.
       </p>
 <p>
-        (The type traits approach is well-established in libraries like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span></code> -- see for instance an intro <a href="http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html" target="_top">here</a>.)
+        (The type traits approach to providing customization points is well-established
+        in libraries like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span></code> -- see for instance an intro <a href="http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html" target="_top">here</a>.)
       </p>
 <h4>
 <a name="lua_primer.overview.design.h2"></a>
@@ -191,7 +192,7 @@
         dispatch works by storing a pointer in the <a href="http://www.lua.org/manual/5.3/manual.html#lua_getextraspace" target="_top">lua
         extraspace</a> region. It may be significantly faster than other dispatch
         methods. But, only one object may have its members dispatched this way. It
-        is only appropriate for "global" functionalities that your api
+        is only appropriate for "global" functionalities that your API
         exposes.
       </p>
 <p>
@@ -205,6 +206,11 @@
         This dispatch mechanism is not usually appropriate to use when you are hoping
         to use eris to serialize your lua state, it is only provided for convenience
         in general lua applications.
+      </p>
+<p>
+        These are viewed as low-level decisions -- usually, the choice is obvious
+        from the context and primer does this for you. However, it is not difficult
+        to access or modify the three different mechanisms directly if you want to.
       </p>
 <h4>
 <a name="lua_primer.overview.design.h6"></a>
@@ -299,30 +305,117 @@
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-            Function objects which are data members of the API base can be declared
-            as an "API feature", using the <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>
-            macro. Such objects are expected to provide <code class="computeroutput"><span class="identifier">on_init</span><span class="special">,</span> <span class="identifier">on_persist_table</span><span class="special">,</span> <span class="identifier">on_unpersist_table</span></code>
+            Data members of the API base can be declared as an "API feature",
+            using the macro <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>.
+            Such objects are expected to provide <code class="computeroutput"><span class="identifier">on_init</span><span class="special">,</span> <span class="identifier">on_persist_table</span><span class="special">,</span> <span class="identifier">on_unpersist_table</span></code>
             methods, and optionally, <code class="computeroutput"><span class="identifier">on_serialize</span></code>
             and <code class="computeroutput"><span class="identifier">on_deserialize</span></code>. This
             allows the function object to declare permanent objects, and provide
             additional serialized data besides what is visible in the global table.
           </li>
 <li class="listitem">
-            Member functions of an API base can be dispatched using a technique called
-            "extraspace dispatch". In this technique, a pointer to the
-            API base object is stored in a region of memory called the lua extraspace.
-            Member functions can be declared and registered using the macro <code class="computeroutput"><span class="identifier">NEW_LUA_CALLBACK</span></code>. This also uses a
-            special version of primer adapt, which recovers the base pointer from
-            the extraspace.
+            Member functions of an API base can be automatically registered as "global"
+            functions in your lua api. This is done using the macro <code class="computeroutput"><span class="identifier">NEW_LUA_CALLBACK</span></code>.
           </li>
 </ul></div>
+<p>
+        The <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span></code> namespace contains many additional
+        API feature objects which may be useful.
+      </p>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  name
+                </p>
+              </th>
+<th>
+                <p>
+                  functionality
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">callback_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Sets up the extraspace dispatch and moves API callbacks into the
+                  global table.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">userdata_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Registers a list of userdata types with the state, and makes sure
+                  their permanent objects go in the permanent objects table.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">library_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Registers a subset of the standard lua libraries with the state,
+                  and makes sure their functions go in the permanent objects table.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">print_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Sets up a custom channel where <code class="computeroutput"><span class="identifier">print</span></code>
+                  signals from lua will go, and provides an interface for a temporary
+                  "interpreter" session useful for debugging.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">vfs</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Sets up a custom vfs to which functions like <code class="computeroutput"><span class="identifier">loadfile</span></code>,
+                  <code class="computeroutput"><span class="identifier">dofile</span></code>, and <code class="computeroutput"><span class="identifier">require</span></code> become attached, replacing
+                  the default implementations which access the filesystem directly.
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
 <p>
         In order for member functions to be registered with the lua state, there
         must be a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">callback_manager</span></code>
         which is explicitly declared as an <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>
         within the api. This callback manager is initialized using the <code class="computeroutput"><span class="keyword">this</span></code> pointer of the <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>.
         On initialization, it stores the this pointer in the lua extraspace, and
-        loads all of the methods into the global table, and into the permenant object
+        loads all of the methods into the global table, and into the permanent object
         tables at appropriate times.
       </p>
 </div>
@@ -336,7 +429,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="motivation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="motivation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="build_configuration.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

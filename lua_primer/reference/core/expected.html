@@ -31,6 +31,48 @@
           contains either a value of type <code class="computeroutput"><span class="identifier">T</span></code>,
           or a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>.
         </p>
+<p>
+          Given a value <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">e</span></code>,
+          the <code class="computeroutput"><span class="keyword">operator</span> <span class="keyword">bool</span></code>
+          of <code class="computeroutput"><span class="identifier">e</span></code> tests whether it has
+          a value or an error. True indicates a value, false indicates an error.
+        </p>
+<p>
+          The value is accessed by reference using <code class="computeroutput"><span class="keyword">operator</span>
+          <span class="special">*</span></code>.
+        </p>
+<p>
+          The error is accessed by reference using member function <code class="computeroutput"><span class="identifier">err</span><span class="special">()</span></code>.
+        </p>
+<p>
+          Example:
+        </p>
+<pre class="programlisting"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="identifier">e</span> <span class="special">&gt;=</span> <span class="number">7</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="string">"woof!"</span><span class="special">};</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="string">"bad doggie!"</span><span class="special">};</span>
+    <span class="special">}</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="identifier">e</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+
+<span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">6</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result2</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">7</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result2</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(*</span><span class="identifier">result2</span> <span class="special">==</span> <span class="string">"woof!"</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result3</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"404"</span><span class="special">));</span>
+<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result3</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">()</span> <span class="special">==</span> <span class="string">"404"</span><span class="special">);</span>
+</pre>
+<p>
+          Here's a peek at the header file.
+        </p>
 <pre class="programlisting"><span class="comment">// This assertion is only active when PRIMER_DEBUG is defined.</span>
 <span class="comment">// See &lt;primer/support/asserts.hpp&gt;</span>
 <span class="preprocessor">#define</span> <span class="identifier">PRIMER_BAD_ACCESS</span><span class="special">(</span><span class="identifier">X</span><span class="special">)</span>                                                   <span class="special">\</span>
@@ -48,9 +90,10 @@
   <span class="special">};</span>
   <span class="keyword">bool</span> <span class="identifier">have_ham_</span><span class="special">;</span>
 
-  <span class="comment">// static_assert(std::is_nothrow_move_constructible&lt;T&gt;::value,</span>
-  <span class="comment">//              "This class can only be used with types that are no-throw "</span>
-  <span class="comment">//              "move constructible and destructible.");</span>
+  <span class="identifier">PRIMER_STATIC_ASSERT</span><span class="special">(</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+    <span class="string">"This class can only be used with types that are no-throw "</span>
+    <span class="string">"move constructible and destructible."</span><span class="special">);</span>
 
 <span class="keyword">public</span><span class="special">:</span>
   <span class="comment">// Accessors and dereference semantics</span>
@@ -197,14 +240,6 @@
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span></code>
           is specialized, since unions cannot contain references.
-        </p>
-<p>
-          Instead, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span></code>
-          is implemented as a wrapper over <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">*&gt;</span></code>.
-        </p>
-<p>
-          It is copyable and moveable, and can be reassigned like a pointer. However,
-          when it is dereferenced, it always returns <code class="computeroutput"><span class="identifier">T</span><span class="special">&amp;</span></code>, even if the <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span></code> is const.
         </p>
 <p>
           <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span></code>

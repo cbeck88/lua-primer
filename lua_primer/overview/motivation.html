@@ -116,7 +116,7 @@
 </pre>
 <p>
         In other words, LuaBridge is providing various bindings proxy objects which
-        provide templated member functions to carry out bindings tasks, taking function
+        provide template member functions to carry out bindings tasks, taking function
         pointers of arbitrary signatures and wrapping them appropriately to get a
         <code class="computeroutput"><span class="keyword">int</span> <span class="special">(</span><span class="identifier">luaState</span><span class="special">*)</span></code>
         which can be passed to lua.
@@ -169,7 +169,7 @@
         This function attempts to copy a table, making analogous copies of each constituent
         table, while preserving the referential structure. That is if <code class="computeroutput"><span class="identifier">obj</span><span class="special">.</span><span class="identifier">x</span></code>
         and <code class="computeroutput"><span class="identifier">obj</span><span class="special">.</span><span class="identifier">y</span></code> were both references to the same table,
-        then they will be references to an analaogous table, in the result.
+        then they will be references to an analogous table, in the result.
       </p>
 <p>
         This works well when the only types we consider are tables and primitive
@@ -239,8 +239,8 @@
       </p>
 <p>
         If one is using a hand-rolled serialization function which handles "most
-        but not all" datatypes that can occur in a lua state, the result is
-        pretty disasterous.
+        but not all" data types that can occur in a lua state, the result is
+        pretty disastrous.
       </p>
 <p>
         In the case of a game, the user is told
@@ -397,7 +397,7 @@
         with eris, seems to be to use a <span class="bold"><strong>compile-time</strong></span>
         registration system. This way, for any given API that we expose, we know
         exactly how to construct the permanent objects table for serialization and
-        destructoin at compile time, and we can fail fast if the program attempts
+        destruction at compile time, and we can fail fast if the program attempts
         to push something to a lua VM that we don't know how to serialize.
       </p>
 <h4>

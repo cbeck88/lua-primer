@@ -19,7 +19,7 @@
 </h3></div></div></div>
 <p>
         Let's suppose that you are designing a C++ application which employs a scripting
-        langauge in order to customize its behavior. For instance, maybe it embeds
+        language in order to customize its behavior. For instance, maybe it embeds
         <span class="bold"><strong>Python</strong></span> or <span class="bold"><strong>lua</strong></span>.
       </p>
 <p>
@@ -82,8 +82,8 @@
         Given this kind of an interface, the details of the VM are quite well encapsulated.
       </p>
 <p>
-        From the point of view of the rest of the application, the VM is just a "moveable,
-        copyable, serializable black box that can send and recieve messages."
+        From the point of view of the rest of the application, the VM is just a "movable,
+        copyable, serializable black box that can send and receive messages."
         Nothing about the particular scripting language is even visible at all.
       </p>
 <p>
@@ -110,7 +110,7 @@
 </ul></div>
 <p>
         Indeed, it's relatively uncommon for a scripting language implementation
-        to provide built-in faciltiies to deep copy a VM, or to provide built-in
+        to provide built-in facilities to deep copy a VM, or to provide built-in
         serialization facilities.
       </p>
 <p>
@@ -122,15 +122,15 @@
             need different solutions with different performance characteristics.
           </li>
 <li class="listitem">
-            These VMs can be pretty complicated. Oftentimes scripting langauges provide
+            These VMs can be pretty complicated. Oftentimes scripting languages provide
             some FFI or binding facility so that they can talk to external libraries
             -- how can one generically serialize or copy a pointer, or an object
             obtained from some C library?
           </li>
 <li class="listitem">
-            Many applications dont <span class="emphasis"><em>actually</em></span> need this. They
+            Many applications don't <span class="emphasis"><em>actually</em></span> need this. They
             just need to run their script and be done, and it will be different every
-            time. Or, the script may be cheap to run, and they can recrate the state
+            time. Or, the script may be cheap to run, and they can recreate the state
             by just rerunning the script, and serialize it by just writing down the
             script.
           </li>
@@ -140,16 +140,16 @@
         things.
       </p>
 <p>
-        For instance, in a strategy game engine, a scripting language VM might be
-        used to represent the game logic and the state of the game. Then, you really
-        want to be able to deep copy the VM, if one wants to create "simulation-based"
+        For instance, in a game engine, a scripting language VM might be used to
+        represent the game logic and the state of the game. Then, you really want
+        to be able to deep copy the VM, if one wants to create "simulation-based"
         AIs which can experiment with a position without messing up the "actual"
         position. You really want to be able to serialize and deserialize the state
         faithfully, to create saved games, and replays. You really want these things
         to work correctly with a minimum of hassle, as it can be very frustrating
         to users when it doesn't work right. These problems are often hard to reproduce
-        and very finnicky to solve. Even popular AAA game engines sometimes have
-        lingering problems with saving and reloading the game.
+        and very finicky to solve. Even popular AAA game engines sometimes have lingering
+        problems with saving and reloading the game.
       </p>
 <p>
         Another popular use of scripting languages is in Webservers. In web frameworks
@@ -162,10 +162,10 @@
 <p>
         <span class="bold"><strong>Primer</strong></span> is a C++ library that makes it easy
         to expose complex APIs to <span class="bold"><strong>lua</strong></span> while also
-        preserving its <span class="emphasis"><em>serializibility</em></span>, using a lua technology
+        preserving its <span class="emphasis"><em>serializability</em></span>, using a lua technology
         called <span class="bold"><strong>eris</strong></span>. <span class="bold"><strong>eris</strong></span>
         is a very powerful serialization facility for lua 5.2 and 5.3, but many of
-        the strategies traditionally used to expose C++ apis to lua don't work very
+        the strategies traditionally used to expose C++ APIs to lua don't work very
         well together with serializability or with eris.
       </p>
 <p>

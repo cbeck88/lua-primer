@@ -1,0 +1,131 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Build Configuration</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../overview.html" title="Overview">
+<link rel="prev" href="design.html" title="Design">
+<link rel="next" href="exception_safety.html" title="Exception Safety">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="design.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="exception_safety.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="lua_primer.overview.build_configuration"></a><a class="link" href="build_configuration.html" title="Build Configuration">Build Configuration</a>
+</h3></div></div></div>
+<p>
+        Primer responds to a few configuration defines:
+      </p>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  symbol
+                </p>
+              </th>
+<th>
+                <p>
+                  effect
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">PRIMER_DEBUG</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  This is used to enable internal assertions that primer uses to
+                  check its integrity. Especially, lua stack discipline assertions.
+                  You can turn these on if you are having lua stack corruption or
+                  overflow.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">PRIMER_LUA_AS_CPP</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  This should be used if lua is being compiled as C++ rather than
+                  as C in your project. It causes primer not to use <code class="computeroutput"><span class="keyword">extern</span> <span class="string">"C"</span></code>
+                  when it includes lua headers.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">PRIMER_NO_STATIC_ASSERTS</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Disables all static assertions made by primer.
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+          Several data structures and functions in primer make assumptions that types
+          used with them do not throw exceptions when default constructed, moved,
+          etc. These assumptions are generally true for most user types and standard
+          library types that they would be used with.
+        </p>
+<p>
+          However, if you are using an old compiler with an old version of the standard
+          library, crucial constructors for objects like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+          are not marked <code class="computeroutput"><span class="keyword">noexcept</span></code> which
+          means that these assertions fail. In such a scenario, you cannot compile
+          and cannot easily work around the problem.
+        </p>
+<p>
+          To disable the safety checks, you can define <code class="computeroutput"><span class="identifier">PRIMER_NO_STATIC_ASSERTS</span></code>.
+          You should only do this if you have an old compiler and cannot upgrade.
+        </p>
+<p>
+          In general the failure of these assumptions can lead to undefined behavior.
+        </p>
+</td></tr>
+</table></div>
+<p>
+        To enable these, you can add them in your build system, define them in your
+        source files before including primer, or uncomment them in the <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">base</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+        source.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="design.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="exception_safety.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

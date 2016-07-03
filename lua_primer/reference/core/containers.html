@@ -1,0 +1,281 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Containers</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="result.html" title="result">
+<link rel="next" href="api.html" title="API">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.containers"></a><a class="link" href="containers.html" title="Containers">Containers</a>
+</h4></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="containers.html#lua_primer.reference.core.containers.standard_containers">Standard
+          Containers</a></span></dt>
+<dt><span class="section"><a href="containers.html#lua_primer.reference.core.containers.heterogenous_containers">Heterogenous
+          Containers</a></span></dt>
+<dt><span class="section"><a href="containers.html#lua_primer.reference.core.containers.optionals">Optionals</a></span></dt>
+</dl></div>
+<p>
+          Besides reading and writing primitive values like numbers and strings,
+          primer is also able to intelligently move <span class="bold"><strong>aggregate</strong></span>
+          objects to and from lua as tables.
+        </p>
+<p>
+          This is accomplished by a number of (opt-in) partial-specializations of
+          the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span></code>
+          traits for these container types.
+        </p>
+<p>
+          Because of the overall design, this makes primer able to recognize such
+          containers as function parameters in API callbacks, or to pass such containers
+          as arguments to calls to <code class="computeroutput"><span class="identifier">bound_function</span></code>
+          function objects. (See "Design" section.)
+        </p>
+<p>
+          Primer can also give nice semantics to optional types like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span></code>, or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code>
+          from C++17. In primer, these types can be used to specify that a table
+          member or function parameter is permitted to be missing, and that it is
+          not an error if it could not be read.
+        </p>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.containers.standard_containers"></a><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers" title="Standard Containers">Standard
+          Containers</a>
+</h5></div></div></div>
+<p>
+            Primer contains some auxiliary headers which can make it aware of many
+            standard C++ containers.
+          </p>
+<p>
+            These auxiliary headers are optional, and may be included individually
+            as needed using e.g.
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">std</span><span class="special">/</span><span class="identifier">vector</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>,
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">optional</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+          </p>
+<p>
+            or wholesale:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">std</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+                pulls in all available headers for standard library containers.
+              </li>
+<li class="listitem">
+                <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">boost</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+                pulls in all available headers for boost containers.
+              </li>
+</ul></div>
+<p>
+            In all cases, these containers are mapped to tables, using lua idioms
+            as follows:
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.standard_containers.h0"></a>
+            <span><a name="lua_primer.reference.core.containers.standard_containers.lua_map_idiom"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers.lua_map_idiom">Lua
+            Map Idiom</a>
+          </h4>
+<p>
+            <span class="emphasis"><em>maps</em></span> such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code>
+            and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unordered_map</span></code> are translated to lua
+            directly as tables.
+          </p>
+<p>
+            When such a map is pushed, each key-value pair in the map becomes a key-value
+            pair in the table, and the keys and values are converted recursively
+            using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+          </p>
+<p>
+            When such a map is read, the argument is expected to be a table, and
+            it is recursed over using <code class="computeroutput"><span class="identifier">lua_next</span></code>.
+            Each key value pair is attempted to be converted using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>, and added to the table. If reading
+            of any key or value as the expected type fails, then reading the map
+            fails.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.standard_containers.h1"></a>
+            <span><a name="lua_primer.reference.core.containers.standard_containers.lua_array_idiom"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers.lua_array_idiom">Lua
+            Array Idiom</a>
+          </h4>
+<p>
+            <span class="emphasis"><em>arrays</em></span> such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>
+            and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code> are translated to lua as tables,
+            in which only the "array part" of the table is used.
+          </p>
+<p>
+            When an array <code class="computeroutput"><span class="identifier">v</span></code> is pushed,
+            the entry <code class="computeroutput"><span class="identifier">v</span><span class="special">[</span><span class="number">0</span><span class="special">]</span></code> becomes
+            entry <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">1</span><span class="special">]</span></code> of a
+            lua table <code class="computeroutput"><span class="identifier">t</span></code> upon pushing.
+          </p>
+<p>
+            When a vector is read, the lua value is expected to be a table. <code class="computeroutput"><span class="identifier">lua_rawlen</span></code> is used to determine its
+            length. Then <code class="computeroutput"><span class="identifier">lua_rawgeti</span></code>
+            is used to query entries <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">1</span><span class="special">],</span>
+            <span class="identifier">t</span><span class="special">[</span><span class="number">2</span><span class="special">],</span> <span class="special">...</span></code>.
+            If any of these cannot be read as the expected type, then reading the
+            vector fails.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.standard_containers.h2"></a>
+            <span><a name="lua_primer.reference.core.containers.standard_containers.lua_set_idiom"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers.lua_set_idiom">Lua
+            Set Idiom</a>
+          </h4>
+<p>
+            <span class="emphasis"><em>sets</em></span> such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>
+            are translated to lua as tables, in which the value in every key-value
+            pair is <code class="computeroutput"><span class="keyword">true</span></code>.
+          </p>
+<p>
+            It is otherwise similar to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code>
+            in terms of pushing and reading.
+          </p>
+<p>
+            In lua, tables cannot have custom "comparators" for their keys.
+            If you have something more complex than <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code> or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>, e.g. containing tables or userdata,
+            you will most likely want to create custom semantics for it rather than
+            using the primer built-in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>
+            semantics.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.containers.heterogenous_containers"></a><a class="link" href="containers.html#lua_primer.reference.core.containers.heterogenous_containers" title="Heterogenous Containers">Heterogenous
+          Containers</a>
+</h5></div></div></div>
+<p>
+            Primer has support for reading and pushing hetergenous containers which
+            use strings as their keys.
+          </p>
+<p>
+            This can be used to easily implement a "named parameter" idiom
+            in your callback functions, or for many other uses.
+          </p>
+<p>
+            The primary form of support for this is a compatibility header between
+            Primer and a small library called <a href="https://github.com/cbeck88/visit_struct" target="_top">visit_struct</a>,
+            which is distributed with Primer.
+          </p>
+<p>
+            <code class="computeroutput"><span class="identifier">visit_struct</span></code> provides
+            a way of attaching metadata to a class-type, by way of a type trait,
+            such that arbitrary visitors may be applied to instances of it.
+          </p>
+<p>
+            Any structure which has been so declared "visitable", may be
+            read or written to lua as a table, in which the keys correspond to the
+            names of the struct members, and the values are determined using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+          </p>
+<p>
+            In other words, the <code class="computeroutput"><span class="keyword">struct</span></code>
+            definition becomes like a schema for a table layout.
+          </p>
+<p>
+            The use of this can be seen with an example:
+          </p>
+<p>
+            <span class="bold"><strong>lua:</strong></span>
+          </p>
+<pre class="programlisting"><span class="identifier">h</span><span class="special">{</span> <span class="identifier">name</span> <span class="special">=</span> <span class="char">'Charlie'</span><span class="special">,</span> <span class="identifier">id</span> <span class="special">=</span> <span class="number">44</span> <span class="special">}</span>
+</pre>
+<p>
+            <span class="bold"><strong>C++:</strong></span>
+          </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">h_arguments</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span>
+  <span class="keyword">int</span> <span class="identifier">id</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">group</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">task</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="identifier">VISITABLE_STRUCTURE</span><span class="special">(</span><span class="identifier">h_arguments</span><span class="special">,</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">id</span><span class="special">,</span> <span class="identifier">group</span><span class="special">,</span> <span class="identifier">task</span><span class="special">);</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">h</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">h_arguments</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">it</span> <span class="special">=</span> <span class="identifier">database</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">args</span><span class="special">.</span><span class="identifier">id</span><span class="special">);</span>
+  <span class="special">...</span>
+<span class="special">}</span>
+</pre>
+<h4>
+<a name="lua_primer.reference.core.containers.heterogenous_containers.h0"></a>
+            <span><a name="lua_primer.reference.core.containers.heterogenous_containers.usage"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.heterogenous_containers.usage">Usage</a>
+          </h4>
+<p>
+            There are two methods of making a struct visitable:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                The <code class="computeroutput"><span class="identifier">VISITABLE_STRUCTURE</span></code>
+                macro takes the name of a structure, possibly qualfiied by namespaces,
+                as its first argument. Then, it takes the names of the fields which
+                should be visitable.
+              </li>
+<li class="listitem">
+                The three macros <code class="computeroutput"><span class="identifier">BEGIN_VISITABLES</span></code>,
+                <code class="computeroutput"><span class="identifier">VISITABLE</span></code>, <code class="computeroutput"><span class="identifier">END_VISITABLES</span></code> can be used <span class="emphasis"><em>inline</em></span>
+                in a structure definition, to declare it visitable at the same time
+                that it is defined.
+              </li>
+</ul></div>
+<p>
+            See <a href="https://github.com/cbeck88/visit_struct" target="_top">documentation</a>
+            for <code class="computeroutput"><span class="identifier">visit_struct</span></code> for
+            extended examples. These declarations are useful for purposes outside
+            of primer as well.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.heterogenous_containers.h1"></a>
+            <span><a name="lua_primer.reference.core.containers.heterogenous_containers.includes"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.heterogenous_containers.includes">includes</a>
+          </h4>
+<p>
+            Within primer, the support for such structures is pulled in by including
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">traits</span><span class="special">/</span><span class="identifier">push_visitable</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+          </p>
+<p>
+            and
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">traits</span><span class="special">/</span><span class="identifier">read_visitable</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+            .
+          </p>
+<p>
+            You can pull in these headers and the <code class="computeroutput"><span class="identifier">visit_struct</span></code>
+            headers using <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">visit_struct</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.containers.optionals"></a><a class="link" href="containers.html#lua_primer.reference.core.containers.optionals" title="Optionals">Optionals</a>
+</h5></div></div></div>
+<p>
+            TODO
+          </p>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
