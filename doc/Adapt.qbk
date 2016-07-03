@@ -1,72 +1,83 @@
 [section adapt]
 
-`PRIMER_ADAPT` is the basic dispatch mechanism that implements type-safe parameter reading and error handling.
-
-Given a function pointer e.g.
-
-```
-  primer::result my_func(lua_State * L, std::string s, int x, int y);
-```
-
-it can be pushed directly to lua using
-
-```
-  lua_pushcfunction(L, PRIMER_ADAPT(&my_func));
-```
-
-That is, the type of `PRIMER_ADAPT(&my_func)` is `lua_CFunction, i.e. int (*)(lua_State*)`.
-
-  
+`PRIMER_ADAPT` refers to the mechanism that implements type-safe parameter reading for user functions.
 
 The core object is a template
 
 [primer_adaptor_decl]
 
-which, given a function pointer `f`, is expected to provide a static member function of signature
+When given a function pointer `f`, `adaptor` is expected to provide a static member function of signature
 `int (lua_State *)` which is named `adapted`.
 
-For example:
+Given a function pointer of the form,
 
-[primer_adaptor_trivial]
+``
+  primer::result my_func(lua_State * L, std::string foo, bool bar, int baz);
+``
 
-When given a function pointer which returns `primer::result`, the adaptor wraps it in some boilerplate
-which when invoked, attempts to read values off of the lua stack which match the function signature, using
-`primer::read`.
+the adaptor converts it to a function somewhat similar to the following:
 
-In case this fails, it immediately reports an argument error to the lua code, with index and expected type.
-If it succeeds, it passes the parsed arguments on to `f`.
+``
+  primer::result my_func_helper(lua_State * L) {
+    auto arg1 = primer::read<std::string>(L, 1);
+    if (!arg1) { return arg1.err(); }
 
-The adaptor is wraps a given function pointer with some boilerplate which when invoked, will attempt to read
-values off of the lua stack which match the function signature, using `primer::read`. In case this fails, it
-immediately reports an error to lua code with the argument index and expected type. If it succeeds, it passes
-the arguments to `f`.
+    auto arg2 = primer::read<bool>(L, 2);
+    if (!arg2) { return arg2.err(); }
 
-The adapted function is supposed to push its return values onto the stack, if it plans to return or yield. If it wants
-a lua error to be signaled, then it returns a `primer::error` containing the error message. The wrapped function
-will translate the `primer::result` into corresponding lua C api calls.
+    auto arg3 = primer::read<int>(L, 3);
+    if (!arg3) { return arg3.err(); }
+
+    return my_func(L, *arg1, *arg2, *arg3);
+  }
+
+  int my_func_adapted(lua_State * L) {
+    if (auto r = my_func_helper(L)) {
+      if (r->is_return_) {
+        return r->n_;
+      } else {
+        return lua_yield(L, r->n_);
+      }
+    } else {
+      lua_pushstring(L, r.err_str().c_str());
+      return lua_error(L);
+    }
+  }
+``
+
+Each parameter is read from the stack in succession using `primer::read`. If any cannot
+be read, then the input is invalid and an error is returned. If all can be read, then
+the user function is invoked, and its result returned.
+
+`primer::result` is implemented by a simple return in the case of a return,
+by calling `lua_yield` in case of a yield, and by signaling a lua error in case of
+an error. This part is quite trivial -- the only subtlety in the actual implementation
+involves making sure that it works with no leaks, whether lua is compiled as C or C++.
+
+[caution When using the adapt mechanism, if lua is compiled as C, the user function
+      `my_func` must not trigger a lua error directly -- it must return objects of the
+      form `primer::error` instead.
+
+      If it does not, then a lua error triggers a call
+      to `longjmp` which will toss any automatic objects on the stack without calling
+      destructors. This will leak all of the input parameters, and technically causes
+      undefined behavior according to the C++ standard. 
+
+      A similar statement holds for calling `lua_yield(L, n)`. You should instead return
+      `primer::yield(n)`.]
 
 The `PRIMER_ADAPT` macro is defined:
 [primer_adapt]
 
-[h2 `primer::result`]
+so that `PRIMER_ADAPT` can be used to push complex functions directly to lua, e.g.:
 
-`primer::result` is a structure that signals how to terminate a lua
-function call.
+```
+  lua_pushcfunction(L, PRIMER_ADAPT(&my_func));
+```
 
-There are three possible signals:
+`primer::adaptor` also has a trivial specialization for functions which are already `lua_CFunction`:
 
-* return
-* yield
-* error
-
-Return and yield both take an `int`, indicating how many return values went on the stack.
-
-error is indicated by a `primer::error` object.
-
-Code to send corresponding signal to lua is in
-`<primer/detail/implement_result.hpp>`
-
-[primer_result]
+[primer_adaptor_trivial]
 
 [h2 Customization]
 

@@ -1,0 +1,24 @@
+[section result]
+
+`primer::result` is a small structure that is meant to be used by user code, in
+functions that are pushed to lua.
+
+`primer::result` is supposed to be the return type. It represesnts a signal of
+how to terminate a lua function call.
+
+There are three possible signals:
+
+* return
+* yield
+* error
+
+Return and yield both take an `int`, indicating how many return values went on the stack.
+
+error is indicated by a `primer::error` object.
+
+Code to send corresponding signal to lua is in
+`<primer/detail/implement_result.hpp>`
+
+[primer_result]
+
+[endsect]

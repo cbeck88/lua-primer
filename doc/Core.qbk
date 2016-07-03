@@ -27,6 +27,7 @@ These features serve such purposes as:
 [include Expected.qbk]
 [include Push.qbk]
 [include Read.qbk]
+[include Result.qbk]
 [include Adapt.qbk]
 [include Userdata.qbk]
 [include LuaRef.qbk]
