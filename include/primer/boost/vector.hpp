@@ -6,28 +6,25 @@
 #pragma once
 
 /***
- * How to push `boost::flat_set` to the stack, as a table, using the lua "set"
- * idiom.
+ * How to transport `boost::container::vector` to and from the stack
  */
 
 #include <primer/base.hpp>
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/container/set_base.hpp>
-#include <boost/container/flat_set.hpp>
+#include <primer/container/seq_base.hpp>
+#include <boost/container/vector.hpp>
 
 namespace primer {
 
 namespace traits {
 
 template <typename T>
-struct push<boost::container::flat_set<T>>
-  : detail::set_push_helper<boost::container::flat_set<T>> {};
+struct push<boost::container::vector<T>> : detail::push_seq_helper<boost::container::vector<T>> {};
 
 template <typename T>
-struct read<boost::container::flat_set<T>>
-  : detail::set_read_helper<boost::container::flat_set<T>> {};
+struct read<boost::container::vector<T>> : detail::read_seq_helper<boost::container::vector<T>> {};
 
 } // end namespace traits
 

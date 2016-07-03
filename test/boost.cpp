@@ -77,7 +77,7 @@ namespace container {
 
 template <typename T>
 std::ostream & operator<<(std::ostream & o,
-                          const boost::container::flat_set<T> & s) {
+                          const boost::container::vector<T> & s) {
   o << "{ ";
   for (const auto & i : s) {
     o << i << ", ";
@@ -90,28 +90,32 @@ std::ostream & operator<<(std::ostream & o,
 
 } // end namespace boost
 
-void test_flat_set_round_trip() {
+namespace {
+
+template <typename U>
+using T = boost::container::vector<U>;
+
+void test_vector_round_trip() {
   lua_raii L;
 
-  using boost::container::flat_set;
-
-  round_trip_value(L, flat_set<int>{}, __LINE__);
+  round_trip_value(L, T<int>{}, __LINE__);
 
   {
     std::vector<int> temp{1, 5, 6, 23, 1231};
-    round_trip_value(L, flat_set<int>{temp.begin(), temp.end()}, __LINE__);
+    round_trip_value(L, T<int>{temp.begin(), temp.end()}, __LINE__);
   }
   {
     std::vector<std::string> temp{"wer", "qWQE", "asjdkljweWERWERE", "", "foo"};
-    round_trip_value(L, flat_set<std::string>{temp.begin(), temp.end()},
+    round_trip_value(L, T<std::string>{temp.begin(), temp.end()},
                      __LINE__);
   }
   {
     std::set<bool> temp{true};
-    round_trip_value(L, flat_set<bool>{temp.begin(), temp.end()}, __LINE__);
+    round_trip_value(L, T<bool>{temp.begin(), temp.end()}, __LINE__);
   }
 }
 
+} // end anonymous namespace
 
 /***
  * Test optional adapted, bound function, coroutine
@@ -246,7 +250,7 @@ int main() {
   test_harness tests{
     {"optional push", &test_optional_push},
     {"optional read", &test_optional_read},
-    {"flat set", &test_flat_set_round_trip},
+    {"vector", &test_vector_round_trip},
     {"bound function", &test_bound_function},
     {"coroutine", &test_coroutine},
   };
