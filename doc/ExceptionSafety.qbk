@@ -1,0 +1,105 @@
+[section Exception Safety]
+
+Primer is designed with the following constraints in mind:
+
+* Primer should work whether lua is compiled as C or C++.
+* Primer should not require C++ exceptions or RTTI to be enabled.
+
+We also take as a given that it is *not* okay to throw foreign exceptions
+through lua, no matter how it is compiled.
+
+* c.f. [@http://lua-users.org/lists/lua-l/2007-10/msg00473.html] lua mailing list
+* c.f. [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus] lua users wiki
+* c.f. [@http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua] stackoverflow
+
+So, we don't throw any exceptions ourselves, and since many components of
+Primer are designed to be called by functions that will be passed to lua as function
+pointers, it's not a very good idea for them to be throwing exceptions either.
+
+The places that exceptions can enter the picture break down roughly as follows:
+
+# User code throws an exception into primer
+  # A function which the user gave to primer to push to lua throws an exception
+  # An object which the user adapted for primer throws an exception from its default constructor,
+    move constructor, or move assignment operator.
+  # An object which the user adapted for primer, by specializing `push` or `read`,
+    throws an exception when it is pushed or read
+# `std::bad_alloc` is thrown
+
+Our exception-safety is not complete at the moment -- some of these are handled,
+and some of these can cause bad things to happen. Primer is a work-in-progress,
+and patches are welcome :)
+
+The situations that we have a handle on are:
+
+[h4 A user function which was adapted for lua throws an exception]
+ 
+This should never happen, and we view it as a bug in user code if it does.
+
+If you throw an exception directly into lua, we consider that the stack can be corrupted and undefined behavior can result.
+
+In Primer, we do not attempt to catch and handle your exceptions either.
+Instead, one of the functions in the "adapt" mechanism is marked `noexcept`,
+which means that `std::terminate` will be called if your adapted function throws.
+
+Note that this is different from how some libraries like `LuaBridge` work, which
+attempt to stash away your exceptions, signal them to lua as a lua error, and rethrow
+them on the other side. We consider this to be not a very robust solution, and don't plan
+to do something like this in primer. If you want
+to create something like this, you are welcome to specialize the `adaptor` class to do it.
+
+[h4 An object which the user adapted for primer throws an exception from its default constructor,
+    move constructor, or move assignment operator]
+
+This also should not happen -- objects that you want to push or read from
+primer should be nothrow move-constructible.
+
+In certain circumstances related to containers (the `visit_struct` mechanism,
+the `std::array` mechanism), they must additionally be nothrow default constructible and
+    nothrow move assignable. There are some fallbacks built into the system, in
+    case they are not quite nothrow move assignable.
+
+In general, the necessary preconditions are checked via `static_assert` and your code won't compile if the assumptions aren't met.
+
+For instance, `primer::expected` is an exception-safe container in the strong sense. It's just that if your type is not `nothrow_move_constructible` then you cannot compile.
+
+[h4 A specialization of `push` or `read` throws an exception]
+
+Currently, we assume that pushing an object cannot fail.
+
+Reading an object can fail, but it should return `primer::error` in that case.
+
+These functions are not supposed to throw exceptions, and currently it is considered a bug if they do.
+
+There is no mechanism in place right now to make a `static_assert` that they are `noexcept`.
+That is something that we might add in the future.
+
+That being said...
+
+[h4 `std::bad_alloc`]
+
+There are a few known situations in primer that we do things that can cause `std::bad_alloc` to be
+thrown, and don't have proper handling for it. For instance, when constructing a `std::string` from
+a C-string obtained from lua, or when calling `emplace_back` on a `std::vector`. 
+
+The consequences of this can currently include:
+
+* Primer losing track of objects that it pushed onto the lua stack. If this happens repeatedly, you can run out of space on the lua stack and get a lua panic.
+* An exception being thrown into the adapt mechanism, causing the program to be terminated.
+
+We also don't currently handle properly some errors that can occur when ['lua] runs out of memory.
+For instance, `lua_pushstring` can fail, only in the scenario that lua cannot allocate enough memory.
+This could potentially cause a `longjmp` and the leaking of objects on the C++ stack.
+
+In many game projects, developers don't care about exception-safety in regards to out-of-memory problems.
+They prefer to write a custom allocator, periodically check to see if it is close to running out of memory, and in the
+rest of the code, assume that allocation always succeeds, since this can lead to some performance gain.
+I believe that for purposes of such projects, primer is essentially working correctly right now in
+regards to exception safety. That is, we *are* correct in the face of exceptions, if we exclude the scenarios in which
+lua or the C++ standard allocator runs out of memory.
+
+As a long-term goal, we would like to be able to provide correctness even in the face of out-of-memory errors. Perhaps,
+we could add a preprocessor symbol to enable a build which behaves like primer currently does, 
+and the default build will be safe even in the face of `std::bad_alloc`.
+
+[endsect]

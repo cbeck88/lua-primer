@@ -22,6 +22,7 @@
 [include Motivation.qbk]
 [include Design.qbk]
 [include BuildConfiguration.qbk]
+[include ExceptionSafety.qbk]
 [endsect]
 
 [section:reference Reference]
