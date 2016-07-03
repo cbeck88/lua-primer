@@ -1,6 +1,6 @@
-[section Heterogenous Containers]
+[section Heterogeneous Containers]
 
-Primer has support for reading and pushing hetergenous containers which use
+Primer has support for reading and pushing hetergeneous containers which use
 strings as their keys.
 
 This can be used to easily implement a "named parameter" idiom in your
@@ -10,7 +10,7 @@ The primary form of support for this is a compatibility header between Primer
 and a small library called [@https://github.com/cbeck88/visit_struct visit_struct],
 which is distributed with Primer.
 
-`visit_struct` provides a way of attaching metadata to a class-type, by way of
+`visit_struct` provides a way of attaching metadata to a struct-type, by way of
 a type trait, such that arbitrary visitors may be applied to instances of it.
 
 Any structure which has been so declared "visitable", may be read or written to
@@ -65,12 +65,10 @@ These declarations are useful for purposes outside of primer as well.
 
 Within primer, the support for such structures is pulled in by including
 
-`#include <primer/traits/push_visitable.hpp>`
+`#include <primer/container/visit_struct.hpp>` .
 
-and
+You can pull in this header and all the `visit_struct` headers using
 
-`#include <primer/traits/read_visitable.hpp>` .
-
-You can pull in these headers and the `visit_struct` headers using `#include <primer/visit_struct.hpp>`.
+`#include <primer/visit_struct.hpp>`.
 
 [endsect]
