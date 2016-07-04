@@ -17,7 +17,7 @@ a table member or function parameter is permitted to be missing, and that it is
 not an error if it could not be read.
 
 [include StandardContainers.qbk]
-[include HeterogenousContainers.qbk]
+[include HeterogeneousContainers.qbk]
 [include Optionals.qbk]
 
 [endsect]

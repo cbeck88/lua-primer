@@ -40,7 +40,7 @@ The use of this can be seen with an example:
     boost::optional<std::string> task;
   };
 
-  VISITABLE_STRUCTURE(h_arguments, name, id, group, task);
+  VISITABLE_STRUCT(h_arguments, name, id, group, task);
 
   primer::result h(lua_State * L, h_arguments args) {
     auto it = database.find(args.id);
@@ -52,7 +52,7 @@ The use of this can be seen with an example:
 
 There are two methods of making a struct visitable:
 
-* The `VISITABLE_STRUCTURE` macro takes the name of a structure, possibly qualfiied by namespaces,
+* The `VISITABLE_STRUCT` macro takes the name of a structure, possibly qualfiied by namespaces,
   as its first argument. Then, it takes the names of the fields which should be visitable.
 
 * The three macros `BEGIN_VISITABLES`, `VISITABLE`, `END_VISITABLES` can be used ['inline] in a

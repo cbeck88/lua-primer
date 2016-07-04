@@ -79,7 +79,7 @@ Features
       boost::optional<std::string> task;
     };
 
-    VISITABLE_STRUCTURE(h_arguments, name, id, group, task);
+    VISITABLE_STRUCT(h_arguments, name, id, group, task);
 
     primer::result h(lua_State * L, h_arguments args) {
       auto it = database.find(args.id);
