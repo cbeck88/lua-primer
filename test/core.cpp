@@ -681,6 +681,39 @@ void primer_ref_test() {
   TEST(!baz, "Expected all refs to be closed now!");
 }
 
+void primer_ref_examples() {
+  //[ primer_example_ref
+  lua_State * L = luaL_newstate();
+
+  std::string foo{"foo"};
+  primer::push(L, foo);
+  assert(lua_gettop(L) == 1);
+
+  primer::lua_ref ref{L};
+  assert(lua_gettop(L) == 0);
+  assert(ref);
+
+  assert(ref.as<std::string>() && foo == *ref.as<std::string>());
+  assert(!ref.as<int>());
+  assert(!ref.as<bool>());
+  assert(ref.as<primer::truthy>() && true == ref.as<primer::truthy>()->value);
+
+  assert(ref.push());
+  assert(lua_gettop(L) == 1);
+  assert(lua_isstring(L, 1));
+  assert(foo == lua_tostring(L, 1));
+
+  lua_pop(L, 1);
+
+  assert(ref);
+  assert(ref.as<std::string>() && foo == *ref.as<std::string>());
+
+  lua_close(L);
+
+  assert(!ref);
+  //]
+}
+
 primer::result test_func_four(lua_State * L, int i, int j) {
   lua_pushinteger(L, i + j);
   lua_pushinteger(L, i - j);
@@ -1003,6 +1036,7 @@ int main() {
     {"primer adapt three", &primer_adapt_test_three},
     {"lua state ref validity", &lua_state_ref_validity},
     {"lua value ref validity", &primer_ref_test},
+    {"ref examples", &primer_ref_examples},
     {"primer call", &primer_call_test},
     {"primer resume", &primer_resume_test},
   };

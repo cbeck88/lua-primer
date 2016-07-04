@@ -25,6 +25,10 @@ collected by lua.
 
 The value can be obtained from the reference by using the `push` methods, or the `as` method.
 
+[primer_example_ref]
+
+[h2 Header]
+
 [primer_lua_ref]
 
 [note While `primer::lua_ref` is copyable, copying it is not recommended as it has
