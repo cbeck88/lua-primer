@@ -15,6 +15,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/detail/maybe_int.hpp>
+#include <primer/detail/stack_push_each_helper.hpp>
 #include <primer/traits/push.hpp>
 #include <utility>
 
@@ -44,5 +45,11 @@ constexpr detail::maybe_int stack_space_for_push() {
   return detail::stack_space_needed<::primer::traits::push<T>>::value;
 }
 //]
+
+//[ primer_stack_space_for_push_each
+template <typename... Args>
+constexpr detail::maybe_int stack_space_for_push_each() {
+  return detail::stack_push_each_helper<Args...>::value();
+}
 
 } // end namespace primer

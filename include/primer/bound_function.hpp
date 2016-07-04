@@ -64,6 +64,11 @@ public:
   template <typename... Args>
   expected<void> call_no_ret(Args &&... args) const noexcept {
     if (lua_State * L = ref_.push()) {
+      constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
+      if (estimate && !lua_checkstack(L, *estimate)) {
+        return primer::error("Insufficient stack space: needed ", std::to_string(*estimate));
+      }
+
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_no_ret(L, sizeof...(args));
     } else {
@@ -76,6 +81,11 @@ public:
   template <typename... Args>
   expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
     if (lua_State * L = ref_.push()) {
+      constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
+      if (estimate && !lua_checkstack(L, *estimate)) {
+        return primer::error("Insufficient stack space: needed ", std::to_string(*estimate));
+      }
+
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_one_ret(L, sizeof...(args));
     } else {

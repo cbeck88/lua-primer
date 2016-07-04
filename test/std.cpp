@@ -22,6 +22,7 @@ namespace maybe_int_tests {
 // Static asserts which check the "stack_space_for_push" and read feature
 using primer::stack_space_for_read;
 using primer::stack_space_for_push;
+using primer::stack_space_for_push_each;
 
 //[ primer_example_maybe_int
 using primer::detail::maybe_int;
@@ -79,7 +80,7 @@ static_assert(stack_space_for_push<std::string>(),
               "stack space calculations wrong");
 static_assert(stack_space_for_read<std::string>(),
               "stack space calculations wrong");
-static_assert(*stack_space_for_push<std::string>() == 0,
+static_assert(*stack_space_for_push<std::string>() == 1,
               "stack space calculations wrong");
 static_assert(*stack_space_for_read<std::string>() == 0,
               "stack space calculations wrong");
@@ -88,7 +89,7 @@ static_assert(stack_space_for_push<std::vector<std::string>>(),
               "stack space calculations wrong");
 static_assert(stack_space_for_read<std::vector<std::string>>(),
               "stack space calculations wrong");
-static_assert(*stack_space_for_push<std::vector<std::string>>() == 1,
+static_assert(*stack_space_for_push<std::vector<std::string>>() == 2,
               "stack space calculations wrong");
 static_assert(*stack_space_for_read<std::vector<std::string>>() == 1,
               "stack space calculations wrong");
@@ -97,12 +98,21 @@ static_assert(stack_space_for_push<std::vector<std::vector<std::string>>>(),
               "stack space calculations wrong");
 static_assert(stack_space_for_read<std::vector<std::vector<std::string>>>(),
               "stack space calculations wrong");
-static_assert(*stack_space_for_push<std::vector<std::vector<std::string>>>() == 2,
+static_assert(*stack_space_for_push<std::vector<std::vector<std::string>>>() == 3,
               "stack space calculations wrong");
 static_assert(*stack_space_for_read<std::vector<std::vector<std::string>>>() == 2,
               "stack space calculations wrong");
 
 static_assert(!stack_space_for_push<char>(), "hmm");
+
+static_assert(stack_space_for_push_each<std::string, std::string, std::string>(), "stack space calculations wrong");
+static_assert(3 == *stack_space_for_push_each<std::string, std::string, std::string>(), "stack space calculations wrong");
+
+static_assert(stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(), "stack space calculations wrong");
+static_assert(4 == *stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(), "stack space calculations wrong");
+
+static_assert(stack_space_for_push_each<std::string, std::string, std::vector<std::string>, int>(), "stack space calculations wrong");
+static_assert(4 == *stack_space_for_push_each<std::string, std::string, std::vector<std::string>, int>(), "stack space calculations wrong");
 
 } // end namespace maybe_int_tests
 

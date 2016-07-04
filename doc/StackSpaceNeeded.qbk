@@ -61,4 +61,20 @@ should provide a class member:
 
 if e.g. four additional stack spaces are needed to complete the operation.
 
+[note When defining `primer::traits::push::stack_space_needed`, the value should
+ be the smallest value `X` such that if `lua_checkstack(L, X)` returns true,
+then the push operation will always succed without exausting the stack. This
+value is always at least one -- `push` should always push something at the end,
+even if it is just `nil`. It may be larger for complex objects like containers,
+and may depend on the template parameters in that case.
+
+If you don't define it, it is the same as defining it to "unknown".]
+
+[note When defining `primer::traits::read::stack_space_needed`, the value should
+ be the smallest value `X` such that if `lua_checkstack(L, X)` returns true,
+then the read operation will always succeed without exhausting the stack. This
+value is always at least zero. It may be larger for more complex objects.
+
+If you don't define it, it is the same as defining it to "unknown".]
+
 [endsect]

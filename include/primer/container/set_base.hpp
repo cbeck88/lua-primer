@@ -48,7 +48,7 @@ struct set_push_helper {
     }
   }
   static constexpr detail::maybe_int stack_space_needed{
-    1 + detail::stack_space_needed<traits::push<first_t>>::value};
+    3 + detail::stack_space_needed<traits::push<first_t>>::value};
 };
 
 template <typename M>
