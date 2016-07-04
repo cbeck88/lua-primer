@@ -76,7 +76,7 @@ That is something that we might add in the future.
 
 That being said...
 
-[h4 `std::bad_alloc`]
+[h4 Memory allocation failure]
 
 There are a few known situations in primer that we do things that can cause `std::bad_alloc` to be
 thrown, and don't have proper handling for it. For instance, when constructing a `std::string` from
@@ -87,19 +87,25 @@ The consequences of this can currently include:
 * Primer losing track of objects that it pushed onto the lua stack. If this happens repeatedly, you can run out of space on the lua stack and get a lua panic.
 * An exception being thrown into the adapt mechanism, causing the program to be terminated.
 
-We also don't currently handle properly some errors that can occur when ['lua] runs out of memory.
+Similarly, we don't currently handle properly some errors that can occur when ['lua] runs out of memory.
 For instance, `lua_pushstring` can fail, only in the scenario that lua cannot allocate enough memory.
 This could potentially cause a `longjmp` and the leaking of objects on the C++ stack.
 
-In many game projects, developers don't care about exception-safety in regards to out-of-memory problems.
-They prefer to write a custom allocator, periodically check to see if it is close to running out of memory, and in the
-rest of the code, assume that allocation always succeeds, since this can lead to some performance gain.
+See especially [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual.
+
+In the majority of projects that use the lua C api, the overhead of running essentially all C api calls in protected
+mode is not worth the benefits. Especially in the case of game projects, a `lua_panic` in the face of an out of memory
+error is acceptable -- the developers are likely to install a custom memory allocator anyways, and they may periodically
+check it to see if they are "close" to running out of memory and preempt the situation that way. Then in the rest of the
+code, they run faster since they basically assume that allocation always succeeds.
+
 I believe that for purposes of such projects, primer is essentially working correctly right now in
-regards to exception safety. That is, we *are* correct in the face of exceptions, if we exclude the scenarios in which
-lua or the C++ standard allocator runs out of memory.
+regards to exception safety. That is, we *are* correct in the face of exceptions, if we are permitted to exclude the
+scenarios in which the lua or C++ allocator runs out of memory.
 
 As a long-term goal, we would like to be able to provide correctness even in the face of out-of-memory errors. Perhaps,
-we could add a preprocessor symbol to enable a build which behaves like primer currently does, 
-and the default build will be safe even in the face of `std::bad_alloc`.
+we could add a preprocessor symbol so that primer will attempt to handle `std::bad_alloc` exceptions, and will run C api
+calls in a protected mode so that if lua runs out of memory, we can avoid a panic. However, currently that is not what
+we do.
 
 [endsect]
