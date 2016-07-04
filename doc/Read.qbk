@@ -61,7 +61,7 @@ certain implicit conversions typical of lua.
 [table
   [[Type] [`primer::read`]]
   [[ `primer::truthy`  ] [ Returns value of `lua_toboolean`. Does not fail. ]]
-  [[ `primer::stringy` ] [ Returns value of `lua_tostring` if argument is string or number. Returns result of `__tostring` if metamethod is present. Otherwise fails. ]]
+  [[ `primer::stringy` ] [ Returns value of `lua_tostring` if argument is string or number. Returns result of `__tostring` if metamethod is present and produces a string. Otherwise fails. ]]
   [[ `primer::nil_t`   ] [ Checks `lua_isnoneornil`. ]]
 ]
 
