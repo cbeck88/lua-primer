@@ -877,20 +877,21 @@ void test_vec2i_push() {
   lua_raii L;
 
   luaL_requiref(L, "", &luaopen_base, 1);
-  lua_pop(L, 1);  
+  lua_pop(L, 1);
 
-//[ primer_example_vec2i_push_test
-//` The following code snippet shows how the pushed object looks to lua
+  //[ primer_example_vec2i_push_test
+  //` The following code snippet shows how the pushed object looks to lua
   primer::push(L, vec2i{5, 3});
-  luaL_loadstring(L, "v = ...                          \n"
-                     "assert(type(v) == 'table')       \n"
-                     "assert(v[1] == 5)                \n"
-                     "assert(v[2] == 3)                \n"
-                     "assert(#v == 2)                  \n");
+  luaL_loadstring(L,
+                  "v = ...                          \n"
+                  "assert(type(v) == 'table')       \n"
+                  "assert(v[1] == 5)                \n"
+                  "assert(v[2] == 3)                \n"
+                  "assert(#v == 2)                  \n");
 
-  lua_insert(L, -2);
+  lua_insert(L, -2); // put script beneath argument when using pcall
   assert(LUA_OK == lua_pcall(L, 1, 0, 0));
-//]
+  //]
 }
 
 
@@ -907,7 +908,8 @@ struct read<vec2i> {
     expected<vec2i> result;
 
     if (!lua_istable(L, index)) {
-      result = primer::error("Expected a table, found ", primer::describe_lua_value(L, index));
+      result = primer::error("Expected a table, found ",
+                             primer::describe_lua_value(L, index));
     } else {
       lua_rawgeti(L, index, 1);
       expected<int> t1 = read<int>::from_stack(L, -1);
@@ -941,15 +943,25 @@ struct read<vec2i> {
 A few things to note about this code:
 
 
-* The returned local variable is declared at the top, and only one return statement exists, at the end. This ensures that named return value optimization can take place.
+* The returned local variable is declared at the top, and only one return
+statement exists, at the end. This ensures that named return value optimization
+can take place.
 
-* We avoid using the stack excessively. When a new value is pushed onto the stack using `lua_rawgeti`, we read it immediately and then pop it. This means we need only one extra stack space rather than two.
+* We avoid using the stack excessively. When a new value is pushed onto the
+stack using `lua_rawgeti`, we read it immediately and then pop it. This means we
+need only one extra stack space rather than two.
 
-* One consequence of this is that we don't need to worry about the case that `index` is negative. In general, one can use `lua_absindex` to convert negative indices to positive indices. If the top of the stack is changing, then this may be necessary for correctness.
+* One consequence of this is that we don't need to worry about the case that
+`index` is negative. In general, one can use `lua_absindex` to convert negative
+indices to positive indices. If the top of the stack is changing, then this may
+be necessary for correctness.
 
-* The `primer::error` constructor can take any number of strings, and concatenates them together. `primer::describe_lua_value` is used to generate a diagnostic message describing a value on the stack.
+* The `primer::error` constructor can take any number of strings, and
+concatenates them together. `primer::describe_lua_value` is used to generate a
+diagnostic message describing a value on the stack.
 
-* The `primer::error` member function `prepend_error_line` is used to give context to errors reported by subsidiary operations.
+* The `primer::error` member function `prepend_error_line` is used to give
+context to errors reported by subsidiary operations.
 
 */
 //]
@@ -958,17 +970,18 @@ A few things to note about this code:
 void test_vec2i_read() {
   lua_raii L;
 
-//[ primer_example_vec2i_read_test
-//` The following code snippet shows how this looks from lua's point of view
+  //[ primer_example_vec2i_read_test
+  //` The following code snippet shows how this looks from lua's point of view
   luaL_loadstring(L, "return {7, 4}");
   assert(LUA_OK == lua_pcall(L, 0, 1, 0));
-  assert(lua_gettop(L) == 1);
+  assert(lua_gettop(L) == 1); // the table is now on top of the stack
+  assert(lua_istable(L, 1));
 
   auto result = primer::read<vec2i>(L, 1);
   assert(result);
   assert(result->x == 7);
   assert(result->y == 4);
-//]
+  //]
 }
 
 
