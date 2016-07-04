@@ -3,8 +3,6 @@
 #include <cassert>
 #include <string>
 
-//[ example_expected
-
 using primer::expected;
 
 expected<std::string> foo(expected<int> e) {
@@ -31,5 +29,3 @@ int main() {
   assert(!result3);
   assert(result3.err_str() == "404");
 }
-
-//]

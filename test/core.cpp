@@ -8,8 +8,40 @@
 #include <primer/support/function.hpp>
 
 #include "test_harness.hpp"
+#include <cassert>
 #include <iostream>
 #include <string>
+
+namespace {
+//[ primer_expected_example
+using primer::expected;
+
+expected<std::string> foo(expected<int> e) {
+  if (e) {
+    if (*e >= 7) {
+      return std::string{"woof!"};
+    } else {
+      return primer::error{"bad doggie!"};
+    }
+  } else {
+    return e.err();
+  }
+}
+
+void test_primer_expected() {
+  auto result = foo(6);
+  assert(!result);
+
+  auto result2 = foo(7);
+  assert(result2);
+  assert(*result2 == "woof!");
+
+  auto result3 = foo(primer::error("404"));
+  assert(!result3);
+  assert(result3.err_str() == "404");
+}
+//]
+} // end anonymous namespace
 
 template <typename T>
 void test_push_type(lua_State * L, T t, int expected, int line) {
@@ -810,6 +842,7 @@ int main() {
 
   std::cout << "Core tests:" << std::endl;
   test_harness tests{
+    {"primer expected", &test_primer_expected},
     {"push type simple values", &push_type_simple},
     {"roundtrip simple values", &roundtrip_simple},
     {"simple type safety", &typesafe_simple},

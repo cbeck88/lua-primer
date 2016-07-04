@@ -17,7 +17,7 @@ The error is accessed by reference using member function `err()`.
 
 Example:
 
-[example_expected]
+[primer_expected_example]
 
 Here's a peek at the header file.
 
