@@ -115,10 +115,13 @@
         </p>
 <p>
           To disable the safety checks, you can define <code class="computeroutput"><span class="identifier">PRIMER_NO_STATIC_ASSERTS</span></code>.
-          You should only do this if you have an old compiler and cannot upgrade.
+          You should only do this if you have an old compiler and cannot upgrade,
+          <span class="emphasis"><em>and the assertions are in fact true</em></span>, just not annotated
+          appropriately in your standard library headers.
         </p>
 <p>
-          In general the failure of these assumptions can lead to undefined behavior.
+          In general the failure of the conditions checked by these assertions can
+          lead to undefined behavior.
         </p>
 </td></tr>
 </table></div>
