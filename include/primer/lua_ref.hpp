@@ -28,11 +28,12 @@ namespace primer {
 
 //[ primer_lua_ref
 class lua_ref {
-  lua_state_ref sref_; /*< A weak reference to a lua state. See
-                           `<primer/detail/lua_state_ref.hpp>` for details. >*/
-  mutable int iref_;   /*< Holds the registry index to the object.
-                           Mutable because, if `sref_` becomes empty, we want to
-                           set `iref_` to `LUA_NOREF` immediately. >*/
+  /*<< A weak reference to a lua state.
+       See `<primer/detail/lua_state_ref.hpp>` for details. >>*/
+  lua_state_ref sref_;
+  /*<< Holds the registry index to the object. Mutable because, if `sref_`
+       becomes empty, we want to set `iref_` to `LUA_NOREF` immediately. >>*/
+  mutable int iref_;
 
   //<-
 
@@ -105,22 +106,18 @@ public:
   }
 
   // Primary constructor
-  explicit lua_ref(lua_State * L) noexcept /*<
-    Pops an object from the top of given stack, and binds to it. If no object is
-    on top, enters the empty state. >*/
-  {
-    this->init(L);
-  }
+  /*<< Pops an object from the top of given stack, and binds to it. If no
+       object is on top, enters the empty state. >>*/
+  explicit lua_ref(lua_State * L) noexcept { this->init(L); }
 
 
   // Push to main stack
-  lua_State * push() const noexcept /*<
-        Attempts to push the object to the top of the primary stack of the state
-        used to create this lua_ref.
-        Returns a (valid) `lua_State *` if successfully locked.
-        Returns nullptr if that VM is closed, or if we are in the empty state.
-      >*/
-  {
+  /*<< Attempts to push the object to the top of the primary stack of the state
+       used to create this lua_ref.
+       Returns a (valid) `lua_State *` if successfully locked.
+       Returns nullptr if that VM is closed, or if we are in the empty state.
+      >>*/
+  lua_State * push() const noexcept {
     if (lua_State * L = this->check_engaged()) {
       lua_rawgeti(L, LUA_REGISTRYINDEX, iref_);
       return L;
@@ -129,20 +126,19 @@ public:
   }
 
   // Push to a thread stack
-  bool push(lua_State * T) const noexcept /*<
-         Attempts to push the object onto the top of a given *thread stack*.
-         It *must* be a thread in the same VM as the original stack, or the same
-         as the original stack.
+  /*<< Attempts to push the object onto the top of a given ['thread stack].
+       It *must* be a thread in the same VM as the original stack, or the same
+       as the original stack.
 
-         Returns true if push was successful, returns false and pushes nil to
-         the given stack if the original VM is gone.
+       Returns true if push was successful, returns false and pushes nil to
+       the given stack if the original VM is gone.
 
-         N.B. If you try to push onto a stack from another lua VM, undefined and
-         unspecified behavior will result. If PRIMER_DEBUG is defined, then
-         primer will check for this and call std::abort if it finds that you
-         broke this rule. If PRIMER_DEBUG is not defined... very bad things are
-         likely to happen, including stack corruption of lua VMs. >*/
-  {
+       N.B. If you try to push onto a stack from another lua VM, undefined and
+       unspecified behavior will result. If PRIMER_DEBUG is defined, then
+       primer will check for this and call std::abort if it finds that you
+       broke this rule. If PRIMER_DEBUG is not defined... very bad things are
+       likely to happen, including stack corruption of lua VMs. >>*/
+  bool push(lua_State * T) const noexcept {
     if (lua_State * L = this->check_engaged()) {
 #ifdef PRIMER_DEBUG
       // This causes a lua_assert failure if states are unrelated
@@ -159,25 +155,20 @@ public:
     }
   }
 
-  void reset() noexcept /*<
-    Releases the lua reference, reverts to empty state. >*/
-  {
-    this->release();
-  }
+  /*<< Releases the lua reference, reverts to empty state. >>*/
+  void reset() noexcept { this->release(); }
 
 
   // operator bool
-  explicit operator bool() const noexcept /*<
-    Test if we are not in the empty state and can still be locked. >*/
-  {
+  /*<< Test if we are not in the empty state and can still be locked. >>*/
+  explicit operator bool() const noexcept {
     return static_cast<bool>(this->check_engaged());
   }
 
   // Try to interpret the value as a specific C++ type
+  /*<< Attempt to cast the lua value to a C++ value, using primer::read >>*/
   template <typename T>
-  expected<T> as() const noexcept /*<
-    Attempt to cast the lua value to a C++ value, using primer::read >*/
-  {
+  expected<T> as() const noexcept {
     if (lua_State * L = this->push()) {
       expected<T> result{primer::read<T>(L, -1)};
       lua_pop(L, 1);

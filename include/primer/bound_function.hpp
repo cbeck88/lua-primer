@@ -57,10 +57,9 @@ public:
   void reset() noexcept { ref_.reset(); }
 
   // Call methods
+  /*<< Calls the function, discards any return values. (But not errors.) >>*/
   template <typename... Args>
-  expected<void> call_no_ret(Args &&... args) const noexcept /*<
-    Calls the function, discards an return values. (But not errors.) >*/
-  {
+  expected<void> call_no_ret(Args &&... args) const noexcept {
     if (lua_State * L = ref_.push()) {
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_no_ret(L, sizeof...(args));
@@ -69,11 +68,10 @@ public:
     }
   }
 
+  /*<< Calls the function, returns a ref to the ['first] return value.
+    (Or an error.) Discards any others. >>*/
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args &&... args) const noexcept /*<
-    Calls the function, returns a reference to the first return value.
-    (Or an error.) >*/
-  {
+  expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
     if (lua_State * L = ref_.push()) {
       primer::push_each(L, std::forward<Args>(args)...);
       return primer::fcn_call_one_ret(L, sizeof...(args));

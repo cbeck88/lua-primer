@@ -93,10 +93,10 @@ public:
   }
 
 
+  /*<< Calls or resumes the coroutine, discards return values.
+       (But not errors.)>>*/
   template <typename... Args>
-  expected<void> call_no_ret(Args &&... args) noexcept /*<
-    Calls or resumes the coroutine, discards return values. (But not errors.)>*/
-  {
+  expected<void> call_no_ret(Args &&... args) noexcept {
     expected<void> result;
 
     if (thread_stack_ && ref_) {
@@ -114,10 +114,9 @@ public:
     return result;
   }
 
+  /*<< Calls or resumes the coroutine, returns one value, or an error >>*/
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args &&... args) noexcept /*<
-   Calls or resumes the coroutine, returns one value, or an error >*/
-  {
+  expected<lua_ref> call_one_ret(Args &&... args) noexcept {
     expected<lua_ref> result;
 
     if (thread_stack_ && ref_) {
@@ -135,13 +134,11 @@ public:
     return result;
   }
 
-  explicit operator bool() const noexcept {
-    return thread_stack_ && ref_;
-  } /*<
-Check if the coroutine is valid to call >*/
+  /*<< Check if the coroutine is valid to call >>*/
+  explicit operator bool() const noexcept { return thread_stack_ && ref_; }
 
-  void reset() noexcept /*< Reset to the empty state >*/
-  {
+  /*<< Reset to the empty state >>*/
+  void reset() noexcept {
     ref_.reset();
     thread_stack_ = nullptr;
   }

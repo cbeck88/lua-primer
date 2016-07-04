@@ -35,18 +35,19 @@ public:
   ~error() = default;
 
   // Helper constructor
+  /*<< This constructor takes a sequence of strings or string literals and
+      concatenates them to form the message. >>*/
   template <typename... Args>
-  explicit error(Args &&... args) /*< This constructor takes a sequence of
-                                     strings or string literals and concatenates
-                                     them to form the message. >*/
-    : msg_(primer::detail::str_cat(std::forward<Args>(args)...)) {}
+  explicit error(Args &&... args)
+    : msg_(primer::detail::str_cat(std::forward<Args>(args)...))
+  {}
 
   // Help to give context to errors
+  /*<< This method can be used to give context to errors. It takes a sequence of
+      strings and concatenates them on their own line to the front of the error
+      message. >>*/
   template <typename... Args>
-  error & prepend_error_line(Args &&... args) /*< This method can be used to
-      give context to errors. It takes a sequence of strings and concatenates
-      them on their own line to the front of the error message. >*/
-  {
+  error & prepend_error_line(Args &&... args) {
     msg_ = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_;
     return *this;
   }

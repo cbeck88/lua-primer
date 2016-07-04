@@ -17,7 +17,7 @@ It abstracts away the details of manipulating thread stacks. Not all uses of cor
 The coroutine can be called again and again, provided that it yields each time. After it returns or produces an error, it goes to an
 empty state and needs to be recreated from a `primer::bound_function`.
 
-[caution lua thread's have nothing to do with operating system threads, it an unfortunate name collision.
+[caution lua threads have nothing to do with operating system threads, it an unfortunate name collision.
 
  Lua is not thread-safe, and coroutines are not a way to make it thread-safe somehow.]
 

@@ -194,11 +194,10 @@ public:
 
   // Conversions from other `expected` types
 
+  /*<< When `U` is convertible to `T`, we allow converting `expected<U>`
+       to `expected<T>`. >>*/
   template <typename U>
-  expected(const expected<U> & u) /*< When `U` is convertible to `T`, we allow
-                                      converting `expected<U>` to `expected<T>`.
-                                    >*/
-  {
+  expected(const expected<U> & u) {
     this->init_from_const_ref(u);
   }
 
@@ -223,20 +222,15 @@ public:
   // Additional constructors
   explicit expected(default_construct_in_place_tag) { this->init_ham(); }
 
-  expected(const T & t) { /*< Implicitly construct from T >*/
-    this->init_ham(t);
-  }
+  /*<< Implicitly construct from T >>*/
+  expected(const T & t) { this->init_ham(t); }
 
   expected(T && t) noexcept { this->init_ham(std::move(t)); }
 
-  expected(const primer::error & e) /*< Implicitly construct from
-                                        `primer::error`. This is to make it so
-                                        that we can simply return
-                                        `primer::error` from functions that
-                                        return `expected<T>`. >*/
-  {
-    this->init_spam(e);
-  }
+  /*<< Implicitly construct from `primer::error`. This is to make it so that we
+  can simply return `primer::error` from functions that return `expected<T>`.
+  >>*/
+  expected(const primer::error & e) { this->init_spam(e); }
 
   expected(primer::error && e) noexcept { this->init_spam(std::move(e)); }
 };
@@ -330,12 +324,11 @@ public:
   expected & operator=(expected &&) = default;
 
   // Additional Constructors
-  expected(const primer::error & e) /*< Allow implicit conversion from
-                                       `primer::error`, so we can return those
-                                       from functions that return
-                                       `expected<void>`. >*/
-    : no_error_(false),
-      error_(e) //
+  /*<< Allow implicit conversion from `primer::error`, so we can return those
+      from functions that return `expected<void>`. >>*/
+  expected(const primer::error & e)
+    : no_error_(false)
+    , error_(e) //
   {}
 
   expected(primer::error && e) noexcept : no_error_(false),
