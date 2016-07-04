@@ -14,9 +14,9 @@ Primer responds to a few configuration defines:
 
 However, if you are using an old compiler with an old version of the standard library, crucial constructors for objects like `std::string` are not marked `noexcept` which means that these assertions fail. In such a scenario, you cannot compile and cannot easily work around the problem.
 
-To disable the safety checks, you can define `PRIMER_NO_STATIC_ASSERTS`. You should only do this if you have an old compiler and cannot upgrade.
+To disable the safety checks, you can define `PRIMER_NO_STATIC_ASSERTS`. You should only do this if you have an old compiler and cannot upgrade, ['and the assertions are in fact true], just not annotated appropriately in your standard library headers.
 
-In general the failure of these assumptions can lead to undefined behavior.]
+In general the failure of the conditions checked by these assertions can lead to undefined behavior.]
 
 To enable these, you can add them in your build system, define them in your source files before including primer, or uncomment them in the `<primer/base.hpp>` source.
 
