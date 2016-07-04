@@ -48,18 +48,18 @@ struct maybe_number {
 
   constexpr explicit maybe_number(int v) noexcept : value(v), unknown(false) {}
 
-  constexpr int operator *() noexcept const { return value; }
-  constexpr explicit operator bool() noexcept const { return !unknown; }
+  constexpr int operator *() const noexcept { return value; }
+  constexpr explicit operator bool() const noexcept { return !unknown; }
 
-  // Left associate
+  // Right associate
   template <typename F>
-  static constexpr maybe_number left_associate(F &&, maybe_number a) {
+  static constexpr maybe_number right_associate(F &&, maybe_number a) {
     return a;
   }
 
   template <typename F, typename... Args>
-  static constexpr maybe_number left_associate(F && f, maybe_number a, Args && ... args) {
-    return std::forward<F>(f)(a, left_associate(std::forward<F>(f), std::forward<Args>(args)...));
+  static constexpr maybe_number right_associate(F && f, maybe_number a, Args && ... args) {
+    return std::forward<F>(f)(a, right_associate(std::forward<F>(f), std::forward<Args>(args)...));
   }
 
   // Lift
@@ -82,19 +82,19 @@ struct maybe_number {
   // Add
     template<typename... Args>
   static constexpr maybe_number add(Args && ... args) noexcept {
-    return left_associate(lift(add_int), std::forward<Args>(args)...);
+    return right_associate(lift(add_int), std::forward<Args>(args)...);
   }
 
   // Max
   template<typename... Args>
   static constexpr maybe_number max(Args && ... args) noexcept {
-    return left_associate(lift(max_int), std::forward<Args>(args)...);
+    return right_associate(lift(max_int), std::forward<Args>(args)...);
   }
 
   // Min
   template <typename... Args>
   static constexpr maybe_number min(Args && ... args) noexcept {
-    return left_associate(lift(min_int), std::forward<Args>(args)...);
+    return right_associate(lift(min_int), std::forward<Args>(args)...);
   }
 
   // For convenience
