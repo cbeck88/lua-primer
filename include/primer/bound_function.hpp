@@ -57,6 +57,9 @@ public:
   void reset() noexcept { ref_.reset(); }
 
   // Call methods
+  // These methods attempt to lock the state which holds the lua function,
+  // and perform the call there. They clean up after themselves and leave the
+  // stack as they found it afterwards.
   /*<< Calls the function, discards any return values. (But not errors.) >>*/
   template <typename... Args>
   expected<void> call_no_ret(Args &&... args) const noexcept {
