@@ -10,6 +10,8 @@
 [import ../include/primer/coroutine.hpp]
 [import ../include/primer/support/types.hpp]
 
+[import ../test/examples/expected.cpp]
+
 The core features of primer are general-purpose lua binding facilities.
 
 They do not rely on *lua eris*, and can be useful in an application which only

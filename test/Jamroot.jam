@@ -87,6 +87,11 @@ exe std : std.cpp lualib : $(FLAGS) ;
 
 install install-bin : core visitable std : $(INSTALL_LOC) ;
 
+# Examples
+
+exe example-expected : examples/expected.cpp lualib : $(FLAGS) ;
+install install-examples : example-expected : $(INSTALL_LOC) ;
+
 # Persistence tests...
 if $(HAVE_ERIS) {
   exe api : api.cpp lualib : $(FLAGS) ;
