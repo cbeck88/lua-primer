@@ -414,6 +414,20 @@
 <span class="special">}</span> <span class="comment">// end namespace traits</span>
 <span class="special">}</span> <span class="comment">// end namespace primer</span>
 </pre>
+<p>
+          The following code snippet shows how the pushed object looks to lua
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">vec2i</span><span class="special">{</span><span class="number">5</span><span class="special">,</span> <span class="number">3</span><span class="special">});</span>
+<span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span>
+                <span class="string">"v = ...                          \n"</span>
+                <span class="string">"assert(type(v) == 'table')       \n"</span>
+                <span class="string">"assert(v[1] == 5)                \n"</span>
+                <span class="string">"assert(v[2] == 3)                \n"</span>
+                <span class="string">"assert(#v == 2)                  \n"</span><span class="special">);</span>
+
+<span class="identifier">lua_insert</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">);</span> <span class="comment">// put script beneath argument when using pcall</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

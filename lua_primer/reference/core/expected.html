@@ -47,7 +47,9 @@
 <p>
           Example:
         </p>
-<pre class="programlisting"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
+<pre class="programlisting"><span class="keyword">using</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">;</span>
+
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
   <span class="keyword">if</span> <span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">if</span> <span class="special">(*</span><span class="identifier">e</span> <span class="special">&gt;=</span> <span class="number">7</span><span class="special">)</span> <span class="special">{</span>
       <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="string">"woof!"</span><span class="special">};</span>
@@ -59,16 +61,18 @@
   <span class="special">}</span>
 <span class="special">}</span>
 
-<span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">6</span><span class="special">);</span>
-<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">test_primer_expected</span><span class="special">()</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">6</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result</span><span class="special">);</span>
 
-<span class="keyword">auto</span> <span class="identifier">result2</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">7</span><span class="special">);</span>
-<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result2</span><span class="special">);</span>
-<span class="identifier">assert</span><span class="special">(*</span><span class="identifier">result2</span> <span class="special">==</span> <span class="string">"woof!"</span><span class="special">);</span>
+  <span class="keyword">auto</span> <span class="identifier">result2</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">7</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result2</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(*</span><span class="identifier">result2</span> <span class="special">==</span> <span class="string">"woof!"</span><span class="special">);</span>
 
-<span class="keyword">auto</span> <span class="identifier">result3</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"404"</span><span class="special">));</span>
-<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result3</span><span class="special">);</span>
-<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">()</span> <span class="special">==</span> <span class="string">"404"</span><span class="special">);</span>
+  <span class="keyword">auto</span> <span class="identifier">result3</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"404"</span><span class="special">));</span>
+  <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result3</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">()</span> <span class="special">==</span> <span class="string">"404"</span><span class="special">);</span>
+<span class="special">}</span>
 </pre>
 <p>
           Here's a peek at the header file.

@@ -54,6 +54,10 @@
 
   <span class="comment">// Accessor</span>
   <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">msg_</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="comment">// Used in case of `std::bad_alloc`</span>
+  <span class="comment">// Hoping for small-string optimization here...</span>
+  <span class="keyword">static</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="identifier">bad_alloc</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"bad_alloc"</span><span class="special">);</span> <span class="special">}</span>
 <span class="special">};</span>
 </pre>
 <div class="calloutlist"><table border="0" summary="Callout list">

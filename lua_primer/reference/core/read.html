@@ -325,7 +325,7 @@
                   <p>
                     Returns value of <code class="computeroutput"><span class="identifier">lua_tostring</span></code>
                     if argument is string or number. Returns result of <code class="computeroutput"><span class="identifier">__tostring</span></code> if metamethod is
-                    present. Otherwise fails.
+                    present and produces a string. Otherwise fails.
                   </p>
                 </td>
 </tr>
@@ -397,12 +397,13 @@
 <span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
 
 <span class="keyword">template</span> <span class="special">&lt;&gt;</span>
-<span class="keyword">struct</span> <span class="identifier">read</span><span class="special">&lt;&gt;</span> <span class="special">{</span>
+<span class="keyword">struct</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;</span> <span class="special">{</span>
   <span class="keyword">static</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;</span> <span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
 
     <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">lua_istable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">))</span> <span class="special">{</span>
-      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Expected a table, found "</span><span class="special">,</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">describe_lua_value</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">));</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Expected a table, found "</span><span class="special">,</span>
+                             <span class="identifier">primer</span><span class="special">::</span><span class="identifier">describe_lua_value</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">));</span>
     <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
       <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
       <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">t1</span> <span class="special">=</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
@@ -414,7 +415,7 @@
       <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
 
         <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
-        <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">t2</span> <span class="special">=</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">));</span>
+        <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">t2</span> <span class="special">=</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
         <span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
 
         <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">t2</span><span class="special">)</span> <span class="special">{</span>
@@ -466,6 +467,19 @@
               context to errors reported by subsidiary operations.
             </li>
 </ul></div>
+<p>
+          The following code snippet shows how this looks from lua's point of view
+        </p>
+<pre class="programlisting"><span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"return {7, 4}"</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span> <span class="comment">// the table is now on top of the stack</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_istable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">));</span>
+
+<span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">-&gt;</span><span class="identifier">x</span> <span class="special">==</span> <span class="number">7</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">-&gt;</span><span class="identifier">y</span> <span class="special">==</span> <span class="number">4</span><span class="special">);</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

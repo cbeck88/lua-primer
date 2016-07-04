@@ -34,16 +34,15 @@
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-            c.f. <a href="http://lua-users.org/lists/lua-l/2007-10/msg00473.html" target="_top">http://lua-users.org/lists/lua-l/2007-10/msg00473.html</a>
-            lua mailing list
+            c.f. <a href="http://lua-users.org/lists/lua-l/2007-10/msg00473.html" target="_top">lua
+            mailing list</a>
           </li>
 <li class="listitem">
-            c.f. <a href="http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus" target="_top">http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus</a>
-            lua users wiki
+            c.f. <a href="http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus" target="_top">lua
+            users wiki</a>
           </li>
 <li class="listitem">
-            c.f. <a href="http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua" target="_top">http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua</a>
-            stackoverflow
+            c.f. <a href="http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua" target="_top">stackoverflow</a>
           </li>
 </ul></div>
 <p>
@@ -166,7 +165,8 @@
       </p>
 <h5>
 <a name="lua_primer.overview.exception_safety.h3"></a>
-        <span><a name="lua_primer.overview.exception_safety.std_bad_alloc"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.std_bad_alloc"><code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code></a>
+        <span><a name="lua_primer.overview.exception_safety.memory_allocation_failure"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.memory_allocation_failure">Memory
+        allocation failure</a>
       </h5>
 <p>
         There are a few known situations in primer that we do things that can cause
@@ -190,27 +190,42 @@
           </li>
 </ul></div>
 <p>
-        We also don't currently handle properly some errors that can occur when
-        <span class="emphasis"><em>lua</em></span> runs out of memory. For instance, <code class="computeroutput"><span class="identifier">lua_pushstring</span></code> can fail, only in the scenario
+        Similarly, we don't currently handle properly some errors that can occur
+        when <span class="emphasis"><em>lua</em></span> runs out of memory. For instance, <code class="computeroutput"><span class="identifier">lua_pushstring</span></code> can fail, only in the scenario
         that lua cannot allocate enough memory. This could potentially cause a <code class="computeroutput"><span class="identifier">longjmp</span></code> and the leaking of objects on the
         C++ stack.
       </p>
 <p>
-        In many game projects, developers don't care about exception-safety in regards
-        to out-of-memory problems. They prefer to write a custom allocator, periodically
-        check to see if it is close to running out of memory, and in the rest of
-        the code, assume that allocation always succeeds, since this can lead to
-        some performance gain. I believe that for purposes of such projects, primer
-        is essentially working correctly right now in regards to exception safety.
-        That is, we <span class="bold"><strong>are</strong></span> correct in the face of exceptions,
-        if we exclude the scenarios in which lua or the C++ standard allocator runs
-        out of memory.
+        See especially <a href="https://www.lua.org/pil/24.3.html" target="_top">here</a>
+        and <a href="https://www.lua.org/pil/24.3.1.html" target="_top">here</a> in the
+        manual.
+      </p>
+<p>
+        In the majority of projects that use the lua C api, the overhead of running
+        essentially all C api calls in protected mode is not worth the benefits.
+        Especially in the case of game projects, a <code class="computeroutput"><span class="identifier">lua_panic</span></code>
+        in the face of an out of memory error is acceptable -- the developers are
+        likely to install a custom memory allocator anyways, and they may periodically
+        check it to see if they are "close" to running out of memory and
+        preempt the situation that way. Then in the rest of the code, they run faster
+        since they basically assume that allocation always succeeds.
+      </p>
+<p>
+        I believe that for purposes of such projects, primer is essentially working
+        correctly right now in regards to exception safety. That is, we <span class="bold"><strong>are</strong></span> correct in the face of exceptions, if we are permitted
+        to exclude the scenarios in which the lua or C++ allocator runs out of memory.
       </p>
 <p>
         As a long-term goal, we would like to be able to provide correctness even
         in the face of out-of-memory errors. Perhaps, we could add a preprocessor
-        symbol to enable a build which behaves like primer currently does, and the
-        default build will be safe even in the face of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+        symbol so that primer will attempt to handle <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>
+        exceptions, and will run C api calls in a protected mode so that if lua runs
+        out of memory, we can avoid a panic. However, currently that is not what
+        we do.
+      </p>
+<p>
+        There is an experimental branch <code class="computeroutput"><span class="identifier">primer_handle_bad_alloc</span></code>
+        which contains some partial progress towards this.
       </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
