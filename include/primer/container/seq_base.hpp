@@ -91,8 +91,7 @@ struct read_seq_helper {
           result->emplace_back(std::move(*object));
         } else {
           result = std::move(object.err());
-          result.err().prepend_error_line("In index [", std::to_string(i + 1),
-                                          "],");
+          result.err().prepend_error_line("In index [", i + 1, "],");
         }
         lua_pop(L, 1);
       }
@@ -130,8 +129,7 @@ struct read_fixed_seq_helper {
     {
       int m = lua_rawlen(L, idx);
       if (m > n) {
-        result = primer::error{"Too many elements, found ", std::to_string(m),
-                               " expected ", std::to_string(n)};
+        result = primer::error{"Too many elements, found ", m, " expected ", n};
       }
     }
 
@@ -140,9 +138,8 @@ struct read_fixed_seq_helper {
       if (auto object = traits::read<value_type>::from_stack(L, -1)) {
         detail::move_assign_noexcept((*result)[i], std::move(*object));
       } else {
-        result = std::move(
-          object.err().prepend_error_line("In index [", std::to_string(i + 1),
-                                          "],"));
+        result =
+          std::move(object.err().prepend_error_line("In index [", i + 1, "],"));
       }
       lua_pop(L, 1);
     }

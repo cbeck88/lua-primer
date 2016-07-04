@@ -102,8 +102,7 @@ public:
     if (thread_stack_ && ref_) {
       constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
       if (estimate && !lua_checkstack(thread_stack_, *estimate)) {
-        return primer::error("Insufficient stack space: needed ",
-                             std::to_string(*estimate));
+        return primer::error("Insufficient stack space: needed ", *estimate);
       }
 
       int error_code;
@@ -128,8 +127,7 @@ public:
     if (thread_stack_ && ref_) {
       constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
       if (estimate && !lua_checkstack(thread_stack_, *estimate)) {
-        return primer::error("Insufficient stack space: needed ",
-                             std::to_string(*estimate));
+        return primer::error("Insufficient stack space: needed ", *estimate);
       }
 
 

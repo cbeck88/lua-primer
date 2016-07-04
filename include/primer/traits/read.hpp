@@ -97,7 +97,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
       LUA_INTEGER i = lua_tointeger(L, idx);
       if (i > std::numeric_limits<T>::max() ||
           i < std::numeric_limits<T>::min()) {
-        return primer::error{"Integer overflow occurred: ", std::to_string(i)};
+        return primer::error{"Integer overflow occurred: ", i};
       }
       return static_cast<T>(i);
     } else {
@@ -116,8 +116,7 @@ struct unsigned_read_helper {
     auto maybe = read<T>::from_stack(L, idx);
 
     if (maybe && *maybe < 0) {
-      maybe = primer::error{"Expected nonnegative integer, found ",
-                            std::to_string(*maybe)};
+      maybe = primer::error{"Expected nonnegative integer, found ", *maybe};
     }
 
     // implicit conversion to expected<unsigned T> here, in expected ctor
