@@ -424,15 +424,26 @@ namespace traits {
 template <>
 struct userdata<userdata_test> {
   static constexpr const char * name = "userdata_test_type";
-  static constexpr const luaL_Reg * const methods =
+  static constexpr const luaL_Reg * const metatable =
     static_cast<const luaL_Reg *>(method_list);
 };
 
 } // end namespace traits
 } // end namespace primer
 
+static_assert(primer::detail::is_L_Reg_ptr<const luaL_Reg *>::value,
+              "is_L_Reg_ptr test not working");
+
+static_assert(primer::detail::is_L_Reg_ptr<const luaL_Reg * const>::value,
+              "is_L_Reg_ptr test not working");
+
+static_assert(primer::detail::is_L_Reg_ptr<decltype(primer::traits::userdata<userdata_test>::metatable)>::value,
+              "is_L_Reg_ptr test not working");
+
 static_assert(primer::traits::is_userdata<userdata_test>::value,
               "our test userdata type did not count as userdata!");
+static_assert(primer::detail::metatable<userdata_test>::value == 2,
+              "primer didn't recognize our userdata methods!");
 
 void test_userdata() {
   lua_raii L;
@@ -543,7 +554,7 @@ namespace traits {
 template <>
 struct userdata<vec2_test> {
   static constexpr const char * name = "vec2";
-  static constexpr const luaL_Reg * const methods =
+  static constexpr const luaL_Reg * const metatable =
     static_cast<const luaL_Reg * const>(vec2_methods);
 };
 
@@ -552,6 +563,8 @@ struct userdata<vec2_test> {
 
 static_assert(primer::traits::is_userdata<vec2_test>::value,
               "our test userdata type did not count as userdata!");
+static_assert(primer::detail::metatable<vec2_test>::value == 2,
+              "primer didn't recognize our userdata methods!");
 
 primer::result vec2_ctor(lua_State * L, float x, float y) {
   primer::push_udata<vec2_test>(L, x, y);

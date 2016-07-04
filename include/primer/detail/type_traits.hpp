@@ -12,7 +12,6 @@
 #include <type_traits>
 
 namespace primer {
-namespace traits {
 
 template <typename T>
 using remove_cv_t = typename std::remove_cv<T>::type;
@@ -26,5 +25,4 @@ using remove_pointer_t = typename std::remove_pointer<T>::type;
 template <bool b, typename V = void>
 using enable_if_t = typename std::enable_if<b, V>::type;
 
-} // end namespace traits
 } // end namespace primer

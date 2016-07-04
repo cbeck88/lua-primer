@@ -20,7 +20,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/userdata.hpp>
 #include <primer/detail/maybe_int.hpp>
 #include <primer/traits/is_userdata.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/types.hpp>
 

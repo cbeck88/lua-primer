@@ -21,7 +21,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 
 #include <utility>
 

@@ -60,7 +60,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 
 #include <type_traits>
 
@@ -113,28 +113,28 @@ struct on_serialize_visitor {
   lua_State * L;
 
   template <typename H, typename T>
-  traits::enable_if_t<H::target_type::is_serial> visit_type(T & t) {
+  enable_if_t<H::target_type::is_serial> visit_type(T & t) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     H::get_target(t).on_serialize(L);
     lua_setfield(L, -2, H::get_name_func()());
   }
 
   template <typename H, typename T>
-  traits::enable_if_t<!H::target_type::is_serial> visit_type(T &) {}
+  enable_if_t<!H::target_type::is_serial> visit_type(T &) {}
 };
 
 struct on_deserialize_visitor {
   lua_State * L;
 
   template <typename H, typename T>
-  traits::enable_if_t<H::target_type::is_serial> visit_type(T & t) {
+  enable_if_t<H::target_type::is_serial> visit_type(T & t) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     lua_getfield(L, -2, H::get_name_func()());
     H::get_target(t).on_deserialize(L);
   }
 
   template <typename H, typename T>
-  traits::enable_if_t<!H::target_type::is_serial> visit_type(T &) {}
+  enable_if_t<!H::target_type::is_serial> visit_type(T &) {}
 };
 
 } // end namespace api

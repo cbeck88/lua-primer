@@ -11,7 +11,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 #include <primer/support/userdata.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/detail/nothrow_newable.hpp>
 
 #include <new>
@@ -30,7 +30,7 @@ T * test_udata(lua_State * L, int idx) {
 /// Create a userdata of the given type on the stack, using perfect forwarding.
 template <typename T, typename... Args>
 auto push_udata(lua_State * L, Args &&... args)
-  -> traits::enable_if_t<detail::nothrow_newable<T, Args...>::value> {
+  -> enable_if_t<detail::nothrow_newable<T, Args...>::value> {
   new (lua_newuserdata(L, sizeof(T))) T{std::forward<Args>(args)...};
   detail::udata_helper<T>::set_metatable(L);
 }
@@ -38,7 +38,7 @@ auto push_udata(lua_State * L, Args &&... args)
 /// Use correct stack discipline if an exception is thrown
 template <typename T, typename... Args>
 auto push_udata(lua_State * L, Args &&... args)
-  -> traits::enable_if_t<!detail::nothrow_newable<T, Args...>::value> {
+  -> enable_if_t<!detail::nothrow_newable<T, Args...>::value> {
   void * storage = lua_newuserdata(L, sizeof(T));
 
   PRIMER_TRY {

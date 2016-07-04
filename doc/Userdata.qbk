@@ -92,11 +92,6 @@ In this case you can manually control the construction of the metatable. Primer 
 will be called with the new metatable on top of the stack. Your function is supposed to add members to it and do any other appropriate set up, and return
 with it still on top of the stack.
 
-* `static void permanents(lua_State *)`
-
-This is simliar to the above. The function will be called with the permanent objects table on top of the stack, and you are expected to add any new members
-to it and return with it on top of the stack, leaving the stack in the same position.
-
 [h4 Pushing and reading userdata]
 
 `primer::push_udata` is a template function which is used to construct new userdata objects on the stack.

@@ -19,7 +19,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 
 #include <utility>
 #include <type_traits>
@@ -80,7 +80,7 @@ template <typename T>
 struct optional_push {
 
   using helper_t = traits::optional_access<T>;
-  using value_t = traits::remove_cv_t<typename helper_t::value_type>;
+  using value_t = remove_cv_t<typename helper_t::value_type>;
 
   PRIMER_STATIC_ASSERT(
     noexcept(helper_t::as_ptr(*static_cast<const T *>(nullptr))),
@@ -113,7 +113,7 @@ struct optional_strict_read {
     noexcept(helper_t::from_value_type(std::declval<value_t>())),
     "from_value_type method of optional_access must be noexcept");
 
-  using clean_val_t = traits::remove_cv_t<value_t>;
+  using clean_val_t = remove_cv_t<value_t>;
 
   static expected<T> from_stack(lua_State * L, int index) {
     if (lua_isnoneornil(L, index)) {
@@ -145,7 +145,7 @@ struct optional_relaxed_read : traits::optional_access<T> {
     noexcept(helper_t::from_value_type(std::declval<value_t>())),
     "from_value_type method of optional_access must be noexcept");
 
-  using clean_val_t = traits::remove_cv_t<value_t>;
+  using clean_val_t = remove_cv_t<value_t>;
 
   static expected<T> from_stack(lua_State * L, int index) {
     if (auto result = traits::read<clean_val_t>::from_stack(L, index)) {

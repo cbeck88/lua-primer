@@ -19,7 +19,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/detail/maybe_int.hpp>
 #include <primer/detail/move_assign_noexcept.hpp>
 
@@ -51,7 +51,7 @@ struct push_seq_helper {
 // For dynamically sized sequences, like std::vector
 template <typename T>
 struct read_seq_helper {
-  using value_type = traits::remove_cv_t<typename T::value_type>;
+  using value_type = remove_cv_t<typename T::value_type>;
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<T>::value,
                        "sequence type must be nothrow default constructible");
@@ -70,7 +70,7 @@ struct read_seq_helper {
   template <typename U>
   struct reserve_helper<
     U,
-    traits::enable_if_t<std::is_same<decltype(std::declval<U>().reserve(0)),
+    enable_if_t<std::is_same<decltype(std::declval<U>().reserve(0)),
                                      decltype(std::declval<U>().reserve(0))>::value>> {
     static void reserve(U & u, int n) { u.reserve(n); }
   };
@@ -110,7 +110,7 @@ struct read_seq_helper {
 // For fixed sized sequences, like std::array
 template <typename T>
 struct read_fixed_seq_helper {
-  using value_type = traits::remove_cv_t<typename T::value_type>;
+  using value_type = remove_cv_t<typename T::value_type>;
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_constructible<T>::value,
                        "sequence type must be nothrow default constructible");

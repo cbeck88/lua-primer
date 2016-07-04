@@ -25,7 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/support/types.hpp>
 
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 
 #include <string>
 #include <utility>

@@ -23,7 +23,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/detail/move_assign_noexcept.hpp>
 
 
@@ -92,7 +92,7 @@ struct read_helper {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     lua_getfield(L, index, name);
 
-    if (auto result = traits::read<traits::remove_cv_t<T>>::from_stack(L, -1)) {
+    if (auto result = traits::read<remove_cv_t<T>>::from_stack(L, -1)) {
       detail::move_assign_noexcept(value, std::move(*result));
     } else {
       ok = std::move(

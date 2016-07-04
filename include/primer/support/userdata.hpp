@@ -11,12 +11,13 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
+#include <primer/traits/userdata.hpp>
+#include <primer/detail/type_traits.hpp>
+
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
+#include <primer/support/metatable.hpp>
 #include <primer/support/userdata_common.hpp>
-
-#include <primer/traits/userdata.hpp>
-#include <primer/traits/util.hpp>
 
 #include <cstring>
 #include <new>
@@ -31,55 +32,15 @@ template <typename T, typename ENABLE = void>
 struct udata_helper;
 
 template <typename T>
-struct udata_helper<T, traits::enable_if_t<primer::traits::is_userdata<T>::value>> {
-  using udata_check = primer::traits::assert_userdata<T>;
+struct udata_helper<T, enable_if_t<primer::traits::is_userdata<T>::value>> {
   using udata = primer::traits::userdata<T>;
 
-  // Push metatable onto the stack. If it doesn't exist, then creates it. In
-  // both cases, get it on the stack.
-  // result = true implies it was created
-  // result = false implies it already existed.
-  static bool get_or_create_metatable(lua_State * L) {
-    bool result = luaL_newmetatable(L, udata::name);
-    if (result) {
-
-      // Set the metatable to be its own __index table, unless user overrides
-      // it.
-      lua_pushvalue(L, -1);
-      lua_setfield(L, -2, "__index");
-
-      // Set the udata_name string also to be the "__metatable" field of the
-      // metatable.
-      // This means that when the user runs "getmetatable" on an instance,
-      // they get a string description instead of the actual metatable, which
-      // could be frightening
-      lua_pushstring(L, udata::name);
-      lua_setfield(L, -2, "__metatable");
-
-      // Assign the methods to the metatable
-      // Use auto in case we use an expanded reg type later.
-      bool saw_gc_metamethod = false;
-      constexpr const char * gc_name = "__gc";
-
-      for (auto ptr = udata::methods; ptr->name; ++ptr) {
-        if (ptr->func) {
-          lua_pushcfunction(L, ptr->func);
-          lua_setfield(L, -2, ptr->name);
-        }
-
-        if (0 == ::strcmp(ptr->name, gc_name)) { saw_gc_metamethod = true; }
-      }
-
-      // If the user did not register __gc then it is potentially (likely) a
-      // leak,
-      // so install a trivial guy which calls the dtor.
-      // Rarely want anything besides this anyways.
-      if (!saw_gc_metamethod) {
-        lua_pushcfunction(L, &primer::detail::common_meta<T>::impl_gc);
-        lua_setfield(L, -2, gc_name);
-      }
+  // Push metatable onto the stack. If it doesn't exist, then creates it.
+  // In both cases, get it on the stack.
+  static void get_or_create_metatable(lua_State * L) {
+    if (luaL_newmetatable(L, udata::name)) {
+      primer::detail::metatable<T>::populate(L);
     }
-    return result;
   }
 
   // Based on impl of luaL_testudata

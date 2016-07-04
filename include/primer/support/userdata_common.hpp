@@ -21,7 +21,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/traits/is_userdata.hpp>
 #include <primer/traits/userdata.hpp>
-#include <primer/traits/util.hpp>
+#include <primer/detail/type_traits.hpp>
 
 namespace primer {
 
@@ -31,9 +31,8 @@ template <typename T, typename ENABLE = void>
 struct common_meta;
 
 template <typename T>
-struct common_meta<T, traits::enable_if_t<primer::traits::is_userdata<T>::value>> {
+struct common_meta<T, enable_if_t<primer::traits::is_userdata<T>::value>> {
 
-  using udata_check = primer::traits::assert_userdata<T>;
   using udata = primer::traits::userdata<T>;
 
   static int impl_gc(lua_State * L) {
