@@ -66,7 +66,7 @@ struct maybe_number {
   template <typename F>
   struct lifted {
     F f;
-    constexpr maybe_number operator()(maybe_number a, maybe_number b) noexcept {
+    constexpr maybe_number operator()(maybe_number a, maybe_number b) const noexcept {
       return (a && b) ? maybe_number{f(*a, *b)} : maybe_number{};
     }
   };
