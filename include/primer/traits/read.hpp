@@ -18,7 +18,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
 #include <primer/userdata.hpp>
-#include <primer/detail/maybe_number.hpp>
+#include <primer/detail/maybe_int.hpp>
 #include <primer/traits/is_userdata.hpp>
 #include <primer/traits/util.hpp>
 #include <primer/support/diagnostics.hpp>
@@ -46,7 +46,7 @@ struct read<const char *> {
                            primer::describe_lua_value(L, idx)};
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 template <>
@@ -54,7 +54,7 @@ struct read<std::string> {
   static expected<std::string> from_stack(lua_State * L, int idx) {
     return read<const char *>::from_stack(L, idx);
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 template <>
@@ -67,7 +67,7 @@ struct read<bool> {
                            primer::describe_lua_value(L, idx)};
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 // Integral types
@@ -86,7 +86,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) >= sizeof(LUA_INTEGER)>> {
                            primer::describe_lua_value(L, idx)};
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 // Narrowing, must do overflow check
@@ -105,7 +105,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
                            primer::describe_lua_value(L, idx)};
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 // When reading unsigned, must do 0 check
@@ -123,7 +123,7 @@ struct unsigned_read_helper {
     // implicit conversion to expected<unsigned T> here, in expected ctor
     return maybe;
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 // Specialize read, using the helpers
@@ -162,7 +162,7 @@ struct read<T,
 
     return result;
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 
@@ -177,7 +177,7 @@ struct read<T &, enable_if_t<primer::traits::is_userdata<T>::value>> {
                            "', found ", primer::describe_lua_value(L, idx)};
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 // Misc support types
@@ -190,7 +190,7 @@ struct read<nil_t> {
       return primer::error{"Expected nil, found ",
                            primer::describe_lua_value(L, idx)};
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 template <>
@@ -198,7 +198,7 @@ struct read<truthy> {
   static expected<truthy> from_stack(lua_State * L, int idx) {
     return primer::truthy{static_cast<bool>(lua_toboolean(L, idx))};
   }
-  static constexpr detail::maybe_number stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{0};
 };
 
 template <>
@@ -234,7 +234,7 @@ struct read<stringy> {
     }
     return result;
   }
-  static constexpr detail::maybe_number stack_space_needed{1};
+  static constexpr detail::maybe_int stack_space_needed{1};
 };
 
 

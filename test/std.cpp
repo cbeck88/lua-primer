@@ -20,38 +20,36 @@
 namespace {
 
 // Static asserts which check the "stack_space_for_push" and read feature
-using primer::detail::maybe_number;
+using primer::detail::maybe_int;
 using primer::stack_space_for_read;
 using primer::stack_space_for_push;
 
-static_assert((maybe_number{1} + 2 + 3), "maybe_number is broken");
-static_assert(*(maybe_number{1} + 2 + 3) == 6, "maybe_number is broken");
-static_assert(!(maybe_number{} + 2 + 3), "maybe_number is broken");
+static_assert((maybe_int{1} + 2 + 3), "maybe_int is broken");
+static_assert(*(maybe_int{1} + 2 + 3) == 6, "maybe_int is broken");
+static_assert(!(maybe_int{} + 2 + 3), "maybe_int is broken");
 
-static_assert(maybe_number::max(maybe_number{1}, maybe_number{2}, maybe_number{3}),
-              "maybe_number is broken");
-static_assert(
-  3 == *maybe_number::max(maybe_number{1}, maybe_number{2}, maybe_number{3}),
-  "maybe_number is broken");
-static_assert(!maybe_number::max(maybe_number{1}, maybe_number{}, maybe_number{3}),
-              "maybe_number is broken");
-static_assert(!maybe_number::max(maybe_number{1}, maybe_number{2}, maybe_number{}),
-              "maybe_number is broken");
+static_assert(maybe_int::max(maybe_int{1}, maybe_int{2}, maybe_int{3}),
+              "maybe_int is broken");
+static_assert(3 == *maybe_int::max(maybe_int{1}, maybe_int{2}, maybe_int{3}),
+              "maybe_int is broken");
+static_assert(!maybe_int::max(maybe_int{1}, maybe_int{}, maybe_int{3}),
+              "maybe_int is broken");
+static_assert(!maybe_int::max(maybe_int{1}, maybe_int{2}, maybe_int{}),
+              "maybe_int is broken");
 
-static_assert(maybe_number::min(maybe_number{1}, maybe_number{2}, maybe_number{3}),
-              "maybe_number is broken");
-static_assert(
-  1 == *maybe_number::min(maybe_number{1}, maybe_number{2}, maybe_number{3}),
-  "maybe_number is broken");
-static_assert(!maybe_number::min(maybe_number{1}, maybe_number{}, maybe_number{3}),
-              "maybe_number is broken");
-static_assert(!maybe_number::min(maybe_number{}, maybe_number{2}, maybe_number{3}),
-              "maybe_number is broken");
+static_assert(maybe_int::min(maybe_int{1}, maybe_int{2}, maybe_int{3}),
+              "maybe_int is broken");
+static_assert(1 == *maybe_int::min(maybe_int{1}, maybe_int{2}, maybe_int{3}),
+              "maybe_int is broken");
+static_assert(!maybe_int::min(maybe_int{1}, maybe_int{}, maybe_int{3}),
+              "maybe_int is broken");
+static_assert(!maybe_int::min(maybe_int{}, maybe_int{2}, maybe_int{3}),
+              "maybe_int is broken");
 
-static_assert(*(maybe_number{1} + maybe_number{2} + maybe_number{42}) == 45,
-              "maybe_number is broken");
-static_assert(!(maybe_number{} + maybe_number{} + maybe_number{}),
-              "maybe_number is broken");
+static_assert(*(maybe_int{1} + maybe_int{2} + maybe_int{42}) == 45,
+              "maybe_int is broken");
+static_assert(!(maybe_int{} + maybe_int{} + maybe_int{}),
+              "maybe_int is broken");
 
 
 

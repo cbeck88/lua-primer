@@ -28,11 +28,11 @@ Therefore, primer provides two functions:
 These are `constexpr` template functions that tell you how much stack space is
 needed for a `push` or `read` operation with a given type.
 
-The value that they return is a `detail::maybe_number`.
+The value that they return is `detail::maybe_int`.
 
 You can think of this as a poor man's `constexpr optional<int>`.
 
-If the `maybe_number` is vacant (`operator bool` returns false), it means that
+If the `maybe_int` is vacant (`operator bool` returns false), it means that
 no estimate was possible, for lack of information. (This may happen if a user-defined
 container or type doesn't provide an estimate, by accident, or because no apriori
 upper bound is possible.)
@@ -56,7 +56,7 @@ than fail silently.
 To provide a stack space estimate, when you specialize `push` or `read`, you
 should provide a class member:
 
-`static constexpr primer::detail::maybe_number stack_space_needed{4};`
+`static constexpr primer::detail::maybe_int stack_space_needed{4};`
 
 if e.g. four additional stack spaces are needed to complete the operation.
 

@@ -15,7 +15,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
-#include <primer/detail/maybe_number.hpp>
+#include <primer/detail/maybe_int.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
@@ -93,7 +93,7 @@ struct optional_push {
       lua_pushnil(L);
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{
+  static constexpr detail::maybe_int stack_space_needed{
     detail::stack_space_needed<traits::push<value_t>>::value};
 };
 
@@ -124,7 +124,7 @@ struct optional_strict_read {
       return std::move(result).err();
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{
+  static constexpr detail::maybe_int stack_space_needed{
     detail::stack_space_needed<traits::read<clean_val_t>>::value};
 };
 
@@ -154,7 +154,7 @@ struct optional_relaxed_read : traits::optional_access<T> {
       return helper_t::make_empty();
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{
+  static constexpr detail::maybe_int stack_space_needed{
     detail::stack_space_needed<traits::read<clean_val_t>>::value};
 };
 

@@ -36,31 +36,31 @@ namespace primer {
 namespace detail {
 
 // Poor man's constexpr optional<int>
-struct maybe_number {
+struct maybe_int {
   int value;
   bool unknown;
 
-  constexpr maybe_number() noexcept : value(0), unknown(true) {}
-  constexpr maybe_number(maybe_number &&) noexcept = default;
-  constexpr maybe_number(const maybe_number &) noexcept = default;
-  maybe_number & operator=(const maybe_number &) noexcept = default;
-  maybe_number & operator=(maybe_number &&) noexcept = default;
+  constexpr maybe_int() noexcept : value(0), unknown(true) {}
+  constexpr maybe_int(maybe_int &&) noexcept = default;
+  constexpr maybe_int(const maybe_int &) noexcept = default;
+  maybe_int & operator=(const maybe_int &) noexcept = default;
+  maybe_int & operator=(maybe_int &&) noexcept = default;
 
-  constexpr explicit maybe_number(int v) noexcept : value(v), unknown(false) {}
+  constexpr explicit maybe_int(int v) noexcept : value(v), unknown(false) {}
 
   constexpr int operator*() const noexcept { return value; }
   constexpr explicit operator bool() const noexcept { return !unknown; }
 
   // Right associate
   template <typename F>
-  static constexpr maybe_number right_associate(F &&, maybe_number a) {
+  static constexpr maybe_int right_associate(F &&, maybe_int a) {
     return a;
   }
 
   template <typename F, typename... Args>
-  static constexpr maybe_number right_associate(F && f,
-                                                maybe_number a,
-                                                Args &&... args) {
+  static constexpr maybe_int right_associate(F && f,
+                                             maybe_int a,
+                                             Args &&... args) {
     return std::forward<F>(
       f)(a, right_associate(std::forward<F>(f), std::forward<Args>(args)...));
   }
@@ -69,9 +69,8 @@ struct maybe_number {
   template <typename F>
   struct lifted {
     F f;
-    constexpr maybe_number operator()(maybe_number a, maybe_number b) const
-      noexcept {
-      return (a && b) ? maybe_number{f(*a, *b)} : maybe_number{};
+    constexpr maybe_int operator()(maybe_int a, maybe_int b) const noexcept {
+      return (a && b) ? maybe_int{f(*a, *b)} : maybe_int{};
     }
   };
 
@@ -87,43 +86,43 @@ struct maybe_number {
 
   // Add
   template <typename... Args>
-  static constexpr maybe_number add(Args &&... args) noexcept {
+  static constexpr maybe_int add(Args &&... args) noexcept {
     return right_associate(lift(add_int), std::forward<Args>(args)...);
   }
 
   // Max
   template <typename... Args>
-  static constexpr maybe_number max(Args &&... args) noexcept {
+  static constexpr maybe_int max(Args &&... args) noexcept {
     return right_associate(lift(max_int), std::forward<Args>(args)...);
   }
 
   // Min
   template <typename... Args>
-  static constexpr maybe_number min(Args &&... args) noexcept {
+  static constexpr maybe_int min(Args &&... args) noexcept {
     return right_associate(lift(min_int), std::forward<Args>(args)...);
   }
 
   // For convenience
-  constexpr maybe_number operator+(int i) const {
-    return maybe_number::add(*this, maybe_number{i});
+  constexpr maybe_int operator+(int i) const {
+    return maybe_int::add(*this, maybe_int{i});
   }
 
-  constexpr maybe_number operator+(maybe_number i) const {
-    return maybe_number::add(*this, i);
+  constexpr maybe_int operator+(maybe_int i) const {
+    return maybe_int::add(*this, i);
   }
 };
 
-constexpr inline maybe_number operator+(int a, maybe_number b) { return b + a; }
+constexpr inline maybe_int operator+(int a, maybe_int b) { return b + a; }
 
 /***
  * Trait which grabs from a structure the value "stack_space_needed", as a
- * `maybe_number`.
+ * `maybe_int`.
  * If there is no such member, the trait returns "unknown".
  */
 
 template <typename T, typename ENABLE = void>
 struct stack_space_needed {
-  static constexpr maybe_number value{};
+  static constexpr maybe_int value{};
 };
 
 template <typename T>
@@ -131,7 +130,7 @@ struct stack_space_needed<
   T,
   typename std::enable_if<std::is_same<decltype(T::stack_space_needed),
                                        decltype(T::stack_space_needed)>::value>::type> {
-  static constexpr maybe_number value{T::stack_space_needed};
+  static constexpr maybe_int value{T::stack_space_needed};
 };
 
 } // end namespace detail

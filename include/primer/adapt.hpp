@@ -47,7 +47,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/result.hpp>
 
 #include <primer/detail/count.hpp>
-#include <primer/detail/maybe_number.hpp>
+#include <primer/detail/maybe_int.hpp>
 #include <primer/support/implement_result.hpp>
 
 #include <type_traits>
@@ -140,8 +140,8 @@ public:
     // Estimate how much stack space we will need to read the arguments.
     // If we don't have enough, then signal an error
     constexpr auto estimate =
-      detail::maybe_number::max(detail::maybe_number{0},
-                                primer::stack_space_for_read<Args>()...);
+      detail::maybe_int::max(detail::maybe_int{0},
+                             primer::stack_space_for_read<Args>()...);
     if (estimate && *estimate) {
       if (!lua_checkstack(L, *estimate)) {
         return luaL_error(L, "not enough stack space, needed %d", *estimate);
