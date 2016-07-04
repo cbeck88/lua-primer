@@ -3,10 +3,10 @@
 Primer can be told to recognize any C++ type as a *userdata* type. This means
 that you can construct it within lua.
 
-Primer recognizes userdata types are using a trait, `primer::traits::userdata`.
+Primer recognizes userdata types using a trait, `primer::traits::userdata`.
 This trait must be specialized for any type which primer will recognize as userdata.
 
-The trait must provide three things:
+The trait can / should provide three things:
 
 * A name for the userdata type (used as a key in lua, and in error messages)
 * A list of functions to go in the metatable
@@ -26,7 +26,8 @@ that we can do with it.
 [h4 Representing lists of functions]
 
 It is quite common in lua C api programming to need to be able create lists of
-functions. lua has a standard idiom for this.
+functions. lua has a standard idiom for this. The following structure is defined
+in the lua headers:
 
 ``
   struct luaL_Reg {
@@ -35,15 +36,13 @@ functions. lua has a standard idiom for this.
   };
 ``
 
-is defined in the `lua.h` header.
-
 Many lua functions take as a parameter a pointer `const luaL_Reg *`, which is
 expected to point into an array, terminated by a `luaL_Reg` holding two null pointers.
 (See [@http://www.lua.org/manual/5.2/manual.html#luaL_Reg the manual].)
 
 In primer, we aren't writing C, but it is convenient for us to be able
-to make lists of functions that are initialized at compile time, and refer to
-them.
+to make lists of functions that are initialized at compile time in one compilation unit, and refer to
+them in another.
 
 However, we extend the idiom as follows:
 
@@ -84,15 +83,18 @@ persisting and unpersisting a state that has this userdata. See the "API" sectio
 
 [h4 Alternative syntax]
 
-If setting up your metatable is too complex to use the above pattern, you can use an alternate method:
+If setting up your metatable is too complex to use the above pattern, for example, if you also must add things to the registry to support your type
+or something like this, then you can use an alternate method:
 
 * `static void metatable(lua_State *)`
 
-In this case you can manually control the construction of the metatable. Primer will call `luaL_newmetatable` using the name first, and your function
+In this case you can manually control the population of the metatable. Primer will call `luaL_newmetatable` using the name first, and your function
 will be called with the new metatable on top of the stack. Your function is supposed to add members to it and do any other appropriate set up, and return
-with it still on top of the stack.
+with the stack in the same position that it was found.
 
-[h4 Pushing and reading userdata]
+Your function will only be called once, when the metatable is initialized, for any given lua State.
+
+[h4 Pushing userdata]
 
 `primer::push_udata` is a template function which is used to construct new userdata objects on the stack.
 
@@ -102,6 +104,11 @@ with it still on top of the stack.
   template <typename T, typename... Args>
   void push_udata(lua_State * L, Args && ... args);
 ```
+
+It is best if your constructor is `noexcept`, but this is not always possible. If it is not noexcept, then in the 
+event of an exception thrown from the constructor, primer will pop the userdata entry from the stack.
+
+[h4 Reading userdata]
 
 While primitive types like `number`, `string`, and `table` are generally read from the lua stack by value, as C++ primitives or containers, for userdata types this is usually much less useful.
 
