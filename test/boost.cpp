@@ -69,7 +69,9 @@ void test_optional_read() {
 }
 
 //[ primer_example_maximum_function_defn
-primer::result maximum(lua_State * L, boost::optional<int> x, boost::optional<int> y) {
+primer::result maximum(lua_State * L,
+                       boost::optional<int> x,
+                       boost::optional<int> y) {
   if (x) {
     if (y) {
       lua_pushinteger(L, std::max(*x, *y));
@@ -155,7 +157,6 @@ void test_optional_example() {
 
   assert(LUA_OK == lua_pcall(L, 0, 0, 0));
   //]
-
 }
 
 /***

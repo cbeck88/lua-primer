@@ -71,8 +71,8 @@ struct std_function_udata {
       std_function_udata{std::move(f)};
     push_cached<&this_type::push_metatable>(L);
     lua_setmetatable(L, -2);
-    lua_CFunction func = &adapt<R (*)(lua_State *, Args...),
-                                 &this_type::closure_function>::adapted;
+    lua_CFunction func =
+      &adapt<R (*)(lua_State *, Args...), &this_type::closure_function>::adapted;
     lua_pushcclosure(L, func, 1);
   }
 };
