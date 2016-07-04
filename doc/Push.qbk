@@ -114,35 +114,8 @@ details.
 The trait `primer::traits::push` can be specialized to override primer's behavior
 for certain types, or to add new behavior for custom types.
 
-For example, suppose we have a simple vector type:
-
-``
-   struct vec2i {
-     int x;
-     int y;
-   };
-``
-
-Primer could be taught to push `vec2i` objects as a table with entries `t[1]` and `t[2]`
-using the following code:
-
-``
-namespace primer {
-namespace traits {
-
-template <>
-struct push<vec2i> {
-  static void to_stack(lua_State * L, const vec2i & v) {
-    lua_newtable(L);
-    lua_pushinteger(L, v.x);
-    lua_rawseti(L, -2, 1);
-    lua_pushinteger(L, v.y);
-    lua_rawseti(L, -2, 2);
-  }
-};
-
-} // end namespace traits
-} // end namespace primer
-``
+[primer_example_vec2i_defn]
+[primer_example_vec2i_push_trait]
+[primer_example_vec2i_push_test]
 
 [endsect]

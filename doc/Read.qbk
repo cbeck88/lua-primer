@@ -82,66 +82,8 @@ details.
 This trait, named `primer::traits::read`, can be specialized to override primer's behavior
 for certain types, or to add new behavior for these custom types.
 
-For example, suppose we have a simple vector type:
-
-``
-   struct vec2i {
-     int x;
-     int y;
-   };
-``
-
-Primer could be taught to read `vec2i` objects, represented in lua as a table with entries `t[1]` and `t[2]`
-using the following code:
-
-``
-namespace primer {
-namespace traits {
-
-template <>
-struct read<> {
-  static expected<vec2i> from_stack(lua_State * L, int index) {
-    expected<vec2i> result;
-
-    if (!lua_istable(L, index)) {
-      result = primer::error("Expected a table, found ", primer::describe_lua_value(L, index));
-    } else {
-      lua_rawgeti(L, index, 1);
-      expected<int> t1 = read<int>::from_stack(L, -1);
-      lua_pop(L, 1);
-
-      if (!t1) {
-        t1.err().prepend_error_line("In position [1]");
-        result = std::move(t1.err());
-      } else {
-
-        lua_rawgeti(L, index, 2);
-        expected<int> t2 = read<int>::from_stack(L, -1));
-        lua_pop(L, 1);
-
-        if (!t2) {
-          t2.err().prepend_error_line("In position [2]");
-          result = std::move(t2.err());
-        } else {
-          result = vec2i{*t1, *t2};
-        }
-      }
-    }
-
-    return result;
-  }
-};
-
-} // end namespace traits
-} // end namespace primer
-``
-
-A few things to note about this code:
-
-* The returned local variable is declared at the top, and only one return statement exists, at the end. This ensures that named return value optimization can take place.
-* We avoid using the stack excessively. When a new value is pushed onto the stack using `lua_rawgeti`, we read it immediately and then pop it. This means we need only one extra stack space rather than two.
-* One consequence of this is that we don't need to worry about the case that `index` is negative. In general, one can use `lua_absindex` to convert negative indices to positive indices. If the top of the stack is changing, then this may be necessary for correctness.
-* The `primer::error` constructor can take any number of strings, and concatenates them together. `primer::describe_lua_value` is used to generate a diagnostic message describing a value on the stack.
-* The `primer::error` member function `prepend_error_line` is used to give context to errors reported by subsidiary operations.
+[primer_example_vec2i_defn]
+[primer_example_vec2i_read_trait]
+[primer_example_vec2i_read_test]
 
 [endsect]

@@ -837,6 +837,141 @@ void primer_resume_test() {
   }
 }
 
+namespace {
+
+//[ primer_example_vec2i_defn
+//` For example, suppose we have a simple vector type:
+struct vec2i {
+  int x;
+  int y;
+};
+//]
+
+} // end anonymous namespace
+
+//[ primer_example_vec2i_push_trait
+//` Primer could be taught to push `vec2i` objects as a table with
+//` entries `t[1]` and `t[2]` using the following code:
+
+namespace primer {
+namespace traits {
+
+template <>
+struct push<vec2i> {
+  static void to_stack(lua_State * L, const vec2i & v) {
+    lua_newtable(L);
+    lua_pushinteger(L, v.x);
+    lua_rawseti(L, -2, 1);
+    lua_pushinteger(L, v.y);
+    lua_rawseti(L, -2, 2);
+  }
+};
+
+} // end namespace traits
+} // end namespace primer
+
+//]
+
+
+void test_vec2i_push() {
+  lua_raii L;
+
+  luaL_requiref(L, "", &luaopen_base, 1);
+  lua_pop(L, 1);  
+
+//[ primer_example_vec2i_push_test
+//` The following code snippet shows how the pushed object looks to lua
+  primer::push(L, vec2i{5, 3});
+  luaL_loadstring(L, "v = ...                          \n"
+                     "assert(type(v) == 'table')       \n"
+                     "assert(v[1] == 5)                \n"
+                     "assert(v[2] == 3)                \n"
+                     "assert(#v == 2)                  \n");
+
+  lua_insert(L, -2);
+  assert(LUA_OK == lua_pcall(L, 1, 0, 0));
+//]
+}
+
+
+//[ primer_example_vec2i_read_trait
+//`Primer could be taught to read `vec2i` objects, represented in lua
+//`as a table with entries `t[1]` and `t[2]` using the following code:
+
+namespace primer {
+namespace traits {
+
+template <>
+struct read<vec2i> {
+  static expected<vec2i> from_stack(lua_State * L, int index) {
+    expected<vec2i> result;
+
+    if (!lua_istable(L, index)) {
+      result = primer::error("Expected a table, found ", primer::describe_lua_value(L, index));
+    } else {
+      lua_rawgeti(L, index, 1);
+      expected<int> t1 = read<int>::from_stack(L, -1);
+      lua_pop(L, 1);
+
+      if (!t1) {
+        t1.err().prepend_error_line("In position [1]");
+        result = std::move(t1.err());
+      } else {
+
+        lua_rawgeti(L, index, 2);
+        expected<int> t2 = read<int>::from_stack(L, -1);
+        lua_pop(L, 1);
+
+        if (!t2) {
+          t2.err().prepend_error_line("In position [2]");
+          result = std::move(t2.err());
+        } else {
+          result = vec2i{*t1, *t2};
+        }
+      }
+    }
+
+    return result;
+  }
+};
+
+} // end namespace traits
+} // end namespace primer
+/*`
+A few things to note about this code:
+
+
+* The returned local variable is declared at the top, and only one return statement exists, at the end. This ensures that named return value optimization can take place.
+
+* We avoid using the stack excessively. When a new value is pushed onto the stack using `lua_rawgeti`, we read it immediately and then pop it. This means we need only one extra stack space rather than two.
+
+* One consequence of this is that we don't need to worry about the case that `index` is negative. In general, one can use `lua_absindex` to convert negative indices to positive indices. If the top of the stack is changing, then this may be necessary for correctness.
+
+* The `primer::error` constructor can take any number of strings, and concatenates them together. `primer::describe_lua_value` is used to generate a diagnostic message describing a value on the stack.
+
+* The `primer::error` member function `prepend_error_line` is used to give context to errors reported by subsidiary operations.
+
+*/
+//]
+
+
+void test_vec2i_read() {
+  lua_raii L;
+
+//[ primer_example_vec2i_read_test
+//` The following code snippet shows how this looks from lua's point of view
+  luaL_loadstring(L, "return {7, 4}");
+  assert(LUA_OK == lua_pcall(L, 0, 1, 0));
+  assert(lua_gettop(L) == 1);
+
+  auto result = primer::read<vec2i>(L, 1);
+  assert(result);
+  assert(result->x == 7);
+  assert(result->y == 4);
+//]
+}
+
+
 int main() {
   conf::log_conf();
 
@@ -848,6 +983,8 @@ int main() {
     {"simple type safety", &typesafe_simple},
     {"read truthy", &test_read_truthy},
     {"read stringy", &test_read_stringy},
+    {"vec2i push", &test_vec2i_push},
+    {"vec2i read", &test_vec2i_read},
     {"primer adapt one", &primer_adapt_test_one},
     {"primer adapt two", &primer_adapt_test_two},
     {"primer adapt three", &primer_adapt_test_three},
