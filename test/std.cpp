@@ -17,6 +17,54 @@
 #include <set>
 #include <vector>
 
+namespace {
+
+// Static asserts which check the "stack_space_for_push" and read feature
+using primer::detail::maybe_number;
+using primer::stack_space_for_read;
+using primer::stack_space_for_push;
+
+static_assert((maybe_number{1} + 2 + 3), "maybe_number is broken");
+static_assert(*(maybe_number{1} + 2 + 3) == 6, "maybe_number is broken");
+static_assert(!(maybe_number{} + 2 + 3), "maybe_number is broken");
+
+static_assert(maybe_number::max(maybe_number{1}, maybe_number{2}, maybe_number{3}), "maybe_number is broken");
+static_assert(3 == *maybe_number::max(maybe_number{1}, maybe_number{2}, maybe_number{3}), "maybe_number is broken");
+static_assert(!maybe_number::max(maybe_number{1}, maybe_number{}, maybe_number{3}), "maybe_number is broken");
+static_assert(!maybe_number::max(maybe_number{1}, maybe_number{2}, maybe_number{}), "maybe_number is broken");
+
+static_assert(maybe_number::min(maybe_number{1}, maybe_number{2}, maybe_number{3}), "maybe_number is broken");
+static_assert(1 == *maybe_number::min(maybe_number{1}, maybe_number{2}, maybe_number{3}), "maybe_number is broken");
+static_assert(!maybe_number::min(maybe_number{1}, maybe_number{}, maybe_number{3}), "maybe_number is broken");
+static_assert(!maybe_number::min(maybe_number{}, maybe_number{2}, maybe_number{3}), "maybe_number is broken");
+
+static_assert(*(maybe_number{1} + maybe_number{2} + maybe_number{42}) == 45, "maybe_number is broken");
+static_assert(!(maybe_number{} + maybe_number{} + maybe_number{}), "maybe_number is broken");
+
+
+
+static_assert(primer::traits::push<std::string>::stack_space_needed, "hmm");
+static_assert(primer::detail::stack_space_needed<primer::traits::push<std::string>>::value, "hmm");
+
+static_assert(stack_space_for_push<std::string>(), "stack space calculations wrong");
+static_assert(stack_space_for_read<std::string>(), "stack space calculations wrong");
+static_assert(*stack_space_for_push<std::string>() == 0, "stack space calculations wrong");
+static_assert(*stack_space_for_read<std::string>() == 0, "stack space calculations wrong");
+
+static_assert(stack_space_for_push<std::vector<std::string>>(), "stack space calculations wrong");
+static_assert(stack_space_for_read<std::vector<std::string>>(), "stack space calculations wrong");
+static_assert(*stack_space_for_push<std::vector<std::string>>() == 1, "stack space calculations wrong");
+static_assert(*stack_space_for_read<std::vector<std::string>>() == 1, "stack space calculations wrong");
+
+static_assert(stack_space_for_push<std::vector<std::vector<std::string>>>(), "stack space calculations wrong");
+static_assert(stack_space_for_read<std::vector<std::vector<std::string>>>(), "stack space calculations wrong");
+static_assert(*stack_space_for_push<std::vector<std::vector<std::string>>>() == 2, "stack space calculations wrong");
+static_assert(*stack_space_for_read<std::vector<std::vector<std::string>>>() == 2, "stack space calculations wrong");
+
+static_assert(!stack_space_for_push<char>(), "hmm");
+
+} // end anonymous namespace
+
 void test_vector_push() {
   lua_raii L;
 

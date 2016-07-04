@@ -20,6 +20,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
 #include <primer/traits/util.hpp>
+#include <primer/detail/maybe_number.hpp>
 #include <primer/detail/move_assign_noexcept.hpp>
 
 #include <string>
@@ -43,6 +44,7 @@ struct push_seq_helper {
       lua_rawseti(L, -2, (i + 1));
     }
   }
+  static constexpr detail::maybe_number stack_space_needed{1 + detail::stack_space_needed<traits::push<value_type>>::value};
 };
 
 // For dynamically sized sequences, like std::vector
@@ -100,6 +102,7 @@ struct read_seq_helper {
 
     return result;
   }
+  static constexpr detail::maybe_number stack_space_needed{1 + detail::stack_space_needed<traits::read<value_type>>::value};
 };
 
 // For fixed sized sequences, like std::array
@@ -144,6 +147,7 @@ struct read_fixed_seq_helper {
 
     return result;
   }
+  static constexpr detail::maybe_number stack_space_needed{1 + detail::stack_space_needed<traits::read<value_type>>::value};
 };
 
 } // end namespace detail

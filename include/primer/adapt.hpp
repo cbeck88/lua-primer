@@ -42,10 +42,12 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/expected.hpp>
+#include <primer/lua.hpp>
 #include <primer/read.hpp>
 #include <primer/result.hpp>
 
 #include <primer/detail/count.hpp>
+#include <primer/detail/maybe_number.hpp>
 #include <primer/support/implement_result.hpp>
 
 #include <type_traits>
@@ -135,6 +137,16 @@ class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
 
 public:
   static int adapted(lua_State * L) {
+    // Estimate how much stack space we will need to read the arguments.
+    // If we don't have enough, then signal an error
+    constexpr auto estimate = detail::maybe_number::max(
+      detail::maybe_number{0}, primer::stack_space_for_read<Args>()...);
+    if (estimate && *estimate) {
+      if (!lua_checkstack(L, *estimate)) {
+        return luaL_error(L, "not enough stack space, needed %d", *estimate);
+      }
+    }
+
     using I = detail::Count_t<sizeof...(Args)>;
 
     auto temp = detail::implement_result_step_one(L, impl<I>::adapted(L));

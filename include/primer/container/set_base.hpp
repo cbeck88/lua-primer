@@ -17,6 +17,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
+#include <primer/detail/maybe_number.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
@@ -46,6 +47,8 @@ struct set_push_helper {
       }
     }
   }
+  static constexpr detail::maybe_number stack_space_needed{1 +
+    detail::stack_space_needed<traits::push<first_t>>::value};
 };
 
 template <typename M>
@@ -83,6 +86,8 @@ struct set_read_helper {
     }
     return result;
   }
+  static constexpr detail::maybe_number stack_space_needed{3 +
+    detail::stack_space_needed<traits::push<first_t>>::value};
 };
 
 } // end namespace detail
