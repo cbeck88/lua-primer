@@ -557,6 +557,7 @@ void test_userdata_two() {
 void test_std_function() {
   lua_raii L;
 
+//[ primer_example_std_function
   std::function<primer::result(lua_State * L, int x, int y)> f =
     [](lua_State * L, int x, int y) -> primer::result {
     if (y == x) { return primer::error{"bad input"}; }
@@ -565,6 +566,8 @@ void test_std_function() {
   };
 
   primer::push_std_function(L, std::move(f));
+//]
+
   CHECK_STACK(L, 1);
 
   {

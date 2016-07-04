@@ -1,0 +1,63 @@
+[section Stack Space Needed]
+
+One aspect of lua that you may miss on your first pass through the manual is the
+note about stack overflow.
+
+lua's stack has only a limited size -- by default, only about 200 elements. With
+eris, it is somewhat smaller for various reasons.
+
+lua does not perform any bounds checking. When you push a string or an integer,
+etc., if there is not enough space in the stack left, you get undefined
+behavior.
+
+This is of course to avoid the overhead of constant bounds checking. It is
+expected that when you perform a "large" operation you might do some bounds
+checking at the beginning, having an estimate of how much clearance you need.
+The `lua_checkstack` function can tell you if there is enough space for a given
+number of extra slots.
+
+In `primer`, we support pushing complex containers in a single operation, and it
+may be laborious to figure out exactly how much stack space is needed for any
+one of those.
+
+Therefore, primer provides two functions:
+
+[primer_stack_space_for_read]
+[primer_stack_space_for_push]
+
+These are `constexpr` template functions that tell you how much stack space is
+needed for a `push` or `read` operation with a given type.
+
+The value that they return is a `detail::maybe_number`.
+
+You can think of this as a poor man's `constexpr optional<int>`.
+
+If the `maybe_number` is vacant (`operator bool` returns false), it means that
+no estimate was possible, for lack of information. (This may happen if a user-defined
+container or type doesn't provide an estimate, by accident, or because no apriori
+upper bound is possible.)
+
+Currently we cannot provide an estimate for "visitable structures", although we
+would like to fix that. For the other types and containers that are built-in to
+primer, we do provide an accurate estimate.
+
+The estimate can be accessed using `operator *`.
+
+Primer also uses these estimates interally. For instance, the `adapt` mechanism
+will compute at compile-time a conservative estimate of how much space it needs to read the
+arguments off of the stack, and call `lua_checkstack` before it begins.
+
+This adds some debuggability to your project - if your lua state is running out of slots or runs out of slots,
+if one of the adapted functions is called it is likely to generate an error rather
+than fail silently.
+
+[h4 Providing stack space estimates]
+
+To provide a stack space estimate, when you specialize `push` or `read`, you
+should provide a class member:
+
+`static constexpr primer::detail::maybe_number stack_space_needed{4};`
+
+if e.g. four additional stack spaces are needed to complete the operation.
+
+[endsect]

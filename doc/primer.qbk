@@ -28,6 +28,8 @@
 [import ../test/examples/expected.cpp]
 [import ../test/core.cpp]
 [import ../test/boost.cpp]
+[import ../test/std.cpp]
+[import ../test/api.cpp]
 
 
 [section:quickstart Quickstart]
@@ -47,4 +49,5 @@
 [include Core.qbk]
 [include Containers.qbk]
 [include Api.qbk]
+[include Misc.qbk]
 [endsect]

@@ -1,0 +1,8 @@
+[section Miscellaneous]
+
+Other features:
+
+[include StdFunction.qbk]
+[include StackSpaceNeeded.qbk]
+
+[endsect]

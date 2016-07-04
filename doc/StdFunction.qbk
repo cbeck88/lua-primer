@@ -1,0 +1,22 @@
+[section std::function]
+
+Primer also provides a header so that you can push `std::function` objects
+directly to lua.
+
+The idea is that it takes the signature `R(Args...)` from the `std::function`
+type, and puts that signature through `PRIMER_ADAPT`. The `std::function` object
+itself is stored in userdata as an upvalue to a closure, and the extracted arguments
+are passed to it when it is invoked.
+
+Example Usage:
+
+[primer_example_std_function]
+
+[note `std::function` is somewhat at odds with the design goals of primer. It involves
+  type erasure and extra dynamic allocations, and there's no obvious way to
+  serialize a `std::function`, so we don't even try.
+
+  We only provide this feature
+  for convenience in a pure lua (not eris) application.]
+
+[endsect]
