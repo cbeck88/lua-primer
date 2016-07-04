@@ -48,9 +48,10 @@ struct map_push_helper {
       }
     }
   }
-  static constexpr detail::maybe_number stack_space_needed{detail::maybe_number::max(
-    detail::stack_space_needed<traits::push<second_t>>::value,
-    1 + detail::stack_space_needed<traits::push<first_t>>::value)};
+  static constexpr detail::maybe_number stack_space_needed{
+    detail::maybe_number::
+      max(detail::stack_space_needed<traits::push<second_t>>::value,
+          1 + detail::stack_space_needed<traits::push<first_t>>::value)};
 };
 
 // TODO: Exception safety, emplace can throw std::bad_alloc
@@ -96,9 +97,10 @@ struct map_read_helper {
     }
     return result;
   }
-  static constexpr detail::maybe_number stack_space_needed{3 + detail::maybe_number::max(
-    detail::stack_space_needed<traits::push<second_t>>::value,
-    detail::stack_space_needed<traits::push<first_t>>::value)};
+  static constexpr detail::maybe_number stack_space_needed{
+    3 + detail::maybe_number::
+          max(detail::stack_space_needed<traits::push<second_t>>::value,
+              detail::stack_space_needed<traits::push<first_t>>::value)};
 };
 
 } // end namespace detail

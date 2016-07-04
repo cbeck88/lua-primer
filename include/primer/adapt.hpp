@@ -139,8 +139,9 @@ public:
   static int adapted(lua_State * L) {
     // Estimate how much stack space we will need to read the arguments.
     // If we don't have enough, then signal an error
-    constexpr auto estimate = detail::maybe_number::max(
-      detail::maybe_number{0}, primer::stack_space_for_read<Args>()...);
+    constexpr auto estimate =
+      detail::maybe_number::max(detail::maybe_number{0},
+                                primer::stack_space_for_read<Args>()...);
     if (estimate && *estimate) {
       if (!lua_checkstack(L, *estimate)) {
         return luaL_error(L, "not enough stack space, needed %d", *estimate);

@@ -43,12 +43,12 @@ struct maybe_number {
   constexpr maybe_number() noexcept : value(0), unknown(true) {}
   constexpr maybe_number(maybe_number &&) noexcept = default;
   constexpr maybe_number(const maybe_number &) noexcept = default;
-  maybe_number & operator = (const maybe_number &) noexcept = default;
-  maybe_number & operator = (maybe_number &&) noexcept = default;
+  maybe_number & operator=(const maybe_number &) noexcept = default;
+  maybe_number & operator=(maybe_number &&) noexcept = default;
 
   constexpr explicit maybe_number(int v) noexcept : value(v), unknown(false) {}
 
-  constexpr int operator *() const noexcept { return value; }
+  constexpr int operator*() const noexcept { return value; }
   constexpr explicit operator bool() const noexcept { return !unknown; }
 
   // Right associate
@@ -58,21 +58,27 @@ struct maybe_number {
   }
 
   template <typename F, typename... Args>
-  static constexpr maybe_number right_associate(F && f, maybe_number a, Args && ... args) {
-    return std::forward<F>(f)(a, right_associate(std::forward<F>(f), std::forward<Args>(args)...));
+  static constexpr maybe_number right_associate(F && f,
+                                                maybe_number a,
+                                                Args &&... args) {
+    return std::forward<F>(
+      f)(a, right_associate(std::forward<F>(f), std::forward<Args>(args)...));
   }
 
   // Lift
   template <typename F>
   struct lifted {
     F f;
-    constexpr maybe_number operator()(maybe_number a, maybe_number b) const noexcept {
+    constexpr maybe_number operator()(maybe_number a, maybe_number b) const
+      noexcept {
       return (a && b) ? maybe_number{f(*a, *b)} : maybe_number{};
     }
   };
 
   template <typename F>
-  static constexpr auto lift(F && f) -> lifted<F> { return lifted<F>{std::forward<F>(f)}; }
+  static constexpr auto lift(F && f) -> lifted<F> {
+    return lifted<F>{std::forward<F>(f)};
+  }
 
   // Liftees
   static constexpr int add_int(int a, int b) { return a + b; }
@@ -80,39 +86,38 @@ struct maybe_number {
   static constexpr int min_int(int a, int b) { return a < b ? a : b; }
 
   // Add
-    template<typename... Args>
-  static constexpr maybe_number add(Args && ... args) noexcept {
+  template <typename... Args>
+  static constexpr maybe_number add(Args &&... args) noexcept {
     return right_associate(lift(add_int), std::forward<Args>(args)...);
   }
 
   // Max
-  template<typename... Args>
-  static constexpr maybe_number max(Args && ... args) noexcept {
+  template <typename... Args>
+  static constexpr maybe_number max(Args &&... args) noexcept {
     return right_associate(lift(max_int), std::forward<Args>(args)...);
   }
 
   // Min
   template <typename... Args>
-  static constexpr maybe_number min(Args && ... args) noexcept {
+  static constexpr maybe_number min(Args &&... args) noexcept {
     return right_associate(lift(min_int), std::forward<Args>(args)...);
   }
 
   // For convenience
-  constexpr maybe_number operator + (int i) const {
+  constexpr maybe_number operator+(int i) const {
     return maybe_number::add(*this, maybe_number{i});
   }
 
-  constexpr maybe_number operator + (maybe_number i) const {
+  constexpr maybe_number operator+(maybe_number i) const {
     return maybe_number::add(*this, i);
   }
 };
 
-constexpr inline maybe_number operator +(int a, maybe_number b) {
-  return b + a;
-}
+constexpr inline maybe_number operator+(int a, maybe_number b) { return b + a; }
 
 /***
- * Trait which grabs from a structure the value "stack_space_needed", as a `maybe_number`.
+ * Trait which grabs from a structure the value "stack_space_needed", as a
+ * `maybe_number`.
  * If there is no such member, the trait returns "unknown".
  */
 
@@ -122,7 +127,10 @@ struct stack_space_needed {
 };
 
 template <typename T>
-struct stack_space_needed<T, typename std::enable_if<std::is_same<decltype(T::stack_space_needed), decltype(T::stack_space_needed)>::value>::type> {
+struct stack_space_needed<
+  T,
+  typename std::enable_if<std::is_same<decltype(T::stack_space_needed),
+                                       decltype(T::stack_space_needed)>::value>::type> {
   static constexpr maybe_number value{T::stack_space_needed};
 };
 
