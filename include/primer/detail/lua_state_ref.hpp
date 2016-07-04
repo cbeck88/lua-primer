@@ -130,6 +130,8 @@ private:
                   "strong_ptr_gc called with argument that is not userdata");
     strong_ptr_type * ptr = static_cast<strong_ptr_type *>(lua_touserdata(L, 1));
     ptr->~strong_ptr_type();
+    lua_pushnil(L);
+    lua_setmetatable(L, -2);
     return 0;
   }
 

@@ -21,7 +21,7 @@
  * proper lua_CFunction and everything just works (TM).
  *
  * primer::adapt uses traits to figure out exactly how each arg
- * is parsed off of the stack, that's where the "common sense" comes from.
+ * is parsed off of the stack.
  *
  * primer::adapt's implementation handles the issues surrounding lua longjmp
  * while there are nontrivial C++ objects on the stack. If one of the
@@ -139,8 +139,7 @@ public:
 
     auto temp = detail::implement_result_step_one(L, impl<I>::adapted(L));
     // primer::result is destroyed at the end of "full expression" in the above
-    // line, so it is safe to
-    // longjmp after this.
+    // line, so it is safe to longjmp after this.
     return detail::implement_result_step_two(L, temp);
   }
 };
