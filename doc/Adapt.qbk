@@ -1,12 +1,24 @@
 [section adapt]
 
-`PRIMER_ADAPT` refers to the mechanism that implements type-safe parameter reading for user functions.
+`adapt` is a mechanism that takes user functions with a complex signature and
+adapts them to be pushed to lua.
 
-The core object is a template
+There are two things that `adapt` accomplishes:
 
-[primer_adaptor_decl]
+* Generates boiler-plate code which reads parameters of given types off of the lua stack,
+  and handles errors in reading them.
+* Provides a way for the caller to terminate the function call without triggering `longjmp`
+  and trashing objects on the stack without calling their destructors.
+  (This is only an issue if lua is compiled as C.)
 
-When given a function pointer `f`, `adaptor` is expected to provide a static member function of signature
+`adapt` handles the first one using `primer::read`. `adapt` handles the second
+one using `primer::result`.
+
+The core object of `adapt` is a class template:
+
+[primer_adapt_decl]
+
+When given a function pointer `f`, `adapt` is expected to provide a static member function of signature
 `int (lua_State *)` which is named `adapted`.
 
 Given a function pointer of the form,
@@ -15,7 +27,7 @@ Given a function pointer of the form,
   primer::result my_func(lua_State * L, std::string foo, bool bar, int baz);
 ``
 
-the adaptor converts it to a function somewhat similar to the following:
+`adapt` converts it to a function somewhat similar to the following:
 
 ``
   primer::result my_func_helper(lua_State * L) {
@@ -75,14 +87,14 @@ so that `PRIMER_ADAPT` can be used to push complex functions directly to lua, e.
   lua_pushcfunction(L, PRIMER_ADAPT(&my_func));
 ```
 
-`primer::adaptor` also has a trivial specialization for functions which are already `lua_CFunction`:
+`primer::adapt` also has a trivial specialization for functions which are already `lua_CFunction`:
 
-[primer_adaptor_trivial]
+[primer_adapt_trivial]
 
 [h2 Customization]
 
 If you would like to implement a custom parameter reading / error handling mechanism, you can do that by introducing
-a new return type for such functions, and specializing the `adaptor` class template for function pointers with your
+a new return type for such functions, and specializing the `adapt` class template for function pointers with your
 given return type.
 
 Your functions using the new return type would then be automatically recognized also by `PRIMER_ADAPT_USERDATA`

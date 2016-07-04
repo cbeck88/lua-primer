@@ -53,11 +53,11 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-//[ primer_adaptor_decl
-// adaptor is what does the actual work.
+//[ primer_adapt_decl
+// adapt is what does the actual work.
 // The PRIMER_ADAPT macro provides a suitable interface to it
 template <typename T, T>
-class adaptor;
+class adapt;
 //]
 
 //[ primer_adapt
@@ -65,14 +65,14 @@ class adaptor;
 // (This seems to be necessary since we can't deduce non-type template parameter
 // types, at least prior to C++17.)
 //
-#define PRIMER_ADAPT(F) &::primer::adaptor<decltype(F), (F)>::adapted
+#define PRIMER_ADAPT(F) &::primer::adapt<decltype(F), (F)>::adapted
 //]
 
-//[ primer_adaptor_trivial
+//[ primer_adapt_trivial
 // Traditional "raw" C-style lua callbacks. They aren't even member functions.
 // We don't have to do any work
 template <lua_CFunction target_func>
-class adaptor<lua_CFunction, target_func> {
+class adapt<lua_CFunction, target_func> {
 public:
   static int adapted(lua_State * L) { return target_func(L); }
 };
@@ -82,7 +82,7 @@ public:
  * Implementation for a "free" function, using `primer::result` return type.
  */
 template <typename... Args, primer::result (*target_func)(lua_State * L, Args...)>
-class adaptor<primer::result (*)(lua_State * L, Args...), target_func> {
+class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
 
   /***
    * We introduce a local class to do the actual dispatching.

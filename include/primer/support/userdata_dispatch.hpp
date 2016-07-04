@@ -31,7 +31,7 @@ namespace primer {
  */
 
 template <typename T, typename F, F f>
-struct userdata_dispatcher : public adaptor<F, f> {};
+struct userdata_dispatcher : public adapt<F, f> {};
 
 /***
  * Specialize for a member function
@@ -53,7 +53,7 @@ struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
   }
 
   static int adapted(lua_State * L) {
-    using helper_t = adaptor<R (*)(lua_State *, T &, Args...), dispatch_target>;
+    using helper_t = adapt<R (*)(lua_State *, T &, Args...), dispatch_target>;
     return helper_t::adapted(L);
   }
 };

@@ -3,7 +3,7 @@
 `primer::result` is a small structure that is meant to be used by user code, in
 functions that are pushed to lua.
 
-`primer::result` is supposed to be the return type. It represesnts a signal of
+`primer::result` is supposed to be the return type. It represents a signal of
 how to terminate a lua function call.
 
 There are three possible signals:

@@ -69,7 +69,7 @@ T * get_extraspace_ptr(lua_State * L) {
  */
 
 template <typename T, typename F, F f>
-struct extraspace_dispatcher : public adaptor<F, f> {};
+struct extraspace_dispatcher : public adapt<F, f> {};
 
 /***
  * Specialize for a member function
@@ -88,7 +88,7 @@ struct extraspace_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
   }
 
   static int adapted(lua_State * L) {
-    using helper_t = adaptor<R (*)(lua_State *, Args...), dispatch_target>;
+    using helper_t = adapt<R (*)(lua_State *, Args...), dispatch_target>;
     return helper_t::adapted(L);
   }
 };

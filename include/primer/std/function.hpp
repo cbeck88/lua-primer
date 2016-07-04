@@ -69,7 +69,7 @@ struct std_function_udata {
       std_function_udata{std::move(f)};
     push_cached<&this_type::push_metatable>(L);
     lua_setmetatable(L, -2);
-    lua_pushcclosure(L, &adaptor<R (*)(lua_State *, Args...),
+    lua_pushcclosure(L, &adapt<R (*)(lua_State *, Args...),
                                  &this_type::closure_function>::adapted,
                      1);
   }
