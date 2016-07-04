@@ -31,12 +31,8 @@ The value can be obtained from the reference by using the `push` methods, or the
 
 [primer_lua_ref]
 
-[note While `primer::lua_ref` is copyable, copying it is not recommended as it has
- side-effects for the referred lua VM. If you need to copy a `lua_ref`, and your
- lua VMs are very busy, it might be preferrable to put `lua_ref` in a
- `std::shared_ptr` and copy those so that the `lua_ref` itself is not copied.
- It would likely be worth profiling to compare the performance in your
- application. ]
+[note While `primer::lua_ref` is copyable, copying it is not that cheap as it has
+ has to lock the VM, push the object, and create a new ref. ]
 
 [h2 Safety and ownership]
 
