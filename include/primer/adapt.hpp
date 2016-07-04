@@ -46,7 +46,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/result.hpp>
 
 #include <primer/detail/count.hpp>
-#include <primer/detail/implement_result.hpp>
+#include <primer/support/implement_result.hpp>
 
 #include <type_traits>
 #include <utility>

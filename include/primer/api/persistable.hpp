@@ -43,11 +43,11 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/eris.hpp>
 
 #include <primer/api/feature.hpp>
-#include <primer/detail/lua_read_write.hpp>
 #include <primer/detail/rank.hpp>
 #include <primer/detail/typelist.hpp>
 #include <primer/detail/typelist_iterator.hpp>
 #include <primer/support/asserts.hpp>
+#include <primer/support/lua_reader_writer.hpp>
 
 namespace primer {
 

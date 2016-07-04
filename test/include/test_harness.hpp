@@ -11,7 +11,7 @@
 #include <primer/expected.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
-#include <primer/detail/error_capture.hpp>
+#include <primer/support/error_capture.hpp>
 
 #include <cstring>
 #include <exception>
