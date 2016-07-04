@@ -48,8 +48,8 @@ struct maybe_number {
 
   constexpr explicit maybe_number(int v) noexcept : value(v), unknown(false) {}
 
-  constexpr int operator *() noexcept { return value; }
-  constexpr explicit operator bool() noexcept { return !unknown; }
+  constexpr int operator *() noexcept const { return value; }
+  constexpr explicit operator bool() noexcept const { return !unknown; }
 
   // Left associate
   template <typename F>
