@@ -38,7 +38,7 @@ void test_primer_expected() {
 
   auto result3 = foo(primer::error("404"));
   assert(!result3);
-  assert(result3.err_str() == "404");
+  assert(result3.err().str() == "404");
 }
 //]
 } // end anonymous namespace
