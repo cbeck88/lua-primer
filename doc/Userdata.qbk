@@ -1,16 +1,103 @@
-[section Userdata]
+[section userdata]
 
-userdata types are recognized using a trait, `primer::traits::userdata`.
-This trait must be specialized for any type which primer will recognize as userdata, and this must provide
+Primer can be told to recognize any C++ type as a *userdata* type. This means
+that you can construct it within lua.
+
+Primer recognizes userdata types are using a trait, `primer::traits::userdata`.
+This trait must be specialized for any type which primer will recognize as userdata.
+
+The trait must provide three things:
+
+* A name for the userdata type (used as a key in lua, and in error messages)
+* A list of functions to go in the metatable
+* A list of functions to go in the permanent objects table.
+
+Given this information, primer is able to create the metatable of this userdata
+type on demand, and store the necessary functions in the permanent objects table
+so that this userdata can be serialized.
+
+In a pure-lua (no eris) application, not all of these are necessary. The permanent
+objects table could be skipped. Even the metatable functions could be skipped --
+you could recover the metatable yourself using `luaL_getmetatable` and the key,
+and adjust it as you like. If there is no userdata name, though, then primer is
+not able to ['read] this userdata type using `primer::read`, so there is little
+that we can do with it.
+
+[h4 Representing lists of functions]
+
+It is quite common in lua C api programming to need to be able create lists of
+functions. lua has a standard idiom for this.
+
+``
+  struct luaL_Reg {
+    const char * name;
+    lua_CFunction func;
+  };
+``
+
+is defined in the `lua.h` header.
+
+Many lua functions take as a parameter a pointer `const luaL_Reg *`, which is
+expected to point into an array, terminated by a `luaL_Reg` holding two null pointers.
+(See [@http://www.lua.org/manual/5.2/manual.html#luaL_Reg the manual].)
+
+In primer, we aren't writing C, but it is convenient for us to be able
+to make lists of functions that are initialized at compile time, and refer to
+them. So, we reuse some this lua idiom, also for familiarity.
+
+However, we extend the idiom as follows:
+
+For purposes of primer, a list of functions not need be strictly a `const luaL_Reg *`,
+but it can be a `const T *`, where `T` is some type that looks like `luaL_Reg` in the
+sense of duck typing. That is, if it has a member `name` of type `const char *`,
+and a member `func` of type `lua_CFunction`, then it is acceptable.
+
+If it has two such fields, we say that it satisfies the ['`luaL_Reg` concept].
+
+[h4 Userdata trait requirements]
+
+A specialization of the `userdata` trait *must* provide the following members:
 
 * `static const char * name`: A name associated to the userdata. The metatable will be constructed using `luaL_newmetatable`,
   using this name as the key. This name may also be displayed in certain error messages, e.g. if userdata of this type was expected and not found.
 
-* `static const luaL_Reg * methods`: A null-terminated list of metamethods for this userdata. This must include a `__persist` metamethod, or the
+It *may* provide the following additional members:
+
+* `static const luaL_Reg * metatable`: A null-terminated list of methods for this userdata. This must include a `__persist` method, or the
   userdata cannot be persisted correctly. See eris' documentation.
 
-* `static const luaL_Reg * other_functions`: A null-terminated list of other functions related to this userdata which must be listed in the permanent
+* `static const luaL_Reg * permanents`: A null-terminated list of other functions related to this userdata which must be listed in the permanent
   objects table. Commonly this list contains constructors or other functions related to the type and exposed to the user or via the `__persist` metamethod.
+
+If the `metatable` entry is missing, primer will install a minimalistic metatable for your type.
+
+If the `metatable` entry is present, but no `__gc` method is present, primer will generate one which calls the destructor for your type.
+This is almost always what you want, except for debugging purposes, or if your type is trivial and does not need a destructor call.
+In that case, you block primer from installing `__gc` by putting `{"__gc", nullptr}` in the list -- primer will not register a null pointer
+as a C function.
+
+If the `metatable` entry is present, and no `__index` method is present, primer will implement a common idiom in which the metatable itself
+is set to be its own index table. Again, you can block this by registering any function for `__index`, or `nullptr`.
+
+The `permanents` list is similar to the `metatable` list, except that those objects will become part of the ['permanent objects table] when
+persisting and unpersisting a state that has this userdata. See the "API" section for more info.
+
+[h4 Alternative syntax]
+
+If setting up your metatable is too complex to use the above pattern, you can use an alternate method:
+
+* `static void metatable(lua_State *)`
+
+In this case you can manually control the construction of the metatable. Primer will call `luaL_newmetatable` using the name first, and your function
+will be called with the new metatable on top of the stack. Your function is supposed to add members to it and do any other appropriate set up, and return
+with it still on top of the stack.
+
+* `static void permanents(lua_State *)`
+
+This is simliar to the above. The function will be called with the permanent objects table on top of the stack, and you are expected to add any new members
+to it and return with it on top of the stack, leaving the stack in the same position.
+
+[h4 Pushing and reading userdata]
 
 `primer::push_udata` is a template function which is used to construct new userdata objects on the stack.
 
@@ -26,7 +113,6 @@ While primitive types like `number`, `string`, and `table` are generally read fr
 Instead, userdata types are generally read from the stack *by reference*.
 
 TODO
-
 
 [h4 Adapting userdata methods]
 
