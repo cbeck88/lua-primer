@@ -108,4 +108,6 @@ we could add a preprocessor symbol so that primer will attempt to handle `std::b
 calls in a protected mode so that if lua runs out of memory, we can avoid a panic. However, currently that is not what
 we do.
 
+There is an experimental branch `primer_handle_bad_alloc` which contains some partial progress towards this.
+
 [endsect]
