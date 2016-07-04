@@ -25,7 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-//[ optional_access
+//[ primer_optional_access
 namespace traits {
 
 // This trait is used to tell primer in a basic way how to interact with an

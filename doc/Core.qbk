@@ -9,9 +9,12 @@
 [import ../include/primer/bound_function.hpp]
 [import ../include/primer/coroutine.hpp]
 [import ../include/primer/support/types.hpp]
+[import ../include/primer/container/optional_base.hpp]
+[import ../include/primer/boost/optional.hpp]
 
 [import ../test/examples/expected.cpp]
 [import ../test/core.cpp]
+[import ../test/boost.cpp]
 
 The core features of primer are general-purpose lua binding facilities.
 

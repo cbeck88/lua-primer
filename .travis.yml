@@ -4,9 +4,9 @@ language: cpp
 matrix:
   include:
     - compiler: gcc
-      env: NO_STATIC_ASSERTS=true
+#      env: NO_STATIC_ASSERTS=true
     - compiler: clang
-      env: NO_STATIC_ASSERTS=true
+#      env: NO_STATIC_ASSERTS=true
     - compiler: gcc
       addons:
         apt:

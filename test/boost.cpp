@@ -7,6 +7,7 @@
 #include <primer/read.hpp>
 
 #include "test_harness.hpp"
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <set>
@@ -65,6 +66,96 @@ void test_optional_read() {
     TEST(!*maybe_opt, "Expected empty optional");
     lua_pop(L, 1);
   }
+}
+
+//[ primer_example_maximum_function_defn
+primer::result maximum(lua_State * L, boost::optional<int> x, boost::optional<int> y) {
+  if (x) {
+    if (y) {
+      lua_pushinteger(L, std::max(*x, *y));
+    } else {
+      lua_pushinteger(L, *x);
+    }
+  } else {
+    if (y) {
+      lua_pushinteger(L, *y);
+    } else {
+      lua_pushnil(L);
+    }
+  }
+  return 1;
+}
+//]
+
+void test_optional_example() {
+  lua_raii L;
+
+  luaL_requiref(L, "", &luaopen_base, 1);
+  lua_pop(L, 1);
+
+  //[ primer_example_optional_push
+  boost::optional<int> x;
+  primer::push(L, x);
+  assert(lua_gettop(L) == 1);
+  assert(lua_isnil(L, 1));
+
+  x = 7;
+  primer::push(L, x);
+  assert(lua_gettop(L) == 2);
+  assert(lua_isinteger(L, 2));
+  assert(lua_tointeger(L, 2) == 7);
+  //]
+
+  lua_settop(L, 0);
+
+  //[ primer_example_optional_read
+  lua_pushnumber(L, 5.5f);
+  assert(lua_gettop(L) == 1);
+
+  auto result1 = primer::read<boost::optional<LUA_NUMBER>>(L, 1);
+  assert(result1);
+
+  boost::optional<LUA_NUMBER> my_number = *result1;
+  assert(my_number);
+  assert(*my_number == 5.5f);
+
+  lua_pushnil(L);
+  assert(lua_gettop(L) == 2);
+
+  auto result2 = primer::read<boost::optional<LUA_NUMBER>>(L, 2);
+  assert(result2);
+
+  boost::optional<LUA_NUMBER> my_number2 = *result2;
+  assert(!my_number2); // got an empty state (nil)
+
+  lua_pushstring(L, "foo");
+  assert(lua_gettop(L) == 3);
+
+  auto result3 = primer::read<boost::optional<LUA_NUMBER>>(L, 3);
+  assert(!result3); // string is not nil or a number
+  //]
+
+  //[ primer_example_maximum_function_test
+  lua_pushcfunction(L, PRIMER_ADAPT(&maximum));
+  lua_setglobal(L, "maximum");
+
+  luaL_loadstring(L,
+                  "local x = 5                              \n"
+                  "local y = 7                              \n"
+                  "assert(maximum(x, y) == 7)               \n"
+                  "assert(maximum(x, nil) == 5)             \n"
+                  "assert(maximum(nil, y) == 7)             \n"
+                  "assert(not maximum(nil, nil))            \n"
+                  "assert(not pcall(maximum, 'foo', 'bar')) \n"
+                  "assert(not pcall(maximum, 5, 'bar'))     \n"
+                  "assert(not pcall(maximum, 'foo', nil))   \n"
+                  "assert(pcall(maximum, 6, -14))           \n"
+                  "assert(pcall(maximum, 6))                \n"
+                  "assert(maximum(6) == 6)                  \n");
+
+  assert(LUA_OK == lua_pcall(L, 0, 0, 0));
+  //]
+
 }
 
 /***
@@ -249,6 +340,7 @@ int main() {
   test_harness tests{
     {"optional push", &test_optional_push},
     {"optional read", &test_optional_read},
+    {"optional example", &test_optional_example},
     {"vector", &test_vector_round_trip},
     {"bound function", &test_bound_function},
     {"coroutine", &test_coroutine},
