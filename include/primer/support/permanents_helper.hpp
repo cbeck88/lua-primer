@@ -35,8 +35,9 @@ struct permanents_helper {
 };
 
 template <typename T>
-struct permanents_helper<T, 
-        enable_if_t<detail::is_L_Reg_ptr<decltype(primer::traits::userdata<T>::permanents)>::value>> {
+struct permanents_helper<T,
+                         enable_if_t<detail::is_L_Reg_ptr<decltype(
+                           primer::traits::userdata<T>::permanents)>::value>> {
   static void populate(lua_State * L) {
     primer::set_funcs(L, primer::traits::userdata<T>::permanents);
   }

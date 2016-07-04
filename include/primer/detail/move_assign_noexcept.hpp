@@ -42,15 +42,15 @@ struct is_nothrow_swappable<
 template <typename T>
 auto move_assign_noexcept(T & dest, T && src) noexcept
   -> enable_if_t<!std::is_nothrow_move_assignable<T>::value &&
-                         is_nothrow_swappable<T>::value> {
+                 is_nothrow_swappable<T>::value> {
   std::swap(dest, src);
 }
 
 template <typename T>
 auto move_assign_noexcept(T & dest, T && src) noexcept
   -> enable_if_t<!std::is_nothrow_move_assignable<T>::value &&
-                         !is_nothrow_swappable<T>::value &&
-                         std::is_nothrow_move_constructible<T>::value> {
+                 !is_nothrow_swappable<T>::value &&
+                 std::is_nothrow_move_constructible<T>::value> {
   dest.~T();
   new (&dest) T(std::move(src));
 }

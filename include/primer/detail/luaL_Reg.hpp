@@ -50,11 +50,12 @@ struct is_L_Reg_ptr : std::false_type {};
 
 template <typename T>
 struct is_L_Reg_ptr<T *,
-  enable_if_t<has_L_Reg_name<remove_cv_t<T>>::value
-           && has_L_Reg_func<remove_cv_t<T>>::value >> : std::true_type {};
+                    enable_if_t<has_L_Reg_name<remove_cv_t<T>>::value &&
+                                has_L_Reg_func<remove_cv_t<T>>::value>>
+  : std::true_type {};
 
 template <typename T>
-struct is_L_Reg_ptr<T * const> : is_L_Reg_ptr<T*> {};
+struct is_L_Reg_ptr<T * const> : is_L_Reg_ptr<T *> {};
 
 } // end namespace detail
 } // end namespace primer

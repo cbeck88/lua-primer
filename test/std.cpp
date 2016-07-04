@@ -37,8 +37,8 @@ static_assert(*x == 1, "");
 static_assert(*y == 2, "");
 
 static_assert(x + y, "");
-static_assert(*(x+y) == 3, "");
-static_assert(!(x+z), "");
+static_assert(*(x + y) == 3, "");
+static_assert(!(x + z), "");
 //]
 
 static_assert((maybe_int{1} + 2 + 3), "maybe_int is broken");
@@ -437,7 +437,8 @@ static_assert(primer::detail::is_L_Reg_ptr<const luaL_Reg *>::value,
 static_assert(primer::detail::is_L_Reg_ptr<const luaL_Reg * const>::value,
               "is_L_Reg_ptr test not working");
 
-static_assert(primer::detail::is_L_Reg_ptr<decltype(primer::traits::userdata<userdata_test>::metatable)>::value,
+static_assert(primer::detail::is_L_Reg_ptr<decltype(
+                primer::traits::userdata<userdata_test>::metatable)>::value,
               "is_L_Reg_ptr test not working");
 
 static_assert(primer::traits::is_userdata<userdata_test>::value,

@@ -38,7 +38,7 @@ namespace detail {
 
 // minimalistic, do-nothing metatable
 template <typename T, typename ENABLE = void>
-struct metatable{
+struct metatable {
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
@@ -56,8 +56,8 @@ struct metatable{
 // full manual control for user
 template <typename T>
 struct metatable<T,
-               enable_if_t<noexcept(primer::traits::userdata<T>::metatable(static_cast<lua_State *>(nullptr)))>>
-{
+                 enable_if_t<noexcept(primer::traits::userdata<T>::metatable(
+                   static_cast<lua_State *>(nullptr)))>> {
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
@@ -72,13 +72,14 @@ struct metatable<T,
 // using luaL_Reg list
 template <typename T>
 struct metatable<T,
-               enable_if_t<detail::is_L_Reg_ptr<decltype(primer::traits::userdata<T>::metatable)>::value>>
-{
+                 enable_if_t<detail::is_L_Reg_ptr<decltype(
+                   primer::traits::userdata<T>::metatable)>::value>> {
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
     {
-      detail::assert_L_Reg<remove_cv_t<remove_reference_t<decltype(*primer::traits::userdata<T>::metatable)>>> validate {};
+      detail::assert_L_Reg<remove_cv_t<remove_reference_t<decltype(
+        *primer::traits::userdata<T>::metatable)>>> validate{};
       static_cast<void>(validate);
     }
 
