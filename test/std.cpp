@@ -105,14 +105,29 @@ static_assert(*stack_space_for_read<std::vector<std::vector<std::string>>>() == 
 
 static_assert(!stack_space_for_push<char>(), "hmm");
 
-static_assert(stack_space_for_push_each<std::string, std::string, std::string>(), "stack space calculations wrong");
-static_assert(3 == *stack_space_for_push_each<std::string, std::string, std::string>(), "stack space calculations wrong");
+static_assert(stack_space_for_push_each<std::string, std::string, std::string>(),
+              "stack space calculations wrong");
+static_assert(
+  3 == *stack_space_for_push_each<std::string, std::string, std::string>(),
+  "stack space calculations wrong");
 
-static_assert(stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(), "stack space calculations wrong");
-static_assert(4 == *stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(), "stack space calculations wrong");
+static_assert(
+  stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(),
+  "stack space calculations wrong");
+static_assert(
+  4 ==
+    *stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(),
+  "stack space calculations wrong");
 
-static_assert(stack_space_for_push_each<std::string, std::string, std::vector<std::string>, int>(), "stack space calculations wrong");
-static_assert(4 == *stack_space_for_push_each<std::string, std::string, std::vector<std::string>, int>(), "stack space calculations wrong");
+static_assert(
+  stack_space_for_push_each<std::string, std::string, std::vector<std::string>, int>(),
+  "stack space calculations wrong");
+static_assert(4 ==
+                *stack_space_for_push_each<std::string,
+                                           std::string,
+                                           std::vector<std::string>,
+                                           int>(),
+              "stack space calculations wrong");
 
 } // end namespace maybe_int_tests
 

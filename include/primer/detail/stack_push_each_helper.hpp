@@ -31,7 +31,10 @@ struct stack_push_each_helper {
   template <std::size_t... Is>
   struct impl<SizeList<Is...>> {
     static constexpr maybe_int value() noexcept {
-      return maybe_int::max(maybe_int{0}, (stack_space_needed<::primer::traits::push<remove_reference_t<remove_cv_t<Args>>>>::value + Is)...);
+      return maybe_int::max(maybe_int{0},
+                            (stack_space_needed<::primer::traits::push<
+                               remove_reference_t<remove_cv_t<Args>>>>::value +
+                             Is)...);
     }
   };
 
