@@ -43,7 +43,7 @@ expected to point into an array, terminated by a `luaL_Reg` holding two null poi
 
 In primer, we aren't writing C, but it is convenient for us to be able
 to make lists of functions that are initialized at compile time, and refer to
-them. So, we reuse some this lua idiom, also for familiarity.
+them.
 
 However, we extend the idiom as follows:
 
@@ -52,7 +52,7 @@ but it can be a `const T *`, where `T` is some type that looks like `luaL_Reg` i
 sense of duck typing. That is, if it has a member `name` of type `const char *`,
 and a member `func` of type `lua_CFunction`, then it is acceptable.
 
-If it has two such fields, we say that it satisfies the ['`luaL_Reg` concept].
+If a type has two such fields, we say that it satisfies the ['`luaL_Reg` concept].
 
 [h4 Userdata trait requirements]
 
