@@ -17,12 +17,29 @@
 #include <set>
 #include <vector>
 
-namespace {
+namespace maybe_int_tests {
 
 // Static asserts which check the "stack_space_for_push" and read feature
-using primer::detail::maybe_int;
 using primer::stack_space_for_read;
 using primer::stack_space_for_push;
+
+//[ primer_example_maybe_int
+using primer::detail::maybe_int;
+
+constexpr auto x = maybe_int{1};
+constexpr auto y = maybe_int{2};
+constexpr auto z = maybe_int{};
+
+static_assert(x, "");
+static_assert(y, "");
+static_assert(!z, "");
+static_assert(*x == 1, "");
+static_assert(*y == 2, "");
+
+static_assert(x + y, "");
+static_assert(*(x+y) == 3, "");
+static_assert(!(x+z), "");
+//]
 
 static_assert((maybe_int{1} + 2 + 3), "maybe_int is broken");
 static_assert(*(maybe_int{1} + 2 + 3) == 6, "maybe_int is broken");
@@ -87,7 +104,7 @@ static_assert(*stack_space_for_read<std::vector<std::vector<std::string>>>() == 
 
 static_assert(!stack_space_for_push<char>(), "hmm");
 
-} // end anonymous namespace
+} // end namespace maybe_int_tests
 
 void test_vector_push() {
   lua_raii L;
