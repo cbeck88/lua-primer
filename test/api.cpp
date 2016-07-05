@@ -242,7 +242,9 @@ struct tstring {
   tstring(const tstring &) = default;
   tstring(tstring &&) = default;
 
-  explicit tstring(std::vector<std::string> s) : strs(std::move(s)) {}
+  explicit tstring(std::vector<std::string> s)
+    : strs(std::move(s))
+  {}
 
   // Methods
   std::string to_string() {
@@ -312,11 +314,11 @@ struct userdata<tstring> {
 };
 
 constexpr auto metatable_array = std::array<luaL_Reg, 3>{
-    {{"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
-     {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
-     {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}}};
+  {{"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
+   {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
+   {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}}};
 constexpr auto permanents_array = std::array<luaL_Reg, 1>{
-    {luaL_Reg{"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}}};
+  {luaL_Reg{"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}}};
 
 const luaL_Reg * const userdata<tstring>::metatable = metatable_array.data();
 const luaL_Reg * const userdata<tstring>::permanents = permanents_array.data();

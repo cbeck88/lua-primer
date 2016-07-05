@@ -40,18 +40,14 @@ Many lua functions take as a parameter a pointer `const luaL_Reg *`, which is
 expected to point into an array, terminated by a `luaL_Reg` holding two null pointers.
 (See [@http://www.lua.org/manual/5.2/manual.html#luaL_Reg the manual].)
 
-In primer, we aren't writing C, but it is convenient for us to be able
-to make lists of functions that are initialized at compile time in one compilation unit, and refer to
-them in another.
+In primer, we respect this idiom, but we extend it as follows:
 
-However, we extend the idiom as follows:
+* Null-terminated array is supported
+* Any standard container (`std::array`, `std::initializer_list`, `std::vector`) is supported, with or without null terminators.
+* The type need not actually be `luaL_Reg` -- as long as it has public members `const char * name`
+and `lua_CFunction func` then that is sufficient.
 
-For purposes of primer, a list of functions not need be strictly a `const luaL_Reg *`,
-but it can be a `const T *`, where `T` is some type that looks like `luaL_Reg` in the
-sense of duck typing. That is, if it has a member `name` of type `const char *`,
-and a member `func` of type `lua_CFunction`, then it is acceptable.
-
-If a type has two such fields, we say that it satisfies the ['`luaL_Reg` concept].
+In total we call this concept "`L_Reg_sequence`".
 
 [h4 Userdata trait requirements]
 
@@ -62,10 +58,10 @@ A specialization of the `userdata` trait *must* provide the following members:
 
 It *may* provide the following additional members:
 
-* `static const luaL_Reg * metatable`: A null-terminated list of methods for this userdata. This must include a `__persist` method, or the
+* `static L_Reg_sequence metatable`: A null-terminated list of methods for this userdata. This must include a `__persist` method, or the
   userdata cannot be persisted correctly. See eris' documentation.
 
-* `static const luaL_Reg * permanents`: A null-terminated list of other functions related to this userdata which must be listed in the permanent
+* `static L_Reg_sequence permanents`: A null-terminated list of other functions related to this userdata which must be listed in the permanent
   objects table. Commonly this list contains constructors or other functions related to the type and exposed to the user or via the `__persist` metamethod.
 
 If the `metatable` entry is missing, primer will install a minimalistic metatable for your type.
@@ -76,20 +72,20 @@ In that case, you block primer from installing `__gc` by putting `{"__gc", nullp
 as a C function.
 
 If the `metatable` entry is present, and no `__index` method is present, primer will implement a common idiom in which the metatable itself
-is set to be its own index table. Again, you can block this by registering any function for `__index`, or `nullptr`.
+is set to be its own index table. Again, you can block this by registering any function for `__index`.
 
 The `permanents` list is similar to the `metatable` list, except that those objects will become part of the ['permanent objects table] when
 persisting and unpersisting a state that has this userdata. See the "API" section for more info.
 
 [h4 Alternative syntax]
 
-If setting up your metatable is too complex to use the above pattern, for example, if you also must add things to the registry to support your type
-or something like this, then you can use an alternate method:
+If setting up your metatable is too complex to use the above pattern, for example, if you have entries that need to be set to tables, 
+or you also must add things to the registry to support your type, or something like this, then you can use an alternate method:
 
 * `static void metatable(lua_State *)`
 
 In this case you can manually control the population of the metatable. Primer will call `luaL_newmetatable` using the name first, and your function
-will be called with the new metatable on top of the stack. Your function is supposed to add members to it and do any other appropriate set up, and return
+will be called with the new metatable on top of the stack. Your function is supposed to add members to it and do any other appropriate setup, and return
 with the stack in the same position that it was found.
 
 Your function will only be called once, when the metatable is initialized, for any given lua State.
@@ -106,7 +102,7 @@ Your function will only be called once, when the metatable is initialized, for a
 ```
 
 It is best if your constructor is `noexcept`, but this is not always possible. If it is not noexcept, then in the 
-event of an exception thrown from the constructor, primer will pop the userdata entry from the stack.
+event of an exception thrown from the constructor, primer will pop the userdata entry from the stack, and rethrow the exception.
 
 [h4 Reading userdata]
 

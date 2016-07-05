@@ -28,12 +28,12 @@ namespace detail {
  */
 template <typename T>
 struct has_L_Reg_name
-  : std::is_same<remove_reference_t<decltype(std::declval<T>().name)>,
+  : std::is_same<remove_cv_t<remove_reference_t<decltype(std::declval<T>().name)>>,
                  const char *> {};
 
 template <typename T>
 struct has_L_Reg_func
-  : std::is_same<remove_reference_t<decltype(std::declval<T>().func)>,
+  : std::is_same<remove_cv_t<remove_reference_t<decltype(std::declval<T>().func)>>,
                  lua_CFunction> {};
 
 // Test if a type satisfies L_Reg concept
@@ -60,8 +60,7 @@ template <typename T, typename ENABLE = void>
 struct is_L_Reg_ptr : std::false_type {};
 
 template <typename T>
-struct is_L_Reg_ptr<T *, enable_if_t<is_L_Reg<remove_cv_t<T>>::value>>
-  : std::true_type {};
+struct is_L_Reg_ptr<T *, enable_if_t<is_L_Reg<T>::value>> : std::true_type {};
 
 template <typename T>
 struct is_L_Reg_ptr<T * const> : is_L_Reg_ptr<T *> {};
@@ -100,7 +99,7 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   }
 
   // A little forgiveness: If they pass a reference to a C-style array, check
-  // if they have a null-terminator or not
+  // if they have a null-terminator or not and do the right thing
   static constexpr decay_t<T> end_finder(decay_t<T> start,
                                          decay_t<T> current,
                                          std::size_t limit) {
