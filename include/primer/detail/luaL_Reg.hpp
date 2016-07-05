@@ -98,6 +98,21 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   static constexpr span_t adapt(decay_t<T> t) {
     return span_t{t, end_finder(t)};
   }
+
+  // A little forgiveness: If they pass a reference to a C-style array, check
+  // if they have a null-terminator or not
+  static constexpr decay_t<T> end_finder(decay_t<T> start,
+                                         decay_t<T> current,
+                                         std::size_t limit) {
+    return (current - start >= limit)
+             ? (start + limit)
+             : (current->name ? end_finder(start, current + 1, limit) : current);
+  }
+
+  template <std::size_t N>
+  static constexpr span_t adapt(T(&arr)[N]) {
+    return span_t{arr, end_finder(arr, arr, N)};
+  }
 };
 
 } // end namespace detail

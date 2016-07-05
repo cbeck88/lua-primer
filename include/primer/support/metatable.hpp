@@ -102,11 +102,13 @@ struct metatable<T,
     constexpr const char * gc_name = "__gc";
 
     for (const auto & reg : metatable_seq) {
-      if (reg.func) {
-        lua_pushcfunction(L, reg.func);
-        lua_setfield(L, -2, reg.name);
+      if (reg.name) {
+        if (reg.func) {
+          lua_pushcfunction(L, reg.func);
+          lua_setfield(L, -2, reg.name);
+        }
+        if (0 == std::strcmp(reg.name, gc_name)) { saw_gc_metamethod = true; }
       }
-      if (0 == std::strcmp(reg.name, gc_name)) { saw_gc_metamethod = true; }
     }
 
     // If the user did not register __gc then it is potentially (likely) a

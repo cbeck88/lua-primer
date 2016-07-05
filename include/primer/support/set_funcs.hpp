@@ -32,7 +32,7 @@ void set_funcs(lua_State * L, T && seq) {
   PRIMER_ASSERT_TABLE(L);
 
   for (const auto & reg : seq) {
-    if (reg.func) {
+    if (reg.name && reg.func) {
       lua_pushcfunction(L, reg.func);
       lua_setfield(L, -2, reg.name);
     }
@@ -45,7 +45,7 @@ void set_funcs_reverse(lua_State * L, T && seq) {
   PRIMER_ASSERT_TABLE(L);
 
   for (const auto & reg : seq) {
-    if (reg.func) {
+    if (reg.name && reg.func) {
       lua_pushcfunction(L, reg.func);
       lua_pushstring(L, reg.name);
       lua_settable(L, -3);

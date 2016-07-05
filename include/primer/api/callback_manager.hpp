@@ -33,6 +33,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/api/callback_registrar.hpp>
 
 #include <primer/detail/span.hpp>
+#include <primer/support/set_funcs.hpp>
 
 namespace primer {
 
@@ -75,23 +76,12 @@ public:
 
   // Register as func - name pairs
   void on_persist_table(lua_State * L) const {
-    for (const auto & r : list_) {
-      if (r.func) {
-        lua_pushcfunction(L, r.func);
-        lua_pushstring(L, r.name);
-        lua_settable(L, -3);
-      }
-    }
+    set_funcs_reverse(L, list_);
   }
 
   // Register as name - func pairs
   void on_unpersist_table(lua_State * L) const {
-    for (const auto & r : list_) {
-      if (r.func) {
-        lua_pushcfunction(L, r.func);
-        lua_setfield(L, -2, r.name);
-      }
-    }
+    set_funcs(L, list_);
   }
 };
 
