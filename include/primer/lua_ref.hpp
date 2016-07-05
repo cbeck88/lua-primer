@@ -114,7 +114,9 @@ public:
   // Push to main stack
   /*<< Attempts to push the object to the top of the primary stack of the state
 used to create this lua_ref.
+
 Returns a (valid) `lua_State *` if successfully locked.
+
 Returns `nullptr` if that VM is closed, or if we are in the empty state.
       >>*/
   lua_State * push() const noexcept {
@@ -130,14 +132,20 @@ Returns `nullptr` if that VM is closed, or if we are in the empty state.
 It *must* be a thread in the same VM as the original stack, or the same
 as the original stack.
 
-Returns true if push was successful, returns false and pushes nil to
+Returns `true` if push was successful.
+
+Returns `false` and pushes `nil` to
 the given stack if the original VM is gone.
 
-N.B. If you try to push onto a stack from another lua VM, undefined and
-unspecified behavior will result. If `PRIMER_DEBUG` is defined, then
-primer will check for this and call std::abort if it finds that you
-broke this rule. If `PRIMER_DEBUG` is not defined... very bad things are
-likely to happen, including stack corruption of lua VMs. >>*/
+[caution If you try to push onto a stack belonging to *a different* lua VM,
+undefined and unspecified behavior will result.
+
+If `PRIMER_DEBUG` is defined, then
+primer will check for this and call `std::abort` if it finds that you
+broke this rule.
+
+If `PRIMER_DEBUG` is not defined... very bad things are
+likely to happen, including stack corruption of lua VMs.] >>*/
   bool push(lua_State * T) const noexcept {
     if (lua_State * L = this->check_engaged()) {
 #ifdef PRIMER_DEBUG
