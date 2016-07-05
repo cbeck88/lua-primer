@@ -100,8 +100,12 @@ struct metatable<T,
           lua_setfield(L, -2, reg.name);
         }
         if (0 == std::strcmp(reg.name, gc_name)) { saw_gc_metamethod = true; }
-        if (0 == std::strcmp(reg.name, index_name)) { saw_index_metamethod = true; }
-        if (0 == std::strcmp(reg.name, metatable_name)) { saw_metatable_metamethod = true; }
+        if (0 == std::strcmp(reg.name, index_name)) {
+          saw_index_metamethod = true;
+        }
+        if (0 == std::strcmp(reg.name, metatable_name)) {
+          saw_metatable_metamethod = true;
+        }
       }
     }
 

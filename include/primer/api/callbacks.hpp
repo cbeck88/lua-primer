@@ -47,7 +47,7 @@ class callbacks {
 public:
   template <typename T>
   constexpr explicit callbacks(const detail::span<const luaW_Reg> & _l,
-                                      T * _owner_ptr)
+                               T * _owner_ptr)
     : list_(_l)
     , owner_ptr_(static_cast<void *>(_owner_ptr))
   {}

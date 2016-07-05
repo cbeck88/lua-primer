@@ -36,7 +36,8 @@ void init_metatable(lua_State * L) {
   lua_pop(L, 1);
 }
 
-// Sanity check: Validate that primer can see the metatable of your userdata type
+// Sanity check: Validate that primer can see the metatable of your userdata
+// type
 template <typename T>
 constexpr bool has_metatable() {
   return primer::detail::metatable<T>::value;
