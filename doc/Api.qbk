@@ -11,11 +11,11 @@ the quick start examples for your application.
 
 You need to link with lua eris, not just lua, to use these objects.
 
-[include ApiCallback.qbk]
-[include ApiFeature.qbk]
 [include ApiBase.qbk]
 [include ApiLibrary.qbk]
 [include ApiUserdata.qbk]
+[include ApiFeature.qbk]
+[include ApiCallback.qbk]
 [include ApiPrint.qbk]
 [include ApiVFS.qbk]
 

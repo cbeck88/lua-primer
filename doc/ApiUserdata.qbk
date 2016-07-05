@@ -1,5 +1,28 @@
 [section API Userdata]
 
-TODO
+Userdata types may be registered with an API using the `userdatas` feature.
+
+Example:
+
+``
+
+#include <primer/api/userdatas.hpp>
+
+...
+
+{
+  ...
+
+  API_FEATURE(primer::api_userdatas<my_userdata1, my_userdata2, my_userdata3>, udatas_);
+
+  ...
+
+};
+
+``
+
+The metatables of each userdata will be created when `initialize_api` is called, and the permanent objects, defined
+by the `userdata` trait, if any, will be registered when we persist / unpersist.
+
 
 [endsect]

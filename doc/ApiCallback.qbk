@@ -1,5 +1,82 @@
 [section API Callback]
 
-TODO
+An "API Callback" is a member function of the api object which is exposed to lua.
+Primer exposes these member functions as global functions in lua, and it obtains
+the pointer to the api object using "extraspace dispatch". This means that,
+a pointer to the api object is stored within the lua extraspace, sometime during
+initialization. The callbacks are all adapted to fetch this pointer when they
+are called.
+
+There are two steps to this system
+
+* registering the callbacks in a list as they are declared and defined
+* an API feature which gets the list and the pointer to the API object and installs
+  it all in the lua state correctly.
+
+[h3 API feature]
+
+The API feature that does this is `primer::api::callbacks`.
+
+``
+  API_FEATURE(primer::api::callbacks, callbacks_);
+
+  ...
+
+  my_api()
+   : L_(luaL_newstate())
+   , callbacks_(this)
+  {}
+``
+
+Most of the standard API features that we provide, like `userdatas` and `libraries`,
+don't require special initialization, they can simply be default initialized, i.e.
+left out of the intializer list in a ctor of the API object.
+
+This is not so of the `callbacks` object. It needs a pointer to the api object,
+`this`. It remembers this pointer, so that it can later put it in the lua extraspace.
+
+Another thing happens when it is initialized with `this`: It looks at the type of
+the pointer it recieved, and fetches from that type the `callbacks_array()`.
+This is where it obtains the list of functions that it should manage.
+
+* On initialization, the `extraspace` pointer is set, and all of the callbacks
+  are placed in the global table.
+* When persisting or unpersisting, all of the callbacks are placed in the permanent
+  objects table, with slightly adjusted names to avoid a collision with anything else.
+
+[h3 Registration of callbacks]
+
+The actual callbacks array is assembled by the api::base itself, based on declarations
+that it sees in the api object body.
+
+All callbacks are registered via a macro `USE_API_CALLBACK`.
+
+This macro takes two parameters:
+ * a token which becomes the name of the function in lua
+ * a function pointer, which is adapted using the macro `PRIMER_ADAPT_EXTRASPACE`
+
+Thus, this macro can be used with free functions, as well as member functions --
+it will just fallback to `PRIMER_ADAPT` in that case.
+
+The macro which we saw in examples was simply `API_CALLBACK`. That macro is
+defined as follows:
+
+[primer_api_callback_defn]
+
+In this definition, `owner_type` is a `typedef` created by `api::base`.
+The macro simply calls `USE_API_CALLBACK` using a member function `intf_##name`,
+yet to be created. Then it opens a definition for that member function, using
+`auto` for trailing return specifier.
+
+So, there is no magic here. `USE_API_CALLBACK` is what is doing the work, and all
+it needs is a function pointer.
+
+If you prefer the syntax, you can just declare all your callbacks "normally" and without
+macros, and then register them one-by-one using `USE_API_CALLBACK`. (But, it creates
+another point of maintanence failure since you have to manually update this list when
+functions are added or removed. You won't get a compiler error if you define a new
+callback function and forget to register it.)
+
+TODO example
 
 [endsect]

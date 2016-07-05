@@ -1,5 +1,101 @@
 [section API Base]
 
+The template `primer::api::base` is meant to be the base class of any API object
+that you use with primer.
+
+This class template does not contain any data members or nontrivial special member
+functions -- not even a lua State.
+
+However, it provides a few member functions that are useful in assembling an api,
+and it provides registration macros for two things: API features, and API callbacks.
+
+[h3 Features]
+
+An object deriving from `primer::api::base` inherits three member functions that 
+carry out high-level goals related to features and persistence.
+
+``
+  void initialize_api(lua_State *);
+  void persist(lua_State *, std::string & buffer);
+  void unpersist(lua_State *, const std::string & buffer);
+``
+
+It carries out these tasks based on declarations that you make using the macro,
+`API_FEATURE`, calling member functions of each of them in succession, and making
+calls to the `eris` api.
+
+The premise of the system is that there will only be one `lua_State *` associated
+to an `API` object, created and destroyed by you, and you will pass that object
+to these methods, the same one each time.
+
+However, the system doesn't enforce that. We don't really want to get between you
+and the `lua_State *`, so that you can manage it as you like. We also like that
+`api::base` is a trivial object, so that even though you inherit from it, it's
+still easy to reason about the initialization and destruction of your object.
+
+`initialize_api` should always be called before `persist` or `unpersist` are called.
+
+`initialize_api` is meant to be called once, usually in the constructor of your
+object. This is when the API features are actually installed in the lua state.
+
+`persist` and `unpersist` both use `lua-eris` to create a string representation
+of the current state.
+
+The string representation includes all the information needed to reconstruct
+the global table `_G` of the lua state, as well as any additional objects provided by the
+`API_FEATURES` (see `on_serialize` and `on_deserialize` members).
+
+Other data, such as values stored in the lua registry, are not serialized. Any such values
+that need to be serialized, should be managed by an `API_FEATURE` to ensure that.
+
+(See documentation on API Features for more. TODO link)
+
+[h3 Callbacks]
+
+Besides `API_FEATURES`, callbacks can be registered using the `API_CALLBACK` macro.
+
+``
+struct my_api : api::base<my_api> {
+
+  API_CALLBACK(f)(lua_State * L, int x, int y, int z) -> primer::result {
+    ...
+  }
+
+};
+``
+
+This declares a member function of `my_api` which will be pushed into the global
+environment of the lua state on initialization, and named `f`. `f` is not associated
+to any userdata object, it can be called from lua like `f(1, 2, 3)`.
+
+You can access a list of all registered callbacks using the member function
+
+``
+  static constexpr primer::detail::span<luaL_Reg> callbacks_array();
+``
+
+e.g.
+
+``
+  std::cout << "Available callbacks: \n";
+  for (const auto & reg : this->callbacks_array()) {
+    std::cout << " '" << reg.name << "'" << std::endl;
+  }
+``
+
+`API_CALLBACK` only adds the function into the list of callbacks -- the api::base,
+on it's own, doesn't actually get them into the lua State.
+
+tl;dr for that you need to add an `api::callbacks` object using `API_FEATURE`. It makes sure
+all the callbacks are added and persists them correctly.
+
+For more details about callbacks, check out the API callbacks page. TODO link
+
+[h3 Rule of five ]
+
+Here we'll see some notes and example code showing a complete API object which
+implements the rule of five.
+
 TODO
 
 [endsect]

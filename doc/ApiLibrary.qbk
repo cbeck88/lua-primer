@@ -1,5 +1,38 @@
 [section API Library]
 
-TODO
+Libraries may be registered with an API using the `libraries` API feature.
+
+Example:
+
+``
+
+#include <primer/api/libraries.hpp>
+
+...
+
+{
+  ...
+
+  API_FEATURE(primer::api::libraries<lua_base_lib, lua_table_lib, lua_debug_lib, lua_coroutine_lib>, libs_);
+
+  ...
+
+};
+
+``
+
+Each library will be loaded when `initialize_api` is called. The functions of
+each library will be installed in the permanent objects table, so that they
+can survive when we persist / unpersist.
+
+There are also two typedefs which shorten the list of libraries:
+
+``
+API_FEATURE(primer::api::basic_libraries, libs_); // Only base, table, string and math
+``
+
+``
+API_FEATURE(primer::api::all_core_libraries, libs_); // All standard libraries:  at time of writing, basic, table, string, math, io, os, debug, coroutine
+``
 
 [endsect]

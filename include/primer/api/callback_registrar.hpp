@@ -127,6 +127,8 @@ public:
  * Don't longjmp out of this function, or it is a resource leak.
  */
 
+//[ primer_api_callback_defn
 #define NEW_LUA_CALLBACK(name, help)                                           \
   USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                      \
   auto intf_##name
+//]

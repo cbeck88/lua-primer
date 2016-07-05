@@ -1,5 +1,69 @@
 [section API Feature]
 
-TODO
+An API feature is an object which is responsible to install some feature within
+a lua State, and to provide support when we want to serialize / deserialize the
+state.
+
+A basic API feature object has three important methods:
+
+``
+struct my_feature {
+  void on_initialize(lua_State *);
+  void on_persist_table(lua_State *);
+  void on_unpersist_table(lua_State *);
+};
+``
+
+The `on_initialize` method is called when the API is initialized.
+
+The `on_persist_table` method is called when we are persisting the state, and
+need to construct the permanent objects table. When called, your feature will
+get a state, and can assume that the permanent objects table is on top of the stack.
+It should register each object, using the object as the key, and a serialization
+name as the value.
+
+The `on_unpersist_table` method is the same, but it does the reverse. The key
+should be the serialization name, and the value should be the object.
+
+Usually, permanent objects are just function pointers, but occasionally they
+might be something else. For instance if there is a global userdata of some type,
+it could be serialized by putting it in the permanent objects table, rather than
+providing a `__persist` metamethod.
+
+[h3 Additional methods]
+
+A complex feature may not only add objects to lua, it may also have some internal
+state that supports some of the functionalities. In that case, the internal state
+needs to be serialized as well, not just what is visible to scripts via the
+global table.
+
+To support this, the API feature can declare itself to be "serial", and define
+methods "on_serialize" and "on_deserialize".
+
+When `on_serialize` is called,
+the feature should push one lua value onto the stack which will be associated
+to it and saved. It may be a complex table or any other thing that primer is
+able to serialize. ['Exactly one value should be pushed.]
+
+When `on_deserialize` is called, the feature may recover the lua value from the
+stack, which it will find on top. It should use the value to restore its internal
+state, [' then pop the value].
+
+If it defines these methods, the feature should make a declaration 
+`static constexpr bool is_serial = true`. This signals to primer that it produces
+serialization data -- those two calls will be skipped if it doesn't have this.
+
+``
+struct my_second_feature {
+  void on_initialize(lua_State *);
+  void on_persist_table(lua_State *);
+  void on_unpersist_table(lua_State *);
+  void on_serialize(lua_State *);
+  void on_deserialize(lua_State *);
+
+  static constexpr bool is_serial = true;
+};
+``
+
 
 [endsect]
