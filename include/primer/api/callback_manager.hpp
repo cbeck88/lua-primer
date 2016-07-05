@@ -75,14 +75,10 @@ public:
   }
 
   // Register as func - name pairs
-  void on_persist_table(lua_State * L) const {
-    set_funcs_reverse(L, list_);
-  }
+  void on_persist_table(lua_State * L) const { set_funcs_reverse(L, list_); }
 
   // Register as name - func pairs
-  void on_unpersist_table(lua_State * L) const {
-    set_funcs(L, list_);
-  }
+  void on_unpersist_table(lua_State * L) const { set_funcs(L, list_); }
 };
 
 } // end namespace api

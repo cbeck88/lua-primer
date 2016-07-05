@@ -345,24 +345,24 @@ struct test_api_three : primer::api::base<test_api_three> {
   void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
 
   void do_first_script() {
-    TEST_EQ(LUA_OK, luaL_loadstring(L_,
-                                    "assert(type(_) == 'function')  \n"
-                                    "string1 = _'foo'               \n"
-                                    "string2 = _'bar'               \n"
-                                    "assert(type(string1) == 'userdata') \n"
-                                    "assert(type(string2) == 'userdata') \n"
-                                    "string3 = string1 .. string2   \n"));
+    const char * script =
+      "assert(type(_) == 'function')        \n"
+      "string1 = _'foo'                     \n"
+      "string2 = _'bar'                     \n"
+      "assert(type(string1) == 'userdata')  \n"
+      "assert(type(string2) == 'userdata')  \n"
+      "string3 = string1 .. string2         \n";
+    TEST_EQ(LUA_OK, luaL_loadstring(L_, script));
     auto result = primer::fcn_call_no_ret(L_, 0);
     TEST_EXPECTED(result);
   }
 
   void do_second_script() {
-    TEST_EQ(LUA_OK,
-            luaL_loadstring(L_,
-                            "assert(\"_('foo')\" == tostring(string1)) \n"
-                            "assert(\"_('bar')\" == tostring(string2)) \n"
-                            "assert(\"_('foo') .. _('bar')\" == "
-                            "tostring(string3)) \n"));
+    const char * script =
+      "assert(\"_('foo')\" == tostring(string1))                          \n"
+      "assert(\"_('bar')\" == tostring(string2))                          \n"
+      "assert(\"_('foo') .. _('bar')\" == tostring(string3))              \n";
+    TEST_EQ(LUA_OK, luaL_loadstring(L_, script));
     auto result = primer::fcn_call_no_ret(L_, 0);
     TEST_EXPECTED(result);
   }
