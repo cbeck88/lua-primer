@@ -106,20 +106,12 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
     return span_t{t, end_finder(t)};
   }
 
-
-  // A little forgiveness: If they pass a reference to a C-style array, check
-  // if they have a null-terminator or not and do the right thing
-  static constexpr decay_t<T> end_finder(decay_t<T> start,
-                                         decay_t<T> current,
-                                         std::size_t limit) {
-    return (current - start >= limit)
-             ? (start + limit)
-             : (current->name ? end_finder(start, current + 1, limit) : current);
-  }
-
+  // A little forgiveness: If they pass a reference to a C-style array,
+  // then skip the null terminator check. All code that uses these arrays is
+  // required to put a null check for each name and skip null entries anyways.
   template <std::size_t N>
   static constexpr span_t adapt(T(&arr)[N]) {
-    return span_t{arr, end_finder(arr, arr, N)};
+    return span_t{arr, arr + N};
   }
 };
 
