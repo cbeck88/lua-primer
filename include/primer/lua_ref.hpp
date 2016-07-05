@@ -17,7 +17,6 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
-#include <primer/read.hpp>
 
 #include <primer/support/asserts.hpp>
 #include <primer/support/lua_state_ref.hpp>
@@ -176,15 +175,7 @@ likely to happen, including stack corruption of lua VMs.] >>*/
   // Try to interpret the value as a specific C++ type
   /*<< Attempt to cast the lua value to a C++ value, using primer::read >>*/
   template <typename T>
-  expected<T> as() const noexcept {
-    expected<T> result{primer::error{"Can't lock VM"}};
-    // ^ hoping for small string optimization here
-    if (lua_State * L = this->push()) {
-      result = primer::read<T>(L, -1);
-      lua_pop(L, 1);
-    }
-    return result;
-  }
+  expected<T> as() const noexcept;
 };
 //]
 

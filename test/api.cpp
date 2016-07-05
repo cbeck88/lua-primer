@@ -6,6 +6,7 @@
 #include <primer/support/function.hpp>
 #include <primer/support/userdata_dispatch.hpp>
 #include <primer/lua.hpp>
+#include <primer/lua_ref_as.hpp>
 #include <primer/std/vector.hpp>
 
 #include "test_harness.hpp"

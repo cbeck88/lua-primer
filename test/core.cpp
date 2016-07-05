@@ -4,6 +4,7 @@
 #include <primer/read.hpp>
 #include <primer/result.hpp>
 #include <primer/lua_ref.hpp>
+#include <primer/lua_ref_as.hpp>
 #include <primer/support/function.hpp>
 
 #include "test_harness.hpp"

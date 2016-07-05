@@ -1,6 +1,7 @@
 #include <primer/std.hpp>
 
 #include <primer/adapt.hpp>
+#include <primer/lua_ref_as.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 #include <primer/result.hpp>
