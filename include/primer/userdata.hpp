@@ -11,7 +11,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 #include <primer/support/userdata.hpp>
-#include <primer/traits/is_userdata.hpp>
+#include <primer/detail/is_userdata.hpp>
 #include <primer/detail/type_traits.hpp>
 #include <primer/detail/nothrow_newable.hpp>
 
@@ -61,7 +61,7 @@ const char * udata_name() {
 /// Validate that a type is in fact recognized as userdata
 template <typename T>
 constexpr bool is_userdata() {
-  return traits::is_userdata<T>::value;
+  return detail::is_userdata<T>::value;
 }
 
 } // end namespace primer

@@ -12,14 +12,15 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/metatable.hpp>
 
-#include <primer/traits/is_userdata.hpp>
-#include <primer/traits/userdata.hpp>
+#include <primer/detail/is_userdata.hpp>
 #include <primer/detail/type_traits.hpp>
 
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/metatable.hpp>
 #include <primer/support/userdata_common.hpp>
+
+#include <primer/traits/userdata.hpp>
 
 #include <cstring>
 #include <new>
@@ -34,7 +35,7 @@ template <typename T, typename ENABLE = void>
 struct udata_helper;
 
 template <typename T>
-struct udata_helper<T, enable_if_t<primer::traits::is_userdata<T>::value>> {
+struct udata_helper<T, enable_if_t<primer::detail::is_userdata<T>::value>> {
   using udata = primer::traits::userdata<T>;
 
   // Based on impl of luaL_testudata

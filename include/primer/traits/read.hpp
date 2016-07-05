@@ -19,7 +19,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 #include <primer/userdata.hpp>
 #include <primer/detail/maybe_int.hpp>
-#include <primer/traits/is_userdata.hpp>
+#include <primer/detail/is_userdata.hpp>
 #include <primer/detail/type_traits.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/types.hpp>
@@ -167,7 +167,7 @@ struct read<T,
 
 // Userdata
 template <typename T>
-struct read<T &, enable_if_t<primer::traits::is_userdata<T>::value>> {
+struct read<T &, enable_if_t<primer::detail::is_userdata<T>::value>> {
   static expected<T &> from_stack(lua_State * L, int idx) {
     if (T * t = primer::test_udata<T>(L, idx)) {
       return *t;

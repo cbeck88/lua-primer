@@ -20,7 +20,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <utility>
 
 namespace primer {
-namespace traits {
+namespace detail {
 
 /***
  * Check if the userdata trait is specialized for a given type.

@@ -466,7 +466,7 @@ static_assert(primer::detail::is_L_Reg_ptr<decltype(
                 primer::traits::userdata<userdata_test>::metatable)>::value,
               "is_L_Reg_ptr test not working");
 
-static_assert(primer::traits::is_userdata<userdata_test>::value,
+static_assert(primer::is_userdata<userdata_test>(),
               "our test userdata type did not count as userdata!");
 static_assert(primer::detail::metatable<userdata_test>::value == 2,
               "primer didn't recognize our userdata methods!");
@@ -587,7 +587,7 @@ struct userdata<vec2_test> {
 } // end namespace traits
 } // end namespace primer
 
-static_assert(primer::traits::is_userdata<vec2_test>::value,
+static_assert(primer::is_userdata<vec2_test>(),
               "our test userdata type did not count as userdata!");
 static_assert(primer::detail::metatable<vec2_test>::value == 2,
               "primer didn't recognize our userdata methods!");
