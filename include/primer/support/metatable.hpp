@@ -84,22 +84,14 @@ struct metatable<T,
     PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    // Set the metatable to be its own __index table, unless user overrides it.
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
-
-    // Set the udata_name string also to be the "__metatable" field of the
-    // metatable.
-    // This means that when the user runs "getmetatable" on an instance,
-    // they get a string description instead of the actual metatable, which
-    // could be frightening
-    lua_pushstring(L, udata::name);
-    lua_setfield(L, -2, "__metatable");
-
     // Assign the methods to the metatable
     // Use auto in case we use an expanded reg type later.
     bool saw_gc_metamethod = false;
+    bool saw_index_metamethod = false;
+    bool saw_metatable_metamethod = false;
     constexpr const char * gc_name = "__gc";
+    constexpr const char * index_name = "__index";
+    constexpr const char * metatable_name = "__metatable";
 
     for (const auto & reg : metatable_seq) {
       if (reg.name) {
@@ -108,16 +100,33 @@ struct metatable<T,
           lua_setfield(L, -2, reg.name);
         }
         if (0 == std::strcmp(reg.name, gc_name)) { saw_gc_metamethod = true; }
+        if (0 == std::strcmp(reg.name, index_name)) { saw_index_metamethod = true; }
+        if (0 == std::strcmp(reg.name, metatable_name)) { saw_metatable_metamethod = true; }
       }
     }
 
     // If the user did not register __gc then it is potentially (likely) a
-    // leak,
-    // so install a trivial guy which calls the dtor.
+    // leak, so install a trivial guy which calls the dtor.
     // Rarely want anything besides this anyways.
     if (!saw_gc_metamethod) {
       lua_pushcfunction(L, &primer::detail::common_meta<T>::impl_gc);
       lua_setfield(L, -2, gc_name);
+    }
+
+    // Set the udata_name string also to be the "__metatable" field of the
+    // metatable.
+    // This means that when the user runs "getmetatable" on an instance,
+    // they get a string description instead of the actual metatable, which
+    // could be frightening
+    if (!saw_metatable_metamethod) {
+      lua_pushstring(L, udata::name);
+      lua_setfield(L, -2, "__metatable");
+    }
+
+    // Set the metatable to be its own __index table, unless user overrides it.
+    if (!saw_index_metamethod) {
+      lua_pushvalue(L, -1);
+      lua_setfield(L, -2, "__index");
     }
   }
 

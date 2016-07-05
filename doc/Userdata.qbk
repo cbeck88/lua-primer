@@ -134,7 +134,7 @@ In that case, you block primer from installing `__gc` by putting `{"__gc", nullp
 as a C function.
 
 If the `metatable` entry is present, and no `__index` method is present, primer will implement a common idiom in which the metatable itself
-is set to be its own index table. Again, you can block this by registering any function for `__index`.
+is set to be its own index table. Again, you can block this by registering any function or `nullptr` for `__index`.
 
 The `permanents` list is similar to the `metatable` list, except that those objects will become part of the ['permanent objects table] when
 persisting and unpersisting a state that has this userdata. See the "API" section for more info.
