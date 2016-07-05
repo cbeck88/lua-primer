@@ -29,7 +29,7 @@ namespace primer {
 //[ primer_lua_ref
 class lua_ref {
   /*<< A weak reference to a lua state.
-       See `<primer/detail/lua_state_ref.hpp>` for details. >>*/
+       See `<primer/support/lua_state_ref.hpp>` for details. >>*/
   lua_state_ref sref_;
   /*<< Holds the registry index to the object. Mutable because, if `sref_`
        becomes empty, we want to set `iref_` to `LUA_NOREF` immediately. >>*/
