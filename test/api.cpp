@@ -241,6 +241,8 @@ struct tstring {
   tstring(const tstring &) = default;
   tstring(tstring &&) = default;
 
+  explicit tstring(std::vector<std::string> s) : strs(std::move(s)) {}
+
   // Methods
   std::string to_string() {
     std::string result;
