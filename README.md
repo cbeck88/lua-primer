@@ -139,7 +139,7 @@ Tests
 The tests and documentation are built using boost-build.
 
 To run the tests, go to the `/test` folder, type `b2` to run boost-build, and
-go to `stage` to run test executables there. (Refer to `.travis.yml` to see how the
+go to `stage` to run test executables there. (Refer to `run_tests.sh` or to `.travis.yml` to see how the
 CI works.)
 
 It is currently tested against `gcc 4.8, gcc 5.3, clang 3.5, clang 3.7`.
