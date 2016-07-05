@@ -46,9 +46,11 @@ public:
   ~bound_function() noexcept = default;
 
   // Only capture the top item if it is actually a function.
-  // Pop the item *whether or not* it is a function, knowing that lua_ref will pop it if we pass L
-  explicit bound_function(lua_State * L) noexcept                  //
-    : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr)) : nullptr) //
+  // Pop the item *whether or not* it is a function, knowing that lua_ref will
+  // pop it if we pass L
+  explicit bound_function(lua_State * L) noexcept //
+    : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
+                         : nullptr) //
   {}
 
   // Forwarded methods from lua_ref
