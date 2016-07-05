@@ -237,6 +237,7 @@ void test_api_help() {
 struct tstring {
   std::vector<std::string> strs;
 
+  // These Ctors should not be necessary but they are to help older compilers
   tstring() = default;
   tstring(const tstring &) = default;
   tstring(tstring &&) = default;
