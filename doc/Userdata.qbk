@@ -25,8 +25,9 @@ that we can do with it.
 
 [h4 Representing lists of functions]
 
-It is quite common in lua C api programming to need to be able create lists of
-functions. lua has a standard idiom for this. The following structure is defined
+It is quite common in lua C API programming to need to be able create lists of
+functions paired with their names. lua has a standard idiom for this.
+The following structure is defined
 in the lua headers:
 
 ``
@@ -48,6 +49,39 @@ In primer, we respect this idiom, but we extend it as follows:
 and `lua_CFunction func` then that is sufficient.
 
 In total we call this concept "`L_Reg_sequence`".
+
+
+[h4 Pushing userdata]
+
+`primer::push_udata` is a template function which is used to construct new userdata objects on the stack.
+
+`push_udata` expects the userdata type as an explicit template parameter, and forwards all arguments to the constructor.
+
+```
+  template <typename T, typename... Args>
+  void push_udata(lua_State * L, Args && ... args);
+```
+
+It is best if your constructor is `noexcept`, but this is not always possible. If it is not noexcept, then in the 
+event of an exception thrown from the constructor, primer will pop the userdata entry from the stack, and rethrow the exception.
+
+[h4 Reading userdata]
+
+While primitive types like `number`, `string`, and `table` are generally read from the lua stack by value, as C++ primitives or containers, for userdata types this is usually much less useful.
+
+Instead, userdata types are generally read from the stack *by reference*.
+
+TODO
+
+[h4 Adapting userdata methods]
+
+`PRIMER_ADAPT_USERDATA` is an extension of `PRIMER_ADAPT` which handles member functions of a userdata type.
+
+Functions thus adapted expect to be called using the standard `object:method(arg1, arg2)` syntax in lua, meaning that
+the base `object` is actually the first element on the stack.
+
+This is convenient because sometimes its a little nicer to implement userdata methods as C++ methods rather than free
+functions. `PRIMER_ADAPT` can only directly handle free functions.
 
 [h4 Userdata trait requirements]
 
@@ -90,36 +124,5 @@ with the stack in the same position that it was found.
 
 Your function will only be called once, when the metatable is initialized, for any given lua State.
 
-[h4 Pushing userdata]
-
-`primer::push_udata` is a template function which is used to construct new userdata objects on the stack.
-
-`push_udata` expects the userdata type as an explicit template parameter, and forwards all arguments to the constructor.
-
-```
-  template <typename T, typename... Args>
-  void push_udata(lua_State * L, Args && ... args);
-```
-
-It is best if your constructor is `noexcept`, but this is not always possible. If it is not noexcept, then in the 
-event of an exception thrown from the constructor, primer will pop the userdata entry from the stack, and rethrow the exception.
-
-[h4 Reading userdata]
-
-While primitive types like `number`, `string`, and `table` are generally read from the lua stack by value, as C++ primitives or containers, for userdata types this is usually much less useful.
-
-Instead, userdata types are generally read from the stack *by reference*.
-
-TODO
-
-[h4 Adapting userdata methods]
-
-`PRIMER_ADAPT_USERDATA` is an extension of `PRIMER_ADAPT` which handles member functions of a userdata type.
-
-Functions thus adapted expect to be called using the standard `object:method(arg1, arg2)` syntax in lua, meaning that
-the base `object` is actually the first element on the stack.
-
-This is convenient because sometimes its a little nicer to implement userdata methods as C++ methods rather than free
-functions. `PRIMER_ADAPT` can only directly handle free functions.
 
 [endsect]
