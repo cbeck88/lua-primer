@@ -33,6 +33,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
+#include <primer/support/main_thread.hpp>
 #include <primer/support/push_cached.hpp>
 
 #include <nonstd/weak_ref.hpp>
@@ -117,11 +118,8 @@ private:
       // Get the *main* thread, in case this is being called from a short-lived
       // thread. We want the strong_ptr to be pointing to something that lives
       // as long as the lua state.
-      lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_MAINTHREAD);
-      lua_State * M = lua_tothread(L, -1);
+      lua_State * M = primer::main_thread(L);
       PRIMER_ASSERT(M, "The main thread was not a thread (!)");
-      lua_pop(L, 1);
-
       new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{M};
     }
 
