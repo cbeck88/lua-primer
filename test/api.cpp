@@ -237,6 +237,10 @@ void test_api_help() {
 struct tstring {
   std::vector<std::string> strs;
 
+  tstring() = default;
+  tstring(const tstring &) = default;
+  tstring(tstring &&) = default;
+
   // Methods
   std::string to_string() {
     std::string result;
