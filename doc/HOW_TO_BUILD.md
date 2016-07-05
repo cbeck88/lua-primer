@@ -28,4 +28,8 @@ using quickbook
   ;
 ``
 
+Once you have built the html, you need to copy some images and css from the
+boost distribution in order to actually see it rendered nicely in your browser.
+Basically you need the things in `boost/doc/src`, see `fetch_boost_images_and_css.sh`.
+
 Good luck!

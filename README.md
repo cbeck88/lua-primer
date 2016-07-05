@@ -32,6 +32,9 @@ Features
 - Primer is tested against **lua 5.3**, but should also work with lua 5.2. We should
   in general be able to support lua versions that eris supports.
 
+- The library consists only of headers. No makefiles, no project files, nothing to link
+  with besides lua.
+
 - Automatic, type-safe binding of lua arguments to C++ function parameters.
   This includes built-in support for translating fundamental C++ types and lua types.
 
@@ -129,3 +132,17 @@ Licensing and Distribution
 Just in case, it is also available under the MIT license.
 
 Not generous enough? Contact me, I am flexible.
+
+Tests
+=====
+
+The tests and documentation are built using boost-build.
+
+To run the tests, go to the `/test` folder, type `b2` to run boost-build, and
+go to `stage` to run test executables there. (Refer to `.travis.yml` to see how the
+CI works.)
+
+It is currently tested against `gcc 4.8, gcc 5.3, clang 3.5, clang 3.7`.
+
+To build the docs, go to the `/doc` folder, and type `b2` to run boost-build.
+This requires quickbook version 1.6, see installation instructions.
