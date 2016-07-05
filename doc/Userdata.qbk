@@ -44,12 +44,12 @@ expected to point into an array, terminated by a `luaL_Reg` holding two null poi
 In primer, we respect this idiom, but we extend it as follows:
 
 * Null-terminated array is supported
-* Any standard container (`std::array`, `std::initializer_list`, `std::vector`) is supported, with or without null terminators.
-* The type need not actually be `luaL_Reg` -- as long as it has public members `const char * name`
+* Any standard container (`std::array`, `std::initializer_list`, `std::vector`) is supported, with or without null terminators. It needs to satisfy the conditions for use in a range-based for loop.
+* The value-type need not actually be `luaL_Reg` -- as long as it has public members `const char * name`
 and `lua_CFunction func` then that is sufficient.
+* Instead of a container, the object can actually just be a function which takes no parameters and yields the container. This is in case you want to declare the list inline in a header with your specialization, and not deal with initialization problems.
 
 In total we call this concept "`L_Reg_sequence`".
-
 
 [h4 Pushing userdata]
 
@@ -67,11 +67,38 @@ event of an exception thrown from the constructor, primer will pop the userdata 
 
 [h4 Reading userdata]
 
-While primitive types like `number`, `string`, and `table` are generally read from the lua stack by value, as C++ primitives or containers, for userdata types this is usually much less useful.
+You can test a stack position for containing userdata of a given type using the `primer::test_udata` function:
 
-Instead, userdata types are generally read from the stack *by reference*.
+``
+  template <typename T>
+  T * test_udata(lua_State * L, int index);
+``
 
-TODO
+This function returns a pointer to the underlying `T`, or, `nullptr` if the value
+was not userdata corresponding to that class.
+
+`primer::read` also contains a built-in overload for userdata types, as a reference:
+
+``
+  if (expected<T&> primer::read<T&>(lua_State * L, int index)) { ... }
+``
+
+Usually, you can just use `test_udata` in code that you write manually -- it's a
+bit simpler, and the only benefit of the "read" version is that it generates an
+error message which also describes what type was actually found there.
+
+The `read` version is important because it means that `primer::adapt`
+can handle functions that take references to userdata types as input.
+
+``
+  primer::result my_function(lua_State * L, my_userdata & u1, my_userdata & u2);
+``
+
+While primitive types like `number`, `string`, and `table` are generally read from the lua stack by value, as C++ primitives or containers,
+for userdata types this is usually much less useful. Often, you want to manipulate the userdata value that is actually contained within lua,
+not some copy of it -- and you don't really want to make copies anyways.
+
+TODO better examples
 
 [h4 Adapting userdata methods]
 
@@ -92,11 +119,12 @@ A specialization of the `userdata` trait *must* provide the following members:
 
 It *may* provide the following additional members:
 
-* `static L_Reg_sequence metatable`: A null-terminated list of methods for this userdata. This must include a `__persist` method, or the
+* `static L_Reg_sequence metatable`: A list of methods for this userdata. This should include a `__persist` method, or the
   userdata cannot be persisted correctly. See eris' documentation.
 
-* `static L_Reg_sequence permanents`: A null-terminated list of other functions related to this userdata which must be listed in the permanent
-  objects table. Commonly this list contains constructors or other functions related to the type and exposed to the user or via the `__persist` metamethod.
+* `static L_Reg_sequence permanents`: A list of other functions related to this userdata which must appear in the permanent
+  objects table. Commonly this list contains some sort of "reconstruct" function used to implement the `__persist` function.
+  It could contain other related functions which are exposed to the user by the operation of the class or otherwise.
 
 If the `metatable` entry is missing, primer will install a minimalistic metatable for your type.
 
