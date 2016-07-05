@@ -64,12 +64,13 @@ struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
  * Adapt won't know what to do with `int (lua_State *, T &)`.
  */
 template <typename T, int (T::*target_func)(lua_State *)>
-struct userdata_dispatcher<T, int(T::*)(lua_State *), target_func> {
+struct userdata_dispatcher<T, int (T::*)(lua_State *), target_func> {
   static int adapted(lua_State * L) {
     if (T * t = primer::test_udata<T>(L, 1)) {
       return (t->*target_func)(L);
     } else {
-      return luaL_error(L, "bad argument #%d (Expected userdata of type '%s')", 1, primer::udata_name<T>());
+      return luaL_error(L, "bad argument #%d (Expected userdata of type '%s')",
+                        1, primer::udata_name<T>());
     }
   }
 };

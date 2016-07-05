@@ -31,7 +31,8 @@ struct userdata_registrar {
   }
 
   void on_persist_table(lua_State * L) {
-    int dummy[] = {(detail::permanents_helper<Ts>::populate_reverse(L), 0)..., 0};
+    int dummy[] = {(detail::permanents_helper<Ts>::populate_reverse(L), 0)...,
+                   0};
     static_cast<void>(dummy);
   }
 

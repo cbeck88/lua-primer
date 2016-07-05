@@ -16,7 +16,7 @@ namespace primer {
 namespace detail {
 
 template <typename T, typename... Args>
-constexpr auto make_array(Args && ... args) -> std::array<T, sizeof...(Args)> {
+constexpr auto make_array(Args &&... args) -> std::array<T, sizeof...(Args)> {
   return {{std::forward<Args>(args)...}};
 }
 

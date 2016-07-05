@@ -243,14 +243,18 @@ struct tstring {
 
     bool first = true;
     for (const auto & s : strs) {
-      if (first) { first = false; } else { result += " .. "; }
+      if (first) {
+        first = false;
+      } else {
+        result += " .. ";
+      }
       result += "_('" + s + "')";
     }
 
     return result;
   }
 
-  tstring operator + (const tstring & other) const {
+  tstring operator+(const tstring & other) const {
     std::vector<std::string> result{strs};
     result.insert(result.end(), other.strs.begin(), other.strs.end());
     return tstring{std::move(result)};
@@ -273,7 +277,8 @@ struct tstring {
   }
 
   static int intf_reconstruct(lua_State * L) {
-    if (auto strs = primer::read<std::vector<std::string>>(L, lua_upvalueindex(1))) {
+    if (auto strs =
+          primer::read<std::vector<std::string>>(L, lua_upvalueindex(1))) {
       primer::push_udata<tstring>(L, std::move(*strs));
       return 1;
     } else {
@@ -295,14 +300,14 @@ namespace traits {
 template <>
 struct userdata<tstring> {
   static constexpr const char * const name = "tstring";
-  static constexpr auto metatable = std::initializer_list<luaL_Reg>{
-    {"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
-    {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
-    {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}
-  };
-  static constexpr auto permanents = std::array<luaL_Reg, 1> {
-    luaL_Reg{"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}
-  };
+  static constexpr auto metatable = std::initializer_list<
+    luaL_Reg>{{"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
+              {"__persist",
+               PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
+              {"__tostring",
+               PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}};
+  static constexpr auto permanents = std::array<luaL_Reg, 1>{
+    luaL_Reg{"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}};
 };
 
 } // end namespace traits
@@ -338,27 +343,30 @@ struct test_api_three : primer::api::base<test_api_three> {
   void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
 
   void do_first_script() {
-    TEST_EQ(LUA_OK, luaL_loadstring(L_,"assert(type(_) == 'function')  \n"
-                                       "string1 = _'foo'               \n"
-                                       "string2 = _'bar'               \n"
-                                       "assert(type(string1) == 'userdata') \n"
-                                       "assert(type(string2) == 'userdata') \n"
-                                       "string3 = string1 .. string2   \n"));
+    TEST_EQ(LUA_OK, luaL_loadstring(L_,
+                                    "assert(type(_) == 'function')  \n"
+                                    "string1 = _'foo'               \n"
+                                    "string2 = _'bar'               \n"
+                                    "assert(type(string1) == 'userdata') \n"
+                                    "assert(type(string2) == 'userdata') \n"
+                                    "string3 = string1 .. string2   \n"));
     auto result = primer::fcn_call_no_ret(L_, 0);
     TEST_EXPECTED(result);
   }
 
   void do_second_script() {
-    TEST_EQ(LUA_OK, luaL_loadstring(L_, "assert(\"_('foo')\" == tostring(string1)) \n"
-                                       "assert(\"_('bar')\" == tostring(string2)) \n"
-                                       "assert(\"_('foo') .. _('bar')\" == tostring(string3)) \n"));
+    TEST_EQ(LUA_OK,
+            luaL_loadstring(L_,
+                            "assert(\"_('foo')\" == tostring(string1)) \n"
+                            "assert(\"_('bar')\" == tostring(string2)) \n"
+                            "assert(\"_('foo') .. _('bar')\" == "
+                            "tostring(string3)) \n"));
     auto result = primer::fcn_call_no_ret(L_, 0);
     TEST_EXPECTED(result);
   }
-
 };
 
-void test_api_userdata () {
+void test_api_userdata() {
   std::string buffer;
 
   {

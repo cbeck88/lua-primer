@@ -41,7 +41,8 @@ template <typename T, typename ENABLE = void>
 struct is_L_Reg : std::false_type {};
 
 template <typename T>
-struct is_L_Reg<T, enable_if_t<has_L_Reg_name<T>::value && has_L_Reg_func<T>::value>> : std::true_type {};
+struct is_L_Reg<T, enable_if_t<has_L_Reg_name<T>::value && has_L_Reg_func<T>::value>>
+  : std::true_type {};
 
 // Assert that is a type satisfies L_Reg concept
 template <typename T>
@@ -59,31 +60,34 @@ template <typename T, typename ENABLE = void>
 struct is_L_Reg_ptr : std::false_type {};
 
 template <typename T>
-struct is_L_Reg_ptr<T *,
-                    enable_if_t<is_L_Reg<remove_cv_t<T>>::value>>
+struct is_L_Reg_ptr<T *, enable_if_t<is_L_Reg<remove_cv_t<T>>::value>>
   : std::true_type {};
 
 template <typename T>
 struct is_L_Reg_ptr<T * const> : is_L_Reg_ptr<T *> {};
 
-// Helper that tries to make pointers / arrays look like containers, while letting
-//  containers pass through unchanged.
-
+// Helper that tries to make pointers / arrays look like containers, while
+// letting containers pass through unchanged.
 template <typename T, typename ENABLE = void>
 struct is_L_Reg_sequence {
   static constexpr bool value = false;
 };
 
-// If it has a "begin" that looks like an L_Reg iterator, then I guess it's a container
+// If it has a "begin" and "end" that look like an L_Reg iterator, then I guess
+// it's a container
 template <typename T>
-struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg<remove_reference_t<decltype(*std::declval<T>().begin())>>::value>> {
+struct is_L_Reg_sequence<
+  T,
+  enable_if_t<
+    is_L_Reg<remove_reference_t<decltype(*std::declval<T>().begin())>>::value &&
+    is_L_Reg<remove_reference_t<decltype(*std::declval<T>().end())>>::value>> {
   static constexpr bool value = true;
   static constexpr T adapt(T t) { return t; }
 };
 
 // If it an L_Reg pointer or a raw array of L_Reg, then convert it to a span
 template <typename T>
-struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value >> {
+struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   static constexpr bool value = true;
 
   static constexpr decay_t<T> end_finder(decay_t<T> ptr) {

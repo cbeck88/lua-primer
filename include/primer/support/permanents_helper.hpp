@@ -43,12 +43,14 @@ struct permanents_helper<T,
   using permanents_t = decltype(primer::traits::userdata<T>::permanents);
 
   static void populate(lua_State * L) {
-    const auto & seq = detail::is_L_Reg_sequence<permanents_t>::adapt( primer::traits::userdata<T>::permanents);
+    const auto & seq = detail::is_L_Reg_sequence<permanents_t>::adapt(
+      primer::traits::userdata<T>::permanents);
     primer::set_funcs(L, seq);
   }
 
   static void populate_reverse(lua_State * L) {
-    const auto & seq = detail::is_L_Reg_sequence<permanents_t>::adapt( primer::traits::userdata<T>::permanents);
+    const auto & seq = detail::is_L_Reg_sequence<permanents_t>::adapt(
+      primer::traits::userdata<T>::permanents);
     primer::set_funcs_reverse(L, seq);
   }
 

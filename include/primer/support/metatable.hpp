@@ -77,7 +77,9 @@ struct metatable<T,
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
-    const auto & metatable_seq = detail::is_L_Reg_sequence<decltype(udata::metatable)>::adapt(udata::metatable);
+    const auto & metatable_seq =
+      detail::is_L_Reg_sequence<decltype(udata::metatable)>::adapt(
+        udata::metatable);
 
     PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
