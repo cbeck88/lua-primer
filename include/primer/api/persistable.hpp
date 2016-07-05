@@ -124,6 +124,13 @@ protected:
    */
 
   void initialize_api(lua_State * L) {
+#ifdef PRIMER_DEBUG
+    // Set debugging mode for eris
+    lua_pushboolean(L, true);
+    eris_set_setting(L, "path", -1);
+    lua_pop(L, 1);
+#endif
+
     this->visit_features(on_init_visitor{L});
   }
 

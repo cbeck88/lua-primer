@@ -18,6 +18,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/adapt.hpp>
 #include <primer/support/asserts.hpp>
+#include <primer/userdata.hpp>
 
 namespace primer {
 
@@ -55,6 +56,21 @@ struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
   static int adapted(lua_State * L) {
     using helper_t = adapt<R (*)(lua_State *, T &, Args...), dispatch_target>;
     return helper_t::adapted(L);
+  }
+};
+
+/***
+ * Specialize for member functions of "raw" type, i.e. int (T::*)(lua_State *).
+ * Adapt won't know what to do with `int (lua_State *, T &)`.
+ */
+template <typename T, int (T::*target_func)(lua_State *)>
+struct userdata_dispatcher<T, int(T::*)(lua_State *), target_func> {
+  static int adapted(lua_State * L) {
+    if (T * t = primer::test_udata<T>(L, 1)) {
+      return (t->*target_func)(L);
+    } else {
+      return luaL_error(L, "bad argument #%d (Expected userdata of type '%s')", 1, primer::udata_name<T>());
+    }
   }
 };
 

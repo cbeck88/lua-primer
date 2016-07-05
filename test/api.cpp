@@ -1,12 +1,17 @@
 #include <primer/api/callback_manager.hpp>
 #include <primer/api/base.hpp>
 #include <primer/api/library.hpp>
+#include <primer/api/userdata_registrar.hpp>
+#include <primer/detail/make_array.hpp>
 #include <primer/support/function.hpp>
+#include <primer/support/userdata_dispatch.hpp>
 #include <primer/lua.hpp>
+#include <primer/std/vector.hpp>
 
 #include "test_harness.hpp"
 #include <iostream>
 #include <string>
+#include <initializer_list>
 
 struct test_api_one : primer::api::persistable<test_api_one> {
   lua_raii L;
@@ -146,14 +151,6 @@ struct test_api_two : primer::api::base<test_api_two> {
     , cb_man_(this)
   {
     this->initialize_api(L_);
-
-    luaL_requiref(L_, "", luaopen_base, 1);
-    lua_pop(L_, 1);
-
-    // Set debugging mode for eris
-    lua_pushboolean(L_, true);
-    eris_set_setting(L_, "path", -1);
-    lua_pop(L_, 1);
   }
 
   std::string save() {
@@ -233,6 +230,150 @@ void test_api_help() {
   CHECK_STACK(L, 0);
 }
 
+/***
+ * Test userdata persistence
+ */
+
+struct tstring {
+  std::vector<std::string> strs;
+
+  // Methods
+  std::string to_string() {
+    std::string result;
+
+    bool first = true;
+    for (const auto & s : strs) {
+      if (first) { first = false; } else { result += " .. "; }
+      result += "_('" + s + "')";
+    }
+
+    return result;
+  }
+
+  tstring operator + (const tstring & other) const {
+    std::vector<std::string> result{strs};
+    result.insert(result.end(), other.strs.begin(), other.strs.end());
+    return tstring{std::move(result)};
+  }
+
+  // Lua
+  primer::result intf_to_string(lua_State * L) {
+    primer::push(L, this->to_string());
+    return 1;
+  }
+
+  primer::result intf_concat(lua_State * L, tstring & other) {
+    primer::push_udata<tstring>(L, *this + other);
+    return 1;
+  }
+
+  static primer::result intf_create(lua_State * L, std::string s) {
+    primer::push_udata<tstring>(L, std::vector<std::string>{std::move(s)});
+    return 1;
+  }
+
+  static int intf_reconstruct(lua_State * L) {
+    if (auto strs = primer::read<std::vector<std::string>>(L, lua_upvalueindex(1))) {
+      primer::push_udata<tstring>(L, std::move(*strs));
+      return 1;
+    } else {
+      lua_pushstring(L, strs.err_c_str());
+    }
+    return lua_error(L);
+  }
+
+  int intf_persist(lua_State * L) {
+    primer::push(L, strs);
+    lua_pushcclosure(L, PRIMER_ADAPT(&intf_reconstruct), 1);
+    return 1;
+  }
+};
+
+namespace primer {
+namespace traits {
+
+template <>
+struct userdata<tstring> {
+  static constexpr const char * const name = "tstring";
+  static constexpr auto metatable = std::initializer_list<luaL_Reg>{
+    {"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
+    {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
+    {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}
+  };
+  static constexpr auto permanents = std::array<luaL_Reg, 1> {
+    luaL_Reg{"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}
+  };
+};
+
+} // end namespace traits
+} // end namespace primer
+
+static_assert(primer::detail::metatable<tstring>::value == 2,
+              "primer didn't recognize our userdata methods!");
+static_assert(primer::detail::permanents_helper<tstring>::value == 1,
+              "primer didn't recognize our userdata permanents!");
+
+struct test_api_three : primer::api::base<test_api_three> {
+  lua_raii L_;
+
+  API_FEATURE(primer::api::libraries<primer::api::lua_base_lib>, libs_);
+  API_FEATURE(primer::api::callback_manager, cb_man_);
+  API_FEATURE(primer::api::userdata_registrar<tstring>, udata_man_);
+
+  USE_LUA_CALLBACK(_, "creates a translatable string", &tstring::intf_create);
+
+  test_api_three()
+    : L_()
+    , cb_man_(this)
+  {
+    this->initialize_api(L_);
+  }
+
+  std::string save() {
+    std::string result;
+    this->persist(L_, result);
+    return result;
+  }
+
+  void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
+
+  void do_first_script() {
+    TEST_EQ(LUA_OK, luaL_loadstring(L_,"assert(type(_) == 'function')  \n"
+                                       "string1 = _'foo'               \n"
+                                       "string2 = _'bar'               \n"
+                                       "assert(type(string1) == 'userdata') \n"
+                                       "assert(type(string2) == 'userdata') \n"
+                                       "string3 = string1 .. string2   \n"));
+    auto result = primer::fcn_call_no_ret(L_, 0);
+    TEST_EXPECTED(result);
+  }
+
+  void do_second_script() {
+    TEST_EQ(LUA_OK, luaL_loadstring(L_, "assert(\"_('foo')\" == tostring(string1)) \n"
+                                       "assert(\"_('bar')\" == tostring(string2)) \n"
+                                       "assert(\"_('foo') .. _('bar')\" == tostring(string3)) \n"));
+    auto result = primer::fcn_call_no_ret(L_, 0);
+    TEST_EXPECTED(result);
+  }
+
+};
+
+void test_api_userdata () {
+  std::string buffer;
+
+  {
+    test_api_three a;
+    a.do_first_script();
+    buffer = a.save();
+  }
+
+  {
+    test_api_three a;
+    a.restore(buffer);
+    a.do_second_script();
+  }
+}
+
 int main() {
   conf::log_conf();
 
@@ -241,6 +382,7 @@ int main() {
     {"persist simple", &test_persist_simple},
     {"api base", &test_api_base},
     {"api help", &test_api_help},
+    {"api userdata", &test_api_userdata},
   };
   int num_fails = tests.run();
   std::cout << "\n";

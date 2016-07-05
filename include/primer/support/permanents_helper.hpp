@@ -24,6 +24,8 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/set_funcs.hpp>
 
+#include <primer/traits/userdata.hpp>
+
 namespace primer {
 namespace detail {
 
@@ -36,14 +38,18 @@ struct permanents_helper {
 
 template <typename T>
 struct permanents_helper<T,
-                         enable_if_t<detail::is_L_Reg_ptr<decltype(
+                         enable_if_t<detail::is_L_Reg_sequence<decltype(
                            primer::traits::userdata<T>::permanents)>::value>> {
+  using permanents_t = decltype(primer::traits::userdata<T>::permanents);
+
   static void populate(lua_State * L) {
-    primer::set_funcs(L, primer::traits::userdata<T>::permanents);
+    const auto & seq = detail::is_L_Reg_sequence<permanents_t>::adapt( primer::traits::userdata<T>::permanents);
+    primer::set_funcs(L, seq);
   }
 
   static void populate_reverse(lua_State * L) {
-    primer::set_funcs_reverse(L, primer::traits::userdata<T>::permanents);
+    const auto & seq = detail::is_L_Reg_sequence<permanents_t>::adapt( primer::traits::userdata<T>::permanents);
+    primer::set_funcs_reverse(L, seq);
   }
 
   static constexpr int value = 1;

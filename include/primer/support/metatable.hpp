@@ -72,16 +72,12 @@ struct metatable<T,
 // using luaL_Reg list
 template <typename T>
 struct metatable<T,
-                 enable_if_t<detail::is_L_Reg_ptr<decltype(
+                 enable_if_t<detail::is_L_Reg_sequence<decltype(
                    primer::traits::userdata<T>::metatable)>::value>> {
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
-    {
-      detail::assert_L_Reg<remove_cv_t<remove_reference_t<decltype(
-        *primer::traits::userdata<T>::metatable)>>> validate{};
-      static_cast<void>(validate);
-    }
+    const auto & metatable_seq = detail::is_L_Reg_sequence<decltype(udata::metatable)>::adapt(udata::metatable);
 
     PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
@@ -103,13 +99,12 @@ struct metatable<T,
     bool saw_gc_metamethod = false;
     constexpr const char * gc_name = "__gc";
 
-    for (auto ptr = udata::metatable; ptr->name; ++ptr) {
-      if (ptr->func) {
-        lua_pushcfunction(L, ptr->func);
-        lua_setfield(L, -2, ptr->name);
+    for (const auto & reg : metatable_seq) {
+      if (reg.func) {
+        lua_pushcfunction(L, reg.func);
+        lua_setfield(L, -2, reg.name);
       }
-
-      if (0 == std::strcmp(ptr->name, gc_name)) { saw_gc_metamethod = true; }
+      if (0 == std::strcmp(reg.name, gc_name)) { saw_gc_metamethod = true; }
     }
 
     // If the user did not register __gc then it is potentially (likely) a

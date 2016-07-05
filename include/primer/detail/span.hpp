@@ -67,6 +67,9 @@ public:
 
   constexpr iterator begin() const { return begin_; }
   constexpr iterator end() const { return end_; }
+
+  // Value type
+  typedef T value_type;
 };
 
 } // end namespace detail

@@ -43,6 +43,12 @@ struct udata_helper<T, enable_if_t<primer::traits::is_userdata<T>::value>> {
     }
   }
 
+  static void init_metatable(lua_State * L) {
+    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    get_or_create_metatable(L);
+    lua_pop(L, 1);
+  }
+
   // Based on impl of luaL_testudata
   static T * test_udata(lua_State * L, int idx) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);

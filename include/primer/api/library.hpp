@@ -6,7 +6,8 @@
 #pragma once
 
 /***
- * Defines a simple interface to make lua libraries as API objects
+ * Defines an API feature which makes one or more lua libraries available to an
+ * api and makes sure they can be persisted.
  */
 
 #include <primer/base.hpp>
@@ -36,6 +37,7 @@ CORE_LIB_DEFN(math);
 CORE_LIB_DEFN(io);
 CORE_LIB_DEFN(os);
 CORE_LIB_DEFN(debug);
+CORE_LIB_DEFN(coroutine);
 
 #undef CORE_LIB_DEFN
 
@@ -92,6 +94,10 @@ public:
 
 using basic_libraries =
   libraries<lua_base_lib, lua_table_lib, lua_math_lib, lua_string_lib>;
+
+using all_core_libraries =
+  libraries<lua_base_lib, lua_table_lib, lua_math_lib, lua_string_lib, lua_coroutine_lib, lua_io_lib, lua_os_lib, lua_debug_lib>;
+
 
 } // end namespace api
 } // end namespace primer

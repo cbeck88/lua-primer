@@ -6,10 +6,15 @@
 #pragma once
 
 /***
- * Useful function that registers a null-terminated array of luaL_Reg-like
+ * Useful function that registers a sequence of luaL_Reg-like
  * objects with a table on top of the stack. Similar to luaL_setfuncs.
  *
  * set_funcs_reverse uses the fuction as a key, as needed for persist table.
+ *
+ * Any container of objects matching the luaL_Reg concept is valid input.
+ * A C-style pointer to the first entry of a null-terminated array of objects
+ * matching the luaL_Reg concept is not valid input, but may be adapted using
+ * is_L_Reg_seq trait.
  */
 
 #include <primer/base.hpp>
@@ -22,25 +27,29 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 
 template <typename T>
-void set_funcs(lua_State * L, const T * ptr) {
+void set_funcs(lua_State * L, T && seq)
+{
+  PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  for (; ptr->name; ++ptr) {
-    if (ptr->func) {
-      lua_pushcfunction(L, ptr->func);
-      lua_setfield(L, -2, ptr->name);
+  for (const auto & reg : seq) {
+    if (reg.func) {
+      lua_pushcfunction(L, reg.func);
+      lua_setfield(L, -2, reg.name);
     }
   }
 }
 
 template <typename T>
-void set_funcs_reverse(lua_State * L, const T * ptr) {
+void set_funcs_reverse(lua_State * L, T && seq)
+{
+  PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  for (; ptr->name; ++ptr) {
-    if (ptr->func) {
-      lua_pushstring(L, ptr->name);
-      lua_pushcfunction(L, ptr->func);
+  for (const auto & reg : seq) {
+    if (reg.func) {
+      lua_pushcfunction(L, reg.func);
+      lua_pushstring(L, reg.name);
       lua_settable(L, -3);
     }
   }
