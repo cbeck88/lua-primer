@@ -307,13 +307,19 @@ namespace traits {
 template <>
 struct userdata<tstring> {
   static constexpr const char * const name = "tstring";
-  static constexpr auto metatable = std::array<luaL_Reg, 3>{
+  static const luaL_Reg * const metatable;
+  static const luaL_Reg * const permanents;
+};
+
+constexpr auto metatable_array = std::array<luaL_Reg, 3>{
     {{"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
      {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
      {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}}};
-  static constexpr auto permanents = std::array<luaL_Reg, 1>{
+constexpr auto permanents_array = std::array<luaL_Reg, 1>{
     {luaL_Reg{"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}}};
-};
+
+const luaL_Reg * const userdata<tstring>::metatable = metatable_array.data();
+const luaL_Reg * const userdata<tstring>::permanents = permanents_array.data();
 
 } // end namespace traits
 } // end namespace primer
