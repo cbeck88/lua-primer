@@ -110,10 +110,9 @@ public:
   static constexpr lua_CFunction lua_get_member_ptr_##name() {                    \
     return PRIMER_ADAPT_EXTRASPACE(owner_type, fcn);                              \
   }                                                                               \
-  typedef primer::luaW_RegType<                                                   \
+  static inline primer::detail::Append_t<GET_CALLBACKS, primer::luaW_RegType<     \
     &owner_type::lua_callback_name_##name, &owner_type::lua_callback_help_##name, \
-    &owner_type::lua_get_member_ptr_##name> reg_type_##name;                      \
-  static inline primer::detail::Append_t<GET_CALLBACKS, reg_type_##name>          \
+    &owner_type::lua_get_member_ptr_##name>>                                      \
     GetCallbacks(primer::detail::Rank<GET_CALLBACKS::size + 1>);                  \
   static_assert(true, "")
 
