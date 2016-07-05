@@ -314,12 +314,12 @@ struct test_api : public primer::callback_registrar<test_api> {
     cb_man_.on_init(L_);
   }
 
-  NEW_LUA_CALLBACK(f1, "test function one")(lua_State *, int i) {
+  NEW_LUA_CALLBACK(f1, "test function one")(lua_State *, int i) -> primer::result {
     internal_state_ += i;
     return 0;
   }
 
-  NEW_LUA_CALLBACK(f2, "test function two")(lua_State * L, int i, int j) {
+  NEW_LUA_CALLBACK(f2, "test function two")(lua_State * L, int i, int j) -> primer::result {
     internal_state_ -= i;
     internal_state_ *= j;
     lua_pushinteger(L, internal_state_);
@@ -334,7 +334,7 @@ struct test_api : public primer::callback_registrar<test_api> {
     END_VISITABLES;
   };
 
-  NEW_LUA_CALLBACK(f3, "test function three")(lua_State * L, f3_arg arg) {
+  NEW_LUA_CALLBACK(f3, "test function three")(lua_State * L, f3_arg arg) -> primer::result {
     internal_state_ += arg.plus;
     internal_state_ -= arg.minus;
     internal_state_ *= arg.times;

@@ -115,7 +115,7 @@ struct test_api_two : primer::api::base<test_api_two> {
   API_FEATURE(primer::api::libraries<primer::api::lua_base_lib>, libs_);
   API_FEATURE(primer::api::callback_manager, cb_man_);
 
-  NEW_LUA_CALLBACK(f, "this is the f help")(lua_State * L, int i, int j) {
+  NEW_LUA_CALLBACK(f, "this is the f help")(lua_State * L, int i, int j) -> primer::result {
     if (i < j) {
       lua_pushinteger(L, -1);
     } else if (i > j) {
@@ -126,7 +126,7 @@ struct test_api_two : primer::api::base<test_api_two> {
     return 1;
   }
 
-  NEW_LUA_CALLBACK(g, "this is the g help")(lua_State * L, std::string i, std::string j) {
+  NEW_LUA_CALLBACK(g, "this is the g help")(lua_State * L, std::string i, std::string j) -> primer::result {
     if (i < j) {
       lua_pushinteger(L, -1);
     } else if (i > j) {

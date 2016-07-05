@@ -118,7 +118,7 @@ public:
 
 
 /***
- * Declare & define inline a new lua callback. Return type is primer::result.
+ * Declare & define inline a new lua callback. Uses trailing return.
  * You are expected to use the automatic argument parsing by putting the
  * expected args in the function signature.
  * And signal errors by e.g. `return primer::error("...")`.
@@ -127,15 +127,5 @@ public:
 
 #define NEW_LUA_CALLBACK(name, help)                                           \
   USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                      \
-  primer::result intf_##name
+  auto intf_##name
 
-
-/***
- * Declare & define inline a new "raw" lua callback, i.e. one which takes
- * lua_State * and returns int. This function is called basically directly from
- * lua, you have to call lua_error yourself and take care of longjmp yourself
- * if necessary.
- */
-#define LUA_CALLBACK_RAW(name, help)                                           \
-  USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                      \
-  int intf_##name
