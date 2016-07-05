@@ -71,7 +71,7 @@
 
   <span class="keyword">auto</span> <span class="identifier">result3</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"404"</span><span class="special">));</span>
   <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result3</span><span class="special">);</span>
-  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">()</span> <span class="special">==</span> <span class="string">"404"</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">str</span><span class="special">()</span> <span class="special">==</span> <span class="string">"404"</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -170,9 +170,8 @@
 
   <span class="comment">// Conversions from other `expected` types</span>
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">U</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">u</span><span class="special">)</span> <a class="co" name="lua_primer.reference.core.expected.c0" href="expected.html#lua_primer.reference.core.expected.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a>
-  <span class="special">{</span>
+  <a class="co" name="lua_primer.reference.core.expected.c0" href="expected.html#lua_primer.reference.core.expected.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">U</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">u</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_from_const_ref</span><span class="special">(</span><span class="identifier">u</span><span class="special">);</span>
   <span class="special">}</span>
 
@@ -197,16 +196,11 @@
   <span class="comment">// Additional constructors</span>
   <span class="keyword">explicit</span> <span class="identifier">expected</span><span class="special">(</span><span class="identifier">default_construct_in_place_tag</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_ham</span><span class="special">();</span> <span class="special">}</span>
 
-  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span> <a class="co" name="lua_primer.reference.core.expected.c2" href="expected.html#lua_primer.reference.core.expected.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a>
-    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_ham</span><span class="special">(</span><span class="identifier">t</span><span class="special">);</span>
-  <span class="special">}</span>
+  <a class="co" name="lua_primer.reference.core.expected.c2" href="expected.html#lua_primer.reference.core.expected.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_ham</span><span class="special">(</span><span class="identifier">t</span><span class="special">);</span> <span class="special">}</span>
 
   <span class="identifier">expected</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_ham</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">t</span><span class="special">));</span> <span class="special">}</span>
 
-  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span> <a class="co" name="lua_primer.reference.core.expected.c4" href="expected.html#lua_primer.reference.core.expected.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a>
-  <span class="special">{</span>
-    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_spam</span><span class="special">(</span><span class="identifier">e</span><span class="special">);</span>
-  <span class="special">}</span>
+  <a class="co" name="lua_primer.reference.core.expected.c4" href="expected.html#lua_primer.reference.core.expected.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_spam</span><span class="special">(</span><span class="identifier">e</span><span class="special">);</span> <span class="special">}</span>
 
   <span class="identifier">expected</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="special">&amp;&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init_spam</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">e</span><span class="special">));</span> <span class="special">}</span>
 <span class="special">};</span>
@@ -355,9 +349,9 @@
   <span class="identifier">expected</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">expected</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
 
   <span class="comment">// Additional Constructors</span>
-  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span> <a class="co" name="lua_primer.reference.core.expected.c6" href="expected.html#lua_primer.reference.core.expected.c7"><img src="../../../images/callouts/1.png" alt="1" border="0"></a>
-    <span class="special">:</span> <span class="identifier">no_error_</span><span class="special">(</span><span class="keyword">false</span><span class="special">),</span>
-      <span class="identifier">error_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="comment">//</span>
+  <a class="co" name="lua_primer.reference.core.expected.c6" href="expected.html#lua_primer.reference.core.expected.c7"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">no_error_</span><span class="special">(</span><span class="keyword">false</span><span class="special">)</span>
+    <span class="special">,</span> <span class="identifier">error_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="comment">//</span>
   <span class="special">{}</span>
 
   <span class="identifier">expected</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="special">&amp;&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">:</span> <span class="identifier">no_error_</span><span class="special">(</span><span class="keyword">false</span><span class="special">),</span>

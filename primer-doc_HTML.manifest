@@ -25,10 +25,13 @@ lua_primer/reference/containers/standard_containers.html
 lua_primer/reference/containers/heterogeneous_containers.html
 lua_primer/reference/containers/optionals.html
 lua_primer/reference/api.html
-lua_primer/reference/api/api_callback.html
-lua_primer/reference/api/api_feature.html
 lua_primer/reference/api/api_base.html
 lua_primer/reference/api/api_library.html
 lua_primer/reference/api/api_userdata.html
+lua_primer/reference/api/api_feature.html
+lua_primer/reference/api/api_callback.html
 lua_primer/reference/api/api_print.html
 lua_primer/reference/api/api_vfs.html
+lua_primer/reference/miscellaneous.html
+lua_primer/reference/miscellaneous/std_function.html
+lua_primer/reference/miscellaneous/stack_space_needed.html

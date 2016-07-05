@@ -18,8 +18,37 @@
 <a name="lua_primer.reference.api.api_library"></a><a class="link" href="api_library.html" title="API Library">API Library</a>
 </h4></div></div></div>
 <p>
-          TODO
+          Libraries may be registered with an API using the <code class="computeroutput"><span class="identifier">libraries</span></code>
+          API feature.
         </p>
+<p>
+          Example:
+        </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">api</span><span class="special">/</span><span class="identifier">libraries</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="special">...</span>
+
+<span class="special">{</span>
+  <span class="special">...</span>
+
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">libraries</span><span class="special">&lt;</span><span class="identifier">lua_base_lib</span><span class="special">,</span> <span class="identifier">lua_table_lib</span><span class="special">,</span> <span class="identifier">lua_debug_lib</span><span class="special">,</span> <span class="identifier">lua_coroutine_lib</span><span class="special">&gt;,</span> <span class="identifier">libs_</span><span class="special">);</span>
+
+  <span class="special">...</span>
+
+<span class="special">};</span>
+</pre>
+<p>
+          Each library will be loaded when <code class="computeroutput"><span class="identifier">initialize_api</span></code>
+          is called. The functions of each library will be installed in the permanent
+          objects table, so that they can survive when we persist / unpersist.
+        </p>
+<p>
+          There are also two typedefs which shorten the list of libraries:
+        </p>
+<pre class="programlisting"><span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">basic_libraries</span><span class="special">,</span> <span class="identifier">libs_</span><span class="special">);</span> <span class="comment">// Only base, table, string and math</span>
+</pre>
+<pre class="programlisting"><span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">all_core_libraries</span><span class="special">,</span> <span class="identifier">libs_</span><span class="special">);</span> <span class="comment">// All standard libraries:  at time of writing, basic, table, string, math, io, os, debug, coroutine</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

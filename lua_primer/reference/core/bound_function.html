@@ -63,8 +63,11 @@
   <span class="special">~</span><span class="identifier">bound_function</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
 
   <span class="comment">// Only capture the top item if it is actually a function.</span>
-  <span class="keyword">explicit</span> <span class="identifier">bound_function</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">noexcept</span>                  <span class="comment">//</span>
-    <span class="special">:</span> <span class="identifier">ref_</span><span class="special">((</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="identifier">lua_isfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">))</span> <span class="special">?</span> <span class="identifier">L</span> <span class="special">:</span> <span class="keyword">nullptr</span><span class="special">)</span> <span class="comment">//</span>
+  <span class="comment">// Pop the item *whether or not* it is a function, knowing that lua_ref will</span>
+  <span class="comment">// pop it if we pass L</span>
+  <span class="keyword">explicit</span> <span class="identifier">bound_function</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="comment">//</span>
+    <span class="special">:</span> <span class="identifier">ref_</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">?</span> <span class="special">(</span><span class="identifier">lua_isfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">)</span> <span class="special">?</span> <span class="identifier">L</span> <span class="special">:</span> <span class="special">(</span><span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">),</span> <span class="keyword">nullptr</span><span class="special">))</span>
+                         <span class="special">:</span> <span class="keyword">nullptr</span><span class="special">)</span> <span class="comment">//</span>
   <span class="special">{}</span>
 
   <span class="comment">// Forwarded methods from lua_ref</span>
@@ -75,26 +78,33 @@
   <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">reset</span><span class="special">();</span> <span class="special">}</span>
 
   <span class="comment">// Call methods</span>
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <a class="co" name="lua_primer.reference.core.bound_function.c0" href="bound_function.html#lua_primer.reference.core.bound_function.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a>
-  <span class="special">{</span>
+  <span class="comment">// These methods attempt to lock the state which holds the lua function,</span>
+  <span class="comment">// and perform the call there. They clean up after themselves and leave the</span>
+  <span class="comment">// stack as they found it afterwards.</span>
+  <a class="co" name="lua_primer.reference.core.bound_function.c0" href="bound_function.html#lua_primer.reference.core.bound_function.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">{</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="string">"Can't lock VM"</span><span class="special">}};</span>
+
     <span class="keyword">if</span> <span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span> <span class="special">=</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">push</span><span class="special">())</span> <span class="special">{</span>
+      <span class="identifier">PRIMER_CHECK_STACK_PUSH_EACH</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">);</span>
       <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_each</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
-      <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">fcn_call_no_ret</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">args</span><span class="special">));</span>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-      <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Could not lock lua state"</span><span class="special">);</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">fcn_call_no_ret</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">args</span><span class="special">));</span>
     <span class="special">}</span>
+
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
   <span class="special">}</span>
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <a class="co" name="lua_primer.reference.core.bound_function.c2" href="bound_function.html#lua_primer.reference.core.bound_function.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a>
-  <span class="special">{</span>
+  <a class="co" name="lua_primer.reference.core.bound_function.c2" href="bound_function.html#lua_primer.reference.core.bound_function.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">{</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="string">"Can't lock VM"</span><span class="special">}};</span>
+
     <span class="keyword">if</span> <span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span> <span class="special">=</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">push</span><span class="special">())</span> <span class="special">{</span>
+      <span class="identifier">PRIMER_CHECK_STACK_PUSH_EACH</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">);</span>
       <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_each</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
-      <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">fcn_call_one_ret</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">args</span><span class="special">));</span>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-      <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Could not lock lua state"</span><span class="special">);</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">fcn_call_one_ret</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">args</span><span class="special">));</span>
     <span class="special">}</span>
+
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
   <span class="special">}</span>
 <span class="special">};</span>
 </pre>
@@ -102,14 +112,14 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.bound_function.c1"></a><a href="#lua_primer.reference.core.bound_function.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-              Calls the function, discards an return values. (But not errors.)
+              Calls the function, discards any return values. (But not errors.)
             </p></td>
 </tr>
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.bound_function.c3"></a><a href="#lua_primer.reference.core.bound_function.c2"><img src="../../../images/callouts/2.png" alt="2" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-              Calls the function, returns a reference to the first return value.
-              (Or an error.)
+              Calls the function, returns a ref to the <span class="emphasis"><em>first</em></span>
+              return value. (Or an error.) Discards any others.
             </p></td>
 </tr>
 </table></div>

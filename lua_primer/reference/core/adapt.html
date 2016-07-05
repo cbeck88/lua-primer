@@ -7,7 +7,7 @@
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../core.html" title="Core">
 <link rel="prev" href="result.html" title="result">
-<link rel="next" href="userdata.html" title="Userdata">
+<link rel="next" href="userdata.html" title="userdata">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
@@ -18,21 +18,44 @@
 <a name="lua_primer.reference.core.adapt"></a><a class="link" href="adapt.html" title="adapt">adapt</a>
 </h4></div></div></div>
 <p>
-          <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> refers to
-          the mechanism that implements type-safe parameter reading for user functions.
+          <code class="computeroutput"><span class="identifier">adapt</span></code> is a mechanism that
+          takes user functions with a complex signature and adapts them to be pushed
+          to lua.
         </p>
 <p>
-          The core object is a template
+          There are two things that <code class="computeroutput"><span class="identifier">adapt</span></code>
+          accomplishes:
         </p>
-<pre class="programlisting"><span class="comment">// adaptor is what does the actual work.</span>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              Generates boiler-plate code which reads parameters of given types off
+              of the lua stack, and handles errors in reading them.
+            </li>
+<li class="listitem">
+              Provides a way for the caller to terminate the function call without
+              triggering <code class="computeroutput"><span class="identifier">longjmp</span></code>
+              and trashing objects on the stack without calling their destructors.
+              (This is only an issue if lua is compiled as C.)
+            </li>
+</ul></div>
+<p>
+          <code class="computeroutput"><span class="identifier">adapt</span></code> handles the first
+          one using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>. <code class="computeroutput"><span class="identifier">adapt</span></code>
+          handles the second one using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code>.
+        </p>
+<p>
+          The core object of <code class="computeroutput"><span class="identifier">adapt</span></code>
+          is a class template:
+        </p>
+<pre class="programlisting"><span class="comment">// adapt is what does the actual work.</span>
 <span class="comment">// The PRIMER_ADAPT macro provides a suitable interface to it</span>
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">class</span> <span class="identifier">adaptor</span><span class="special">;</span>
+<span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">;</span>
 </pre>
 <p>
           When given a function pointer <code class="computeroutput"><span class="identifier">f</span></code>,
-          <code class="computeroutput"><span class="identifier">adaptor</span></code> is expected to
-          provide a static member function of signature <code class="computeroutput"><span class="keyword">int</span>
+          <code class="computeroutput"><span class="identifier">adapt</span></code> is expected to provide
+          a static member function of signature <code class="computeroutput"><span class="keyword">int</span>
           <span class="special">(</span><span class="identifier">lua_State</span>
           <span class="special">*)</span></code> which is named <code class="computeroutput"><span class="identifier">adapted</span></code>.
         </p>
@@ -42,7 +65,8 @@
 <pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo</span><span class="special">,</span> <span class="keyword">bool</span> <span class="identifier">bar</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">baz</span><span class="special">);</span>
 </pre>
 <p>
-          the adaptor converts it to a function somewhat similar to the following:
+          <code class="computeroutput"><span class="identifier">adapt</span></code> converts it to a
+          function somewhat similar to the following:
         </p>
 <pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func_helper</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
   <span class="keyword">auto</span> <span class="identifier">arg1</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
@@ -65,7 +89,7 @@
       <span class="keyword">return</span> <span class="identifier">lua_yield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">r</span><span class="special">-&gt;</span><span class="identifier">n_</span><span class="special">);</span>
     <span class="special">}</span>
   <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-    <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">().</span><span class="identifier">c_str</span><span class="special">());</span>
+    <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">str</span><span class="special">().</span><span class="identifier">c_str</span><span class="special">());</span>
     <span class="keyword">return</span> <span class="identifier">lua_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
   <span class="special">}</span>
 <span class="special">}</span>
@@ -75,13 +99,38 @@
           input is invalid and an error is returned. If all can be read, then the
           user function is invoked, and its result returned.
         </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
 <p>
-          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is implemented by a simple return
-          in the case of a return, by calling <code class="computeroutput"><span class="identifier">lua_yield</span></code>
-          in case of a yield, and by signaling a lua error in case of an error. This
-          part is quite trivial -- the only subtlety in the actual implementation
-          involves making sure that it works with no leaks, whether lua is compiled
-          as C or C++.
+            An important principle of <code class="computeroutput"><span class="identifier">adapt</span></code>
+            is that, it always gives you the stack as it found it from lua. <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> is not supposed to have side-effects
+            for the stack, and adapt is not supposed to clear the stack before your
+            function is called. So, if for some reason you need to access the actual
+            lua values that were the inputs, rather than their C++ versions, (as
+            occasionally happens), you can easily do that.
+          </p>
+<p>
+            This is also important because lua values may be destroyed by the garbage
+            collector once they are removed from the stack. For instance, if your
+            callback takes a <code class="computeroutput"><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span></code>
+            parameter, or retrieves a reference to a userdata object, those pointers
+            and references can become dangling if the stack is cleared and there
+            are no other references to these objects. They are guaranteed to be valid
+            at least as long as the values are on the stack.
+          </p>
+</td></tr>
+</table></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is implemented by a simple <code class="computeroutput"><span class="keyword">return</span></code> in the case of a return signal, by
+          calling <code class="computeroutput"><span class="identifier">lua_yield</span></code> in case
+          of a yield, and by raising a lua error in case of an error. This part is
+          quite trivial -- the only subtlety in the actual implementation involves
+          making sure that it works with no leaks, whether lua is compiled as C or
+          C++.
         </p>
 <div class="caution"><table border="0" summary="Caution">
 <tr>
@@ -103,6 +152,12 @@
 <p>
             A similar statement holds for calling <code class="computeroutput"><span class="identifier">lua_yield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">n</span><span class="special">)</span></code>. You should instead return <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">yield</span><span class="special">(</span><span class="identifier">n</span><span class="special">)</span></code>.
           </p>
+<p>
+            The <code class="computeroutput"><span class="identifier">adapt</span></code> mechanism is
+            very useful when lua is compiled as C -- it means that when writing callbacks
+            in C++, you can easily raise errors or yield without leaking your local
+            C++ variables, since they will always be destroyed when you return.
+          </p>
 </td></tr>
 </table></div>
 <p>
@@ -113,7 +168,7 @@
 <span class="comment">// (This seems to be necessary since we can't deduce non-type template parameter</span>
 <span class="comment">// types, at least prior to C++17.)</span>
 <span class="comment">//</span>
-<span class="preprocessor">#define</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(</span><span class="identifier">F</span><span class="special">)</span> <span class="special">&amp;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adaptor</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">F</span><span class="special">),</span> <span class="special">(</span><span class="identifier">F</span><span class="special">)&gt;::</span><span class="identifier">adapted</span>
+<span class="preprocessor">#define</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(</span><span class="identifier">F</span><span class="special">)</span> <span class="special">&amp;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">F</span><span class="special">),</span> <span class="special">(</span><span class="identifier">F</span><span class="special">)&gt;::</span><span class="identifier">adapted</span>
 </pre>
 <p>
           so that <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> can
@@ -122,13 +177,13 @@
 <pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">my_func</span><span class="special">));</span>
 </pre>
 <p>
-          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adaptor</span></code> also has a trivial specialization
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code> also has a trivial specialization
           for functions which are already <code class="computeroutput"><span class="identifier">lua_CFunction</span></code>:
         </p>
 <pre class="programlisting"><span class="comment">// Traditional "raw" C-style lua callbacks. They aren't even member functions.</span>
 <span class="comment">// We don't have to do any work</span>
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">lua_CFunction</span> <span class="identifier">target_func</span><span class="special">&gt;</span>
-<span class="keyword">class</span> <span class="identifier">adaptor</span><span class="special">&lt;</span><span class="identifier">lua_CFunction</span><span class="special">,</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">&lt;</span><span class="identifier">lua_CFunction</span><span class="special">,</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
   <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">target_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
 <span class="special">};</span>
@@ -140,7 +195,7 @@
 <p>
           If you would like to implement a custom parameter reading / error handling
           mechanism, you can do that by introducing a new return type for such functions,
-          and specializing the <code class="computeroutput"><span class="identifier">adaptor</span></code>
+          and specializing the <code class="computeroutput"><span class="identifier">adapt</span></code>
           class template for function pointers with your given return type.
         </p>
 <p>

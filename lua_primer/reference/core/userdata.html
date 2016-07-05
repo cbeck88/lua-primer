@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>Userdata</title>
+<title>userdata</title>
 <link rel="stylesheet" href="../../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
@@ -15,39 +15,99 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="lua_primer.reference.core.userdata"></a><a class="link" href="userdata.html" title="Userdata">Userdata</a>
+<a name="lua_primer.reference.core.userdata"></a><a class="link" href="userdata.html" title="userdata">userdata</a>
 </h4></div></div></div>
 <p>
-          userdata types are recognized using a trait, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">userdata</span></code>.
+          Primer can be told to recognize any C++ type as a <span class="bold"><strong>userdata</strong></span>
+          type. This means that you can construct it within lua.
+        </p>
+<p>
+          Primer recognizes userdata types using a trait, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">userdata</span></code>.
           This trait must be specialized for any type which primer will recognize
-          as userdata, and this must provide
+          as userdata.
+        </p>
+<p>
+          The trait can / should provide three things:
         </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-              <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">const</span>
-              <span class="keyword">char</span> <span class="special">*</span>
-              <span class="identifier">name</span></code>: A name associated to
-              the userdata. The metatable will be constructed using <code class="computeroutput"><span class="identifier">luaL_newmetatable</span></code>, using this name
-              as the key. This name may also be displayed in certain error messages,
-              e.g. if userdata of this type was expected and not found.
+              A name for the userdata type (used as a key in lua, and in error messages)
             </li>
 <li class="listitem">
-              <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">const</span>
-              <span class="identifier">luaL_Reg</span> <span class="special">*</span>
-              <span class="identifier">methods</span></code>: A null-terminated
-              list of metamethods for this userdata. This must include a <code class="computeroutput"><span class="identifier">__persist</span></code> metamethod, or the userdata
-              cannot be persisted correctly. See eris' documentation.
+              A list of functions to go in the metatable
             </li>
 <li class="listitem">
-              <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">const</span>
-              <span class="identifier">luaL_Reg</span> <span class="special">*</span>
-              <span class="identifier">other_functions</span></code>: A null-terminated
-              list of other functions related to this userdata which must be listed
-              in the permanent objects table. Commonly this list contains constructors
-              or other functions related to the type and exposed to the user or via
-              the <code class="computeroutput"><span class="identifier">__persist</span></code> metamethod.
+              A list of functions to go in the permanent objects table.
             </li>
 </ul></div>
+<p>
+          Given this information, primer is able to create the metatable of this
+          userdata type on demand, and store the necessary functions in the permanent
+          objects table so that this userdata can be serialized.
+        </p>
+<p>
+          In a pure-lua (no eris) application, not all of these are necessary. The
+          permanent objects table could be skipped. Even the metatable functions
+          could be skipped -- you could recover the metatable yourself using <code class="computeroutput"><span class="identifier">luaL_getmetatable</span></code> and the key, and adjust
+          it as you like. If there is no userdata name, though, then primer is not
+          able to <span class="emphasis"><em>read</em></span> this userdata type using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>, so there would be little that we
+          could do with it.
+        </p>
+<h5>
+<a name="lua_primer.reference.core.userdata.h0"></a>
+          <span><a name="lua_primer.reference.core.userdata.representing_lists_of_functions"></a></span><a class="link" href="userdata.html#lua_primer.reference.core.userdata.representing_lists_of_functions">Representing
+          lists of functions</a>
+        </h5>
+<p>
+          It is quite common in lua C API programming to need to be able create lists
+          of functions paired with their names. lua has a standard idiom for this.
+          The following structure is defined in the lua headers:
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">luaL_Reg</span> <span class="special">{</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">;</span>
+  <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
+          Many lua functions take as a parameter a pointer <code class="computeroutput"><span class="keyword">const</span>
+          <span class="identifier">luaL_Reg</span> <span class="special">*</span></code>,
+          which is expected to point into an array, terminated by a <code class="computeroutput"><span class="identifier">luaL_Reg</span></code> holding two null pointers. (See
+          <a href="http://www.lua.org/manual/5.2/manual.html#luaL_Reg" target="_top">the manual</a>.)
+        </p>
+<p>
+          In primer, we respect this idiom, but we extend it as follows:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <span class="emphasis"><em>Pointer to null-terminated array</em></span> of <code class="computeroutput"><span class="identifier">luaL_Reg</span></code> is supported
+            </li>
+<li class="listitem">
+              <span class="emphasis"><em>Any standard container</em></span> (<code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code>,
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">initializer_list</span></code>, <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>)
+              is supported, with or without null terminators. It needs to satisfy
+              the conditions for use in a range-based for loop.
+            </li>
+<li class="listitem">
+              The value-type need not actually be <code class="computeroutput"><span class="identifier">luaL_Reg</span></code>
+              -- as long as it has public members <code class="computeroutput"><span class="keyword">const</span>
+              <span class="keyword">char</span> <span class="special">*</span>
+              <span class="identifier">name</span></code> and <code class="computeroutput"><span class="identifier">lua_CFunction</span>
+              <span class="identifier">func</span></code> then that is sufficient.
+            </li>
+<li class="listitem">
+              Instead of a container, <span class="emphasis"><em>the object can actually just be a
+              function which takes no parameters and yields the container</em></span>.
+              This is in case you want to declare the list inline in a header with
+              your specialization, and not deal with static initialization problems.
+            </li>
+</ul></div>
+<p>
+          In total we call this concept "<code class="computeroutput"><span class="identifier">L_Reg_sequence</span></code>".
+        </p>
+<h5>
+<a name="lua_primer.reference.core.userdata.h1"></a>
+          <span><a name="lua_primer.reference.core.userdata.pushing_userdata"></a></span><a class="link" href="userdata.html#lua_primer.reference.core.userdata.pushing_userdata">Pushing userdata</a>
+        </h5>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span></code> is a template function which
           is used to construct new userdata objects on the stack.
@@ -61,20 +121,59 @@
 <span class="keyword">void</span> <span class="identifier">push_udata</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">);</span>
 </pre>
 <p>
+          It is best if your constructor is <code class="computeroutput"><span class="keyword">noexcept</span></code>,
+          but this is not always possible. If it is not <code class="computeroutput"><span class="keyword">noexcept</span></code>,
+          then in the event of an exception thrown from the constructor, primer will
+          pop the userdata entry from the stack, and rethrow the exception.
+        </p>
+<h5>
+<a name="lua_primer.reference.core.userdata.h2"></a>
+          <span><a name="lua_primer.reference.core.userdata.reading_userdata"></a></span><a class="link" href="userdata.html#lua_primer.reference.core.userdata.reading_userdata">Reading userdata</a>
+        </h5>
+<p>
+          You can test a stack position for containing userdata of a given type using
+          the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">test_udata</span></code> function:
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="identifier">T</span> <span class="special">*</span> <span class="identifier">test_udata</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">);</span>
+</pre>
+<p>
+          This function returns a pointer to the underlying <code class="computeroutput"><span class="identifier">T</span></code>,
+          or, <code class="computeroutput"><span class="keyword">nullptr</span></code> if the value was
+          not userdata corresponding to that class.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> also contains a built-in overload
+          for userdata types, as a reference:
+        </p>
+<pre class="programlisting"><span class="keyword">if</span> <span class="special">(</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">))</span> <span class="special">{</span> <span class="special">...</span> <span class="special">}</span>
+</pre>
+<p>
+          Usually, you can just use <code class="computeroutput"><span class="identifier">test_udata</span></code>
+          in code that you write manually -- it's a bit simpler, and the only benefit
+          of the "read" version is that it generates an error message which
+          also describes what type was actually found there.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">read</span></code> version is important
+          because it means that <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code>
+          can handle functions that take references to userdata types as input.
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_function</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">my_userdata</span> <span class="special">&amp;</span> <span class="identifier">u1</span><span class="special">,</span> <span class="identifier">my_userdata</span> <span class="special">&amp;</span> <span class="identifier">u2</span><span class="special">);</span>
+</pre>
+<p>
           While primitive types like <code class="computeroutput"><span class="identifier">number</span></code>,
           <code class="computeroutput"><span class="identifier">string</span></code>, and <code class="computeroutput"><span class="identifier">table</span></code> are generally read from the lua
           stack by value, as C++ primitives or containers, for userdata types this
-          is usually much less useful.
+          is usually much less useful. Often, you want to manipulate the userdata
+          value that is actually contained within lua, not some copy of it -- and
+          you don't really want to make copies anyways.
         </p>
 <p>
-          Instead, userdata types are generally read from the stack <span class="bold"><strong>by
-          reference</strong></span>.
-        </p>
-<p>
-          TODO
+          TODO better examples
         </p>
 <h5>
-<a name="lua_primer.reference.core.userdata.h0"></a>
+<a name="lua_primer.reference.core.userdata.h3"></a>
           <span><a name="lua_primer.reference.core.userdata.adapting_userdata_methods"></a></span><a class="link" href="userdata.html#lua_primer.reference.core.userdata.adapting_userdata_methods">Adapting
           userdata methods</a>
         </h5>
@@ -92,6 +191,100 @@
           This is convenient because sometimes its a little nicer to implement userdata
           methods as C++ methods rather than free functions. <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>
           can only directly handle free functions.
+        </p>
+<h5>
+<a name="lua_primer.reference.core.userdata.h4"></a>
+          <span><a name="lua_primer.reference.core.userdata.userdata_trait_requirements"></a></span><a class="link" href="userdata.html#lua_primer.reference.core.userdata.userdata_trait_requirements">Userdata
+          trait requirements</a>
+        </h5>
+<p>
+          A specialization of the <code class="computeroutput"><span class="identifier">userdata</span></code>
+          trait <span class="bold"><strong>must</strong></span> provide the following members:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+              <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">const</span>
+              <span class="keyword">char</span> <span class="special">*</span>
+              <span class="identifier">name</span></code>: A name associated to
+              the userdata. The metatable will be constructed using <code class="computeroutput"><span class="identifier">luaL_newmetatable</span></code>, using this name
+              as the key. This name may also be displayed in certain error messages,
+              e.g. if userdata of this type was expected and not found.
+            </li></ul></div>
+<p>
+          It <span class="bold"><strong>may</strong></span> provide the following additional
+          members:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="keyword">static</span> <span class="identifier">L_Reg_sequence</span>
+              <span class="identifier">metatable</span></code>: A list of methods
+              for this userdata. This should include a <code class="computeroutput"><span class="identifier">__persist</span></code>
+              method, or the userdata cannot be persisted correctly. See eris' documentation.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="keyword">static</span> <span class="identifier">L_Reg_sequence</span>
+              <span class="identifier">permanents</span></code>: A list of other
+              functions related to this userdata which must appear in the permanent
+              objects table. Commonly this list contains some sort of "reconstruct"
+              function used to implement the <code class="computeroutput"><span class="identifier">__persist</span></code>
+              function. It could contain other related functions which are exposed
+              to the user by the operation of the class or otherwise.
+            </li>
+</ul></div>
+<p>
+          If the <code class="computeroutput"><span class="identifier">metatable</span></code> entry
+          is missing, primer will install a minimalistic metatable for your type.
+        </p>
+<p>
+          If the <code class="computeroutput"><span class="identifier">metatable</span></code> entry
+          is present, but no <code class="computeroutput"><span class="identifier">__gc</span></code>
+          method is present, primer will generate one which calls the destructor
+          for your type. This is almost always what you want, except for debugging
+          purposes, or if your type is trivial and does not need a destructor call.
+          In that case, you block primer from installing <code class="computeroutput"><span class="identifier">__gc</span></code>
+          by putting <code class="computeroutput"><span class="special">{</span><span class="string">"__gc"</span><span class="special">,</span> <span class="keyword">nullptr</span><span class="special">}</span></code> in the list -- primer will not register
+          a null pointer as a C function.
+        </p>
+<p>
+          If the <code class="computeroutput"><span class="identifier">metatable</span></code> entry
+          is present, and no <code class="computeroutput"><span class="identifier">__index</span></code>
+          method is present, primer will implement a common idiom in which the metatable
+          itself is set to be its own index table. Again, you can block this by registering
+          any function or <code class="computeroutput"><span class="keyword">nullptr</span></code> for
+          <code class="computeroutput"><span class="identifier">__index</span></code>.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">permanents</span></code> list is
+          similar to the <code class="computeroutput"><span class="identifier">metatable</span></code>
+          list, except that those objects will become part of the <span class="emphasis"><em>permanent
+          objects table</em></span> when persisting and unpersisting a state that
+          has this userdata. See the "API" section for more info.
+        </p>
+<h5>
+<a name="lua_primer.reference.core.userdata.h5"></a>
+          <span><a name="lua_primer.reference.core.userdata.alternative_syntax"></a></span><a class="link" href="userdata.html#lua_primer.reference.core.userdata.alternative_syntax">Alternative
+          syntax</a>
+        </h5>
+<p>
+          If setting up your metatable is too complex to use the above pattern, for
+          example, if you have entries that need to be set to tables, or you also
+          must add things to the registry to support your type, or something like
+          this, then you can use an alternate method:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+              <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">void</span>
+              <span class="identifier">metatable</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*)</span></code>
+            </li></ul></div>
+<p>
+          In this case you can manually control the population of the metatable.
+          Primer will call <code class="computeroutput"><span class="identifier">luaL_newmetatable</span></code>
+          using the name first, and your function will be called with the new metatable
+          on top of the stack. Your function is supposed to add members to it and
+          do any other appropriate setup, and return with the stack in the same position
+          that it was found.
+        </p>
+<p>
+          Your function will only be called once, when the metatable is initialized,
+          for any given lua State.
         </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

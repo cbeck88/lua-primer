@@ -59,8 +59,8 @@
 </tr>
 <tr><td align="left" valign="top">
 <p>
-            lua thread's have nothing to do with operating system threads, it an
-            unfortunate name collision.
+            lua threads have nothing to do with operating system threads, it an unfortunate
+            name collision.
           </p>
 <p>
             Lua is not thread-safe, and coroutines are not a way to make it thread-safe
@@ -99,12 +99,13 @@
   <span class="special">}</span>
 
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <a class="co" name="lua_primer.reference.core.coroutine.c0" href="coroutine.html#lua_primer.reference.core.coroutine.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a>
-  <span class="special">{</span>
-    <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+  <a class="co" name="lua_primer.reference.core.coroutine.c0" href="coroutine.html#lua_primer.reference.core.coroutine.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">{</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="string">"Can't lock VM"</span><span class="special">}};</span>
 
     <span class="keyword">if</span> <span class="special">(</span><span class="identifier">thread_stack_</span> <span class="special">&amp;&amp;</span> <span class="identifier">ref_</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">PRIMER_CHECK_STACK_PUSH_EACH</span><span class="special">(</span><span class="identifier">thread_stack_</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">);</span>
+
       <span class="keyword">int</span> <span class="identifier">error_code</span><span class="special">;</span>
 
       <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_each</span><span class="special">(</span><span class="identifier">thread_stack_</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
@@ -112,19 +113,18 @@
         <span class="identifier">primer</span><span class="special">::</span><span class="identifier">resume_no_ret</span><span class="special">(</span><span class="identifier">thread_stack_</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">args</span><span class="special">));</span>
 
       <span class="keyword">if</span> <span class="special">(</span><span class="identifier">error_code</span> <span class="special">!=</span> <span class="identifier">LUA_YIELD</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">reset</span><span class="special">();</span> <span class="special">}</span>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Could not lock lua state"</span><span class="special">);</span>
     <span class="special">}</span>
 
     <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
   <span class="special">}</span>
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <a class="co" name="lua_primer.reference.core.coroutine.c2" href="coroutine.html#lua_primer.reference.core.coroutine.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a>
-  <span class="special">{</span>
-    <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+  <a class="co" name="lua_primer.reference.core.coroutine.c2" href="coroutine.html#lua_primer.reference.core.coroutine.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">{</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="string">"Can't lock VM"</span><span class="special">}};</span>
 
     <span class="keyword">if</span> <span class="special">(</span><span class="identifier">thread_stack_</span> <span class="special">&amp;&amp;</span> <span class="identifier">ref_</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">PRIMER_CHECK_STACK_PUSH_EACH</span><span class="special">(</span><span class="identifier">thread_stack_</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">);</span>
+
       <span class="keyword">int</span> <span class="identifier">error_code</span><span class="special">;</span>
 
       <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_each</span><span class="special">(</span><span class="identifier">thread_stack_</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
@@ -132,19 +132,14 @@
         <span class="identifier">primer</span><span class="special">::</span><span class="identifier">resume_one_ret</span><span class="special">(</span><span class="identifier">thread_stack_</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">args</span><span class="special">));</span>
 
       <span class="keyword">if</span> <span class="special">(</span><span class="identifier">error_code</span> <span class="special">!=</span> <span class="identifier">LUA_YIELD</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">reset</span><span class="special">();</span> <span class="special">}</span>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Could not lock lua state"</span><span class="special">);</span>
     <span class="special">}</span>
 
     <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
   <span class="special">}</span>
 
-  <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="keyword">return</span> <span class="identifier">thread_stack_</span> <span class="special">&amp;&amp;</span> <span class="identifier">ref_</span><span class="special">;</span>
-  <span class="special">}</span> <a class="co" name="lua_primer.reference.core.coroutine.c4" href="coroutine.html#lua_primer.reference.core.coroutine.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a>
+  <a class="co" name="lua_primer.reference.core.coroutine.c4" href="coroutine.html#lua_primer.reference.core.coroutine.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">thread_stack_</span> <span class="special">&amp;&amp;</span> <span class="identifier">ref_</span><span class="special">;</span> <span class="special">}</span>
 
-  <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span> <a class="co" name="lua_primer.reference.core.coroutine.c6" href="coroutine.html#lua_primer.reference.core.coroutine.c7"><img src="../../../images/callouts/4.png" alt="4" border="0"></a>
-  <span class="special">{</span>
+  <a class="co" name="lua_primer.reference.core.coroutine.c6" href="coroutine.html#lua_primer.reference.core.coroutine.c7"><img src="../../../images/callouts/4.png" alt="4" border="0"></a><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span>
     <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">reset</span><span class="special">();</span>
     <span class="identifier">thread_stack_</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
   <span class="special">}</span>

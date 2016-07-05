@@ -6,17 +6,149 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../api.html" title="API">
-<link rel="prev" href="api_feature.html" title="API Feature">
+<link rel="prev" href="../api.html" title="API">
 <link rel="next" href="api_library.html" title="API Library">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="api_feature.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_library.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../api.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_library.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="lua_primer.reference.api.api_base"></a><a class="link" href="api_base.html" title="API Base">API Base</a>
 </h4></div></div></div>
+<p>
+          The template <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> is meant to be the base class of
+          any API object that you use with primer.
+        </p>
+<p>
+          This class template does not contain any data members or nontrivial special
+          member functions -- not even a lua State.
+        </p>
+<p>
+          However, it provides a few member functions that are useful in assembling
+          an api, and it provides registration macros for two things: API features,
+          and API callbacks.
+        </p>
+<h4>
+<a name="lua_primer.reference.api.api_base.h0"></a>
+          <span><a name="lua_primer.reference.api.api_base.features"></a></span><a class="link" href="api_base.html#lua_primer.reference.api.api_base.features">Features</a>
+        </h4>
+<p>
+          An object deriving from <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>
+          inherits three member functions that carry out high-level goals related
+          to features and persistence.
+        </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">initialize_api</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+<span class="keyword">void</span> <span class="identifier">persist</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buffer</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">unpersist</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buffer</span><span class="special">);</span>
+</pre>
+<p>
+          It carries out these tasks based on declarations that you make using the
+          macro, <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>, calling
+          member functions of each of them in succession, and making calls to the
+          <code class="computeroutput"><span class="identifier">eris</span></code> api.
+        </p>
+<p>
+          The premise of the system is that there will only be one <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>
+          associated to an <code class="computeroutput"><span class="identifier">API</span></code> object,
+          created and destroyed by you, and you will pass that object to these methods,
+          the same one each time.
+        </p>
+<p>
+          However, the system doesn't enforce that. We don't really want to get between
+          you and the <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>, so that you can manage it as you like.
+          We also like that <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> is a trivial object, so that even
+          though you inherit from it, it's still easy to reason about the initialization
+          and destruction of your object.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">initialize_api</span></code> should always
+          be called before <code class="computeroutput"><span class="identifier">persist</span></code>
+          or <code class="computeroutput"><span class="identifier">unpersist</span></code> are called.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">initialize_api</span></code> is meant
+          to be called once, usually in the constructor of your object. This is when
+          the API features are actually installed in the lua state.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">persist</span></code> and <code class="computeroutput"><span class="identifier">unpersist</span></code> both use <code class="computeroutput"><span class="identifier">lua</span><span class="special">-</span><span class="identifier">eris</span></code>
+          to create a string representation of the current state.
+        </p>
+<p>
+          The string representation includes all the information needed to reconstruct
+          the global table <code class="computeroutput"><span class="identifier">_G</span></code> of
+          the lua state, as well as any additional objects provided by the <code class="computeroutput"><span class="identifier">API_FEATURES</span></code> (see <code class="computeroutput"><span class="identifier">on_serialize</span></code>
+          and <code class="computeroutput"><span class="identifier">on_deserialize</span></code> members).
+        </p>
+<p>
+          Other data, such as values stored in the lua registry, are not serialized.
+          Any such values that need to be serialized, should be managed by an <code class="computeroutput"><span class="identifier">API_FEATURE</span></code> to ensure that.
+        </p>
+<p>
+          (See documentation on API Features for more. TODO link)
+        </p>
+<h4>
+<a name="lua_primer.reference.api.api_base.h1"></a>
+          <span><a name="lua_primer.reference.api.api_base.callbacks"></a></span><a class="link" href="api_base.html#lua_primer.reference.api.api_base.callbacks">Callbacks</a>
+        </h4>
+<p>
+          Besides <code class="computeroutput"><span class="identifier">API_FEATURES</span></code>, callbacks
+          can be registered using the <code class="computeroutput"><span class="identifier">API_CALLBACK</span></code>
+          macro.
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_api</span> <span class="special">:</span> <span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">my_api</span><span class="special">&gt;</span> <span class="special">{</span>
+
+  <span class="identifier">API_CALLBACK</span><span class="special">(</span><span class="identifier">f</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">x</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">y</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">z</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="special">{</span>
+    <span class="special">...</span>
+  <span class="special">}</span>
+
+<span class="special">};</span>
+</pre>
+<p>
+          This declares a member function of <code class="computeroutput"><span class="identifier">my_api</span></code>
+          which will be pushed into the global environment of the lua state on initialization,
+          and named <code class="computeroutput"><span class="identifier">f</span></code>. <code class="computeroutput"><span class="identifier">f</span></code> is not associated to any userdata object,
+          it can be called from lua like <code class="computeroutput"><span class="identifier">f</span><span class="special">(</span><span class="number">1</span><span class="special">,</span>
+          <span class="number">2</span><span class="special">,</span> <span class="number">3</span><span class="special">)</span></code>.
+        </p>
+<p>
+          You can access a list of all registered callbacks using the member function
+        </p>
+<pre class="programlisting"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">span</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">&gt;</span> <span class="identifier">callbacks_array</span><span class="special">();</span>
+</pre>
+<p>
+          e.g.
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Available callbacks: \n"</span><span class="special">;</span>
+<span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">reg</span> <span class="special">:</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">callbacks_array</span><span class="special">())</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">" '"</span> <span class="special">&lt;&lt;</span> <span class="identifier">reg</span><span class="special">.</span><span class="identifier">name</span> <span class="special">&lt;&lt;</span> <span class="string">"'"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+          <code class="computeroutput"><span class="identifier">API_CALLBACK</span></code> only adds
+          the function into the list of callbacks -- the api::base, on it's own,
+          doesn't actually get them into the lua State.
+        </p>
+<p>
+          tl;dr for that you need to add an <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">callbacks</span></code>
+          object using <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>.
+          It makes sure all the callbacks are added and persists them correctly.
+        </p>
+<p>
+          For more details about callbacks, check out the API callbacks page. TODO
+          link
+        </p>
+<h4>
+<a name="lua_primer.reference.api.api_base.h2"></a>
+          <span><a name="lua_primer.reference.api.api_base.rule_of_five"></a></span><a class="link" href="api_base.html#lua_primer.reference.api.api_base.rule_of_five">Rule
+          of five </a>
+        </h4>
+<p>
+          Here we'll see some notes and example code showing a complete API object
+          which implements the rule of five.
+        </p>
 <p>
           TODO
         </p>
@@ -31,7 +163,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="api_feature.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_library.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../api.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_library.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

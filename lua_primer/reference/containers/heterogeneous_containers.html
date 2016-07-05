@@ -63,7 +63,7 @@
   <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">task</span><span class="special">;</span>
 <span class="special">};</span>
 
-<span class="identifier">VISITABLE_STRUCTURE</span><span class="special">(</span><span class="identifier">h_arguments</span><span class="special">,</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">id</span><span class="special">,</span> <span class="identifier">group</span><span class="special">,</span> <span class="identifier">task</span><span class="special">);</span>
+<span class="identifier">VISITABLE_STRUCT</span><span class="special">(</span><span class="identifier">h_arguments</span><span class="special">,</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">id</span><span class="special">,</span> <span class="identifier">group</span><span class="special">,</span> <span class="identifier">task</span><span class="special">);</span>
 
 <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">h</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">h_arguments</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
   <span class="keyword">auto</span> <span class="identifier">it</span> <span class="special">=</span> <span class="identifier">database</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">args</span><span class="special">.</span><span class="identifier">id</span><span class="special">);</span>
@@ -79,7 +79,7 @@
         </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-              The <code class="computeroutput"><span class="identifier">VISITABLE_STRUCTURE</span></code>
+              The <code class="computeroutput"><span class="identifier">VISITABLE_STRUCT</span></code>
               macro takes the name of a structure, possibly qualfiied by namespaces,
               as its first argument. Then, it takes the names of the fields which
               should be visitable.
