@@ -19,6 +19,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+#include <primer/lua_ref.hpp>
 
 #include <primer/detail/integral_conversions.hpp>
 #include <primer/detail/maybe_int.hpp>
@@ -134,6 +135,16 @@ template <>
 struct push<stringy> {
   static void to_stack(lua_State * L, const stringy & s) {
     push<std::string>::to_stack(L, s.value);
+  }
+  static constexpr detail::maybe_int stack_space_needed{1};
+};
+
+// lua_ref
+
+template <>
+struct push<primer::lua_ref> {
+  static void to_stack(lua_State * L, primer::lua_ref r) {
+    r.push(L);
   }
   static constexpr detail::maybe_int stack_space_needed{1};
 };

@@ -50,7 +50,32 @@ should come as no surprise. ]
 
 As long as the lua state is alive, it will not garbage collect an object referred to by `primer::lua_ref`.
 
-This is
-achieved using the `luaL_ref` mechanism, see lua docs.
+This is achieved using the `luaL_ref` mechanism, see lua docs.
+
+[h2 Read / Push semantics]
+
+Using `primer::push` with a `primer::lua_ref` calls the thread-push member function,
+and so comes with all the caveats above.
+
+Using `primer::read` with a `primer::lua_ref` *always* succeeds in binding to a value
+at the given position, unless it is nil or out of bounds, in which case it produces
+a `lua_ref` in the empty state.
+
+This makes it effectively an "any" type for purposes of function parameters,
+and you can use "as" to easily try to interpret it as other values later. So it
+can be used sort of as a poor man's variant.
+
+Here's an example function to illustrate:
+
+[primer_example_ref_read_func]
+
+And example semantics:
+
+[primer_example_ref_read_test]
+
+Note that, it is not too difficult to implement your own `read` and `push`
+specializations for a proper variant type that appears in your program -- but
+generating a good *generic* `primer::traits::read` template for e.g. `boost::variant` seems quite difficult, and
+so we don't do it right now.
 
 [endsect]

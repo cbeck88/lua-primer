@@ -17,6 +17,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
+#include <primer/lua_ref.hpp>
 #include <primer/userdata.hpp>
 #include <primer/detail/maybe_int.hpp>
 #include <primer/detail/is_userdata.hpp>
@@ -232,6 +233,23 @@ struct read<stringy> {
                                  primer::describe_lua_value(L, idx)};
       }
     }
+    return result;
+  }
+  static constexpr detail::maybe_int stack_space_needed{1};
+};
+
+// lua_ref
+// Sort of a poor man's variant type, on read
+template <>
+struct read<lua_ref> {
+  static expected<lua_ref> from_stack(lua_State * L, int idx) {
+    expected<lua_ref> result{default_construct_in_place_tag{}};
+
+    if (!lua_isnoneornil(L, idx)) {
+      lua_pushvalue(L, idx);
+      result = lua_ref{L};
+    }
+
     return result;
   }
   static constexpr detail::maybe_int stack_space_needed{1};

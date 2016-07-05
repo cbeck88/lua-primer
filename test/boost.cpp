@@ -3,6 +3,7 @@
 #include <primer/adapt.hpp>
 #include <primer/bound_function.hpp>
 #include <primer/coroutine.hpp>
+#include <primer/lua_ref_as.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
@@ -360,6 +361,51 @@ void test_coroutine() {
   lua_pop(L, 1);
 }
 
+//[ primer_example_ref_read_func
+primer::result ref_test_func(lua_State * L, primer::lua_ref ref) {
+  if (!ref) {
+    lua_pushstring(L, "nil");
+    return 1;
+  } else if (ref.as<bool>()) {
+    lua_pushstring(L, "bool");
+    return 1;
+  } else if (ref.as<int>()) {
+    lua_pushstring(L, "int");
+    return 1;
+  } else if (ref.as<std::string>()) {
+    primer::push(L, ref);
+    return 1;
+  }
+  return primer::error("I can't handle it!");
+}
+//]
+
+void test_ref_read() {
+  lua_raii L;
+
+  luaL_requiref(L, "", luaopen_base, 1);
+  lua_pop(L, 1);
+
+//[ primer_example_ref_read_test
+  lua_CFunction f = PRIMER_ADAPT(&ref_test_func);
+  lua_pushcfunction(L, f);
+  lua_setglobal(L, "ref_test_func");
+
+  const char * script = ""
+    "assert(ref_test_func() == 'nil')           \n"
+    "assert(ref_test_func(5) == 'int')          \n"
+    "assert(ref_test_func('foo') == 'foo')      \n"
+    "assert(ref_test_func(true) == 'bool')      \n"
+    "assert(not pcall(ref_test_func, 5.5))      \n"
+    "assert(not pcall(ref_test_func, {}))       \n"
+    "assert(pcall(ref_test_func, nil))          \n";
+
+  assert(LUA_OK == luaL_loadstring(L, script));
+  assert(LUA_OK == lua_pcall(L, 0, 0, 0));
+//]
+   
+}
+
 int main() {
   conf::log_conf();
   std::cout << "Boost:\n";
@@ -375,6 +421,7 @@ int main() {
     {"bound function", &test_bound_function},
     {"bound function binding", &test_bound_function},
     {"coroutine", &test_coroutine},
+    {"ref_fcn_read", &test_ref_read},
   };
   int num_fails = tests.run();
   std::cout << "\n";
