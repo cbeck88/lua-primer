@@ -77,6 +77,15 @@ script:
   - ./run_tests.sh ${FLAGS} --with-lua-32bit
   - ./lua-5.3.1-tests.sh
 
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} release
+
+  - b2 clean
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} release --with-lua-32bit
+
+
   - export LUA_ROOT=lua-5.3.3
   - echo ${LUA_ROOT}
 

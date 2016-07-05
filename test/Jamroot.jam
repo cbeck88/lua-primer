@@ -58,14 +58,14 @@ if "--with-lua-32bit" in [ modules.peek : ARGV ] {
 }
 
 if "--no-static-asserts" in [ modules.peek : ARGV ] {
-  PRIMER_FLAGS = <define>PRIMER_DEBUG <define>PRIMER_NO_STATIC_ASSERTS ;
+  PRIMER_FLAGS = <define>PRIMER_NO_STATIC_ASSERTS ;
 } else {
-  PRIMER_FLAGS = <define>PRIMER_DEBUG ;
+  PRIMER_FLAGS = ;
 }
 
 ### Setup primer target
 
-alias primer : : : : <include>../include/ $(PRIMER_FLAGS) ;
+alias primer : : : : <include>../include/ <variant>debug:<define>PRIMER_DEBUG $(PRIMER_FLAGS) ;
 
 ### Setup test harness
 
