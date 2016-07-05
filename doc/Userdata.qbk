@@ -43,11 +43,11 @@ expected to point into an array, terminated by a `luaL_Reg` holding two null poi
 
 In primer, we respect this idiom, but we extend it as follows:
 
-* ['Null-terminated array] of `luaL_Reg` is supported
+* ['Pointer to null-terminated array] of `luaL_Reg` is supported
 * ['Any standard container] (`std::array`, `std::initializer_list`, `std::vector`) is supported, with or without null terminators. It needs to satisfy the conditions for use in a range-based for loop.
 * The value-type need not actually be `luaL_Reg` -- as long as it has public members `const char * name`
 and `lua_CFunction func` then that is sufficient.
-* Instead of a container, ['the object can actually just be a function which takes no parameters and yields the container]. This is in case you want to declare the list inline in a header with your specialization, and not deal with initialization problems.
+* Instead of a container, ['the object can actually just be a function which takes no parameters and yields the container]. This is in case you want to declare the list inline in a header with your specialization, and not deal with static initialization problems.
 
 In total we call this concept "`L_Reg_sequence`".
 
@@ -62,7 +62,7 @@ In total we call this concept "`L_Reg_sequence`".
   void push_udata(lua_State * L, Args && ... args);
 ```
 
-It is best if your constructor is `noexcept`, but this is not always possible. If it is not noexcept, then in the 
+It is best if your constructor is `noexcept`, but this is not always possible. If it is not `noexcept`, then in the 
 event of an exception thrown from the constructor, primer will pop the userdata entry from the stack, and rethrow the exception.
 
 [h4 Reading userdata]
