@@ -46,7 +46,7 @@ struct metatable {
     // A minimalistic metatable with __gc
     lua_pushstring(L, udata::name);
     lua_setfield(L, -2, "__metatable");
-    lua_pushcfunction(L, &primer::detail::common_meta<T>::impl_gc);
+    lua_pushcfunction(L, &primer::detail::common_gc_impl<T>);
     lua_setfield(L, -2, "__gc");
   }
 
@@ -109,7 +109,7 @@ struct metatable<T,
     // leak, so install a trivial guy which calls the dtor.
     // Rarely want anything besides this anyways.
     if (!saw_gc_metamethod) {
-      lua_pushcfunction(L, &primer::detail::common_meta<T>::impl_gc);
+      lua_pushcfunction(L, &primer::detail::common_gc_impl<T>);
       lua_setfield(L, -2, gc_name);
     }
 

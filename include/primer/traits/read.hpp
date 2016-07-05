@@ -176,7 +176,8 @@ struct read<T &, enable_if_t<primer::traits::is_userdata<T>::value>> {
                            "', found ", primer::describe_lua_value(L, idx)};
     }
   }
-  static constexpr detail::maybe_int stack_space_needed{0};
+  static constexpr detail::maybe_int stack_space_needed{1};
+  // have to push metatable to test
 };
 
 // Misc support types

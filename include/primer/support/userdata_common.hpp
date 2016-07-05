@@ -18,36 +18,27 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 
 #include <primer/support/diagnostics.hpp>
-
-#include <primer/traits/is_userdata.hpp>
 #include <primer/traits/userdata.hpp>
-#include <primer/detail/type_traits.hpp>
 
 namespace primer {
 
 namespace detail {
 
-template <typename T, typename ENABLE = void>
-struct common_meta;
-
 template <typename T>
-struct common_meta<T, enable_if_t<primer::traits::is_userdata<T>::value>> {
-
+int common_gc_impl(lua_State * L) {
   using udata = primer::traits::userdata<T>;
 
-  static int impl_gc(lua_State * L) {
-    void * d = luaL_testudata(L, 1, udata::name);
-    PRIMER_ASSERT(d, "garbage collection metamethod for userdata '"
-                       << udata::name << "' called on object of type '"
-                       << describe_lua_value(L, 1) << "'");
-    static_cast<T *>(d)->~T();
-    // Set metatable to nil. This prevents further access to the userdata, as
-    // can happen in some obscure corner cases
-    lua_pushnil(L);
-    lua_setmetatable(L, 1);
-    return 0;
-  }
-};
+  void * d = luaL_testudata(L, 1, udata::name);
+  PRIMER_ASSERT(d, "garbage collection metamethod for userdata '"
+                     << udata::name << "' called on object of type '"
+                     << describe_lua_value(L, 1) << "'");
+  static_cast<T *>(d)->~T();
+  // Set metatable to nil. This prevents further access to the userdata, as
+  // can happen in some obscure corner cases
+  lua_pushnil(L);
+  lua_setmetatable(L, 1);
+  return 0;
+}
 
 } // end namespace detail
 

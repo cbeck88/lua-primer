@@ -10,7 +10,9 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+#include <primer/metatable.hpp>
 
+#include <primer/traits/is_userdata.hpp>
 #include <primer/traits/userdata.hpp>
 #include <primer/detail/type_traits.hpp>
 
@@ -35,26 +37,12 @@ template <typename T>
 struct udata_helper<T, enable_if_t<primer::traits::is_userdata<T>::value>> {
   using udata = primer::traits::userdata<T>;
 
-  // Push metatable onto the stack. If it doesn't exist, then creates it.
-  // In both cases, get it on the stack.
-  static void get_or_create_metatable(lua_State * L) {
-    if (luaL_newmetatable(L, udata::name)) {
-      primer::detail::metatable<T>::populate(L);
-    }
-  }
-
-  static void init_metatable(lua_State * L) {
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
-    get_or_create_metatable(L);
-    lua_pop(L, 1);
-  }
-
   // Based on impl of luaL_testudata
   static T * test_udata(lua_State * L, int idx) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     if (void * p = lua_touserdata(L, idx)) { /* value is a userdata? */
       if (lua_getmetatable(L, idx)) {        /* does it have a metatable? */
-        get_or_create_metatable(L);          /* get correct metatable */
+        primer::push_metatable<T>(L);        /* get correct metatable */
         if (!lua_rawequal(L, -1, -2)) {      /* not the same? */
           p = nullptr; /* value is a userdata with wrong metatable */
         }
@@ -69,7 +57,7 @@ struct udata_helper<T, enable_if_t<primer::traits::is_userdata<T>::value>> {
   // Sets the top of the stack entry to this metatable
   static void set_metatable(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
-    get_or_create_metatable(L);
+    primer::push_metatable<T>(L);
     lua_setmetatable(L, -2);
   }
 };

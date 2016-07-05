@@ -15,6 +15,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+#include <primer/metatable.hpp>
 #include <primer/support/permanents_helper.hpp>
 #include <primer/support/userdata.hpp>
 
@@ -26,7 +27,7 @@ struct userdatas {
   static constexpr bool is_serial = false;
 
   void on_init(lua_State * L) {
-    int dummy[] = {(detail::udata_helper<Ts>::init_metatable(L), 0)..., 0};
+    int dummy[] = {(primer::init_metatable<Ts>(L), 0)..., 0};
     static_cast<void>(dummy);
   }
 
