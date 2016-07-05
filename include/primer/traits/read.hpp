@@ -237,6 +237,5 @@ struct read<stringy> {
   static constexpr detail::maybe_int stack_space_needed{1};
 };
 
-
 } // end namespace traits
 } // end namespace primer

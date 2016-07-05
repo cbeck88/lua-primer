@@ -269,6 +269,35 @@ void test_bound_function() {
   }
 }
 
+void test_bound_function_binding() {
+  lua_raii L;
+
+  lua_CFunction f1 = PRIMER_ADAPT(&test_func);
+
+  lua_pushcfunction(L, f1);
+  primer::bound_function func(L);
+  CHECK_STACK(L, 0);
+  TEST(func, "expected to bind");
+
+  lua_pushinteger(L, 5);
+  func = primer::bound_function{L};
+  CHECK_STACK(L, 0);
+  TEST(!func, "expected a dead state");
+
+  func = primer::bound_function{L};
+  CHECK_STACK(L, 0);
+  TEST(!func, "expected a dead state");
+
+  lua_pushcfunction(L, f1);
+  func = primer::bound_function{L};
+  CHECK_STACK(L, 0);
+  TEST(func, "expected a good state");
+
+  func = primer::bound_function{nullptr};
+  CHECK_STACK(L, 0);
+  TEST(!func, "expected a dead state");
+}
+
 int yield_helper(lua_State * L) { return lua_yield(L, 1); }
 
 void test_coroutine() {
@@ -344,6 +373,7 @@ int main() {
     {"optional example", &test_optional_example},
     {"vector", &test_vector_round_trip},
     {"bound function", &test_bound_function},
+    {"bound function binding", &test_bound_function},
     {"coroutine", &test_coroutine},
   };
   int num_fails = tests.run();
