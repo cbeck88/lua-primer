@@ -403,7 +403,7 @@ void test_ref_read() {
   assert(LUA_OK == luaL_loadstring(L, script));
   assert(LUA_OK == lua_pcall(L, 0, 0, 0));
 //]
-   
+  static_cast<void>(script);
 }
 
 int main() {
