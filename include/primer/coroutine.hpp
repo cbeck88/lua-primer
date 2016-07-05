@@ -98,7 +98,7 @@ public:
        (But not errors.)>>*/
   template <typename... Args>
   expected<void> call_no_ret(Args &&... args) noexcept {
-    expected<void> result;
+    expected<void> result{primer::error{"Can't lock VM"}};
 
     if (thread_stack_ && ref_) {
       PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
@@ -110,8 +110,6 @@ public:
         primer::resume_no_ret(thread_stack_, sizeof...(args));
 
       if (error_code != LUA_YIELD) { this->reset(); }
-    } else {
-      result = primer::error("Could not lock lua state");
     }
 
     return result;
@@ -120,7 +118,7 @@ public:
   /*<< Calls or resumes the coroutine, returns one value, or an error >>*/
   template <typename... Args>
   expected<lua_ref> call_one_ret(Args &&... args) noexcept {
-    expected<lua_ref> result;
+    expected<lua_ref> result{primer::error{"Can't lock VM"}};
 
     if (thread_stack_ && ref_) {
       PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
@@ -132,8 +130,6 @@ public:
         primer::resume_one_ret(thread_stack_, sizeof...(args));
 
       if (error_code != LUA_YIELD) { this->reset(); }
-    } else {
-      result = primer::error("Could not lock lua state");
     }
 
     return result;

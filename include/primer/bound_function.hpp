@@ -64,26 +64,30 @@ public:
   /*<< Calls the function, discards any return values. (But not errors.) >>*/
   template <typename... Args>
   expected<void> call_no_ret(Args &&... args) const noexcept {
+    expected<void> result{primer::error{"Can't lock VM"}};
+
     if (lua_State * L = ref_.push()) {
       PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
       primer::push_each(L, std::forward<Args>(args)...);
-      return primer::fcn_call_no_ret(L, sizeof...(args));
-    } else {
-      return primer::error("Could not lock lua state");
+      result = primer::fcn_call_no_ret(L, sizeof...(args));
     }
+
+    return result;
   }
 
   /*<< Calls the function, returns a ref to the ['first] return value.
     (Or an error.) Discards any others. >>*/
   template <typename... Args>
   expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
+    expected<lua_ref> result{primer::error{"Can't lock VM"}};
+
     if (lua_State * L = ref_.push()) {
       PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
       primer::push_each(L, std::forward<Args>(args)...);
-      return primer::fcn_call_one_ret(L, sizeof...(args));
-    } else {
-      return primer::error("Could not lock lua state");
+      result = primer::fcn_call_one_ret(L, sizeof...(args));
     }
+
+    return result;
   }
 };
 //]

@@ -113,9 +113,9 @@ public:
 
   // Push to main stack
   /*<< Attempts to push the object to the top of the primary stack of the state
-       used to create this lua_ref.
-       Returns a (valid) `lua_State *` if successfully locked.
-       Returns nullptr if that VM is closed, or if we are in the empty state.
+used to create this lua_ref.
+Returns a (valid) `lua_State *` if successfully locked.
+Returns `nullptr` if that VM is closed, or if we are in the empty state.
       >>*/
   lua_State * push() const noexcept {
     if (lua_State * L = this->check_engaged()) {
@@ -127,17 +127,17 @@ public:
 
   // Push to a thread stack
   /*<< Attempts to push the object onto the top of a given ['thread stack].
-       It *must* be a thread in the same VM as the original stack, or the same
-       as the original stack.
+It *must* be a thread in the same VM as the original stack, or the same
+as the original stack.
 
-       Returns true if push was successful, returns false and pushes nil to
-       the given stack if the original VM is gone.
+Returns true if push was successful, returns false and pushes nil to
+the given stack if the original VM is gone.
 
-       N.B. If you try to push onto a stack from another lua VM, undefined and
-       unspecified behavior will result. If PRIMER_DEBUG is defined, then
-       primer will check for this and call std::abort if it finds that you
-       broke this rule. If PRIMER_DEBUG is not defined... very bad things are
-       likely to happen, including stack corruption of lua VMs. >>*/
+N.B. If you try to push onto a stack from another lua VM, undefined and
+unspecified behavior will result. If `PRIMER_DEBUG` is defined, then
+primer will check for this and call std::abort if it finds that you
+broke this rule. If `PRIMER_DEBUG` is not defined... very bad things are
+likely to happen, including stack corruption of lua VMs. >>*/
   bool push(lua_State * T) const noexcept {
     if (lua_State * L = this->check_engaged()) {
 #ifdef PRIMER_DEBUG
@@ -159,7 +159,7 @@ public:
   void reset() noexcept { this->release(); }
 
 
-  // operator bool
+  // test validity
   /*<< Test if we are not in the empty state and can still be locked. >>*/
   explicit operator bool() const noexcept {
     return static_cast<bool>(this->check_engaged());
@@ -169,13 +169,13 @@ public:
   /*<< Attempt to cast the lua value to a C++ value, using primer::read >>*/
   template <typename T>
   expected<T> as() const noexcept {
+    expected<T> result{primer::error{"Can't lock VM"}};
+    // ^ hoping for small string optimization here
     if (lua_State * L = this->push()) {
-      expected<T> result{primer::read<T>(L, -1)};
+      result = primer::read<T>(L, -1);
       lua_pop(L, 1);
-      return result;
-    } else {
-      return primer::error("Could not lock lua state");
     }
+    return result;
   }
 };
 //]

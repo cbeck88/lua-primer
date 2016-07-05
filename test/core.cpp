@@ -710,6 +710,7 @@ void primer_ref_examples() {
   lua_close(L);
 
   assert(!ref);
+  assert(!ref.as<std::string>());
   //]
 }
 
