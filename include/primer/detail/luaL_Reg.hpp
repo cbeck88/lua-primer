@@ -95,8 +95,8 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   }
 
   using span_t = span<remove_pointer_t<decay_t<T>>>;
-  static constexpr span_t adapt(T t) {
-    return span_t{decay_t<T>{t}, end_finder(t)};
+  static constexpr span_t adapt(decay_t<T> t) {
+    return span_t{t, end_finder(t)};
   }
 };
 
