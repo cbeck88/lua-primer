@@ -814,11 +814,13 @@ void primer_resume_test() {
     TEST_EQ(code, LUA_OK);
     TEST(result, "expected success");
     CHECK_STACK(T, 0);
+    CHECK_STACK(L, 1);
     TEST(result->push(), "expected to be able to push");
-    CHECK_STACK(T, 1);
-    test_top_type(T, LUA_TNUMBER, __LINE__);
-    TEST_EQ(lua_tonumber(T, 1), 4);
-    lua_pop(T, 1);
+    CHECK_STACK(T, 0);
+    CHECK_STACK(L, 2);
+    test_top_type(L, LUA_TNUMBER, __LINE__);
+    TEST_EQ(lua_tonumber(L, 2), 4);
+    lua_pop(L, 1);
   }
 
   {
@@ -836,7 +838,7 @@ void primer_resume_test() {
     TEST_EQ(code, LUA_YIELD);
     TEST(result, "expected success");
     CHECK_STACK(T, 0);
-    TEST(result->push(), "expected to be able to push");
+    TEST(result->push(T), "expected to be able to push");
     CHECK_STACK(T, 1);
     test_top_type(T, LUA_TNUMBER, __LINE__);
     TEST_EQ(lua_tonumber(T, 1), 6);

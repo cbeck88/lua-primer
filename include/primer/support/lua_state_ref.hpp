@@ -83,8 +83,7 @@ public:
   // This works by installing a strong ref at a special registry key.
   // If the strong ref is not found, it is lazily created.
   // The strong ref is destroyed in its __gc metamethod, or, it can be
-  // explicitly
-  // destroyed by calling "close_weak_refs".
+  // explicitly destroyed by calling "close_weak_refs".
   static lua_state_ref obtain_weak_ref_to_state(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     weak_ptr_type result{get_strong_ptr(L)};
@@ -93,17 +92,17 @@ public:
   }
 
   // Close the strong ref which is found in the registry.
-  // Post condition: Any weak refs to this lua state wlil return nullptr when
+  // Post condition: Any weak refs to this lua state will return nullptr when
   // locked.
   // Any attempts to obtain_weak_ref from this lua_State will result in a dead
   // weak_ref.
   // Even if no strong ref currently exists, a dead one will be created to
   // prevent future obtain_weak_ref calls from installing one.
   //
-  // N.B. You do not need to call this explicitly, unless you are paranoid about
+  // [note You do not need to call this explicitly, unless you are paranoid about
   // bad things happening *during* the lua garbage collection process. Closing
   // the state closes all objects which are marked with finalizers, so the weak
-  // refs will be closed by that, during the course of lua_close execution.
+  // refs will be closed by that, during the course of lua_close execution.]
   static void close_weak_refs_to_state(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     get_strong_ptr(L).reset();
@@ -114,7 +113,17 @@ private:
   // Create a strong pointer in a userdata. This object will be cached,
   // and needs to be destroyed when the lua state is destroyed.
   static void make_strong_ptr(lua_State * L) {
-    new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{L};
+    {
+      // Get the *main* thread, in case this is being called from a short-lived
+      // thread. We want the strong_ptr to be pointing to something that lives
+      // as long as the lua state.
+      lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_MAINTHREAD);
+      lua_State * M = lua_tothread(L, -1);
+      PRIMER_ASSERT(M, "The main thread was not a thread (!)");
+      lua_pop(L, 1);
+
+      new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{M};
+    }
 
     lua_newtable(L); // Create the metatable
     lua_pushcfunction(L, &strong_ptr_gc);

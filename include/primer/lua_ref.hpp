@@ -76,7 +76,7 @@ class lua_ref {
     this->set_empty();
   }
 
-  // Pilfer the resources of another lua_ref.
+  // Pilfer the resources of another `lua_ref`.
   void move(lua_ref & other) noexcept {
     sref_ = std::move(other.sref_);
     iref_ = other.iref_;
@@ -113,7 +113,7 @@ public:
 
   // Push to main stack
   /*<< Attempts to push the object to the top of the primary stack of the state
-used to create this lua_ref.
+used to create this `lua_ref`.
 
 Returns a (valid) `lua_State *` if successfully locked.
 
