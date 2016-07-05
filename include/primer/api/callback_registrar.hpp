@@ -104,16 +104,17 @@ public:
  * The function pointer is wrapped using PRIMER_ADAPT_EXTRASPACE
  */
 
-#define USE_LUA_CALLBACK(name, help, fcn)                                         \
-  static constexpr const char * lua_callback_name_##name() { return #name; }      \
-  static constexpr const char * lua_callback_help_##name() { return help; }       \
-  static constexpr lua_CFunction lua_get_member_ptr_##name() {                    \
-    return PRIMER_ADAPT_EXTRASPACE(owner_type, fcn);                              \
-  }                                                                               \
-  static inline primer::detail::Append_t<GET_CALLBACKS, primer::luaW_RegType<     \
-    &owner_type::lua_callback_name_##name, &owner_type::lua_callback_help_##name, \
-    &owner_type::lua_get_member_ptr_##name>>                                      \
-    GetCallbacks(primer::detail::Rank<GET_CALLBACKS::size + 1>);                  \
+#define USE_LUA_CALLBACK(name, help, fcn)                                      \
+  static constexpr const char * lua_callback_name_##name() { return #name; }   \
+  static constexpr const char * lua_callback_help_##name() { return help; }    \
+  static constexpr lua_CFunction lua_get_fcn_ptr_##name() {                    \
+    return PRIMER_ADAPT_EXTRASPACE(owner_type, fcn);                           \
+  }                                                                            \
+  static inline primer::detail::Append_t<                                      \
+    GET_CALLBACKS, primer::luaW_RegType<&owner_type::lua_callback_name_##name, \
+                                        &owner_type::lua_callback_help_##name, \
+                                        &owner_type::lua_get_fcn_ptr_##name>>  \
+    GetCallbacks(primer::detail::Rank<GET_CALLBACKS::size + 1>);               \
   static_assert(true, "")
 
 
@@ -128,4 +129,3 @@ public:
 #define NEW_LUA_CALLBACK(name, help)                                           \
   USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                      \
   auto intf_##name
-

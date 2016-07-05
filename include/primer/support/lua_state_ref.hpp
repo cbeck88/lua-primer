@@ -100,7 +100,8 @@ public:
   // Even if no strong ref currently exists, a dead one will be created to
   // prevent future obtain_weak_ref calls from installing one.
   //
-  // [note You do not need to call this explicitly, unless you are paranoid about
+  // [note You do not need to call this explicitly, unless you are paranoid
+  // about
   // bad things happening *during* the lua garbage collection process. Closing
   // the state closes all objects which are marked with finalizers, so the weak
   // refs will be closed by that, during the course of lua_close execution.]
