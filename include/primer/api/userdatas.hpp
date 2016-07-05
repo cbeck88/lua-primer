@@ -22,7 +22,7 @@ namespace primer {
 namespace api {
 
 template <typename... Ts>
-struct userdata_registrar {
+struct userdatas {
   static constexpr bool is_serial = false;
 
   void on_init(lua_State * L) {

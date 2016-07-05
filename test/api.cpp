@@ -1,7 +1,7 @@
-#include <primer/api/callback_manager.hpp>
 #include <primer/api/base.hpp>
-#include <primer/api/library.hpp>
-#include <primer/api/userdata_registrar.hpp>
+#include <primer/api/callbacks.hpp>
+#include <primer/api/libraries.hpp>
+#include <primer/api/userdatas.hpp>
 #include <primer/detail/make_array.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/userdata_dispatch.hpp>
@@ -118,7 +118,7 @@ struct test_api_two : primer::api::base<test_api_two> {
   lua_raii L_;
 
   API_FEATURE(primer::api::libraries<primer::api::lua_base_lib>, libs_);
-  API_FEATURE(primer::api::callback_manager, cb_man_);
+  API_FEATURE(primer::api::callbacks, cb_man_);
 
   NEW_LUA_CALLBACK(f, "this is the f help")(lua_State * L, int i, int j) -> primer::result {
     if (i < j) {
@@ -350,8 +350,8 @@ struct test_api_three : primer::api::base<test_api_three> {
   lua_raii L_;
 
   API_FEATURE(primer::api::libraries<primer::api::lua_base_lib>, libs_);
-  API_FEATURE(primer::api::callback_manager, cb_man_);
-  API_FEATURE(primer::api::userdata_registrar<tstring>, udata_man_);
+  API_FEATURE(primer::api::callbacks, cb_man_);
+  API_FEATURE(primer::api::userdatas<tstring>, udata_man_);
 
   USE_LUA_CALLBACK(_, "creates a translatable string", &tstring::intf_create);
 

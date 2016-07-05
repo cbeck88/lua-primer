@@ -6,7 +6,7 @@
 
 #include <primer/support/function.hpp>
 
-#include <primer/api/callback_manager.hpp>
+#include <primer/api/callbacks.hpp>
 #include <primer/api/callback_registrar.hpp>
 
 #include "test_harness.hpp"
@@ -304,7 +304,7 @@ void visitable_function_params_test() {
 struct test_api : public primer::callback_registrar<test_api> {
   lua_raii L_;
   int internal_state_;
-  primer::api::callback_manager cb_man_;
+  primer::api::callbacks cb_man_;
 
   test_api()
     : L_()

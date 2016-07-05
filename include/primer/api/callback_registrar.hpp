@@ -11,7 +11,8 @@
  *
  * callback_registrar is only concerned with producing a compile-time list of
  * the callbacks.
- * The actual LUA_FUNCTIONALITY is provided by class callback_manager.
+ *
+ * The actual API_FEATURE is called `callbacks`.
  */
 
 #include <primer/api/extraspace_dispatch.hpp>

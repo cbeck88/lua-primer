@@ -39,24 +39,24 @@ namespace primer {
 
 namespace api {
 
-class callback_manager {
+class callbacks {
 
   detail::span<const luaW_Reg> list_;
   void * owner_ptr_;
 
 public:
   template <typename T>
-  constexpr explicit callback_manager(const detail::span<const luaW_Reg> & _l,
+  constexpr explicit callbacks(const detail::span<const luaW_Reg> & _l,
                                       T * _owner_ptr)
     : list_(_l)
     , owner_ptr_(static_cast<void *>(_owner_ptr))
   {}
 
-  // This is the ctor you should usually use, when using callback_manger
+  // This is the ctor you should usually use, when using this
   // with an api_base object
   template <typename T>
-  constexpr explicit callback_manager(T * _owner_ptr)
-    : callback_manager(T::callbacks_array(), _owner_ptr)
+  constexpr explicit callbacks(T * _owner_ptr)
+    : callbacks(T::callbacks_array(), _owner_ptr)
   {}
 
   static constexpr bool is_serial = false;

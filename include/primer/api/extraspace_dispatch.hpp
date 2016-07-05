@@ -46,7 +46,7 @@ namespace api {
  * The whole premise of this dispatch mechanism is that the pointer is assigned
  * when the callback functions are registered, so that "free functions" in lua
  * can actually be implemented as methods of some infrastructure object in C++.
- * See "callback_manager" for the safe interface to this.
+ * See "api/callbacks" for the safe interface to this.
  */
 template <typename T>
 void set_extraspace_ptr(lua_State * L, T * t) {
