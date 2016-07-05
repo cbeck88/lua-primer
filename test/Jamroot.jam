@@ -57,12 +57,19 @@ if "--with-lua-32bit" in [ modules.peek : ARGV ] {
   LUA_DEFINE = ;
 }
 
-NO_STATIC_ASSERTS = ;
 if "--no-static-asserts" in [ modules.peek : ARGV ] {
-  PRIMER = <include>../include/ <define>PRIMER_DEBUG <define>PRIMER_NO_STATIC_ASSERTS ;
+  PRIMER_FLAGS = <include>../include/ <define>PRIMER_DEBUG <define>PRIMER_NO_STATIC_ASSERTS ;
 } else {
-  PRIMER = <include>../include/ <define>PRIMER_DEBUG ;
+  PRIMER_FLAGS = <include>../include/ <define>PRIMER_DEBUG ;
 }
+
+### Setup primer target
+
+alias primer : : : : $(PRIMER_FLAGS) ;
+
+### Setup test harness
+
+alias test_harness : : : : <include>include/ ;
 
 ### Build lua
 
@@ -75,26 +82,20 @@ install install-lua-bin : lua : <location>stage/ ;
 
 ### Build primer
 
-TEST_HARNESS = <include>include/ ;
-
-FLAGS = $(TEST_HARNESS) $(PRIMER) ;
-
-echo "flags = " $(FLAGS) ;
-
-exe core : core.cpp lualib : $(FLAGS) ;
-exe visitable : visitable.cpp lualib : $(FLAGS) ;
-exe std : std.cpp lualib : $(FLAGS) ;
+exe core : core.cpp lualib primer test_harness : ;
+exe visitable : visitable.cpp lualib primer test_harness : ;
+exe std : std.cpp lualib primer test_harness : ;
 
 install install-bin : core visitable std : $(INSTALL_LOC) ;
 
 # Examples
 
-exe example-expected : examples/expected.cpp lualib : $(FLAGS) ;
+exe example-expected : examples/expected.cpp lualib primer test_harness : ;
 install install-examples : example-expected : $(INSTALL_LOC) ;
 
 # Persistence tests...
 if $(HAVE_ERIS) {
-  exe api : api.cpp lualib : $(FLAGS) ;
+  exe api : api.cpp lualib primer test_harness : ;
 
   install install-api-bin : api : $(INSTALL_LOC) ;
 
@@ -113,10 +114,9 @@ if $(HAVE_ERIS) {
 
 if $(BOOST_INCLUDE_DIR) {
 
-  BOOST = <include>$(BOOST_INCLUDE_DIR) ;
-  FLAGS = $(TEST_HARNESS) $(BOOST) $(PRIMER) ;
+  alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
-  exe boost : boost.cpp lualib : $(FLAGS) ;
+  exe boost : boost.cpp lualib primer test_harness boost_headers : ;
 
   install install-boost-bin : boost : $(INSTALL_LOC) ;
 }
