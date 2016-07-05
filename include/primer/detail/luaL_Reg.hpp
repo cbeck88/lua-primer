@@ -6,7 +6,10 @@
 #pragma once
 
 /***
- * Tests to see if a value matches the "list of luaL_Reg" concept.
+ * Tests to see if a type matches the "list of luaL_Reg" concept.
+ *
+ * Also, traits so that everything under the sun that could plausibly be
+ * interpretted as such is acceptable.
  */
 
 #include <primer/base.hpp>
@@ -41,16 +44,18 @@ template <typename T, typename ENABLE = void>
 struct is_L_Reg_class : std::false_type {};
 
 template <typename T>
-struct is_L_Reg_class<T, enable_if_t<has_L_Reg_name<T>::value && has_L_Reg_func<T>::value>>
+struct is_L_Reg_class<
+  T,
+  enable_if_t<has_L_Reg_name<T>::value && has_L_Reg_func<T>::value>>
   : std::true_type {};
 
-// Protect this first guy from non-class types, which seem to cause SFINAE failure
+// Protect this first guy from non-class types, which seem to cause SFINAE
+// failure
 template <typename T, typename ENABLE = void>
 struct is_L_Reg : std::false_type {};
 
 template <typename T>
-struct is_L_Reg<T, enable_if_t<std::is_class<T>::value>> : 
-  is_L_Reg_class<T> {};
+struct is_L_Reg<T, enable_if_t<std::is_class<T>::value>> : is_L_Reg_class<T> {};
 
 // Assert that is a type satisfies L_Reg concept
 template <typename T>
@@ -115,19 +120,20 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   }
 };
 
-// If it merely a function that *yields* an L_Reg_sequence... fair enough
+// If it is merely a function that *yields* an L_Reg_sequence... fair enough
 template <typename T>
-struct is_L_Reg_sequence<T(*)(), enable_if_t<is_L_Reg_sequence<T>::value>> {
+struct is_L_Reg_sequence<T (*)(), enable_if_t<is_L_Reg_sequence<T>::value>> {
   static constexpr bool value = true;
 
-  static constexpr auto adapt(T(*func)()) -> decltype(is_L_Reg_sequence<T>::adapt(func())) {
+  static constexpr auto adapt(T (*func)())
+    -> decltype(is_L_Reg_sequence<T>::adapt(func())) {
     return is_L_Reg_sequence<T>::adapt(func());
   }
 };
 
 // Decay functions to function pointer
 template <typename T>
-struct is_L_Reg_sequence<T()> : is_L_Reg_sequence<T(*)()> {};
+struct is_L_Reg_sequence<T()> : is_L_Reg_sequence<T (*)()> {};
 
 } // end namespace detail
 } // end namespace primer
