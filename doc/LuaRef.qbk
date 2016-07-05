@@ -5,6 +5,9 @@ A `primer::lua_ref` is a reference to a lua value which exists in a lua VM.
 It is a "weak pointer", in the sense that, obtaining the value from the reference may fail,
 if for instance, the VM has already been destroyed.
 
+Despite it's name, `lua_ref` does not have the semantics of a C++ reference. It has
+an empty state, and can be assigned and reassigned to point to different objects.
+
 [h2 Usage]
 
 To bind a `lua_ref` to a lua value,
@@ -18,7 +21,7 @@ If the stack is empty, then the `lua_ref` is placed in the empty state.
 It can be default constructed in the empty state as well.
 
 If the lua VM is destroyed (closed), the `lua_ref` reverts to the empty
-state the next time it tries to be accessed.
+state the next time an attempt is made to access it.
 
 While the VM is not closed, the referred object will not be garbage
 collected by lua.
