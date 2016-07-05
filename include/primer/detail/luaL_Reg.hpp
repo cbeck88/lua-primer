@@ -38,11 +38,19 @@ struct has_L_Reg_func
 
 // Test if a type satisfies L_Reg concept
 template <typename T, typename ENABLE = void>
+struct is_L_Reg_class : std::false_type {};
+
+template <typename T>
+struct is_L_Reg_class<T, enable_if_t<has_L_Reg_name<T>::value && has_L_Reg_func<T>::value>>
+  : std::true_type {};
+
+// Protect this first guy from non-class types, which seem to cause SFINAE failure
+template <typename T, typename ENABLE = void>
 struct is_L_Reg : std::false_type {};
 
 template <typename T>
-struct is_L_Reg<T, enable_if_t<has_L_Reg_name<T>::value && has_L_Reg_func<T>::value>>
-  : std::true_type {};
+struct is_L_Reg<T, enable_if_t<std::is_class<T>::value>> : 
+  is_L_Reg_class<T> {};
 
 // Assert that is a type satisfies L_Reg concept
 template <typename T>
@@ -84,7 +92,7 @@ struct is_L_Reg_sequence<
   static constexpr T adapt(T t) { return t; }
 };
 
-// If it an L_Reg pointer or a raw array of L_Reg, then convert it to a span
+// If it is an L_Reg pointer or a raw array of L_Reg, then convert it to a span
 template <typename T>
 struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   static constexpr bool value = true;
@@ -97,6 +105,7 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   static constexpr span_t adapt(decay_t<T> t) {
     return span_t{t, end_finder(t)};
   }
+
 
   // A little forgiveness: If they pass a reference to a C-style array, check
   // if they have a null-terminator or not and do the right thing
@@ -113,6 +122,20 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
     return span_t{arr, end_finder(arr, arr, N)};
   }
 };
+
+// If it merely a function that *yields* an L_Reg_sequence... fair enough
+template <typename T>
+struct is_L_Reg_sequence<T(*)(), enable_if_t<is_L_Reg_sequence<T>::value>> {
+  static constexpr bool value = true;
+
+  static constexpr auto adapt(T(*func)()) -> decltype(is_L_Reg_sequence<T>::adapt(func())) {
+    return is_L_Reg_sequence<T>::adapt(func());
+  }
+};
+
+// Decay functions to function pointer
+template <typename T>
+struct is_L_Reg_sequence<T()> : is_L_Reg_sequence<T(*)()> {};
 
 } // end namespace detail
 } // end namespace primer

@@ -28,4 +28,12 @@ using decay_t = typename std::decay<T>::type;
 template <bool b, typename V = void>
 using enable_if_t = typename std::enable_if<b, V>::type;
 
+template <typename... Ts>
+struct voider {
+  typedef void type;
+};
+
+template <typename... Ts>
+using void_t = typename voider<Ts...>::type;
+
 } // end namespace primer

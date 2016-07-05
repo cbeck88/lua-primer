@@ -303,25 +303,32 @@ struct tstring {
   }
 };
 
+static_assert(primer::detail::is_L_Reg_sequence<const luaL_Reg *>::value, "");
+static_assert(primer::detail::is_L_Reg_sequence<const luaL_Reg *(*)()>::value, "");
+
+static_assert(primer::detail::is_L_Reg_sequence<std::vector<::luaL_Reg>>::value, "");
+static_assert(primer::detail::is_L_Reg_sequence<std::vector<::luaL_Reg> &>::value, "");
+static_assert(primer::detail::is_L_Reg_sequence<const std::vector<::luaL_Reg> &>::value, "");
+
 namespace primer {
 namespace traits {
 
 template <>
 struct userdata<tstring> {
   static constexpr const char * const name = "tstring";
-  static const luaL_Reg * const metatable;
-  static const luaL_Reg * const permanents;
+  static const std::vector<luaL_Reg> & metatable () {
+    static const std::vector<luaL_Reg> metatable_array{{"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
+       {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
+       {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}};
+    return metatable_array;
+  }
+  static const luaL_Reg * permanents() {
+    static constexpr auto permanents_array = std::array<luaL_Reg, 2>{{
+      {"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}, {nullptr, nullptr}
+    }};
+    return permanents_array.data();
+  }
 };
-
-constexpr auto metatable_array = std::array<luaL_Reg, 3>{
-  {{"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
-   {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
-   {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}}};
-constexpr auto permanents_array = std::array<luaL_Reg, 1>{
-  {luaL_Reg{"tstring_reconstruct", PRIMER_ADAPT(&tstring::intf_reconstruct)}}};
-
-const luaL_Reg * const userdata<tstring>::metatable = metatable_array.data();
-const luaL_Reg * const userdata<tstring>::permanents = permanents_array.data();
 
 } // end namespace traits
 } // end namespace primer
