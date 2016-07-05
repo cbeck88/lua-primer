@@ -20,8 +20,8 @@ In a pure-lua (no eris) application, not all of these are necessary. The permane
 objects table could be skipped. Even the metatable functions could be skipped --
 you could recover the metatable yourself using `luaL_getmetatable` and the key,
 and adjust it as you like. If there is no userdata name, though, then primer is
-not able to ['read] this userdata type using `primer::read`, so there is little
-that we can do with it.
+not able to ['read] this userdata type using `primer::read`, so there would be little
+that we could do with it.
 
 [h4 Representing lists of functions]
 
