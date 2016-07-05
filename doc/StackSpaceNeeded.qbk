@@ -3,8 +3,11 @@
 One aspect of lua that you may miss on your first pass through the manual is the
 note about stack overflow.
 
-lua's stack has only a limited size -- by default, only about 200 elements. With
-eris, it is somewhat smaller for various reasons.
+lua's stack has only a limited size. In current versions of lua it is quite high,
+e.g. more than ten thousand elements, but in past versions it may have only been 
+a few hundred elements. With eris, it is somewhat smaller than in a default
+configuration for various reasons. The stack space may also depend on the integer
+sizes that lua is configured to use.
 
 lua does not perform any bounds checking. When you push a string or an integer,
 etc., if there is not enough space in the stack left, you get undefined
@@ -48,9 +51,16 @@ Primer also uses these estimates interally. For instance, the `adapt` mechanism
 will compute at compile-time a conservative estimate of how much space it needs to read the
 arguments off of the stack, and call `lua_checkstack` before it begins.
 
+It also does this when calling a bound-function or coroutine.
+
+It does not do any checks when you are just calling `primer::push` or `primer::read`.
+
 This adds some debuggability to your project - if your lua state is running out of slots or runs out of slots,
 if one of the adapted functions is called it is likely to generate an error rather
 than fail silently.
+
+If you don't define a `stack_space_needed` value then primer can't form an estimate
+and will just skip the stack space checks.
 
 [h4 Providing stack space estimates]
 

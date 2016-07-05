@@ -58,6 +58,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/bound_function.hpp>
 #include <primer/lua_ref.hpp>
 #include <primer/support/function.hpp>
+#include <primer/support/function_check_stack.hpp>
 
 namespace primer {
 
@@ -100,10 +101,7 @@ public:
     expected<void> result;
 
     if (thread_stack_ && ref_) {
-      constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
-      if (estimate && !lua_checkstack(thread_stack_, *estimate)) {
-        return primer::error("Insufficient stack space: needed ", *estimate);
-      }
+      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
 
       int error_code;
 
@@ -125,11 +123,7 @@ public:
     expected<lua_ref> result;
 
     if (thread_stack_ && ref_) {
-      constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
-      if (estimate && !lua_checkstack(thread_stack_, *estimate)) {
-        return primer::error("Insufficient stack space: needed ", *estimate);
-      }
-
+      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
 
       int error_code;
 
