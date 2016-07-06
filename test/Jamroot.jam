@@ -90,7 +90,7 @@ install install-bin : core visitable std : $(INSTALL_LOC) ;
 
 # Examples
 
-exe example-expected : examples/expected.cpp lualib primer test_harness : ;
+exe example-expected : examples/expected.cpp lualib primer : <define>PRIMER_NO_EXCEPTIONS <cxxflags>"-fno-exceptions" ;
 install install-examples : example-expected : $(INSTALL_LOC) ;
 
 # Persistence tests...

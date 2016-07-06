@@ -66,6 +66,14 @@ static constexpr bool primer_no_asserts =
 #endif
   ;
 
+static constexpr bool primer_no_exceptions =
+#ifdef PRIMER_NO_EXCEPTIONS
+  true
+#else
+  false
+#endif
+  ;
+
 static void log_conf() {
   std::cout << LUA_RELEASE << std::endl;
   std::cout << "  LUA_32BITS               = " << lua_32bits << "\n";
@@ -77,6 +85,7 @@ static void log_conf() {
   std::cout << "  PRIMER_DEBUG             = " << primer_debug << "\n";
   std::cout << "  PRIMER_LUA_AS_CPP        = " << primer_lua_as_cpp << "\n";
   std::cout << "  PRIMER_NO_STATIC_ASSERTS = " << primer_no_asserts << "\n";
+  std::cout << "  PRIMER_NO_EXCEPTIONS     = " << primer_no_exceptions << "\n";
   std::cout << std::endl;
 }
 }

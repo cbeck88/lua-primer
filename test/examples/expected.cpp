@@ -1,4 +1,7 @@
 #include <primer/expected.hpp>
+#include <primer/lua.hpp>
+#include <primer/push.hpp>
+#include <primer/read.hpp>
 
 #include <cassert>
 #include <string>
@@ -17,7 +20,7 @@ expected<std::string> foo(expected<int> e) {
   }
 }
 
-int main() {
+void test_foo() {
   auto result = foo(6);
   assert(!result);
 
@@ -28,4 +31,29 @@ int main() {
   auto result3 = foo(primer::error("404"));
   assert(!result3);
   assert(result3.err_str() == "404");
+
+}
+
+
+void test_bar() {
+  lua_State * L = luaL_newstate();
+
+  primer::push(L, 17);
+  auto result = primer::read<primer::stringy>(L, 1);
+  assert(result);
+
+  assert("17" == result->value);
+
+  auto result2 = primer::read<int>(L, 1);
+  assert(result2);
+
+  auto result3 = foo(result2);
+  assert(result3);
+  assert("woof!" == *result3);
+
+  lua_close(L);
+}
+
+int main() {
+  test_foo();
 }
