@@ -51,16 +51,26 @@ if [ GLOB $(LUA_PATH)/ : eris.h ] {
 
 import modules ;
 
+LUA_PRIVATE_FLAGS = <link>static ;
+LUA_SHARED_FLAGS = <include>$(LUA_PATH)/ ;
+
+PRIMER_FLAGS = ;
+
 if "--with-lua-32bit" in [ modules.peek : ARGV ] {
-  LUA_DEFINE = <define>LUA_32BITS ;
-} else {
-  LUA_DEFINE = ;
+  LUA_SHARED_FLAGS += <define>LUA_32BITS ;
 }
 
 if "--no-static-asserts" in [ modules.peek : ARGV ] {
-  PRIMER_FLAGS = <define>PRIMER_NO_STATIC_ASSERTS ;
-} else {
-  PRIMER_FLAGS = ;
+  PRIMER_FLAGS += <define>PRIMER_NO_STATIC_ASSERTS ;
+}
+
+if "--with-lua-as-cpp" in [ modules.peek : ARGV ] {
+  LUA_PRIVATE_FLAGS += <cflags>"-x c++" ;
+  PRIMER_FLAGS += <define>PRIMER_LUA_AS_CPP ;
+  if $(HAVE_ERIS) {
+    # work around some warnings in eris
+    LUA_PRIVATE_FLAGS += <cflags>"-fpermissive -w" ;
+  }
 }
 
 ### Setup primer target
@@ -73,10 +83,8 @@ alias test_harness : : : : <include>include/ ;
 
 ### Build lua
 
-ALL_LUA_FLAGS = <include>$(LUA_PATH)/  $(LUA_DEFINE) ;
-
-lib lualib : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/lua.c $(LUA_PATH)/luac.c ] : <link>static $(ALL_LUA_FLAGS) : : $(ALL_LUA_FLAGS) ;
-exe lua : $(LUA_PATH)/lua.c lualib : ;
+lib lualib : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/lua.c $(LUA_PATH)/luac.c ] : $(LUA_PRIVATE_FLAGS) $(LUA_SHARED_FLAGS) : : $(LUA_SHARED_FLAGS) ;
+exe lua : $(LUA_PATH)/lua.c lualib : $(LUA_PRIVATE_FLAGS) ;
 
 install install-lua-bin : lua : <location>stage/ ;
 
@@ -96,8 +104,8 @@ if $(HAVE_ERIS) {
   install install-api-bin : api : $(INSTALL_LOC) ;
 
   # Eris internal tests
-  exe persist : $(LUA_ROOT)/test/persist.c lualib : ;
-  exe unpersist : $(LUA_ROOT)/test/unpersist.c lualib : ;
+  exe persist : $(LUA_ROOT)/test/persist.c lualib : $(LUA_PRIVATE_FLAGS) ;
+  exe unpersist : $(LUA_ROOT)/test/unpersist.c lualib : $(LUA_PRIVATE_FLAGS) ;
 
   install install-eris-test-bin : persist unpersist : $(INSTALL_LOC) ;
 
