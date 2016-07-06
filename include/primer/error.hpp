@@ -5,10 +5,27 @@
 
 #pragma once
 
-/***
- * Primer error is a simple error type used by the library. It is not an
- * exception, and it is not thrown.
+//[ primer_error
+/*` Primer error is a simple error type used by the library to represent
+    run-time error signals.
+
  */
+
+/*` It is not an exception, and it is not thrown. 
+
+*/
+
+/*` It contains a `std::string` which holds the error message.
+
+*/
+
+/*` Primer generally translates lua errors into `primer::error` when it performs an
+    operation which fails, and will translate `primer::error` into a lua error when
+    adapting callbacks.
+
+*/
+
+//<- Don't put boiler-plate in the docu
 
 #include <primer/base.hpp>
 
@@ -20,16 +37,27 @@ PRIMER_ASSERT_FILESCOPE;
 #include <string>
 #include <utility>
 
+//->
 namespace primer {
 
-//[ primer_error
-
+//` `primer::error` is used to handle all errors in primer. Since it uses
+//` `std::string` internally, it needs some extra support
+//` for propagating `std::bad_alloc` signals successfully.
 // Tag used to indicate a bad_alloc error
 struct bad_alloc_tag {};
 
+//` The main class has some helpful constructors so that you can more easily
+//` format error messages.
+//` For instance, the expression
+//= primer::error("Bad doggie, '", dog_name_str, "'! You get ", biscuit_num, " biscuits!")
+//` produces a `primer::error` object with error string equal to the result of
+//= "Bad doggie, '" + dog_name_str + "'! You get " + std::to_string(biscuit_num) + " biscuits!"
+//`
+//` Main class definition:
 class error {
   std::string msg_;
 
+  /*<< This function sets the message for the `bad_alloc` state. >>*/
   void set_bad_alloc_state() noexcept {
     PRIMER_TRY { msg_ = "bad_alloc"; }
     PRIMER_CATCH(std::bad_alloc &) {
@@ -54,25 +82,20 @@ public:
   ~error() = default;
 
   // Bad alloc constructor
+/*<< Used to initialize the object in the `std::bad_alloc` state >>*/
   explicit error(bad_alloc_tag) noexcept { this->set_bad_alloc_state(); }
 
-// Helper constructor
+// Primary constructor
 /*<< This constructor takes a sequence of strings, string literals, or numbers
     and concatenates them to form the message. >>*/
-#ifdef PRIMER_NO_EXCEPTIONS
   template <typename... Args>
-  explicit error(Args &&... args) noexcept
-    : msg_(primer::detail::str_cat(std::forward<Args>(args)...)) {}
-#else  // PRIMER_NO_EXCEPTIONS
-  template <typename... Args>
-  explicit error(Args &&... args) noexcept : error() {
+  explicit error(Args &&... args) noexcept {
     PRIMER_TRY { msg_ = primer::detail::str_cat(std::forward<Args>(args)...); }
     PRIMER_CATCH(std::bad_alloc &) { this->set_bad_alloc_state(); }
   }
-#endif // PRIMER_NO_EXCEPTIONS
 
   // Help to give context to errors
-  /*<< This method can be used to give context to errors. It takes a sequence of
+  /*<< This method takes a sequence of
       strings and concatenates them on their own line to the front of the error
       message. >>*/
   template <typename... Args>
@@ -87,6 +110,15 @@ public:
   // Accessor
   const std::string & str() const noexcept { return msg_; }
 };
+
 //]
 
+//[ primer_error_extra_notes
+
 } // end namespace primer
+
+//` The `prepend_error_line` method can be used to add context to an error message
+//` as it comes up the callstack. For instance,
+//= err.prepend_error_line("In index [", idx, "] of table:");
+
+//]
