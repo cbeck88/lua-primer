@@ -38,11 +38,12 @@
             mailing list</a>
           </li>
 <li class="listitem">
-            c.f. <a href="http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus" target="_top">lua
-            users wiki</a>
+            c.f. <a href="http://lua-users.org/lists/lua-l/2010-03/msg00408.html" target="_top">more
+            from lua mailing list</a>
           </li>
 <li class="listitem">
-            c.f. <a href="http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua" target="_top">stackoverflow</a>
+            c.f. <a href="http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus" target="_top">lua
+            users wiki</a>
           </li>
 </ul></div>
 <p>
@@ -56,11 +57,12 @@
         which is a discrminated union between a value and an error signal. It makes
         the most sense to return such objects to the user as well. Several functions
         that could be called by the user and could fail return this type. Essentially,
-        we do that where some other libraries might throw exceptions.
+        we do that where some other libraries might throw exceptions to the user.
       </p>
 <p>
         Since we cannot throw exceptions through lua, or handle the user's exceptions,
-        we sometimes have very few options here. Primer is mainly concerned with:
+        we sometimes have very few options in how to cope with them. Primer is mainly
+        concerned with:
       </p>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
@@ -91,17 +93,19 @@
 </ol></div>
 <p>
         Note that this philosophy is different from how some lua-binding libraries
-        work. For instance <code class="computeroutput"><span class="identifier">luabind</span></code>
-        attempts to <span class="emphasis"><em>make</em></span> lua exception safe in a limited sense
+        work. For instance, <code class="computeroutput"><span class="identifier">luabind</span></code>
+        attempts to <span class="emphasis"><em>make lua exception-safe</em></span> in a limited sense
         -- they put a wrapper over all functions that you pass to lua through their
         interface, which catches <span class="emphasis"><em>all</em></span> exceptions derived from
-        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception</span></code>, and raises a lua error, passing
-        the <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">what</span><span class="special">()</span></code>
-        string to lua as error message. Another strategy that I've seen is to stash
-        the exception object away in some static storage, pass on the signal to lua
-        as a lua error, and rethrow the exception on the other side, once the error
-        presumably propagates out to a <code class="computeroutput"><span class="identifier">pcall</span></code>
-        somewhere.
+        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception</span></code>, and raises a lua error to handle
+        them, passing the <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">what</span><span class="special">()</span></code>
+        string to lua as the error message.
+      </p>
+<p>
+        Another strategy that I've seen is to stash the exception object away in
+        some static storage, pass on the signal to lua as a lua error, and rethrow
+        the exception on the other side, once the error presumably propagates out
+        to a <code class="computeroutput"><span class="identifier">pcall</span></code> somewhere.
       </p>
 <p>
         We consider that exceptions should only be used for very serious problems,
@@ -113,10 +117,9 @@
         what happens next. So we consider that catching user exceptions and trying
         to sneak them across the lua call boundary is not a very robust solution,
         and we don't plan to do something like this in Primer. We consider that it
-        is usually a better idea to just terminate the program in cases like this.
-        If you want to create some exception-to-lua-error mechanism like this, you
-        are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code>
-        class template in order to do it.
+        is usually a better idea to just terminate the program in such cases. If
+        you want to create an exception-to-lua-error translation mechanism for use
+        with Primer in your program you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code> class template in order to do it.
       </p>
 <p>
         Instead, we are mainly concerned with avoiding leaks and indeterminate states,
@@ -163,7 +166,8 @@
         is <code class="computeroutput"><span class="keyword">noexcept</span></code>. However, in the
         C++11 standard this is difficult because <code class="computeroutput"><span class="keyword">noexcept</span></code>
         is not properly part of a function pointer's type. (In C++17 that will change,
-        supposedly.) So for now, it's just a runtime error.
+        supposedly.) There are some other complications with that idea when lua is
+        compiled as C++. So, it's just a runtime error.
       </p>
 <h5>
 <a name="lua_primer.overview.exception_safety.h1"></a>
@@ -289,16 +293,17 @@
       </p>
 <p>
         In standard configurations, lua will actually be using the same allocator
-        as the overall program, which means that lua itself is likely to generate
-        a memory error itself very soon.
+        as the overall program, which means that lua is itself likely to generate
+        a memory error very soon.
       </p>
 <p>
         However, in general we take the view that <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>
         in a lua callback function is potentially recoverable. If the script can
         run to completion even in the face of certain calls failing with errors,
         and the lua VM itself doesn't raise a memory error, then we consider this
-        a successful outcome, and similar to how lua may work in general when you
-        call lua functions using <code class="computeroutput"><span class="identifier">pcall</span></code>.
+        a successful outcome, and similar to how lua may works more generally when
+        you call lua functions using <code class="computeroutput"><span class="identifier">pcall</span></code>
+        and allocation failures occur.
       </p>
 <p>
         When reading your custom containers off of the lua stack, you should likely

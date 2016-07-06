@@ -31,6 +31,16 @@
         It is recommended also to statically link to lua or lua-eris, as for current
         compilers, this is the best way to take advantage of link-time optimizations.
       </p>
+<p>
+        Primer is also intended to be light-weight in another more important way
+        -- the operation of core components should be transparent and they should
+        be cohesive with the lua C API. Mechanisms like <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>,
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>, and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code>,
+        are meant to be readily understandable as a short series of calls to the
+        lua C API following a pattern. Primer is meant to provide primitives which
+        supplement the lua C API, not to replace it, and to provide organizational
+        structures that facilitate its use.
+      </p>
 <h4>
 <a name="lua_primer.overview.design.h0"></a>
         <span><a name="lua_primer.overview.design.error_handling"></a></span><a class="link" href="design.html#lua_primer.overview.design.error_handling">Error
@@ -86,7 +96,8 @@
       </p>
 <p>
         (The type traits approach to providing customization points is well-established
-        in libraries like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span></code> -- see for instance an intro <a href="http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html" target="_top">here</a>.)
+        in C++ libraries like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span></code>
+        -- see for instance an intro <a href="http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html" target="_top">here</a>.)
       </p>
 <h4>
 <a name="lua_primer.overview.design.h2"></a>
@@ -185,7 +196,7 @@
 <p>
         <code class="computeroutput"><span class="identifier">extraspace</span></code> dispatch is used
         for callbacks in an API object. In this method, member functions of the API
-        object are exposed as <span class="emphasis"><em>free</em></span> functions in lua -- from
+        object are exposed as <span class="emphasis"><em>free functions</em></span> in lua -- from
         the point of view of the script, they are not attached to any object. But
         in their implementation, they have access to data members of the API object
         associated to the lua state. <code class="computeroutput"><span class="identifier">extraspace</span></code>

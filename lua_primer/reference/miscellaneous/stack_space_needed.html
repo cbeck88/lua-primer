@@ -110,10 +110,11 @@
           Primer also uses these estimates interally. For instance, the <code class="computeroutput"><span class="identifier">adapt</span></code> mechanism will compute at compile-time
           a conservative estimate of how much space it needs to read the arguments
           off of the stack, and call <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
-          before it begins.
+          before it begins. (<code class="computeroutput"><span class="identifier">adapt</span></code>
+          also knows that it can skip the check unless the estimate exceeds <code class="computeroutput"><span class="identifier">LUA_MINSTACK</span></code>.)
         </p>
 <p>
-          It also does this when calling a bound-function or coroutine.
+          It also does such checks when calling a bound-function or coroutine.
         </p>
 <p>
           It does not do any checks when you are just calling <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>

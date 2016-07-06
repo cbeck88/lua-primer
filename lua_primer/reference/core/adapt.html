@@ -180,7 +180,7 @@
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code> also has a trivial specialization
           for functions which are already <code class="computeroutput"><span class="identifier">lua_CFunction</span></code>:
         </p>
-<pre class="programlisting"><span class="comment">// Traditional "raw" C-style lua callbacks. They aren't even member functions.</span>
+<pre class="programlisting"><span class="comment">// Traditional "raw" C-style lua callbacks.</span>
 <span class="comment">// We don't have to do any work</span>
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">lua_CFunction</span> <span class="identifier">target_func</span><span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">&lt;</span><span class="identifier">lua_CFunction</span><span class="special">,</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
