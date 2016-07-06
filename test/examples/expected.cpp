@@ -3,6 +3,8 @@
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
+#include <conf.hpp>
+
 #include <cassert>
 #include <string>
 
@@ -55,5 +57,7 @@ void test_bar() {
 }
 
 int main() {
+  conf::log_conf();
   test_foo();
+  test_bar();
 }
