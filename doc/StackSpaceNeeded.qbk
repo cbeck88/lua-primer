@@ -49,9 +49,10 @@ primer, we do provide an accurate estimate.
 
 Primer also uses these estimates interally. For instance, the `adapt` mechanism
 will compute at compile-time a conservative estimate of how much space it needs to read the
-arguments off of the stack, and call `lua_checkstack` before it begins.
+arguments off of the stack, and call `lua_checkstack` before it begins. (`adapt`
+also knows that it can skip the check unless the estimate exceeds `LUA_MINSTACK`.)
 
-It also does this when calling a bound-function or coroutine.
+It also does such checks when calling a bound-function or coroutine.
 
 It does not do any checks when you are just calling `primer::push` or `primer::read`.
 

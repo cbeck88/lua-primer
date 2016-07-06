@@ -9,8 +9,8 @@ We also take as a given that it is *not* okay to throw foreign exceptions
 through lua, no matter how it is compiled.
 
 * c.f. [@http://lua-users.org/lists/lua-l/2007-10/msg00473.html lua mailing list]
+* c.f. [@http://lua-users.org/lists/lua-l/2010-03/msg00408.html more from lua mailing list]
 * c.f. [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus lua users wiki]
-* c.f. [@http://stackoverflow.com/questions/4615890/how-to-handle-c-exceptions-when-calling-functions-from-lua stackoverflow]
 
 So, we don't throw any exceptions ourselves, and since many components of
 Primer are designed to be called by functions that will be passed to lua as function
@@ -20,10 +20,11 @@ Internally, Primer handles errors using a class template `expected<T>`, which
 is a discrminated union between a value and an error signal. It makes the most sense
 to return such objects to the user as well. Several functions
 that could be called by the user and could fail return this type. Essentially,
-we do that where some other libraries might throw exceptions.
+we do that where some other libraries might throw exceptions to the user.
 
 Since we cannot throw exceptions through lua,
-or handle the user's exceptions, we sometimes have very few options here. Primer is mainly concerned with:
+or handle the user's exceptions, we sometimes have very few options in how to
+cope with them. Primer is mainly concerned with:
 
 # Basic exception safety:
   # Don't leak memory / objects. Don't put objects in an indeterminate state.
