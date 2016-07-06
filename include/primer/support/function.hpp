@@ -19,6 +19,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/lua_ref.hpp>
+#include <primer/lua_ref_seq.hpp>
 #include <primer/support/error_capture.hpp>
 #include <primer/support/push_cached.hpp>
 #include <tuple>
@@ -74,47 +75,97 @@ inline std::tuple<int, int> resume_helper(lua_State * L, int narg) {
   return std::tuple<int, int>{result_code, result_index};
 }
 
+// Helper structures to write a generic call function which works regardless of
+// number of returns
+
+struct return_none {
+  using return_type = expected<void>;
+  static return_type pop(lua_State *, int) { return {}; }
+  static constexpr int nrets = 0;
+};
+
+struct return_one {
+  using return_type = expected<lua_ref>;
+  static return_type pop(lua_State * L, int) { return lua_ref{L}; }
+  static constexpr int nrets = 1;
+};
+
+struct return_many {
+  using return_type = expected<lua_ref_seq>;
+  static return_type pop(lua_State * L, int start_idx) {
+    return primer::pop_n(L, lua_gettop(L) - start_idx + 1);
+  }
+  static constexpr int nrets = LUA_MULTRET;
+};
+
+/***
+ * Generic scheme for calling a function
+ */
+template <typename return_pattern>
+auto fcn_call(lua_State * L, int narg) -> typename return_pattern::return_type {
+  typename return_pattern::return_type result;
+
+  int err_code;
+  int results_idx;
+
+  std::tie(err_code, results_idx) = detail::pcall_helper(L, narg, return_pattern::nrets);
+  if (err_code != LUA_OK) {
+    result = detail::pop_error(L, err_code);
+  } else {
+    result = return_pattern::pop(L, results_idx);
+  }
+
+  PRIMER_ASSERT(lua_gettop(L) == (results_idx - 1), "hmm stack discipline error");
+
+  return result;
+}
+
+/***
+ * Generic scheme for resuming a coroutine
+ */
+template <typename return_pattern>
+auto resume_call(lua_State * L, int narg) -> std::tuple<typename return_pattern::return_type, int> {
+  typename return_pattern::return_type result;
+
+  int err_code;
+  int results_idx;
+
+  std::tie(err_code, results_idx) = detail::resume_helper(L, narg);
+  if (err_code == LUA_OK) {
+    result = return_pattern::pop(L, results_idx);
+  } else if (err_code == LUA_YIELD) {
+    result = return_pattern::pop(L, results_idx);
+  } else {
+    result = detail::pop_error(L, err_code);
+  }
+  lua_settop(L, results_idx - 1);
+
+  return std::tuple<typename return_pattern::return_type, int>{std::move(result), err_code};
+}
+
 } // end namespace detail
 
 // Expects: Function, followed by narg arguments, on top of the stack.
-// Returns either a reference to the value, or an error message. In either case
-// the
-// results are cleared from the stack.
+// Returns: Either a reference to the value, or an error message. In either case
+// the results are cleared from the stack.
 inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) {
-
-  expected<lua_ref> result;
-
-  int err_code;
-
-  std::tie(err_code, std::ignore) = detail::pcall_helper(L, narg, 1);
-  if (err_code != LUA_OK) {
-    result = detail::pop_error(L, err_code);
-  } else {
-    result = lua_ref{L};
-  }
-
-  return result;
+  return detail::fcn_call<detail::return_one>(L, narg);
 }
 
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns either a reference to the value, or an error message. In either case
-// the
-// results are cleared from the stack.
+// the results are cleared from the stack.
 inline expected<void> fcn_call_no_ret(lua_State * L, int narg) {
-
-  expected<void> result;
-
-  int err_code;
-
-  std::tie(err_code, std::ignore) = detail::pcall_helper(L, narg, 0);
-  if (err_code != LUA_OK) {
-    result = detail::pop_error(L, err_code);
-  } else {
-    result = {};
-  }
-
-  return result;
+  return detail::fcn_call<detail::return_none>(L, narg);
 }
+
+// Expects: Function, followed by narg arguments, on top of the stack.
+// Returns all of the functions' results or an error message. In either case
+// the results are cleared from the stack.
+inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) {
+  return detail::fcn_call<detail::return_many>(L, narg);
+}
+
 
 // Expects a thread stack, satisfying the preconditions to call `lua_resume(L,
 // nullptr, narg)`.
@@ -127,29 +178,12 @@ inline expected<void> fcn_call_no_ret(lua_State * L, int narg) {
 // If it returns or yields, the single (expected) return value is popped from
 // the stack.
 // If there is an error, an error object is returned and the error message is
-// popped from the stack,
-// after running an error handler over it.
+// popped from the stack, after running an error handler over it.
 // The expected<lua_ref> is first return value, the second is the error code, so
-// you can tell if
-// yield occurred (LUA_YIELD) or return occurred (LUA_OK).
+// you can tell if yield occurred (LUA_YIELD) or return occurred (LUA_OK).
 inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L,
                                                          int narg) {
-  expected<lua_ref> result;
-
-  int err_code;
-  int results_idx;
-
-  std::tie(err_code, results_idx) = detail::resume_helper(L, narg);
-  if (err_code == LUA_OK) {
-    result = lua_ref{L};
-  } else if (err_code == LUA_YIELD) {
-    result = lua_ref{L};
-  } else {
-    result = detail::pop_error(L, err_code);
-  }
-  lua_settop(L, results_idx - 1);
-
-  return std::tuple<expected<lua_ref>, int>{std::move(result), err_code};
+  return detail::resume_call<detail::return_one>(L, narg);
 }
 
 // Expects a thread stack, satisfying the preconditions to call `lua_resume(L,
@@ -163,28 +197,30 @@ inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L,
 // If it returns or yields, the single (expected) return value is popped from
 // the stack.
 // If there is an error, an error object is returned and the error message is
+// popped from the stack, after running an error handler over it.
+// The expected<void> is (potentially) the error message, the second is the
+// error code, so you can tell if yield occurred (LUA_YIELD) or return occurred
+// (LUA_OK).
+inline std::tuple<expected<void>, int> resume_no_ret(lua_State * L, int narg) {
+  return detail::resume_call<detail::return_none>(L, narg);
+}
+
+// Expects a thread stack, satisfying the preconditions to call `lua_resume(L,
+// nullptr, narg)`.
+//   (That means, there should be narg arguments on top of the stack.
+//    If coroutine has not been started, the function should be just beneath
+//    them.
+//    Otherwise, it shouldn't be.)
+//
+// Calls lua_resume with that many arguments.
+// If it returns or yields, all of its return values are returned.
+// If there is an error, an error object is returned and the error message is
 // popped from the stack,
 // after running an error handler over it.
-// The expected<lua_ref> is first return value, the second is the error code, so
-// you can tell if
-// yield occurred (LUA_YIELD) or return occurred (LUA_OK).
-inline std::tuple<expected<lua_ref>, int> resume_no_ret(lua_State * L, int narg) {
-  expected<lua_ref> result;
-
-  int err_code;
-  int results_idx;
-
-  std::tie(err_code, results_idx) = detail::resume_helper(L, narg);
-  if (err_code == LUA_OK) {
-    result = {};
-  } else if (err_code == LUA_YIELD) {
-    result = {};
-  } else {
-    result = detail::pop_error(L, err_code);
-  }
-  lua_settop(L, results_idx - 1);
-
-  return std::tuple<expected<lua_ref>, int>{std::move(result), err_code};
+// The expected<lua_ref_seq> is return sequence, the second is the error code,
+// so you can tell if yield occurred (LUA_YIELD) or return occurred (LUA_OK).
+inline std::tuple<expected<lua_ref_seq>, int> resume(lua_State * L, int narg) {
+  return detail::resume_call<detail::return_many>(L, narg);
 }
 
 } // end namespace primer

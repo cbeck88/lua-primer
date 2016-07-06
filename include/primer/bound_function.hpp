@@ -92,6 +92,21 @@ public:
 
     return result;
   }
+
+  /*<< Calls the function, returns all the return values of the function,
+       Or an error. >>*/
+  template <typename... Args>
+  expected<lua_ref_seq> call(Args &&... args) const noexcept {
+    expected<lua_ref_seq> result{primer::error{"Can't lock VM"}};
+
+    if (lua_State * L = ref_.push()) {
+      PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
+      primer::push_each(L, std::forward<Args>(args)...);
+      result = primer::fcn_call(L, sizeof...(args));
+    }
+
+    return result;
+  }
 };
 //]
 

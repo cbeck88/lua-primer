@@ -56,7 +56,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 #include <primer/bound_function.hpp>
+#include <primer/expected.hpp>
 #include <primer/lua_ref.hpp>
+#include <primer/lua_ref_seq.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/function_check_stack.hpp>
 
@@ -128,6 +130,27 @@ public:
       primer::push_each(thread_stack_, std::forward<Args>(args)...);
       std::tie(result, error_code) =
         primer::resume_one_ret(thread_stack_, sizeof...(args));
+
+      if (error_code != LUA_YIELD) { this->reset(); }
+    }
+
+    return result;
+  }
+
+  /*<< Calls or resumes the coroutine, returns all return values, or an error
+    >>*/
+  template <typename... Args>
+  expected<lua_ref_seq> call(Args &&... args) noexcept {
+    expected<lua_ref_seq> result{primer::error{"Can't lock VM"}};
+
+    if (thread_stack_ && ref_) {
+      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
+
+      int error_code;
+
+      primer::push_each(thread_stack_, std::forward<Args>(args)...);
+      std::tie(result, error_code) =
+        primer::resume(thread_stack_, sizeof...(args));
 
       if (error_code != LUA_YIELD) { this->reset(); }
     }

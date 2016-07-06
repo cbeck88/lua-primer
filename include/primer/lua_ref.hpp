@@ -109,6 +109,14 @@ public:
        object is on top, enters the empty state. >>*/
   explicit lua_ref(lua_State * L) noexcept { this->init(L); }
 
+  /*<< Releases the lua reference, reverts to empty state. >>*/
+  void reset() noexcept { this->release(); }
+
+  /*<< Swap >>*/
+  void swap(lua_ref & other) noexcept {
+    sref_.swap(other.sref_);
+    std::swap(iref_, other.iref_);
+  }
 
   // Push to main stack
   /*<< Attempts to push the object to the top of the primary stack of the state
@@ -162,9 +170,6 @@ likely to happen, including stack corruption of lua VMs.] >>*/
     }
   }
 
-  /*<< Releases the lua reference, reverts to empty state. >>*/
-  void reset() noexcept { this->release(); }
-
 
   // test validity
   /*<< Test if we are not in the empty state and can still be locked. >>*/
@@ -178,5 +183,9 @@ likely to happen, including stack corruption of lua VMs.] >>*/
   expected<T> as() const noexcept;
 };
 //]
+
+inline void swap(lua_ref & one, lua_ref & other) noexcept {
+  one.swap(other);
+}
 
 } // end namespace primer

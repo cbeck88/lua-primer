@@ -29,6 +29,8 @@ auto move_assign_noexcept(T & dest, T && src) noexcept
   dest = std::move(src);
 }
 
+using std::swap;
+
 // Need to use SFINAE for this in case there is no `swap`.
 template <typename T, typename ENABLE = void>
 struct is_nothrow_swappable : std::false_type {};

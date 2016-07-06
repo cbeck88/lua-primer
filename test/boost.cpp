@@ -268,6 +268,18 @@ void test_bound_function() {
     CHECK_STACK(L, 0);
     TEST(!maybe_result, "expected an error message");
   }
+
+  {
+    auto maybe_result = func.call_no_ret(4, 5, "asdf", "jkl;");
+    CHECK_STACK(L, 0);
+    TEST(!maybe_result, "expected an error message");
+  }
+
+  {
+    auto maybe_result = func.call_no_ret(6, 5, "Asdf", "Asdf");
+    CHECK_STACK(L, 0);
+    TEST_EXPECTED(maybe_result);
+  }
 }
 
 void test_bound_function_binding() {
@@ -407,6 +419,40 @@ void test_ref_read() {
   static_cast<void>(script);
 }
 
+void test_bound_function_mult_ret() {
+  lua_raii L;
+
+  const char * script = ""
+    "return function(x, y)                      \n"
+    "  return (x > y), x - y                    \n"
+    "end                                        \n";
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+
+  primer::bound_function func{L};
+  TEST(func, "expected to have bound a function");
+  CHECK_STACK(L, 0);
+
+  {
+    auto result = func.call(3, 4);
+    TEST_EXPECTED(result);
+    TEST_EXPECTED((*result)[0].as<bool>());
+    TEST_EQ(false, *(*result)[0].as<bool>());
+    TEST_EXPECTED((*result)[1].as<int>());
+    TEST_EQ(-1, *(*result)[1].as<int>());
+  }
+
+  {
+    auto result = func.call(7, 4);
+    TEST_EXPECTED(result);
+    TEST_EXPECTED((*result)[0].as<bool>());
+    TEST_EQ(true, *(*result)[0].as<bool>());
+    TEST_EXPECTED((*result)[1].as<int>());
+    TEST_EQ(3, *(*result)[1].as<int>());
+  }
+}
+
 int main() {
   conf::log_conf();
   std::cout << "Boost:\n";
@@ -421,6 +467,7 @@ int main() {
     {"vector", &test_vector_round_trip},
     {"bound function", &test_bound_function},
     {"bound function binding", &test_bound_function},
+    {"bound function multiple returns", &test_bound_function_mult_ret},
     {"coroutine", &test_coroutine},
     {"ref_fcn_read", &test_ref_read},
   };

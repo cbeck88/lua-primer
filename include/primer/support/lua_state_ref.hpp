@@ -68,7 +68,7 @@ public:
   ~lua_state_ref() noexcept = default;
 
   // Swap
-  void swap(lua_state_ref & other) { weak_ptr_.swap(other.weak_ptr_); }
+  void swap(lua_state_ref & other) noexcept { weak_ptr_.swap(other.weak_ptr_); }
 
   // Access the pointed state if possible
   lua_State * lock() const noexcept { return weak_ptr_.lock(); }
@@ -115,6 +115,7 @@ private:
   // Create a strong pointer in a userdata. This object will be cached,
   // and needs to be destroyed when the lua state is destroyed.
   static void make_strong_ptr(lua_State * L) {
+    // TODO: Handle std::bad_alloc ... ?
     {
       // Get the *main* thread, in case this is being called from a short-lived
       // thread. We want the strong_ptr to be pointing to something that lives
@@ -154,6 +155,10 @@ private:
     return *static_cast<strong_ptr_type *>(result);
   }
 };
+
+inline void swap(lua_state_ref & one, lua_state_ref & other) noexcept {
+  one.swap(other);
+}
 
 // Forward facing interface
 
