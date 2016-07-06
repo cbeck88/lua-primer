@@ -13,8 +13,8 @@
 #include <primer/read.hpp>
 #include <primer/support/error_capture.hpp>
 
-#include <conf.hpp>
-#include <lua_raii.hpp>
+#include "test_harness/conf.hpp"
+#include "test_harness/lua_raii.hpp"
 
 #include <cstring>
 #include <exception>

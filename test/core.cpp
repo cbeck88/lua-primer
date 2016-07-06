@@ -7,7 +7,7 @@
 #include <primer/lua_ref_as.hpp>
 #include <primer/support/function.hpp>
 
-#include "test_harness.hpp"
+#include "test_harness/test_harness.hpp"
 #include <cassert>
 #include <iostream>
 #include <string>

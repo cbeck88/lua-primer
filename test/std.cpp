@@ -9,7 +9,7 @@
 #include <primer/support/function.hpp>
 #include <primer/support/userdata_dispatch.hpp>
 
-#include "test_harness.hpp"
+#include "test_harness/test_harness.hpp"
 #include <iostream>
 #include <string>
 

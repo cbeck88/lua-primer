@@ -3,7 +3,8 @@
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
-#include <conf.hpp>
+#include "test_harness/conf.hpp"
+#include "test_harness/lua_raii.hpp"
 
 #include <cassert>
 #include <string>
@@ -38,7 +39,7 @@ void test_foo() {
 
 
 void test_bar() {
-  lua_State * L = luaL_newstate();
+  lua_raii L;
 
   primer::push(L, 17);
   auto result = primer::read<primer::stringy>(L, 1);
@@ -52,12 +53,11 @@ void test_bar() {
   auto result3 = foo(result2);
   assert(result3);
   assert("woof!" == *result3);
-
-  lua_close(L);
 }
 
 int main() {
   conf::log_conf();
+  std::cout << "Noexcept test\n" << std::endl;
   test_foo();
   test_bar();
 }

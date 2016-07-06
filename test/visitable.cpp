@@ -9,7 +9,7 @@
 #include <primer/api/callbacks.hpp>
 #include <primer/api/callback_registrar.hpp>
 
-#include "test_harness.hpp"
+#include "test_harness/test_harness.hpp"
 #include <iostream>
 #include <string>
 

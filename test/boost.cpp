@@ -7,7 +7,7 @@
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
-#include "test_harness.hpp"
+#include "test_harness/test_harness.hpp"
 #include <cassert>
 #include <iostream>
 #include <string>
