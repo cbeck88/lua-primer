@@ -34,7 +34,11 @@ struct set_push_helper {
   using first_t = typename M::key_type;
 
   static void to_stack(lua_State * L, const M & m) {
-    lua_newtable(L);
+    if (std::is_integral<first_t>::value) {
+      lua_createtable(L, m.size(), 0);
+    } else {
+      lua_createtable(L, 0, m.size());
+    }
 
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     for (const auto & item : m) {
@@ -47,8 +51,9 @@ struct set_push_helper {
       }
     }
   }
+  // Either three, after pushing the boolean, or max achieved when pushing key
   static constexpr detail::maybe_int stack_space_needed{
-    3 + detail::stack_space_needed<traits::push<first_t>>::value};
+    detail::maybe_int::max(3, 1 + detail::stack_space_needed<traits::push<first_t>>::value)};
 };
 
 template <typename M>
@@ -60,7 +65,6 @@ struct set_read_helper {
   PRIMER_STATIC_ASSERT(std::is_nothrow_move_constructible<first_t>::value,
                        "key type must be nothrow move constructible");
 
-  // TODO: Exception safety, emplace can throw std::bad_alloc
   static expected<M> from_stack(lua_State * L, int index) {
     if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {
       return primer::error("Not a table");
@@ -77,17 +81,24 @@ struct set_read_helper {
       // cause very subtle problems
       lua_pushvalue(L, -2); // original_top, k, v, k
       if (auto key = traits::read<first_t>::from_stack(L, -1)) {
-        if (lua_toboolean(L, -2)) { result.emplace(std::move(*key)); }
+        if (lua_toboolean(L, -2)) {
+          PRIMER_TRY {
+            result.emplace(std::move(*key));
+          } PRIMER_CATCH(std::bad_alloc &) {
+            lua_pop(L, 3);
+            return primer::error(bad_alloc_tag{});
+          }
+        }
         lua_pop(L, 2);
       } else {
         lua_pop(L, 3);
         return key.err();
       }
     }
-    return result;
+    return std::move(result);
   }
   static constexpr detail::maybe_int stack_space_needed{
-    3 + detail::stack_space_needed<traits::push<first_t>>::value};
+    3 + detail::stack_space_needed<traits::read<first_t>>::value};
 };
 
 } // end namespace detail

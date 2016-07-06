@@ -35,10 +35,10 @@ struct push_seq_helper {
   using value_type = typename T::value_type;
 
   static void to_stack(lua_State * L, const T & seq) {
-    lua_newtable(L);
+    int n = static_cast<int>(seq.size());
+    lua_createtable(L, n, 0);
 
     PRIMER_ASSERT_STACK_NEUTRAL(L);
-    int n = static_cast<int>(seq.size());
     for (int i = 0; i < n; ++i) {
       traits::push<value_type>::to_stack(L, seq[i]);
       lua_rawseti(L, -2, (i + 1));
@@ -60,13 +60,12 @@ struct read_seq_helper {
 
   // Reserve, if possible
   // Assume that it has same semantics as std::vector
+  // Note: reserve can throw std::bad_alloc
   template <typename U, typename ENABLE = void>
   struct reserve_helper {
     static void reserve(U &, int) {}
   };
 
-  // TODO: This is not exception safe! reserve and emplace_back can throw
-  // bad_alloc
   template <typename U>
   struct reserve_helper<
     U,
@@ -83,12 +82,21 @@ struct read_seq_helper {
     idx = lua_absindex(L, idx);
     if (lua_istable(L, idx)) {
       int n = lua_rawlen(L, idx);
-      reserve_helper<T>::reserve(*result, n);
+
+      PRIMER_TRY {
+        reserve_helper<T>::reserve(*result, n);
+      } PRIMER_CATCH(std::bad_alloc &) {
+        result = primer::error(bad_alloc_tag{});
+      }
 
       for (int i = 0; (i < n) && result; ++i) {
         lua_rawgeti(L, idx, i + 1);
         if (auto object = traits::read<value_type>::from_stack(L, -1)) {
-          result->emplace_back(std::move(*object));
+          PRIMER_TRY {
+            result->emplace_back(std::move(*object));
+          } PRIMER_CATCH(std::bad_alloc &) {
+            result = primer::error(bad_alloc_tag{});
+          }
         } else {
           result = std::move(object.err());
           result.err().prepend_error_line("In index [", i + 1, "],");

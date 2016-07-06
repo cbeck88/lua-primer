@@ -131,42 +131,78 @@ Reading an object can fail, but it should return `primer::error` in that case.
 These functions are not supposed to throw exceptions, and currently it is considered a bug if they do.
 
 There is no mechanism in place right now to make a `static_assert` that they are `noexcept`.
-That is something that we might add in the future.
-
-That being said...
+That is something that we might try to add in the future, but it's tricky for various reasons.
 
 [h4 Memory allocation failure]
 
-There are a few known situations in primer that we do things within a `primer::read` specialization
-that can cause `std::bad_alloc` to be thrown, and don't have proper handling for it. For instance, when constructing a `std::string` from
-a C-string obtained from lua, or when calling `emplace_back` on a `std::vector`. 
+The only exceptions that primer actually does attempt to catch and handle internally
+are `std::bad_alloc` exceptions caused when allocations for `std::string`, `std::vector`,
+etc. fails. These can occur during calls to `primer::read`.
 
-The consequences of this can currently include:
+Our strategy to is to clean up after ourselves and return a `primer::error` with the
+message `"bad_alloc"`. (There are some fallbacks in case this string itself cannot
+be allocated... see `primer::error` implementation.)
 
-* Primer losing track of objects that it pushed onto the lua stack. If this happens repeatedly, you can run out of space on the lua stack and get a lua panic.
-* An exception being thrown into the `adapt` mechanism, causing the program to be terminated.
+From lua's point of view, what this means is that if a script calls a callback function
+and `std::bad_alloc` occurs while reading its parameters, a lua error `"bad_alloc"` will
+result.
 
-Similarly, we don't currently handle properly some errors that can occur when ['lua] runs out of memory.
+In standard configurations, lua will actually be using the same allocator as the overall
+program, which means that lua itself is likely to generate a memory error itself very soon.
+
+However, in general we take the view that `std::bad_alloc` in a lua callback functoin
+is potentially recoverable. If the script can run to completion even in the face of
+certain calls failing with errors, and the lua VM itself doesn't raise a memory error,
+then we consider this a successful outcome, and
+similar to how lua may work in general when you call lua functions using `pcall`.
+
+When reading custom containers off of the lua stack, you should likely pursue a similar strategy.
+['It is not safe to throw `std::bad_alloc` out of a specialization of `primer::traits::read`, this
+will result in the program being terminated.]
+
+Memory allocation failures can also occur when *pushing* things to lua, if the lua allocator
+cannot perform an allocation. This scenario is somewhat more complex.
+
+when the lua allocator runs out of memory, almost any API function can trigger the fault.
 For instance, `lua_pushstring` can fail, only in the scenario that lua cannot allocate enough memory.
 This could potentially cause a `longjmp` and the leaking of objects on the C++ stack.
+Almost all api calls are error-free, except in the case of lack of memory, but actually very few are
+error-free in the face of an allocation failure.
 
 See especially [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual.
 
-In the majority of projects that use the lua C api, the overhead of running essentially all C api calls in protected
-mode is not worth the benefits. Especially in the case of game projects, a `lua_panic` in the face of an out of memory
-error is acceptable -- the developers are likely to install a custom memory allocator anyways, and they may periodically
-check it to see if they are "close" to running out of memory and preempt the situation that way. Then in the rest of the
-code, they run faster since they basically assume that allocation always succeeds.
+When such api calls do fail, lua immediately raises a lua error. If the call is not a "protected" call, then
+lua panic occurs and the program is terminated.
 
-I believe that for purposes of such projects, primer is essentially working correctly right now in
-regards to exception safety. That is, we *are* correct in the face of exceptions, if we are permitted to exclude the
-scenarios in which the lua or C++ allocator runs out of memory.
+Even if the call is a protected call, bad things happen from the point of view of C++ functions. If lua
+is compiled as C, then it will perform a `longjmp` across your stack and back into itself, skipping any `catch` that you may have set,
+and tossing any automatic objects on the stack without calling their destructors. Technically this is UB.
+From Primer's point of view, the only way we could avoid leaks in this scenario is if nearly every API call were made
+in its own protected context, which would significantly impact performance.
 
-As a long-term goal, we would like to be able to provide correctness even in the face of out-of-memory errors. Perhaps,
-we could add a preprocessor symbol so that primer will attempt to handle `std::bad_alloc` exceptions, and will run C api
-calls in a protected mode so that if lua runs out of memory, we can avoid a panic. However, currently that is not what
-we do.
+If you compile as C++ the situation is significantly better. In this case, lua signals errors to itself using C++ exceptions
+rather than `setjmp` and `longjmp`. This means that stack objects are not leaked and UB does not occur. In this scenario,
+primer leaks no C++ objects and no containers are left in indeterminate states.
 
-There is an experimental branch `primer_handle_bad_alloc` which contains some partial progress towards this.
+The only thing that primer leaks in that scenario is lua stack objects -- whatever it was doing at the time,
+it loses track of any temporary objects on the lua stack and they are forgotten about. In theory we could fix this by
+creating a series of RAII objects to protect against exceptions every time we push something on the stack.
+
+However, there is little purpose in this. The only scenario in which these errors are raised in the first place is when
+lua itself is running out of memory, and the fault is triggered in a callback which was run by your script. In that case you can simply
+toss the lua stack with `lua_settop(L, 0)` and any leaked stack objects are taken care of. Likely you are going to close
+the state anyways, but even if you don't, at that point you are good to go -- no C++ or lua resources are leaked.
+
+So, all-in-all, programs written using primer should be quite able to handle exceptional situations when lua is compiled as C++,
+and you should be able to successfully handle and recover from memory allocation errors without being forced to bring down your program.
+
+If you don't particularly care about recovering from memory allocation failures, then using lua compiled as C should be just fine.
+
+The main things that you must do to ensure good behavior are
+* Don't make specializations of `push` or `read` that throw exceptions. In case of `read`, return an error.
+* Don't make lua callbacks that throw. Those functions should be `noexcept` and handle problems internally
+or signal lua errors. If this really cramps your style, consider making a specialization of `adapt` that catches
+some choice exceptions and handles them appropriately.
+* If lua reports an out of memory error, remember to toss the stack if you attempt to recover.
 
 [endsect]

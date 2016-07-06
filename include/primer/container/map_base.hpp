@@ -35,7 +35,11 @@ struct map_push_helper {
   using second_t = typename M::mapped_type;
 
   static void to_stack(lua_State * L, const M & m) {
-    lua_newtable(L);
+    if (std::is_integral<first_t>::value) {
+      lua_createtable(L, m.size(), 0);
+    } else {
+      lua_createtable(L, 0, m.size());
+    }
 
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     for (const auto & item : m) {
@@ -49,7 +53,7 @@ struct map_push_helper {
     }
   }
   static constexpr detail::maybe_int stack_space_needed{
-    detail::maybe_int::
+    1 + detail::maybe_int::
       max(detail::stack_space_needed<traits::push<second_t>>::value,
           1 + detail::stack_space_needed<traits::push<first_t>>::value)};
 };
@@ -84,7 +88,12 @@ struct map_read_helper {
       lua_pushvalue(L, -2); // original_top, k, v, k
       if (auto first = traits::read<first_t>::from_stack(L, -1)) {
         if (auto second = traits::read<second_t>::from_stack(L, -2)) {
-          result.emplace(std::move(*first), std::move(*second));
+          PRIMER_TRY {
+            result.emplace(std::move(*first), std::move(*second));
+          } PRIMER_CATCH(std::bad_alloc &) {
+            lua_pop(L, 3);
+            return primer::error(bad_alloc_tag{});
+          }
           lua_pop(L, 2);
         } else {
           lua_pop(L, 3);
@@ -99,8 +108,8 @@ struct map_read_helper {
   }
   static constexpr detail::maybe_int stack_space_needed{
     3 + detail::maybe_int::
-          max(detail::stack_space_needed<traits::push<second_t>>::value,
-              detail::stack_space_needed<traits::push<first_t>>::value)};
+          max(detail::stack_space_needed<traits::read<second_t>>::value,
+              detail::stack_space_needed<traits::read<first_t>>::value)};
 };
 
 } // end namespace detail
