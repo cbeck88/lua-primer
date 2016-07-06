@@ -15,8 +15,8 @@
 
 #include "test_harness/conf.hpp"
 #include "test_harness/lua_raii.hpp"
+#include "test_harness/test.hpp"
 
-#include <cstring>
 #include <exception>
 #include <initializer_list>
 #include <iostream>
@@ -125,13 +125,6 @@ primer::expected<void> try_load_script(lua_State * L, const char * script) {
  * Test harness object
  */
 
-typedef void (*test_func_t)();
-
-struct test_record {
-  const char * name;
-  test_func_t func;
-};
-
 struct test_harness {
   std::vector<test_record> tests_;
 
@@ -144,30 +137,22 @@ struct test_harness {
     for (const auto & t : tests_) {
       bool okay = false;
       try {
-        std::cout << "  TEST " << t.name << ": ... ";
-        {
-          int l = 50 - static_cast<int>(strlen(t.name));
-          for (int i = 0; i < l; ++i) {
-            std::cout << ' ';
-          }
-        }
-        std::cout.flush();
-
-        t.func();
+        t.run();
         okay = true;
       } catch (test_exception & te) {
-        std::cout << " FAILED\n      A test condition was not met.\n      "
+        t.report_fail();
+        std::cout << "      A test condition was not met.\n      "
                   << te.what() << std::endl;
       } catch (std::exception & e) {
-        std::cout << " FAILED\n      A standard exception was thrown.\n      "
+        std::cout << "      A standard exception was thrown.\n      "
                   << e.what() << std::endl;
       } catch (...) {
         std::cout
-          << " FAILED\n      An unknown (exception?) was thrown.\n      !!!"
+          << "      An unknown (exception?) was thrown.\n      !!!"
           << std::endl;
       }
       if (okay) {
-        std::cout << " passed" << std::endl;
+        t.report_okay();
       } else {
         ++num_fails;
       }

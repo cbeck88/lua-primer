@@ -5,8 +5,10 @@
 
 #include "test_harness/conf.hpp"
 #include "test_harness/lua_raii.hpp"
+#include "test_harness/test.hpp"
 
 #include <cassert>
+#include <initializer_list>
 #include <string>
 
 using primer::expected;
@@ -57,7 +59,16 @@ void test_bar() {
 
 int main() {
   conf::log_conf();
-  std::cout << "Noexcept test\n" << std::endl;
-  test_foo();
-  test_bar();
+  std::cout << "Noexcept tests:" << std::endl;
+
+  std::initializer_list<test_record> tests{{"first", &test_foo},
+                          {"second", &test_bar}};
+
+  for (const auto & t : tests) {
+    t.run();
+    t.report_okay();
+  }
+
+  std::cout << "\nAll tests passed!\n";
+  std::cout << std::endl;
 }
