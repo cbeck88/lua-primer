@@ -78,6 +78,11 @@ we fail fast by marking one of the functions within the `adapt` mechanism as
 `noexcept`, which means that `std::terminate` will be called if your function
 throws when the adapted function is called.
 
+It would be better if we could fail faster -- make a `static_assert` that any
+function passed to `adapt` is `noexcept`. However, in the C++11 standard this is
+difficult because `noexcept` is not properly part of a function pointer's type.
+(In C++17 that will change, supposedly.) So for now, it's just a runtime error.
+
 [h4 An object which primer was handling throws an exception]
 
 The first case is userdata types.
