@@ -34,10 +34,9 @@ template <typename T, typename ENABLE = void>
 struct is_nothrow_swappable : std::false_type {};
 
 template <typename T>
-struct is_nothrow_swappable<
-  T,
-  enable_if_t<noexcept(
-    swap(*static_cast<T *>(nullptr), *static_cast<T *>(nullptr)))>>
+struct is_nothrow_swappable<T,
+                            enable_if_t<noexcept(swap(*static_cast<T *>(nullptr),
+                                                      *static_cast<T *>(nullptr)))>>
   : std::true_type {};
 
 template <typename T>

@@ -143,9 +143,7 @@ struct push<stringy> {
 
 template <>
 struct push<primer::lua_ref> {
-  static void to_stack(lua_State * L, primer::lua_ref r) {
-    r.push(L);
-  }
+  static void to_stack(lua_State * L, primer::lua_ref r) { r.push(L); }
   static constexpr detail::maybe_int stack_space_needed{1};
 };
 

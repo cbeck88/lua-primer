@@ -386,12 +386,13 @@ void test_ref_read() {
   luaL_requiref(L, "", luaopen_base, 1);
   lua_pop(L, 1);
 
-//[ primer_example_ref_read_test
+  //[ primer_example_ref_read_test
   lua_CFunction f = PRIMER_ADAPT(&ref_test_func);
   lua_pushcfunction(L, f);
   lua_setglobal(L, "ref_test_func");
 
-  const char * script = ""
+  const char * script =
+    ""
     "assert(ref_test_func() == 'nil')           \n"
     "assert(ref_test_func(5) == 'int')          \n"
     "assert(ref_test_func('foo') == 'foo')      \n"
@@ -402,7 +403,7 @@ void test_ref_read() {
 
   assert(LUA_OK == luaL_loadstring(L, script));
   assert(LUA_OK == lua_pcall(L, 0, 0, 0));
-//]
+  //]
   static_cast<void>(script);
 }
 

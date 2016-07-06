@@ -7,7 +7,7 @@
 
 /***
  * Implement the "as" method. This relies on primer::read, and
- * primer::traits::read is specialized for lua_ref... so this must be an 
+ * primer::traits::read is specialized for lua_ref... so this must be an
  * out-of-line definition
  */
 
