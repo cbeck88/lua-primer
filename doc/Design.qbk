@@ -10,6 +10,13 @@ functions which, in an optimized build, the compiler will inline (god willing).
 It is recommended also to statically link to lua or lua-eris, as for current compilers, this is the best
 way to take advantage of link-time optimizations.
 
+Primer is also intended to be light-weight in another more important way -- the operation of
+core components should be transparent and they should be cohesive with the lua C API.
+Mechanisms like `primer::read`, `primer::push`, and `primer::adapt`, are meant to be readily
+understandable as a short series of calls to the lua C API following a pattern. Primer is meant
+to provide primitives which supplement the lua C API, not to replace it, and to provide
+organizational structures that facilitate its use.
+
 [h3 Error Handling]
 
 `primer::error` is the basic object which Primer uses to represent a runtime error.
@@ -44,7 +51,7 @@ Traits are used because it provides for more precise and powerful customization.
 function overloading, then all kinds of implicit conversions can come into play, and your ability to provide partial
 specializations is limited.
 
-(The type traits approach to providing customization points is well-established in libraries like `boost::spirit` -- see for instance an intro [@http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html here].)
+(The type traits approach to providing customization points is well-established in C++ libraries like `boost::spirit` -- see for instance an intro [@http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html here].)
 
 [h3 Reflecting C++ into lua]
 
@@ -95,7 +102,7 @@ This is simple and it works -- a drawback is that it imposes syntactic constrain
 methods must be invoked as object methods.
 
 `extraspace` dispatch is used for callbacks in an API object. In this method,
-member functions of the API object are exposed as ['free] functions in lua -- from the point of view of the script,
+member functions of the API object are exposed as ['free functions] in lua -- from the point of view of the script,
 they are not attached to any object. But in their implementation, they have access to data members of the API object
 associated to the lua state. `extraspace` dispatch works by storing a pointer in the
 [@http://www.lua.org/manual/5.3/manual.html#lua_getextraspace lua extraspace] region. It may
