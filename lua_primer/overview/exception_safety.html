@@ -52,36 +52,93 @@
         either.
       </p>
 <p>
-        The places that exceptions can enter the picture break down roughly as follows:
+        Internally, primer handles errors using a class template <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>,
+        which is a discrminated union between a value and an error signal. It makes
+        the most sense to return such objects to the user as well. Several functions
+        that could be called by the user and could fail return this type. Essentially,
+        we do that where some other libraries might throw exceptions.
+      </p>
+<p>
+        Since we cannot throw exceptions through lua, or handle the user's exceptions,
+        we sometimes have very few options here. Primer is mainly concerned with:
       </p>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
-            User code throws an exception into primer
+            Basic exception safety:
             <div class="orderedlist"><ol class="orderedlist" type="a">
 <li class="listitem">
-                  A function which the user gave to primer to push to lua throws
-                  an exception
+                  Don't leak memory / objects. Don't put objects in an indeterminate
+                  state.
                 </li>
 <li class="listitem">
-                  An object which the user adapted for primer throws an exception
-                  from its default constructor, move constructor, or move assignment
-                  operator.
-                </li>
-<li class="listitem">
-                  An object which the user adapted for primer, by specializing <code class="computeroutput"><span class="identifier">push</span></code> or <code class="computeroutput"><span class="identifier">read</span></code>,
-                  throws an exception when it is pushed or read
+                  Don't leak lua resources, such as stack positions or lua's memory.
                 </li>
 </ol></div>
           </li>
 <li class="listitem">
-            <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code> is thrown
+            Fail fast:
+            <div class="orderedlist"><ol class="orderedlist" type="a">
+<li class="listitem">
+                  If an exception will reach lua, it is better to terminate the program.
+                </li>
+<li class="listitem">
+                  If possible, use <code class="computeroutput"><span class="keyword">static_assert</span></code>
+                  to enforce that exceptions will not be thrown by user code at places
+                  where we aren't prepared to handle them.
+                </li>
+</ol></div>
           </li>
 </ol></div>
 <p>
-        Our exception-safety is not complete at the moment -- some of these are handled,
-        and some of these can cause bad things to happen. Primer is a work-in-progress,
-        and patches are welcome :)
+        Note that this philosophy is different from how some lua-binding libraries
+        work. For instance <code class="computeroutput"><span class="identifier">luabind</span></code>
+        attempts to <span class="emphasis"><em>make</em></span> lua exception safe in a limited sense
+        -- they put a wrapper over all functions that you pass to lua through their
+        interface, which catches <span class="emphasis"><em>all</em></span> exceptions derived from
+        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception</span></code>, and raises a lua error, passing
+        the <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">what</span><span class="special">()</span></code>
+        string to lua as error message. Another strategy that I've seen is to stash
+        the exception object away in some static storage, pass on the signal to lua
+        as a lua error, and rethrow the exception on the other side, once the error
+        presumably propagates out to a <code class="computeroutput"><span class="identifier">pcall</span></code>
+        somewhere.
       </p>
+<p>
+        We consider that exceptions should only be used for very serious problems,
+        and that if one is thrown, it is crucial that it reaches the handler you
+        wrote in your program. Any of these mechanisms that translate exceptions
+        into lua errors can potentially lead to the exception being lost and swallowed
+        if lua scripts are using <code class="computeroutput"><span class="identifier">pcall</span></code>
+        to call your functions, and then it becomes very difficult to reason about
+        what happens next. So we consider that catching user exceptions and trying
+        to sneak them across the lua call boundary is not a very robust solution,
+        and we don't plan to do something like this in primer. We consider that it
+        is usually a better idea to just terminate the program in cases like this.
+        If you want to create some exception-to-lua-error mechanism like this, you
+        are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code>
+        class template in order to do it.
+      </p>
+<p>
+        Instead, we are mainly concerned with avoiding leaks and indeterminate states,
+        and preempting exceptions in places where we can't handle them.
+      </p>
+<p>
+        There are three (main) ways that an exception can reach primer:
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+            A function which the user gave to <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>,
+            to push to lua, throws an exception.
+          </li>
+<li class="listitem">
+            A user-defined object or container throws when we are manipulating it,
+            e.g. when it is constructed, moved, or destroyed.
+          </li>
+<li class="listitem">
+            A specialization of <code class="computeroutput"><span class="identifier">push</span></code>
+            or <code class="computeroutput"><span class="identifier">read</span></code> throws an exception.
+          </li>
+</ol></div>
 <p>
         The situations that we have a handle on are:
       </p>
@@ -94,49 +151,96 @@
         This should never happen, and we view it as a bug in user code if it does.
       </p>
 <p>
-        If you throw an exception directly into lua, we consider that the stack can
-        be corrupted and undefined behavior can result.
+        Essentially, we consider that if you used the lua C api directly to push
+        such functions, you would get undefined behavior when they throw. To preempt
+        this, we fail fast by marking one of the functions within the <code class="computeroutput"><span class="identifier">adapt</span></code> mechanism as <code class="computeroutput"><span class="keyword">noexcept</span></code>,
+        which means that <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span></code> will be called if your function
+        throws when the adapted function is called.
       </p>
 <p>
-        In Primer, we do not attempt to catch and handle your exceptions either.
-        Instead, one of the functions in the "adapt" mechanism is marked
-        <code class="computeroutput"><span class="keyword">noexcept</span></code>, which means that
-        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span></code> will be called if your adapted
-        function throws.
-      </p>
-<p>
-        Note that this is different from how some libraries like <code class="computeroutput"><span class="identifier">LuaBridge</span></code>
-        work, which attempt to stash away your exceptions, signal them to lua as
-        a lua error, and rethrow them on the other side. We consider this to be not
-        a very robust solution, and don't plan to do something like this in primer.
-        If you want to create something like this, you are welcome to specialize
-        the <code class="computeroutput"><span class="identifier">adaptor</span></code> class to do it.
+        It would be better if we could fail faster -- make a <code class="computeroutput"><span class="keyword">static_assert</span></code>
+        that any function passed to <code class="computeroutput"><span class="identifier">adapt</span></code>
+        is <code class="computeroutput"><span class="keyword">noexcept</span></code>. However, in the
+        C++11 standard this is difficult because <code class="computeroutput"><span class="keyword">noexcept</span></code>
+        is not properly part of a function pointer's type. (In C++17 that will change,
+        supposedly.) So for now, it's just a runtime error.
       </p>
 <h5>
 <a name="lua_primer.overview.exception_safety.h1"></a>
-        <span><a name="lua_primer.overview.exception_safety.an_object_which_the_user_adapted"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.an_object_which_the_user_adapted">An
-        object which the user adapted for primer throws an exception from its default
-        constructor, move constructor, or move assignment operator</a>
+        <span><a name="lua_primer.overview.exception_safety.an_object_which_primer_was_handl"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.an_object_which_primer_was_handl">An
+        object which primer was handling throws an exception</a>
       </h5>
 <p>
-        This also should not happen -- objects that you want to push or read from
-        primer should be nothrow move-constructible.
+        The first case is userdata types.
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Userdata types are permitted to throw exceptions from their constructors.
+            In such cases (<code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span></code>)
+            primer will abort the creation of the userdata object and free the memory
+            associated to it, and rethrow the exception. Generally primer does not
+            call this function "automatically", you always call it explicitly
+            in order to create userdata.
+          </li>
+<li class="listitem">
+            Userdata types must not throw exceptions from their destructors, if they
+            are using the "default" garbage collection function. <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span></code> will be called.
+          </li>
+</ul></div>
+<p>
+        (Hypothetically you could implement your own garbage collection function,
+        but it still wouldn't be able to throw exceptions, as they would emerge right
+        into lua.)
       </p>
 <p>
-        In certain circumstances related to containers (the <code class="computeroutput"><span class="identifier">visit_struct</span></code>
-        mechanism, the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code> mechanism), they must additionally
-        be nothrow default constructible and nothrow move assignable. There are some
-        fallbacks built into the system, in case they are not quite nothrow move
-        assignable.
+        More generally, primer sometimes handles objects for which you may have specialized
+        <code class="computeroutput"><span class="identifier">push</span></code> or <code class="computeroutput"><span class="identifier">read</span></code>.
+        These objects must satisfy some requirements.
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+            Objects which will be held in <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code>
+            must be <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
+            That is, they cannot throw from their move constructor or destructor.
+          </li></ul></div>
+<p>
+        For certain containers, that is, <span class="emphasis"><em>non-dynamic</em></span> containers
+        like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code> or structures registered using the
+        <code class="computeroutput"><span class="identifier">VISIT_STRUCT</span></code> mechanism, additional
+        requirements are placed on your objects.
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            They must be <code class="computeroutput"><span class="identifier">nothrow_constructible</span></code>.
+          </li>
+<li class="listitem">
+            They <span class="bold"><strong>should</strong></span> be <code class="computeroutput"><span class="identifier">nothrow_move_assignable</span></code>.
+            If they are not then primer will attempt fallbacks:
+            <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                  It will attempt an unqualified call to <code class="computeroutput"><span class="identifier">swap</span></code>
+                  if it resolves to a <code class="computeroutput"><span class="keyword">noexcept</span></code>
+                  function.
+                </li>
+<li class="listitem">
+                  It will call the destructor explicitly and reconstruct using move-construction
+                  with placement-new. This is usually less efficient than a move
+                  assignment, so you should avoid this by providing a <code class="computeroutput"><span class="keyword">noexcept</span></code> move assignment operator
+                  or a <code class="computeroutput"><span class="keyword">noexcept</span></code> specialization
+                  of <code class="computeroutput"><span class="identifier">swap</span></code> in your
+                  namespace or in the <code class="computeroutput"><span class="identifier">std</span></code>
+                  namespace.
+                </li>
+</ul></div>
+          </li>
+</ul></div>
 <p>
         In general, the necessary preconditions are checked via <code class="computeroutput"><span class="keyword">static_assert</span></code>
         and your code won't compile if the assumptions aren't met.
       </p>
 <p>
         For instance, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code> is an exception-safe container
-        in the strong sense. It's just that if your type is not <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>
-        then you cannot compile.
+        in the strong sense. It's just that if the contained type is not <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code> then you cannot
+        compile.
       </p>
 <h5>
 <a name="lua_primer.overview.exception_safety.h2"></a>
@@ -158,10 +262,8 @@
 <p>
         There is no mechanism in place right now to make a <code class="computeroutput"><span class="keyword">static_assert</span></code>
         that they are <code class="computeroutput"><span class="keyword">noexcept</span></code>. That
-        is something that we might add in the future.
-      </p>
-<p>
-        That being said...
+        is something that we might try to add in the future, but it's tricky for
+        various reasons.
       </p>
 <h5>
 <a name="lua_primer.overview.exception_safety.h3"></a>
@@ -169,31 +271,54 @@
         allocation failure</a>
       </h5>
 <p>
-        There are a few known situations in primer that we do things that can cause
-        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code> to be thrown, and don't have
-        proper handling for it. For instance, when constructing a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
-        from a C-string obtained from lua, or when calling <code class="computeroutput"><span class="identifier">emplace_back</span></code>
-        on a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>.
+        The only exceptions that primer actually does attempt to catch and handle
+        internally are <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code> exceptions caused when allocations
+        for <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>, <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>,
+        etc. fails. These can occur during calls to <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>.
       </p>
 <p>
-        The consequences of this can currently include:
+        Our strategy to is to clean up after ourselves and return a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> with the message <code class="computeroutput"><span class="string">"bad_alloc"</span></code>.
+        (There are some fallbacks in case this string itself cannot be allocated...
+        see <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> implementation.)
       </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-            Primer losing track of objects that it pushed onto the lua stack. If
-            this happens repeatedly, you can run out of space on the lua stack and
-            get a lua panic.
-          </li>
-<li class="listitem">
-            An exception being thrown into the adapt mechanism, causing the program
-            to be terminated.
-          </li>
-</ul></div>
 <p>
-        Similarly, we don't currently handle properly some errors that can occur
-        when <span class="emphasis"><em>lua</em></span> runs out of memory. For instance, <code class="computeroutput"><span class="identifier">lua_pushstring</span></code> can fail, only in the scenario
-        that lua cannot allocate enough memory. This could potentially cause a <code class="computeroutput"><span class="identifier">longjmp</span></code> and the leaking of objects on the
-        C++ stack.
+        From lua's point of view, what this means is that if a script calls a callback
+        function and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code> occurs while reading its parameters,
+        a lua error <code class="computeroutput"><span class="string">"bad_alloc"</span></code>
+        will result.
+      </p>
+<p>
+        In standard configurations, lua will actually be using the same allocator
+        as the overall program, which means that lua itself is likely to generate
+        a memory error itself very soon.
+      </p>
+<p>
+        However, in general we take the view that <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>
+        in a lua callback functoin is potentially recoverable. If the script can
+        run to completion even in the face of certain calls failing with errors,
+        and the lua VM itself doesn't raise a memory error, then we consider this
+        a successful outcome, and similar to how lua may work in general when you
+        call lua functions using <code class="computeroutput"><span class="identifier">pcall</span></code>.
+      </p>
+<p>
+        When reading custom containers off of the lua stack, you should likely pursue
+        a similar strategy. <span class="emphasis"><em>It is not safe to throw <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>
+        out of a specialization of <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code>,
+        this will result in the program being terminated.</em></span>
+      </p>
+<p>
+        Memory allocation failures can also occur when <span class="bold"><strong>pushing</strong></span>
+        things to lua, if the lua allocator cannot perform an allocation. This scenario
+        is somewhat more complex.
+      </p>
+<p>
+        when the lua allocator runs out of memory, almost any API function can trigger
+        the fault. For instance, <code class="computeroutput"><span class="identifier">lua_pushstring</span></code>
+        can fail, only in the scenario that lua cannot allocate enough memory. This
+        could potentially cause a <code class="computeroutput"><span class="identifier">longjmp</span></code>
+        and the leaking of objects on the C++ stack. Almost all api calls are error-free,
+        except in the case of lack of memory, but actually very few are error-free
+        in the face of an allocation failure.
       </p>
 <p>
         See especially <a href="https://www.lua.org/pil/24.3.html" target="_top">here</a>
@@ -201,31 +326,66 @@
         manual.
       </p>
 <p>
-        In the majority of projects that use the lua C api, the overhead of running
-        essentially all C api calls in protected mode is not worth the benefits.
-        Especially in the case of game projects, a <code class="computeroutput"><span class="identifier">lua_panic</span></code>
-        in the face of an out of memory error is acceptable -- the developers are
-        likely to install a custom memory allocator anyways, and they may periodically
-        check it to see if they are "close" to running out of memory and
-        preempt the situation that way. Then in the rest of the code, they run faster
-        since they basically assume that allocation always succeeds.
+        When such api calls do fail, lua immediately raises a lua error. If the call
+        is not a "protected" call, then lua panic occurs and the program
+        is terminated.
       </p>
 <p>
-        I believe that for purposes of such projects, primer is essentially working
-        correctly right now in regards to exception safety. That is, we <span class="bold"><strong>are</strong></span> correct in the face of exceptions, if we are permitted
-        to exclude the scenarios in which the lua or C++ allocator runs out of memory.
+        Even if the call is a protected call, bad things happen from the point of
+        view of C++ functions. If lua is compiled as C, then it will perform a <code class="computeroutput"><span class="identifier">longjmp</span></code> across your stack and back into
+        itself, skipping any <code class="computeroutput"><span class="keyword">catch</span></code> that
+        you may have set, and tossing any automatic objects on the stack without
+        calling their destructors. Technically this is UB. From Primer's point of
+        view, the only way we could avoid leaks in this scenario is if nearly every
+        API call were made in its own protected context, which would significantly
+        impact performance.
       </p>
 <p>
-        As a long-term goal, we would like to be able to provide correctness even
-        in the face of out-of-memory errors. Perhaps, we could add a preprocessor
-        symbol so that primer will attempt to handle <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>
-        exceptions, and will run C api calls in a protected mode so that if lua runs
-        out of memory, we can avoid a panic. However, currently that is not what
-        we do.
+        If you compile as C++ the situation is significantly better. In this case,
+        lua signals errors to itself using C++ exceptions rather than <code class="computeroutput"><span class="identifier">setjmp</span></code> and <code class="computeroutput"><span class="identifier">longjmp</span></code>.
+        This means that stack objects are not leaked and UB does not occur. In this
+        scenario, primer leaks no C++ objects and no containers are left in indeterminate
+        states.
       </p>
 <p>
-        There is an experimental branch <code class="computeroutput"><span class="identifier">primer_handle_bad_alloc</span></code>
-        which contains some partial progress towards this.
+        The only thing that primer leaks in that scenario is lua stack objects --
+        whatever it was doing at the time, it loses track of any temporary objects
+        on the lua stack and they are forgotten about. In theory we could fix this
+        by creating a series of RAII objects to protect against exceptions every
+        time we push something on the stack.
+      </p>
+<p>
+        However, there is little purpose in this. The only scenario in which these
+        errors are raised in the first place is when lua itself is running out of
+        memory, and the fault is triggered in a callback which was run by your script.
+        In that case you can simply toss the lua stack with <code class="computeroutput"><span class="identifier">lua_settop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span>
+        <span class="number">0</span><span class="special">)</span></code>
+        and any leaked stack objects are taken care of. Likely you are going to close
+        the state anyways, but even if you don't, at that point you are good to go
+        -- no C++ or lua resources are leaked.
+      </p>
+<p>
+        So, all-in-all, programs written using primer should be quite able to handle
+        exceptional situations when lua is compiled as C++, and you should be able
+        to successfully handle and recover from memory allocation errors without
+        being forced to bring down your program.
+      </p>
+<p>
+        If you don't particularly care about recovering from memory allocation failures,
+        then using lua compiled as C should be just fine.
+      </p>
+<p>
+        The main things that you must do to ensure good behavior are * Don't make
+        specializations of <code class="computeroutput"><span class="identifier">push</span></code> or
+        <code class="computeroutput"><span class="identifier">read</span></code> that throw exceptions.
+        In case of <code class="computeroutput"><span class="identifier">read</span></code>, return an
+        error. * Don't make lua callbacks that throw. Those functions should be
+        <code class="computeroutput"><span class="keyword">noexcept</span></code> and handle problems
+        internally or signal lua errors. If this really cramps your style, consider
+        making a specialization of <code class="computeroutput"><span class="identifier">adapt</span></code>
+        that catches some choice exceptions and handles them appropriately. * If
+        lua reports an out of memory error, remember to toss the stack if you attempt
+        to recover.
       </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
