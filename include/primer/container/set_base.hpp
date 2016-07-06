@@ -53,7 +53,7 @@ struct set_push_helper {
   }
   // Either three, after pushing the boolean, or max achieved when pushing key
   static constexpr detail::maybe_int stack_space_needed{
-    detail::maybe_int::max(3, 1 + detail::stack_space_needed<traits::push<first_t>>::value)};
+    detail::maybe_int::max(detail::maybe_int{3}, 1 + detail::stack_space_needed<traits::push<first_t>>::value)};
 };
 
 template <typename M>

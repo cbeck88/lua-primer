@@ -62,15 +62,24 @@ public:
 
   // Helper constructor
   /*<< This constructor takes a sequence of strings, string literals, or numbers
-      and concatenates them to form the message. The function-try block is
-      ommitted when "PRIMER_NO_EXCEPTIONS" is defined, see <primer/base.hpp> >>*/
+      and concatenates them to form the message. >>*/
+#ifdef PRIMER_NO_EXCEPTIONS
   template <typename... Args>
-  explicit error(Args &&... args) noexcept PRIMER_TRY
+  explicit error(Args &&... args) noexcept
     : msg_(primer::detail::str_cat(std::forward<Args>(args)...))
   {}
-#ifndef PRIMER_NO_EXCEPTIONS
-  catch (std::bad_alloc &) { this->set_bad_alloc_state(); }
-#endif
+#else // PRIMER_NO_EXCEPTIONS
+  template <typename... Args>
+  explicit error(Args &&... args) noexcept
+    : error()
+  {
+    PRIMER_TRY {
+      msg_ = primer::detail::str_cat(std::forward<Args>(args)...);
+    } PRIMER_CATCH(std::bad_alloc &) {
+      this->set_bad_alloc_state();
+    }
+  }
+#endif // PRIMER_NO_EXCEPTIONS
 
   // Help to give context to errors
   /*<< This method can be used to give context to errors. It takes a sequence of
