@@ -29,6 +29,7 @@ auto move_assign_noexcept(T & dest, T && src) noexcept
   dest = std::move(src);
 }
 
+// Need to use SFINAE for this in case there is no `swap`.
 template <typename T, typename ENABLE = void>
 struct is_nothrow_swappable : std::false_type {};
 
@@ -36,14 +37,14 @@ template <typename T>
 struct is_nothrow_swappable<
   T,
   enable_if_t<noexcept(
-    std::swap(*static_cast<T *>(nullptr), *static_cast<T *>(nullptr)))>>
+    swap(*static_cast<T *>(nullptr), *static_cast<T *>(nullptr)))>>
   : std::true_type {};
 
 template <typename T>
 auto move_assign_noexcept(T & dest, T && src) noexcept
   -> enable_if_t<!std::is_nothrow_move_assignable<T>::value &&
                  is_nothrow_swappable<T>::value> {
-  std::swap(dest, src);
+  swap(dest, src);
 }
 
 template <typename T>
