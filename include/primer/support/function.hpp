@@ -97,7 +97,12 @@ struct return_one {
 struct return_many {
   using return_type = expected<lua_ref_seq>;
   static return_type pop(lua_State * L, int start_idx) {
-    return primer::pop_n(L, lua_gettop(L) - start_idx + 1);
+    expected<lua_ref_seq> result = primer::error{bad_alloc_tag{}};
+    PRIMER_TRY {
+      result = primer::pop_n(L, lua_gettop(L) - start_idx + 1);
+    }
+    PRIMER_CATCH(std::bad_alloc &) {}
+    return result;
   }
   static constexpr int nrets = LUA_MULTRET;
 };
