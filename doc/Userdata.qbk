@@ -152,5 +152,10 @@ with the stack in the same position that it was found.
 
 Your function will only be called once, when the metatable is initialized, for any given lua State.
 
+[h4 More detail]
+
+The code which generates the "automatic" metatables from your list of methods is as follows:
+
+[primer_automatically_generated_metatable]
 
 [endsect]

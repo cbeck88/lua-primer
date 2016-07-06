@@ -21,18 +21,18 @@
 [import ../include/primer/lua_ref.hpp]
 [import ../include/primer/bound_function.hpp]
 [import ../include/primer/coroutine.hpp]
-[import ../include/primer/support/types.hpp]
-[import ../include/primer/container/optional_base.hpp]
-[import ../include/primer/boost/optional.hpp]
 [import ../include/primer/api/callback_registrar.hpp]
 [import ../include/primer/api/persistable.hpp]
+[import ../include/primer/boost/optional.hpp]
+[import ../include/primer/container/optional_base.hpp]
+[import ../include/primer/support/metatable.hpp]
+[import ../include/primer/support/types.hpp]
 
-[import ../test/examples/expected.cpp]
 [import ../test/core.cpp]
+[import ../test/noexcept.cpp]
 [import ../test/boost.cpp]
 [import ../test/std.cpp]
 [import ../test/api.cpp]
-
 
 [section:quickstart Quickstart]
 [include Intro.qbk]

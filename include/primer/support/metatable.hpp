@@ -74,6 +74,8 @@ template <typename T>
 struct metatable<T,
                  enable_if_t<detail::is_L_Reg_sequence<decltype(
                    primer::traits::userdata<T>::metatable)>::value>> {
+
+//[ primer_automatically_generated_metatable
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
@@ -124,15 +126,16 @@ struct metatable<T,
     // could be frightening
     if (!saw_metatable_metamethod) {
       lua_pushstring(L, udata::name);
-      lua_setfield(L, -2, "__metatable");
+      lua_setfield(L, -2, metatable_name);
     }
 
     // Set the metatable to be its own __index table, unless user overrides it.
     if (!saw_index_metamethod) {
       lua_pushvalue(L, -1);
-      lua_setfield(L, -2, "__index");
+      lua_setfield(L, -2, index_name);
     }
   }
+//]
 
   static constexpr int value = 2;
 };
