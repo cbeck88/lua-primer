@@ -68,33 +68,57 @@ script:
   - echo ${LUA_ROOT}
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS}
   - ./lua-5.3.1-tests.sh
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS} --with-lua-32bit
   - ./lua-5.3.1-tests.sh
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS} release
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS} release --with-lua-32bit
+
+  - b2 clean
+  - rm -rf bin
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} --with-lua-as-cpp
+  - ./lua-5.3.1-tests.sh
+
+  - b2 clean
+  - rm -rf bin
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} --with-lua-as-cpp --with-lua-32bit
+  - ./lua-5.3.1-tests.sh
+
+  - b2 clean
+  - rm -rf bin
+  - rm -rf stage
+  - ./run_tests.sh ${FLAGS} release --with-lua-as-cpp
+  - ./lua-5.3.1-tests.sh
 
 
   - export LUA_ROOT=lua-5.3.3
   - echo ${LUA_ROOT}
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS}
   - ./lua-5.3.3-tests.sh
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS} --with-lua-32bit
   - ./lua-5.3.3-tests.sh
@@ -103,11 +127,13 @@ script:
   - echo ${LUA_ROOT}
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS}
   - ./eris-internal-tests.sh
 
   - b2 clean
+  - rm -rf bin
   - rm -rf stage
   - ./run_tests.sh ${FLAGS} --with-lua-32bit
   - ./eris-internal-tests.sh

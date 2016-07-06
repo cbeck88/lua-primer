@@ -115,10 +115,16 @@ struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
 
     expected<T> result{primer::default_construct_in_place_tag{}};
 
-    detail::read_helper vis{L, lua_absindex(L, index)};
-    visit_struct::apply_visitor(vis, *result);
+    index = lua_absindex(L, index);
 
-    if (!vis.ok) { result = std::move(vis.ok.err()); }
+    if (!lua_istable(L, index)) {
+      result = primer::error("Expected table, found '", describe_lua_value(L, index), "'");
+    } else {
+      detail::read_helper vis{L, index};
+      visit_struct::apply_visitor(vis, *result);
+
+      if (!vis.ok) { result = std::move(vis.ok.err()); }
+    }
 
     return result;
   }
