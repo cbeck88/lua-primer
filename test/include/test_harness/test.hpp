@@ -27,12 +27,7 @@ struct test_record {
     func();
   }
 
-  void report_okay() const {
-    std::cout << " passed" << std::endl;
-  }
+  void report_okay() const { std::cout << " passed" << std::endl; }
 
-  void report_fail() const {
-    std::cout << " FAILED" << std::endl;
-  }
+  void report_fail() const { std::cout << " FAILED" << std::endl; }
 };
-

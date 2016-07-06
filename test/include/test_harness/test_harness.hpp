@@ -141,15 +141,14 @@ struct test_harness {
         okay = true;
       } catch (test_exception & te) {
         t.report_fail();
-        std::cout << "      A test condition was not met.\n      "
-                  << te.what() << std::endl;
+        std::cout << "      A test condition was not met.\n      " << te.what()
+                  << std::endl;
       } catch (std::exception & e) {
         std::cout << "      A standard exception was thrown.\n      "
                   << e.what() << std::endl;
       } catch (...) {
-        std::cout
-          << "      An unknown (exception?) was thrown.\n      !!!"
-          << std::endl;
+        std::cout << "      An unknown (exception?) was thrown.\n      !!!"
+                  << std::endl;
       }
       if (okay) {
         t.report_okay();

@@ -36,7 +36,6 @@ void test_foo() {
   auto result3 = foo(primer::error("404"));
   assert(!result3);
   assert(result3.err_str() == "404");
-
 }
 
 
@@ -62,7 +61,7 @@ int main() {
   std::cout << "Noexcept tests:" << std::endl;
 
   std::initializer_list<test_record> tests{{"first", &test_foo},
-                          {"second", &test_bar}};
+                                           {"second", &test_bar}};
 
   for (const auto & t : tests) {
     t.run();
