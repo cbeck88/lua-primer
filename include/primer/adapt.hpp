@@ -71,7 +71,7 @@ class adapt;
 //]
 
 //[ primer_adapt_trivial
-// Traditional "raw" C-style lua callbacks. They aren't even member functions.
+// Traditional "raw" C-style lua callbacks.
 // We don't have to do any work
 template <lua_CFunction target_func>
 class adapt<lua_CFunction, target_func> {
@@ -131,7 +131,6 @@ class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
       return target_func(L, (*std::move(args))...);
       // Note: * std::move(...) rather than std::move(* ...)` is important, that
       // allows it to work with expected<T&>
-      // TODO: In C++17, can we omit the std::move here and still avoid a copy?
     }
   };
 
@@ -139,10 +138,12 @@ public:
   static int adapted(lua_State * L) {
     // Estimate how much stack space we will need to read the arguments.
     // If we don't have enough, then signal an error
+    // We are guaranteed at least LUA_MINSTACK by the implementation whenever
+    // this function is called by lua.
     constexpr auto estimate =
       detail::maybe_int::max(detail::maybe_int{0},
                              primer::stack_space_for_read<Args>()...);
-    if (estimate && *estimate) {
+    if (estimate && *estimate > LUA_MINSTACK) {
       if (!lua_checkstack(L, *estimate)) {
         return luaL_error(L, "not enough stack space, needed %d", *estimate);
       }
