@@ -80,11 +80,19 @@ throws when the adapted function is called.
 
 [h4 An object which primer was handling throws an exception]
 
+The first case is userdata types.
+
 * Userdata types are permitted to throw exceptions from their constructors.
   In such cases (`primer::push_udata`) primer will abort the creation of the
   userdata object and free the memory associated to it, and rethrow the exception.
-* Userdata types must not throw exceptions from their destructors.
-  `std::terminate` will be called.
+  Generally primer does not call this function "automatically", you always call
+  it explicitly in order to create userdata.
+* Userdata types must not throw exceptions from their destructors, if they are
+  using the "default" garbage collection function. `std::terminate` will be called.
+
+(Hypothetically you could implement your own garbage collection function, but
+it still wouldn't be able to throw exceptions, as they would emerge right into
+lua.)
 
 More generally, primer sometimes handles objects for which you may have specialized
 `push` or `read`. These objects must satisfy some requirements.
@@ -101,12 +109,13 @@ are placed on your objects.
   * It will attempt an unqualified call to `swap` if it resolves to a `noexcept` function.
   * It will call the destructor explicitly and reconstruct using move-construction with
     placement-new. This is usually less efficient than a move assignment, so you should
-    avoid this by providing `noexcept` move assignment operator or a `noexcept` specialization
+    avoid this by providing a `noexcept` move assignment operator or a `noexcept` specialization
     of `swap` in your namespace or in the `std` namespace.
-    
+
 In general, the necessary preconditions are checked via `static_assert` and your code won't compile if the assumptions aren't met.
 
-For instance, `primer::expected` is an exception-safe container in the strong sense. It's just that if your type is not `nothrow_move_constructible` then you cannot compile.
+For instance, `primer::expected` is an exception-safe container in the strong sense.
+It's just that if the contained type is not `nothrow_move_constructible` then you cannot compile.
 
 [h4 A specialization of `push` or `read` throws an exception]
 
