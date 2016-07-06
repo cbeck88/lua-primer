@@ -34,17 +34,26 @@ or handle the user's exceptions, we sometimes have very few options here. Primer
     by user code at places where we aren't prepared to handle them.
 
 Note that this philosophy is different from how some lua-binding libraries work.
-For instance `LuaBridge` attempts to ['make] lua exception safe in a limited
+For instance `luabind` attempts to ['make] lua exception safe in a limited
 sense -- they put a wrapper over all functions that you pass to lua through
-their interface, which exceptions derived from a class `LuaException`. When such
-an exception is thrown by user code and reaches lua, `LuaBridge` will stash it
-away in some static storage, pass on the signal to lua as a lua error, and
-rethrow the exception on the other side, once the error presumably propagates
-out to a `pcall` somewhere.
+their interface, which catches ['all] exceptions derived from `std::exception`,
+and raises a lua error, passing the `e.what()` string to lua as error message.
+Another strategy that I've seen is to stash the exception object away in some
+static storage, pass on the signal to lua as a lua error, and rethrow the
+exception on the other side, once the error presumably propagates out to a
+`pcall` somewhere.
 
-We consider this to be not a very robust solution, and don't plan to do
-something like this in primer. If you want to create something like this, you
-are welcome to specialize the `adaptor` class to do it.
+We consider that exceptions should only be used for very serious problems, and
+that if one is thrown, it is crucial that it reaches the handler you wrote in
+your program. Any of these mechanisms that translate exceptions into lua errors
+can potentially lead to the exception being lost and swallowed if lua scripts
+are using `pcall` to call your functions, and then it becomes very difficult to
+reason about what happens next. So we consider that catching user exceptions
+and trying to sneak them across the lua call boundary is not a very robust
+solution, and we don't plan to do something like this in primer. We consider
+that it is usually a better idea to just terminate the program in cases like
+this. If you want to create some exception-to-lua-error mechanism like this,
+you are welcome to specialize the `adapt` class template in order to do it.
 
 Instead, we are mainly concerned with avoiding leaks and indeterminate states,
 and preempting exceptions in places where we can't handle them.
