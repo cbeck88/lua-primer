@@ -85,8 +85,7 @@ class coroutine {
 
       primer::push_each(thread_stack_, std::forward<Args>(args)...);
       std::tie(result, error_code) =
-        primer::detail::resume_call<return_pattern>(thread_stack_,
-                                                    sizeof...(args));
+        detail::resume_call<return_pattern>(thread_stack_, sizeof...(args));
 
       if (error_code != LUA_YIELD) { this->reset(); }
     }
