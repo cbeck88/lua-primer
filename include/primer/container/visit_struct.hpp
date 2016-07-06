@@ -46,8 +46,18 @@ struct push_helper {
   template <typename T>
   void operator()(const char * name, const T & value) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
+    PRIMER_ASSERT_TABLE(L);
     traits::push<T>::to_stack(L, value);
     lua_setfield(L, -2, name);
+  }
+};
+
+struct field_counter {
+  int count;
+
+  template <typename T>
+  void operator()(const char *, const T &) {
+    ++count;
   }
 };
 
@@ -59,9 +69,13 @@ namespace traits {
 template <typename T>
 struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
   static void to_stack(lua_State * L, const T & t) {
-    lua_newtable(L);
-    detail::push_helper vis{L};
+    {
+      detail::field_counter fc{0};
+      visit_struct::apply_visitor(fc, t);
+      lua_createtable(L, 0, fc.count);
+    }
 
+    detail::push_helper vis{L};
     visit_struct::apply_visitor(vis, t);
   }
 };
