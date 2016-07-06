@@ -129,8 +129,6 @@ Licensing and Distribution
 
 **lua primer** is available under the boost software license. To my knowledge, this is in all cases compatible with the MIT license (which is used by lua).
 
-Just in case, it is also available under the MIT license.
-
 Not generous enough? Contact me, I am flexible.
 
 Tests
