@@ -20,7 +20,7 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 namespace detail {
 
-inline const char * error_code_to_string(const int err_code) {
+inline const char * error_code_to_string(const int err_code) noexcept {
   switch (err_code) {
     case LUA_ERRSYNTAX:
       return "a syntax error:";
@@ -40,7 +40,7 @@ inline const char * error_code_to_string(const int err_code) {
 // Gets an error string from the top of the stack, forms a primer::error from
 // it.
 // Pops the error string.
-inline primer::error pop_error(lua_State * L, int err_code) {
+inline primer::error pop_error(lua_State * L, int err_code) noexcept {
   PRIMER_ASSERT(lua_gettop(L), "No error object to pop!");
   primer::error e{lua_isstring(L, -1) ? lua_tostring(L, -1)
                                       : "(no description available)"};
