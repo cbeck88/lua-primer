@@ -36,6 +36,19 @@ namespace primer {
 class bound_function {
   lua_ref ref_;
 
+  // Takes one of the structures `detail::return_none`, `detail::return_one`,
+  // `detail::return_many` as first parameter
+  template <typename return_pattern, typename... Args>
+  typename return_pattern::return_type call_impl(Args && ... args) const noexcept {
+    typename return_pattern::return_type result{primer::error{"Can't lock VM"}};
+    if (lua_State * L = ref_.push()) {
+      PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
+      primer::push_each(L, std::forward<Args>(args)...);
+      result = detail::fcn_call<return_pattern>(L, sizeof...(args));
+    }
+    return result;
+  }
+
 public:
   // Special member functions
   bound_function() noexcept = default;
@@ -67,45 +80,21 @@ public:
   /*<< Calls the function, discards any return values. (But not errors.) >>*/
   template <typename... Args>
   expected<void> call_no_ret(Args &&... args) const noexcept {
-    expected<void> result{primer::error{"Can't lock VM"}};
-
-    if (lua_State * L = ref_.push()) {
-      PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
-      primer::push_each(L, std::forward<Args>(args)...);
-      result = primer::fcn_call_no_ret(L, sizeof...(args));
-    }
-
-    return result;
+    return this->call_impl<detail::return_none>(std::forward<Args>(args)...);
   }
 
   /*<< Calls the function, returns a ref to the ['first] return value.
     (Or an error.) Discards any others. >>*/
   template <typename... Args>
   expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
-    expected<lua_ref> result{primer::error{"Can't lock VM"}};
-
-    if (lua_State * L = ref_.push()) {
-      PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
-      primer::push_each(L, std::forward<Args>(args)...);
-      result = primer::fcn_call_one_ret(L, sizeof...(args));
-    }
-
-    return result;
+    return this->call_impl<detail::return_one>(std::forward<Args>(args)...);
   }
 
   /*<< Calls the function, returns all the return values of the function,
        Or an error. >>*/
   template <typename... Args>
   expected<lua_ref_seq> call(Args &&... args) const noexcept {
-    expected<lua_ref_seq> result{primer::error{"Can't lock VM"}};
-
-    if (lua_State * L = ref_.push()) {
-      PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
-      primer::push_each(L, std::forward<Args>(args)...);
-      result = primer::fcn_call(L, sizeof...(args));
-    }
-
-    return result;
+    return this->call_impl<detail::return_many>(std::forward<Args>(args)...);
   }
 };
 //]

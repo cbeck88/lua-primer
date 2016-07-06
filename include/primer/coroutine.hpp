@@ -70,6 +70,24 @@ class coroutine {
   lua_ref ref_;
   lua_State * thread_stack_;
 
+  template <typename return_pattern, typename... Args>
+  typename return_pattern::return_type call_impl(Args &&... args) noexcept {
+    typename return_pattern::return_type result{primer::error{"Can't lock VM"}};
+
+    if (thread_stack_ && ref_) {
+      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
+
+      int error_code;
+
+      primer::push_each(thread_stack_, std::forward<Args>(args)...);
+      std::tie(result, error_code) =
+        primer::detail::resume_call<return_pattern>(thread_stack_, sizeof...(args));
+
+      if (error_code != LUA_YIELD) { this->reset(); }
+    }
+
+    return result;
+  }
 
 public:
   // Special member functions
@@ -100,62 +118,20 @@ public:
        (But not errors.)>>*/
   template <typename... Args>
   expected<void> call_no_ret(Args &&... args) noexcept {
-    expected<void> result{primer::error{"Can't lock VM"}};
-
-    if (thread_stack_ && ref_) {
-      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
-
-      int error_code;
-
-      primer::push_each(thread_stack_, std::forward<Args>(args)...);
-      std::tie(result, error_code) =
-        primer::resume_no_ret(thread_stack_, sizeof...(args));
-
-      if (error_code != LUA_YIELD) { this->reset(); }
-    }
-
-    return result;
+    return this->call_impl<detail::return_none>(std::forward<Args>(args)...);
   }
 
   /*<< Calls or resumes the coroutine, returns one value, or an error >>*/
   template <typename... Args>
   expected<lua_ref> call_one_ret(Args &&... args) noexcept {
-    expected<lua_ref> result{primer::error{"Can't lock VM"}};
-
-    if (thread_stack_ && ref_) {
-      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
-
-      int error_code;
-
-      primer::push_each(thread_stack_, std::forward<Args>(args)...);
-      std::tie(result, error_code) =
-        primer::resume_one_ret(thread_stack_, sizeof...(args));
-
-      if (error_code != LUA_YIELD) { this->reset(); }
-    }
-
-    return result;
+    return this->call_impl<detail::return_one>(std::forward<Args>(args)...);
   }
 
   /*<< Calls or resumes the coroutine, returns all return values, or an error
     >>*/
   template <typename... Args>
   expected<lua_ref_seq> call(Args &&... args) noexcept {
-    expected<lua_ref_seq> result{primer::error{"Can't lock VM"}};
-
-    if (thread_stack_ && ref_) {
-      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
-
-      int error_code;
-
-      primer::push_each(thread_stack_, std::forward<Args>(args)...);
-      std::tie(result, error_code) =
-        primer::resume(thread_stack_, sizeof...(args));
-
-      if (error_code != LUA_YIELD) { this->reset(); }
-    }
-
-    return result;
+    return this->call_impl<detail::return_many>(std::forward<Args>(args)...);
   }
 
   /*<< Check if the coroutine is valid to call >>*/
