@@ -11,7 +11,7 @@
 
  */
 
-/*` It is not an exception, and it is not thrown. 
+/*` It is not an exception, and it is not thrown.
 
 */
 
@@ -19,8 +19,10 @@
 
 */
 
-/*` Primer generally translates lua errors into `primer::error` when it performs an
-    operation which fails, and will translate `primer::error` into a lua error when
+/*` Primer generally translates lua errors into `primer::error` when it performs
+   an
+    operation which fails, and will translate `primer::error` into a lua error
+   when
     adapting callbacks.
 
 */
@@ -46,14 +48,23 @@ namespace primer {
 // Tag used to indicate a bad_alloc error
 struct bad_alloc_tag {};
 
+//<-
+// clang-format off
+//->
+
 //` The main class has some helpful constructors so that you can more easily
 //` format error messages.
 //` For instance, the expression
-//= primer::error("Bad doggie, '", dog_name_str, "'! You get ", biscuit_num, " biscuits!")
+//= primer::error("Bad doggie, '", dog_name_str, "'! You get ", biscuit_num, "biscuits!")
 //` produces a `primer::error` object with error string equal to the result of
 //= "Bad doggie, '" + dog_name_str + "'! You get " + std::to_string(biscuit_num) + " biscuits!"
 //`
 //` Main class definition:
+
+//<-
+// clang-format on
+//->
+
 class error {
   std::string msg_;
 
@@ -82,12 +93,12 @@ public:
   ~error() = default;
 
   // Bad alloc constructor
-/*<< Used to initialize the object in the `std::bad_alloc` state >>*/
+  /*<< Used to initialize the object in the `std::bad_alloc` state >>*/
   explicit error(bad_alloc_tag) noexcept { this->set_bad_alloc_state(); }
 
-// Primary constructor
-/*<< This constructor takes a sequence of strings, string literals, or numbers
-    and concatenates them to form the message. >>*/
+  // Primary constructor
+  /*<< This constructor takes a sequence of strings, string literals, or numbers
+      and concatenates them to form the message. >>*/
   template <typename... Args>
   explicit error(Args &&... args) noexcept {
     PRIMER_TRY { msg_ = primer::detail::str_cat(std::forward<Args>(args)...); }
@@ -117,8 +128,8 @@ public:
 
 } // end namespace primer
 
-//` The `prepend_error_line` method can be used to add context to an error message
-//` as it comes up the callstack. For instance,
+//` The `prepend_error_line` method can be used to add context to an error
+//` message as it comes up the callstack. For instance,
 //= err.prepend_error_line("In index [", idx, "] of table:");
 
 //]
