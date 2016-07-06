@@ -36,6 +36,8 @@ namespace primer {
 class bound_function {
   lua_ref ref_;
 
+//<-
+
   // Takes one of the structures `detail::return_none`, `detail::return_one`,
   // `detail::return_many` as first parameter
   template <typename return_pattern, typename... Args>
@@ -49,6 +51,7 @@ class bound_function {
     return result;
   }
 
+//->
 public:
   // Special member functions
   bound_function() noexcept = default;

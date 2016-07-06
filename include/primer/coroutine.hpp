@@ -70,6 +70,10 @@ class coroutine {
   lua_ref ref_;
   lua_State * thread_stack_;
 
+//<-
+
+  // Takes one of the structures `detail::return_none`, `detail::return_one`,
+  // `detail::return_many` as first parameter
   template <typename return_pattern, typename... Args>
   typename return_pattern::return_type call_impl(Args &&... args) noexcept {
     typename return_pattern::return_type result{primer::error{"Can't lock VM"}};
@@ -89,6 +93,7 @@ class coroutine {
     return result;
   }
 
+//->
 public:
   // Special member functions
   coroutine() noexcept : ref_(), thread_stack_(nullptr) {}
@@ -112,7 +117,6 @@ public:
       ref_ = lua_ref(L);              // Get ref to the thread
     }
   }
-
 
   /*<< Calls or resumes the coroutine, discards return values.
        (But not errors.)>>*/
