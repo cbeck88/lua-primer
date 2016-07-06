@@ -53,11 +53,8 @@ struct read<const char *> {
 template <>
 struct read<std::string> {
   static expected<std::string> from_stack(lua_State * L, int idx) {
-    PRIMER_TRY {
-      return read<const char *>::from_stack(L, idx);
-    } PRIMER_CATCH(std::bad_alloc &) {
-      return primer::error(bad_alloc_tag{});
-    }
+    PRIMER_TRY { return read<const char *>::from_stack(L, idx); }
+    PRIMER_CATCH(std::bad_alloc &) { return primer::error(bad_alloc_tag{}); }
   }
   static constexpr detail::maybe_int stack_space_needed{0};
 };
@@ -213,9 +210,8 @@ struct read<stringy> {
 
     if (luaL_callmeta(L, idx, "__tostring")) {
       if (const char * str = lua_tostring(L, -1)) {
-        PRIMER_TRY {
-          result = stringy{str};
-        } PRIMER_CATCH(std::bad_alloc &) {
+        PRIMER_TRY { result = stringy{str}; }
+        PRIMER_CATCH(std::bad_alloc &) {
           result = primer::error{bad_alloc_tag{}};
         }
       } else {
@@ -227,9 +223,8 @@ struct read<stringy> {
     } else {
       switch (lua_type(L, idx)) {
         case LUA_TSTRING: {
-          PRIMER_TRY {
-            result = stringy{lua_tostring(L, idx)};
-          } PRIMER_CATCH(std::bad_alloc &) {
+          PRIMER_TRY { result = stringy{lua_tostring(L, idx)}; }
+          PRIMER_CATCH(std::bad_alloc &) {
             result = primer::error{bad_alloc_tag{}};
           }
           break;
@@ -237,9 +232,8 @@ struct read<stringy> {
         case LUA_TNUMBER: {
           lua_pushvalue(L, idx);
 
-          PRIMER_TRY {
-            result = stringy{lua_tostring(L, -1)};
-          } PRIMER_CATCH(std::bad_alloc &) {
+          PRIMER_TRY { result = stringy{lua_tostring(L, -1)}; }
+          PRIMER_CATCH(std::bad_alloc &) {
             result = primer::error{bad_alloc_tag{}};
           }
 

@@ -25,20 +25,18 @@ namespace primer {
 //[ primer_error
 
 // Tag used to indicate a bad_alloc error
-struct bad_alloc_tag{};
+struct bad_alloc_tag {};
 
 class error {
   std::string msg_;
 
   void set_bad_alloc_state() noexcept {
-    PRIMER_TRY {
-      msg_ = "bad_alloc";
-    } PRIMER_CATCH(std::bad_alloc &) {
+    PRIMER_TRY { msg_ = "bad_alloc"; }
+    PRIMER_CATCH(std::bad_alloc &) {
       // no small string optimization ?! O_o
       // try a really small string
-      PRIMER_TRY {
-        msg_ = "mem";
-      } PRIMER_CATCH(std::bad_alloc &) {
+      PRIMER_TRY { msg_ = "mem"; }
+      PRIMER_CATCH(std::bad_alloc &) {
         // default ctor is noexcept in C++11
         // so is the move ctor
         msg_ = std::string{};
@@ -56,28 +54,20 @@ public:
   ~error() = default;
 
   // Bad alloc constructor
-  explicit error(bad_alloc_tag) noexcept {
-    this->set_bad_alloc_state();
-  }
+  explicit error(bad_alloc_tag) noexcept { this->set_bad_alloc_state(); }
 
-  // Helper constructor
-  /*<< This constructor takes a sequence of strings, string literals, or numbers
-      and concatenates them to form the message. >>*/
+// Helper constructor
+/*<< This constructor takes a sequence of strings, string literals, or numbers
+    and concatenates them to form the message. >>*/
 #ifdef PRIMER_NO_EXCEPTIONS
   template <typename... Args>
   explicit error(Args &&... args) noexcept
-    : msg_(primer::detail::str_cat(std::forward<Args>(args)...))
-  {}
-#else // PRIMER_NO_EXCEPTIONS
+    : msg_(primer::detail::str_cat(std::forward<Args>(args)...)) {}
+#else  // PRIMER_NO_EXCEPTIONS
   template <typename... Args>
-  explicit error(Args &&... args) noexcept
-    : error()
-  {
-    PRIMER_TRY {
-      msg_ = primer::detail::str_cat(std::forward<Args>(args)...);
-    } PRIMER_CATCH(std::bad_alloc &) {
-      this->set_bad_alloc_state();
-    }
+  explicit error(Args &&... args) noexcept : error() {
+    PRIMER_TRY { msg_ = primer::detail::str_cat(std::forward<Args>(args)...); }
+    PRIMER_CATCH(std::bad_alloc &) { this->set_bad_alloc_state(); }
   }
 #endif // PRIMER_NO_EXCEPTIONS
 
@@ -89,9 +79,8 @@ public:
   error & prepend_error_line(Args &&... args) noexcept {
     PRIMER_TRY {
       msg_ = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_;
-    } PRIMER_CATCH(std::bad_alloc &) {
-      this->set_bad_alloc_state();
     }
+    PRIMER_CATCH(std::bad_alloc &) { this->set_bad_alloc_state(); }
     return *this;
   }
 
