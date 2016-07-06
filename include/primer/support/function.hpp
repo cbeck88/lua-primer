@@ -98,12 +98,15 @@ struct return_many {
   static constexpr int nrets = LUA_MULTRET;
 };
 
+template <typename T>
+using result_t = typename T::return_type;
+
 /***
  * Generic scheme for calling a function
  */
 template <typename return_pattern>
-auto fcn_call(lua_State * L, int narg) -> typename return_pattern::return_type {
-  typename return_pattern::return_type result;
+result_t<return_pattern> fcn_call(lua_State * L, int narg) {
+  result_t<return_pattern> result;
 
   int err_code;
   int results_idx;
@@ -124,8 +127,8 @@ auto fcn_call(lua_State * L, int narg) -> typename return_pattern::return_type {
  * Generic scheme for resuming a coroutine
  */
 template <typename return_pattern>
-auto resume_call(lua_State * L, int narg) -> std::tuple<typename return_pattern::return_type, int> {
-  typename return_pattern::return_type result;
+std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L, int narg) {
+  result_t<return_pattern> result;
 
   int err_code;
   int results_idx;
@@ -140,7 +143,7 @@ auto resume_call(lua_State * L, int narg) -> std::tuple<typename return_pattern:
   }
   lua_settop(L, results_idx - 1);
 
-  return std::tuple<typename return_pattern::return_type, int>{std::move(result), err_code};
+  return std::tuple<detail::result_t<return_pattern>, int>{std::move(result), err_code};
 }
 
 } // end namespace detail
