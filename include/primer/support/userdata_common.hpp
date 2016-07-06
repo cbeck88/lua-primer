@@ -25,7 +25,7 @@ namespace primer {
 namespace detail {
 
 template <typename T>
-int common_gc_impl(lua_State * L) {
+int common_gc_impl(lua_State * L) noexcept {
   using udata = primer::traits::userdata<T>;
 
   void * d = luaL_testudata(L, 1, udata::name);
