@@ -19,4 +19,7 @@ Example Usage:
   We only provide this feature
   for convenience in a pure lua (not eris) application.]
 
+[caution The `std::function` must not throw any exceptions when it is called,
+  or `std::terminate` will be called.]
+
 [endsect]

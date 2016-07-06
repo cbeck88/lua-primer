@@ -58,7 +58,7 @@ struct std_function_udata {
     lua_setfield(L, -2, "__metatable");
   }
 
-  static R closure_function(lua_State * L, Args... args) {
+  static R closure_function(lua_State * L, Args... args) noexcept {
     PRIMER_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)),
                   "closure_function called but first upvalue is not userdata");
     void * v = lua_touserdata(L, lua_upvalueindex(1));
