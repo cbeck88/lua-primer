@@ -184,8 +184,6 @@ likely to happen, including stack corruption of lua VMs.] >>*/
 };
 //]
 
-inline void swap(lua_ref & one, lua_ref & other) noexcept {
-  one.swap(other);
-}
+inline void swap(lua_ref & one, lua_ref & other) noexcept { one.swap(other); }
 
 } // end namespace primer

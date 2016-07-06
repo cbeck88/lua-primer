@@ -70,7 +70,7 @@ class coroutine {
   lua_ref ref_;
   lua_State * thread_stack_;
 
-//<-
+  //<-
 
   // Takes one of the structures `detail::return_none`, `detail::return_one`,
   // `detail::return_many` as first parameter
@@ -85,7 +85,8 @@ class coroutine {
 
       primer::push_each(thread_stack_, std::forward<Args>(args)...);
       std::tie(result, error_code) =
-        primer::detail::resume_call<return_pattern>(thread_stack_, sizeof...(args));
+        primer::detail::resume_call<return_pattern>(thread_stack_,
+                                                    sizeof...(args));
 
       if (error_code != LUA_YIELD) { this->reset(); }
     }
@@ -93,7 +94,7 @@ class coroutine {
     return result;
   }
 
-//->
+  //->
 public:
   // Special member functions
   coroutine() noexcept : ref_(), thread_stack_(nullptr) {}

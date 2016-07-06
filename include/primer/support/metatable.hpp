@@ -75,7 +75,7 @@ struct metatable<T,
                  enable_if_t<detail::is_L_Reg_sequence<decltype(
                    primer::traits::userdata<T>::metatable)>::value>> {
 
-//[ primer_automatically_generated_metatable
+  //[ primer_automatically_generated_metatable
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
@@ -135,7 +135,7 @@ struct metatable<T,
       lua_setfield(L, -2, index_name);
     }
   }
-//]
+  //]
 
   static constexpr int value = 2;
 };

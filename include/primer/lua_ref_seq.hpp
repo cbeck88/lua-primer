@@ -77,7 +77,9 @@ struct lua_ref_seq {
   void resize(std::size_t s) { refs_.resize(s); }
   void pop_back() { refs_.pop_back(); }
   template <typename... Args>
-  void emplace_back(Args && ... args) { refs_.emplace_back(std::forward<Args>(args)...); }
+  void emplace_back(Args &&... args) {
+    refs_.emplace_back(std::forward<Args>(args)...);
+  }
 
   /*<< Push all the refs onto the stack in succession.
 Return of `true` means every push succeeded.
@@ -116,8 +118,6 @@ lua_ref_seq pop_n(lua_State * L, int n) {
 }
 
 /*<< Pop the entire stack >>*/
-lua_ref_seq pop_stack(lua_State * L) {
-  return pop_n(L, lua_gettop(L));
-}
+lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
 
 } // end namespace primer

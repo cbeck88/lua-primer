@@ -36,12 +36,12 @@ namespace primer {
 class bound_function {
   lua_ref ref_;
 
-//<-
+  //<-
 
   // Takes one of the structures `detail::return_none`, `detail::return_one`,
   // `detail::return_many` as first parameter
   template <typename return_pattern, typename... Args>
-  detail::result_t<return_pattern> call_impl(Args && ... args) const noexcept {
+  detail::result_t<return_pattern> call_impl(Args &&... args) const noexcept {
     detail::result_t<return_pattern> result{primer::error{"Can't lock VM"}};
     if (lua_State * L = ref_.push()) {
       PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
@@ -51,7 +51,7 @@ class bound_function {
     return result;
   }
 
-//->
+  //->
 public:
   // Special member functions
   bound_function() noexcept = default;

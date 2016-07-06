@@ -422,7 +422,8 @@ void test_ref_read() {
 void test_bound_function_mult_ret() {
   lua_raii L;
 
-  const char * script = ""
+  const char * script =
+    ""
     "return function(x, y)                      \n"
     "  return (x > y), x - y                    \n"
     "end                                        \n";

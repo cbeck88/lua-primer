@@ -111,14 +111,16 @@ result_t<return_pattern> fcn_call(lua_State * L, int narg) {
   int err_code;
   int results_idx;
 
-  std::tie(err_code, results_idx) = detail::pcall_helper(L, narg, return_pattern::nrets);
+  std::tie(err_code, results_idx) =
+    detail::pcall_helper(L, narg, return_pattern::nrets);
   if (err_code != LUA_OK) {
     result = detail::pop_error(L, err_code);
   } else {
     result = return_pattern::pop(L, results_idx);
   }
 
-  PRIMER_ASSERT(lua_gettop(L) == (results_idx - 1), "hmm stack discipline error");
+  PRIMER_ASSERT(lua_gettop(L) == (results_idx - 1),
+                "hmm stack discipline error");
 
   return result;
 }
@@ -127,7 +129,8 @@ result_t<return_pattern> fcn_call(lua_State * L, int narg) {
  * Generic scheme for resuming a coroutine
  */
 template <typename return_pattern>
-std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L, int narg) {
+std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L,
+                                                              int narg) {
   result_t<return_pattern> result;
 
   int err_code;
@@ -143,7 +146,8 @@ std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L, int
   }
   lua_settop(L, results_idx - 1);
 
-  return std::tuple<detail::result_t<return_pattern>, int>{std::move(result), err_code};
+  return std::tuple<detail::result_t<return_pattern>, int>{std::move(result),
+                                                           err_code};
 }
 
 } // end namespace detail
