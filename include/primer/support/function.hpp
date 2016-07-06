@@ -29,7 +29,9 @@ namespace primer {
 
 namespace detail {
 
-inline void fetch_traceback_function(lua_State * L) {
+// TODO: Would be nice to push our own C traceback function which can be
+// customized and technically cannot cause lua error when we luaopen_debug.
+inline void fetch_traceback_function(lua_State * L) noexcept {
   luaopen_debug(L);
   int result = lua_getfield(L, -1, "traceback");
   PRIMER_ASSERT(result == LUA_TFUNCTION,
@@ -42,7 +44,9 @@ inline void fetch_traceback_function(lua_State * L) {
 // Calls pcall with traceback error handler, removes error handler.
 // Error is left on top of the stack.
 // Returns the error code, and the stack index at which the return values start.
-inline std::tuple<int, int> pcall_helper(lua_State * L, int narg, int nret) {
+inline std::tuple<int, int> pcall_helper(lua_State * L,
+                                         int narg,
+                                         int nret) noexcept {
   PRIMER_ASSERT(lua_gettop(L) >= (1 + narg),
                 "Not enoguh arguments on stack for pcall!");
   PRIMER_ASSERT(lua_isfunction(L, -1 - narg), "Missing function for pcall!");
@@ -59,7 +63,7 @@ inline std::tuple<int, int> pcall_helper(lua_State * L, int narg, int nret) {
 // Calls lua_resume. If an error occurs, calls the traceback error handler,
 // removes error handler. Error is left on top of the stack.
 // Returns the error code, and the stack index at which the return values start.
-inline std::tuple<int, int> resume_helper(lua_State * L, int narg) {
+inline std::tuple<int, int> resume_helper(lua_State * L, int narg) noexcept {
   PRIMER_ASSERT(lua_gettop(L) >= (narg),
                 "Not enough arguments on stack for resume!");
 
@@ -105,7 +109,7 @@ using result_t = typename T::return_type;
  * Generic scheme for calling a function
  */
 template <typename return_pattern>
-result_t<return_pattern> fcn_call(lua_State * L, int narg) {
+result_t<return_pattern> fcn_call(lua_State * L, int narg) noexcept {
   result_t<return_pattern> result;
 
   int err_code;
@@ -130,7 +134,7 @@ result_t<return_pattern> fcn_call(lua_State * L, int narg) {
  */
 template <typename return_pattern>
 std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L,
-                                                              int narg) {
+                                                              int narg) noexcept {
   result_t<return_pattern> result;
 
   int err_code;
@@ -155,21 +159,21 @@ std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L,
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns: Either a reference to the value, or an error message. In either case
 // the results are cleared from the stack.
-inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) {
+inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) noexcept {
   return detail::fcn_call<detail::return_one>(L, narg);
 }
 
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns either a reference to the value, or an error message. In either case
 // the results are cleared from the stack.
-inline expected<void> fcn_call_no_ret(lua_State * L, int narg) {
+inline expected<void> fcn_call_no_ret(lua_State * L, int narg) noexcept {
   return detail::fcn_call<detail::return_none>(L, narg);
 }
 
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns all of the functions' results or an error message. In either case
 // the results are cleared from the stack.
-inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) {
+inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) noexcept {
   return detail::fcn_call<detail::return_many>(L, narg);
 }
 
@@ -189,7 +193,7 @@ inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) {
 // The expected<lua_ref> is first return value, the second is the error code, so
 // you can tell if yield occurred (LUA_YIELD) or return occurred (LUA_OK).
 inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L,
-                                                         int narg) {
+                                                         int narg) noexcept {
   return detail::resume_call<detail::return_one>(L, narg);
 }
 
