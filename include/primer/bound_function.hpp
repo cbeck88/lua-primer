@@ -39,9 +39,19 @@ class bound_function {
   //<-
 
   // Takes one of the structures `detail::return_none`, `detail::return_one`,
-  // `detail::return_many` as first parameter
+  // `detail::return_many` as first parameter, and all args as second.
+  // Pushes, calls, and pops them.
+  // TODO: Would fix some leakage here if it passes the return type reference
+  // down the callstack, even if its less "functional".
   template <typename return_pattern, typename... Args>
-  detail::get_return_t<return_pattern> call_impl(Args &&... args) const noexcept {
+  static detail::get_return_t<return_pattern> call_impl(lua_State * L, Args &&... args) {
+    primer::push_each(L, std::forward<Args>(args)...);
+    return detail::fcn_call<return_pattern>(L, sizeof...(Args));
+  }
+
+  // Calls the call_impl in a protected context. This version is noexcept. :)
+  template <typename return_pattern, typename... Args>
+  detail::get_return_t<return_pattern> protected_call(Args &&... args) const noexcept {
     detail::get_return_t<return_pattern> result{primer::error{"Can't lock VM"}};
     if (lua_State * L = ref_.push()) {
       auto stack_check = primer::detail::check_stack_push_each<Args...>(L);
@@ -49,8 +59,7 @@ class bound_function {
         lua_pop(L, 1);
         result = std::move(stack_check.err());
       } else {
-        primer::push_each(L, std::forward<Args>(args)...);
-        result = detail::fcn_call<return_pattern>(L, sizeof...(args));
+        result = call_impl<return_pattern, Args...>(L, std::forward<Args>(args)...);
       }
     }
     return result;
@@ -90,26 +99,26 @@ public:
   /*<< Calls the function, discards any return values. (But not errors.) >>*/
   template <typename... Args>
   expected<void> call_no_ret(Args &&... args) const noexcept {
-    return this->call_impl<detail::return_none>(std::forward<Args>(args)...);
+    return this->protected_call<detail::return_none>(std::forward<Args>(args)...);
   }
 
   /*<< Calls the function, returns a ref to the ['first] return value.
     (Or an error.) Discards any others. >>*/
   template <typename... Args>
   expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
-    return this->call_impl<detail::return_one>(std::forward<Args>(args)...);
+    return this->protected_call<detail::return_one>(std::forward<Args>(args)...);
   }
 
   /*<< Calls the function, returns all the return values of the function,
        Or an error. >>*/
   template <typename... Args>
   expected<lua_ref_seq> call(Args &&... args) const noexcept {
-    return this->call_impl<detail::return_many>(std::forward<Args>(args)...);
+    return this->protected_call<detail::return_many>(std::forward<Args>(args)...);
   }
 };
 //]
 
-inline void swap(bound_function & one, bound_function & other) {
+inline void swap(bound_function & one, bound_function & other) noexcept {
   one.swap(other);
 }
 
