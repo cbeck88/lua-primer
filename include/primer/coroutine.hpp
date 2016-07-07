@@ -75,17 +75,15 @@ class coroutine {
   // Takes one of the structures `detail::return_none`, `detail::return_one`,
   // `detail::return_many` as first parameter
   template <typename return_pattern, typename... Args>
-  detail::result_t<return_pattern> call_impl(Args &&... args) noexcept {
-    detail::result_t<return_pattern> result{primer::error{"Can't lock VM"}};
+  detail::get_return_t<return_pattern> call_impl(Args &&... args) noexcept {
+    detail::get_return_t<return_pattern> result{primer::error{"Can't lock VM"}};
 
     if (thread_stack_ && ref_) {
       PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
 
-      int error_code;
-
       primer::push_each(thread_stack_, std::forward<Args>(args)...);
-      std::tie(result, error_code) =
-        detail::resume_call<return_pattern>(thread_stack_, sizeof...(args));
+      result = detail::resume_call<return_pattern>(thread_stack_, sizeof...(args));
+      int error_code = lua_status(thread_stack_);
 
       if (error_code != LUA_YIELD) { this->reset(); }
     }

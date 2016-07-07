@@ -808,9 +808,8 @@ void primer_resume_test() {
     lua_pushinteger(T, 7);
     lua_pushboolean(T, true);
 
-    expected<lua_ref> result;
-    int code;
-    std::tie(result, code) = primer::resume_one_ret(T, 3);
+    expected<lua_ref> result = primer::resume_one_ret(T, 3);
+    int code = lua_status(T);
 
     TEST_EQ(code, LUA_OK);
     TEST(result, "expected success");
@@ -832,9 +831,8 @@ void primer_resume_test() {
     lua_pushinteger(T, 6);
     lua_pushboolean(T, true);
 
-    expected<lua_ref> result;
-    int code;
-    std::tie(result, code) = primer::resume_one_ret(T, 3);
+    expected<lua_ref> result = primer::resume_one_ret(T, 3);
+    int code = lua_status(T);
 
     TEST_EQ(code, LUA_YIELD);
     TEST(result, "expected success");
@@ -848,7 +846,8 @@ void primer_resume_test() {
     TEST_EQ(LUA_YIELD, lua_status(T));
 
     lua_pushstring(T, "asdf");
-    std::tie(result, code) = primer::resume_one_ret(T, 1);
+    result = primer::resume_one_ret(T, 1);
+    code = lua_status(T);
     TEST_EQ(code, LUA_OK);
 
     CHECK_STACK(T, 0);
@@ -862,9 +861,8 @@ void primer_resume_test() {
     lua_pushinteger(T, 7);
     lua_pushboolean(T, true);
 
-    expected<lua_ref> result;
-    int code;
-    std::tie(result, code) = primer::resume_one_ret(T, 3);
+    expected<lua_ref> result = primer::resume_one_ret(T, 3);
+    int code = lua_status(T);
 
     TEST_EQ(code, LUA_ERRRUN);
     TEST(!result, "expected an error message");
