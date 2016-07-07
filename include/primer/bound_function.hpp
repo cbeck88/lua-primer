@@ -55,9 +55,9 @@ class bound_function {
 public:
   // Special member functions
   bound_function() noexcept = default;
-  bound_function(const bound_function &) noexcept = default;
+  bound_function(const bound_function &) = default;
   bound_function(bound_function &&) noexcept = default;
-  bound_function & operator=(const bound_function &) noexcept = default;
+  bound_function & operator=(const bound_function &) = default;
   bound_function & operator=(bound_function &&) noexcept = default;
   ~bound_function() noexcept = default;
 
