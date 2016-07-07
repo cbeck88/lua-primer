@@ -87,7 +87,7 @@ You can usually ignore the result, it only fails if some of the refs in the
 ref_seq are actually in an empty state.
 If not all of the refs are in the same VM as the argument, then you get UB.
 See `lua_ref`. >>*/
-  bool push_each(lua_State * L) const {
+  bool push_each(lua_State * L) const noexcept {
     bool result = true;
     for (const auto & r : refs_) {
       bool temp = r.push(L);
@@ -98,7 +98,10 @@ See `lua_ref`. >>*/
 };
 
 /*<< Pop `n` elements from the stack `L` and put them in a lua_ref_seq.
-     They are ordered such that calling `push_each(L)` will restore them. >>*/
+     They are ordered such that calling `push_each(L)` will restore them.
+
+     Throws `std::bad_alloc`
+  >>*/
 lua_ref_seq pop_n(lua_State * L, int n) {
   lua_ref_seq result;
 
@@ -117,7 +120,7 @@ lua_ref_seq pop_n(lua_State * L, int n) {
   return result;
 }
 
-/*<< Pop the entire stack >>*/
+/*<< Pop the entire stack. Throws `std::bad_alloc`. >>*/
 lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
 
 } // end namespace primer

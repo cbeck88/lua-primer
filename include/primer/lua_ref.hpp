@@ -53,6 +53,7 @@ class lua_ref {
   }
 
   // Not to be called unless the ref is in an empty / disengaged state.
+  // Note: Technically, memory allocation failure can occur im luaL_ref.
   void init(lua_State * L) noexcept {
     if (L) {
       if (lua_gettop(L)) {

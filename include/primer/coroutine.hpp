@@ -93,6 +93,7 @@ class coroutine {
     return result;
   }
 
+  // Note: Technically, unhandled memory allocation failure on `lua_newthread`.
   //->
 public:
   // Special member functions
@@ -146,7 +147,16 @@ public:
     ref_.reset();
     thread_stack_ = nullptr;
   }
+
+  void swap(coroutine & other) noexcept {
+    ref_.swap(other.ref_);
+    std::swap(thread_stack_, other.thread_stack_);
+  }
 };
 //]
+
+inline void swap(coroutine & one, coroutine & other) {
+  one.swap(other);
+}
 
 } // end namespace primer

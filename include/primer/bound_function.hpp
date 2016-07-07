@@ -75,6 +75,7 @@ public:
   lua_State * push() const noexcept { return ref_.push(); }
   bool push(lua_State * L) const noexcept { return ref_.push(L); }
   void reset() noexcept { ref_.reset(); }
+  void swap(bound_function & other) noexcept { ref_.swap(other.ref_); }
 
   // Call methods
   // These methods attempt to lock the state which holds the lua function,
@@ -101,5 +102,9 @@ public:
   }
 };
 //]
+
+inline void swap(bound_function & one, bound_function & other) {
+  one.swap(other);
+}
 
 } // end namespace primer
