@@ -2,10 +2,16 @@
 
 `primer::push` is a template function used to push a C++ value to the stack.
 
+In the case of primitive values, it is always a direct call to the corresponding
+`lua_pushX` function.
+
+In the case of containers, it generally resolves to the
+creation of a table, with recursive calls to push to populate the members. 
+
 [primer_push]
 
-* `push` is not permitted to fail -- any C++ value that currently can be pushed,
-can be pushed without fail.
+* `push` is not permitted to fail, except in the case of lua memory allocation
+failure. In this case, it raises a lua error.
 
 * `push` always pushes exactly one object onto the stack.
 
