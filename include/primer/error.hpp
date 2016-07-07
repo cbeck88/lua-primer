@@ -69,6 +69,9 @@ class error {
   std::string msg_;
 
   /*<< This function sets the message for the `bad_alloc` state. >>*/
+  //= void set_bad_alloc_state() noexcept;
+
+  //<-
   void set_bad_alloc_state() noexcept {
     PRIMER_TRY { msg_ = "bad_alloc"; }
     PRIMER_CATCH(std::bad_alloc &) {
@@ -82,7 +85,7 @@ class error {
       }
     }
   }
-
+  //->
 public:
   // Defaulted special member functions
   error() = default;
