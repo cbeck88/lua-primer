@@ -58,7 +58,6 @@ struct map_push_helper {
               1 + detail::stack_space_needed<traits::push<first_t>>::value)};
 };
 
-// TODO: Exception safety, emplace can throw std::bad_alloc
 template <typename M>
 struct map_read_helper {
   using first_t = typename M::key_type;
@@ -88,8 +87,8 @@ struct map_read_helper {
       lua_pushvalue(L, -2); // original_top, k, v, k
       if (auto first = traits::read<first_t>::from_stack(L, -1)) {
         if (auto second = traits::read<second_t>::from_stack(L, -2)) {
-          PRIMER_TRY { result.emplace(std::move(*first), std::move(*second)); }
-          PRIMER_CATCH(std::bad_alloc &) {
+          PRIMER_TRY_BAD_ALLOC { result.emplace(std::move(*first), std::move(*second)); }
+          PRIMER_CATCH_BAD_ALLOC {
             lua_pop(L, 3);
             return primer::error(bad_alloc_tag{});
           }

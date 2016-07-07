@@ -60,7 +60,6 @@ struct read_seq_helper {
 
   // Reserve, if possible
   // Assume that it has same semantics as std::vector
-  // Note: reserve can throw std::bad_alloc
   template <typename U, typename ENABLE = void>
   struct reserve_helper {
     static void reserve(U &, int) {}
@@ -83,16 +82,16 @@ struct read_seq_helper {
     if (lua_istable(L, idx)) {
       int n = lua_rawlen(L, idx);
 
-      PRIMER_TRY { reserve_helper<T>::reserve(*result, n); }
-      PRIMER_CATCH(std::bad_alloc &) {
+      PRIMER_TRY_BAD_ALLOC { reserve_helper<T>::reserve(*result, n); }
+      PRIMER_CATCH_BAD_ALLOC {
         result = primer::error(bad_alloc_tag{});
       }
 
       for (int i = 0; (i < n) && result; ++i) {
         lua_rawgeti(L, idx, i + 1);
         if (auto object = traits::read<value_type>::from_stack(L, -1)) {
-          PRIMER_TRY { result->emplace_back(std::move(*object)); }
-          PRIMER_CATCH(std::bad_alloc &) {
+          PRIMER_TRY_BAD_ALLOC { result->emplace_back(std::move(*object)); }
+          PRIMER_CATCH_BAD_ALLOC {
             result = primer::error(bad_alloc_tag{});
           }
         } else {

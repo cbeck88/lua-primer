@@ -73,12 +73,12 @@ class error {
 
   //<-
   void set_bad_alloc_state() noexcept {
-    PRIMER_TRY { msg_ = "bad_alloc"; }
-    PRIMER_CATCH(std::bad_alloc &) {
+    PRIMER_TRY_BAD_ALLOC { msg_ = "bad_alloc"; }
+    PRIMER_CATCH_BAD_ALLOC {
       // no small string optimization ?! O_o
       // try a really small string
-      PRIMER_TRY { msg_ = "mem"; }
-      PRIMER_CATCH(std::bad_alloc &) {
+      PRIMER_TRY_BAD_ALLOC { msg_ = "mem"; }
+      PRIMER_CATCH_BAD_ALLOC {
         // default ctor is noexcept in C++11
         // so is the move ctor
         msg_ = std::string{};
@@ -104,8 +104,8 @@ public:
       and concatenates them to form the message. >>*/
   template <typename... Args>
   explicit error(Args &&... args) noexcept {
-    PRIMER_TRY { msg_ = primer::detail::str_cat(std::forward<Args>(args)...); }
-    PRIMER_CATCH(std::bad_alloc &) { this->set_bad_alloc_state(); }
+    PRIMER_TRY_BAD_ALLOC { msg_ = primer::detail::str_cat(std::forward<Args>(args)...); }
+    PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
   }
 
   // Help to give context to errors
@@ -114,10 +114,10 @@ public:
       message. >>*/
   template <typename... Args>
   error & prepend_error_line(Args &&... args) noexcept {
-    PRIMER_TRY {
+    PRIMER_TRY_BAD_ALLOC {
       msg_ = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_;
     }
-    PRIMER_CATCH(std::bad_alloc &) { this->set_bad_alloc_state(); }
+    PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
     return *this;
   }
 

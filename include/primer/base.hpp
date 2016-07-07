@@ -26,12 +26,18 @@ PRIMER_ASSERT_FILESCOPE;
 /* #define PRIMER_LUA_AS_CPP */
 /* #define PRIMER_NO_STATIC_ASSERTS */
 /* #define PRIMER_NO_EXCEPTIONS */
+/* #define PRIMER_NO_MEMORY_FAILURE */
 
 // Forward declare some lua types
 struct lua_State;
 typedef int (*lua_CFunction)(lua_State *);
 
 namespace primer { typedef unsigned int uint; } // end namespace primer
+
+// Force PRIMER_NO_MEMORY_FAILURE if lua is compiled as C
+#if !defined(PRIMER_LUA_AS_CPP) && !defined(PRIMER_NO_MEMORY_FAILURE)
+#define PRIMER_NO_MEMORY_FAILURE
+#endif
 
 #ifndef PRIMER_NO_STATIC_ASSERTS
 #define PRIMER_STATIC_ASSERT(C, M) static_assert(C, M)
@@ -47,4 +53,13 @@ namespace primer { typedef unsigned int uint; } // end namespace primer
 #define PRIMER_TRY if (1)
 #define PRIMER_CATCH(X) if (0)
 #define PRIMER_RETHROW static_assert(true, "")
+#endif
+
+// Implement PRIMER_NO_MEMORY_FAILURE for bad_alloc handling
+#ifdef PRIMER_NO_MEMORY_FAILURE
+#define PRIMER_TRY_BAD_ALLOC PRIMER_TRY
+#define PRIMER_CATCH_BAD_ALLOC PRIMER_CATCH(std::bad_alloc&)
+#else
+#define PRIMER_TRY_BAD_ALLOC if (1)
+#define PRIMER_CATCH_BAD_ALLOC if (0)
 #endif

@@ -4,51 +4,131 @@ Primer is designed with the following constraints in mind:
 
 * Primer should work whether lua is compiled as C or C++.
 * Primer should not require C++ exceptions or RTTI to be enabled.
+* Primer should be safe -- error scenarios should not lead to crashes or undefined behavior.
+* Primer should be fast -- similar in performance to if you skipped primer and coded using the C API directly.
 
-We also take as a given that it is *not* okay to throw foreign exceptions
-through lua, no matter how it is compiled.
+The main things that you must do to ensure good behavior are
+* When making a customization of `push`, do not throw C++ exceptions. A lua error should only be raised in case of lua memory allocation failure.
+* When making a customization of `read`, do not throw C++ exceptions, or raise lua errors. If reading fails, return a `primer::error`.
+* Don't make lua callbacks (`int(lua_State*)`) that throw. Those functions should handle problems internally or signal lua errors using the C api directly.
+* Don't use PRIMER_ADAPT with functions `primer_result(lua_State *, ...)` that throw. These functions should return a `primer::error` if they fail, which will cause primer to raise a corresponding lua error. These functions should only raise lua errors directly in case of lua memory allocation failure. If this really cramps your style, consider making a specialization of `adapt` that catches
+some choice exceptions.
 
-* c.f. [@http://lua-users.org/lists/lua-l/2007-10/msg00473.html lua mailing list]
-* c.f. [@http://lua-users.org/lists/lua-l/2010-03/msg00408.html more from lua mailing list]
-* c.f. [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus lua users wiki]
+[h3 Design Considerations]
 
-So, we don't throw any exceptions ourselves, and since many components of
-Primer are designed to be called by functions that will be passed to lua as function
-pointers, it's not a very good idea for them to be throwing exceptions either.
+The two error scenarios that we consider here are:
+
+* User code throws a ['C++ exception] to primer.
+* Primer executes a lua operation which raises a ['lua error].
+
+We take as a given that it is *not* okay to throw foreign exceptions
+through lua, no matter how it is compiled. [footnote c.f. [@http://lua-users.org/lists/lua-l/2007-10/msg00473.html lua mailing list]]
+[footnote c.f. [@http://lua-users.org/lists/lua-l/2010-03/msg00408.html more from lua mailing list]]
+[footnote c.f. [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus lua users wiki]]
+
+When a lua error occurs, what exactly happens is slightly different depending on
+whether lua is compiled as C or C++.
+
+When lua is compiled as C++, lua API calls raise lua errors by throwing a C++ exception, which
+propagates back into lua and is caught there. In this case primer can use standard
+techniques to prevent problems.
+
+When lua is compiled as C, the `setjmp` and `longjmp` functions are used to
+raise lua errors. The behavior is similar, but in this case, destructors of
+any C++ automatic objects are not called, and technically the standard says that
+undefined behavior results.
+
+The primary reason to compile lua as C++ rather than as C is to avoid such issues.
+When using the raw lua C api to write callbacks, idiomatic C++ is not safe if
+`longjmp` is called.
+
+Fortunately, many lua C api calls don't raise lua errors, except in the case of
+a lua memory allocation failure. [footnote See [@http://www.lua.org/manual/5.3/manual.html#4.8 4.8] in the lua manual.
+The notation `[-o, +p, x]` is there explained: [: '-' means the function never raises any error; 'm' means the function may raise out-of-memory errors and errors running a `__gc` metamethod].
+For purposes of this discussion, we are going to ignore "errors running a `__gc` metamethod". See also [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual. ]
+
+Most programs that use lua are not concerned with the possibility of a memory allocation failure,
+and are perfectly happy with a `lua_panic` and program termination in such scenarios.
+
+However, some programs are concerned with such things and Primer should be able
+to properly handle such errors. Moreover, we feel that it improves the overall reliability
+and maintainability of Primer if it is expected to be able to handle all possible errors,
+at least in some build configurations, and the build configurations which go faster
+by not handling memory allocation errors are created by explicitly disabling handling in
+select cases, rather than never having such handling at all.
+
+[h3 Goals]
+
+To handle the tradeoff here, Primer responds to a special preprocessor define
+`PRIMER_NO_MEMORY_FAILURE`.
+
+When this symbol is defined, Primer will *assume* that memory allocation failures
+will not occur, and use this assumption to *skip handling of such errors* in order to run faster. Specifically:
+
+* Any lua C api function marked with `m` in the manual (see [@http://www.lua.org/manual/5.3/manual.html#4.8 4.8]) will not raise a lua error.
+* `std::bad_alloc` will not be thrown while pushing or reading any standard type or container (`std::string`, `std::vector`).
+
+The rationale here is that lua is typically configured to use the same allocator as the rest of your program -- it's not that
+likely that lua is out of memory but the standard allocator is not, and there are few projects where the difference matters. [footnote
+Actually you can work around dependence on the standard allocator by specializing `push` and `read` for standard types `std::string`, `std::vector`, etc.with custom allocators. ]
+
+
+This symbol is ['automatically defined] if lua is compiled as C. This decision allows Primer to be written in mostly idiomatic C++ code,
+because it means we can assume that lua memory allocation failures won't lead to `longjmp`.
+
+If memory allocation failures *do* occur when this symbol is defined, ['undefined behavior will result].
+
+When lua is compiled as C++, and the symbol is not defined (the default), Primer will handle all such errors internally using `try / catch` and `lua_pcall`, without leaks
+or undefined behavior. Generally it will signal errors along normal channels to the user or to lua scripts in such cases.
+
+[h3 Handling of Errors]
+
+Since Primer sits very close to lua and most of its functions could potentially
+be called by a lua callback, ['Primer doesn't throw any exceptions itself.]
 
 Internally, Primer handles errors using a class template `expected<T>`, which
-is a discrminated union between a value and an error signal. It makes the most sense
-to return such objects to the user as well. Several functions
-that could be called by the user and could fail return this type. Essentially,
-we do that where some other libraries might throw exceptions to the user.
+is a discrminated union between a value and an error signal. When an operation
+was requested by the user and fails, usually we return this `expected<T>` type
+so that they get the error message by return value. When a callback created with
+primer fails after being called by lua, the error message is passed to lua and
+an error is raised.
 
 Since we cannot throw exceptions through lua,
 or handle the user's exceptions, we sometimes have very few options in how to
-cope with them. Primer is mainly concerned with:
+cope with them, and ['in many cases the user is not permitted to throw errors
+into Primer.]
+
+Primer is mainly concerned with:
 
 # Basic exception safety:
   # Don't leak memory / objects. Don't put objects in an indeterminate state.
-  # Don't leak lua resources, such as stack positions or lua's memory.
+  # Don't leak lua resources, e.g. fail to clean up objects on the stack.
 # Fail fast:
   # If an exception will reach lua, it is better to terminate the program.
   # If possible, use `static_assert` to enforce that exceptions will not be thrown
     by user code at places where we aren't prepared to handle them.
 
-Note that this philosophy is different from how some lua-binding libraries work.
-For instance, `luabind` attempts to ['make lua exception-safe] in a limited
+[footnote The applicability of `static_assert` is unfortunately limited. For some simple things,
+it is helpful, but for callback functions, it is problematic. When lua is compiled
+as C, then a lua error is a `longjmp`, so a function which throws no exceptions
+and may raise lua errors can be marked `noexcept`. When lua is compiled as C++,
+lua errors are exceptions, so `noexcept` cannot be used.]
+
+[h4 Comments]
+Note that this philosophy is different from how some C++ lua binding libraries work.
+[footnote For instance, `luabind` attempts to ['make lua exception-safe] in a limited
 sense -- they put a wrapper over all functions that you pass to lua through
 their interface, which catches ['all] exceptions derived from `std::exception`,
 and raises a lua error to handle them, passing the `e.what()` string to lua as
-the error message.
-
-Another strategy that I've seen is to stash the exception object away in some
+the error message.] 
+[footnote Another strategy that I've seen is to stash the exception object away in some
 static storage, pass on the signal to lua as a lua error, and rethrow the
 exception on the other side, once the error presumably propagates out to a
-`pcall` somewhere.
+`pcall` somewhere. ]
 
 We consider that exceptions should only be used for very serious problems, and
 that if one is thrown, it is crucial that it reaches the handler you wrote in
-your program. Any of these mechanisms that translate exceptions into lua errors
+your program. Any of these mechanisms that blindly translate exceptions into lua errors
 can potentially lead to the exception being lost and swallowed if lua scripts
 are using `pcall` to call your functions, and then it becomes very difficult to
 reason about what happens next. So we consider that catching user exceptions
@@ -62,6 +142,8 @@ template in order to do it.
 Instead, we are mainly concerned with avoiding leaks and indeterminate states,
 and preempting exceptions in places where we can't handle them.
 
+[h3 Exception Safety Requirements]
+
 There are three (main) ways that an exception can reach Primer:
 
 # A function which the user gave to `PRIMER_ADAPT`, to push to lua, throws an
@@ -70,7 +152,7 @@ There are three (main) ways that an exception can reach Primer:
   when it is constructed, moved, or destroyed.
 # A specialization of `push` or `read` throws an exception.
 
-The situations that we have a handle on are:
+Our handling of these situations is as follows:
 
 [h4 A user function which was adapted for lua throws an exception]
  
@@ -82,37 +164,33 @@ we fail fast by marking one of the functions within the `adapt` mechanism as
 `noexcept`, which means that `std::terminate` will be called if your function
 throws when the adapted function is called.
 
-It would be better if we could fail faster -- make a `static_assert` that any
-function passed to `adapt` is `noexcept`. However, in the C++11 standard this is
-difficult because `noexcept` is not properly part of a function pointer's type.
-(In C++17 that will change, supposedly.) There are some other complications with
-that idea when lua is compiled as C++. So, it's just a runtime error.
+[h4 A userdata object throws an exception]
 
-[h4 An object which Primer was handling throws an exception]
-
-The first case is userdata types.
-
-* Userdata types are permitted to throw exceptions from their constructors.
-  In such cases (`primer::push_udata`) Primer will abort the creation of the
-  userdata object and free the memory associated to it, and rethrow the exception.
+Userdata types are permitted to throw exceptions from their constructors.
+  In such cases (`primer::push_udata`) Primer will abort and pop the uninitialized
+  userdata object from the stack, and rethrow the exception.
   Primer does not ever call this function "automatically", you always call
-  it explicitly in order to create userdata. So the exceptions are your problem. :)
-* Userdata types must not throw exceptions from their destructors, if they are
-  using the "default" garbage collection function. `std::terminate` will be called.
+  it explicitly in order to create userdata. So this exception always returns to
+  the user and not into lua.
 
-(Hypothetically you could implement your own garbage collection function, but
-it still wouldn't be able to throw exceptions, as they would emerge right into
-lua.)
+Userdata types must not throw exceptions from their destructors, if they are
+  using the "default" garbage collection function. Even if they have custom `__gc`
+  metamethods, those metamethods must not throw exceptions. If `PRIMER_NO_MEMORY_FAILURE` is defined
+  then they are not permitted to raise lua errors either.
 
-More generally, Primer sometimes handles objects for which you may have specialized
-`push` or `read`. These objects must satisfy some requirements.
+[h4 An object which Primer was pushing or reading throws an exception from a special member function]
+
+Primer pushes C++ values by reference, and doesn't require making copies of them.
+So this actually isn't an issue with `push`.
+
+The container type `primer::expected` imposes some constraints on objects that are ['read].
 
 * Objects which will be held in `primer::expected` must be `nothrow_move_constructible`.
   That is, they cannot throw from their move constructor or destructor.
 
 For certain containers, that is, ['non-dynamic] containers like `std::array` or
 structures registered using the `VISIT_STRUCT` mechanism, additional requirements
-are placed on your objects.
+are placed on your objects when they are ['read].
 
 * They must be `nothrow_constructible`.
 * They *should* be `nothrow_move_assignable`. If they are not, then Primer will attempt fallbacks:
@@ -120,7 +198,7 @@ are placed on your objects.
   * It will call the destructor explicitly and reconstruct using move-construction with
     placement-new. This is usually less efficient than a move assignment, so you should
     avoid this by providing a `noexcept` move assignment operator or a `noexcept` specialization
-    of `swap` in your namespace or in the `std` namespace.
+    of `swap` in your namespace.
 
 In general, the necessary preconditions are checked via `static_assert` and your code won't compile if the assumptions aren't met.
 
@@ -129,87 +207,31 @@ It's just that if the contained type is not `nothrow_move_constructible` then yo
 
 [h4 A specialization of `push` or `read` throws an exception]
 
-Currently, we assume that pushing an object cannot fail.
+Pushing an object is not permitted to fail. The only failure mode is that lua
+runs out of memory and raises a lua error.
 
 Reading an object can fail, but it should return `primer::error` in that case.
 
-These functions are not supposed to throw exceptions, and currently it is considered a bug if they do.
-
-There is no mechanism in place right now to make a `static_assert` that they are `noexcept`.
-That is something that we might try to add in the future, but it's tricky for various reasons.
+These functions are not supposed to throw exceptions under any circumstances, not even `std::bad_alloc`. It is considered a bug in user code if they do.
+The built-in implementations in primer all catch and internally handle `std::bad_alloc` by returning a `primer::error`. Push should not make C++ dynamic allocations,
+the C++ object that it is pushing already exists -- only lua is supposed to be making allocations there.
 
 [h4 Memory allocation failure]
 
-The only exceptions that Primer actually does attempt to catch and handle internally
-are `std::bad_alloc` exceptions caused when allocations for `std::string`, `std::vector`,
-etc. fails. These can occur during calls to `primer::read`.
-
-Our strategy to is to clean up after ourselves and return a `primer::error` with the
-message `"bad_alloc"`. (There are some fallbacks in case this string itself cannot
-be allocated... see `primer::error` implementation.)
-
-From lua's point of view, what this means is that if a script calls a callback function
-and `std::bad_alloc` occurs while reading its parameters, a lua error `"bad_alloc"` will
-result.
-
-In standard configurations, lua will actually be using the same allocator as the overall
-program, which means that lua is itself likely to generate a memory error very soon.
-
-However, in general we take the view that `std::bad_alloc` in a lua callback function
-is potentially recoverable. If the script can run to completion even in the face of
-certain calls failing with errors, and the lua VM itself doesn't raise a memory error,
-then we consider this a successful outcome, and
-similar to how lua may works more generally when you call lua functions using `pcall`
-and allocation failures occur.
-
-When reading your custom containers off of the lua stack, you should likely pursue a similar strategy.
-
-['It is not safe to throw `std::bad_alloc` out of a specialization of `primer::traits::read`, this
-can and will result in the program being terminated.]
-
-Memory allocation failures can also occur when *pushing* things to lua, if the lua allocator
-cannot perform an allocation. This scenario is somewhat more complex.
-
-When the lua allocator runs out of memory, almost any API function can trigger the fault.
-For instance, `lua_pushstring` can fail, only in the scenario that lua cannot allocate enough memory.
-This could potentially cause a `longjmp` and the leaking of objects on the C++ stack.
-Almost all api calls are error-free, except in the case of lack of memory, but actually very few are
-error-free in the face of an allocation failure.
-
-See especially [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual.
-
-When such api calls do fail, lua immediately raises a lua error. If the call is not a "protected" call, then
-`lua_panic` occurs and the program is terminated.
-
-Even if the call is a protected call, bad things happen from the point of view of C++ functions. If lua
-is compiled as C, then it will perform a `longjmp` across your stack and back into itself, skipping any `catch` that you may have set,
-and tossing any automatic objects on the stack without calling their destructors. Technically this is UB.
-From Primer's point of view, the only way we could avoid leaks in this scenario is if nearly every API call were made
-in its own protected context, which would significantly impact performance.
-
-If you compile as C++ the situation is significantly better. In this case, lua signals errors to itself using C++ exceptions
-rather than `setjmp` and `longjmp`. This means that stack objects are not leaked and UB does not occur. In this scenario,
-Primer leaks no C++ objects and no containers are left in indeterminate states.
-
-The only thing that Primer leaks in that scenario is lua stack objects -- whatever it was doing at the time,
+When compiled as C++, Primer handles memory allocation failures gracefully, and doesn't leak any C++ objects or memory.
+The only thing that Primer leaks in that scenario is lua stack objects -- if a lua memory error is raised within a primer call, then whatever it was doing at the time,
 it loses track of any temporary objects on the lua stack and they are forgotten about. In theory we could fix this by
-creating a series of RAII objects to protect against exceptions every time we push such an object onto the stack.
+creating a series of RAII objects to protect every time we push such a temporary object onto the stack.
 
-However, there is little purpose in this. The only scenario in which these errors are raised in the first place is when
-lua itself is running out of memory, and the fault is triggered in a callback which was run by your script. In that case you can simply
-toss the lua stack with `lua_settop(L, 0)` and any leaked stack objects are taken care of. Likely you are going to close
-the state anyways, but even if you don't, at that point you are good to go -- no C++ or lua resources are leaked.
+However, there is little purpose in this. In case of a callback or a pcall, lua unwinds the stack itself when it handles errors and will take care of all of these objects.
+In case of `lua_resume` it does not unwind the stack, however, you will have to clear the thread stack after an error on resuming anyways -- primer discards the thread
+entirely in such cases.
 
 So, all-in-all, programs written using Primer should be quite able to handle exceptional situations when lua is compiled as C++,
 and you should be able to successfully handle and recover from memory allocation errors without being forced to bring down your program.
 
-If you don't particularly care about recovering from memory allocation failures, then using lua compiled as C should be just fine.
-
-The main things that you must do to ensure good behavior are
-* Don't make specializations of `push` or `read` that throw exceptions. In case of `read`, return an error.
-* Don't make lua callbacks that throw. Those functions should be `noexcept` and handle problems internally
-or signal lua errors. If this really cramps your style, consider making a specialization of `adapt` that catches
-some choice exceptions and handles them appropriately.
-* If lua reports an out of memory error, remember to toss the stack if you attempt to recover.
+If you don't care about recovering from memory allocation failures, then using lua compiled as C should be just fine.
+You just need to make sure to use callbacks of the form `primer::result (lua_State * , ...)` and not raise lua errors directly (to avoid leaks),
+or use the `int(lua_State*)` form but very carefully.
 
 [endsect]

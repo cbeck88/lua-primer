@@ -98,8 +98,8 @@ struct return_many {
   using return_type = expected<lua_ref_seq>;
   static return_type pop(lua_State * L, int start_idx) {
     expected<lua_ref_seq> result = primer::error{bad_alloc_tag{}};
-    PRIMER_TRY { result = primer::pop_n(L, lua_gettop(L) - start_idx + 1); }
-    PRIMER_CATCH(std::bad_alloc &) {}
+    PRIMER_TRY_BAD_ALLOC { result = primer::pop_n(L, lua_gettop(L) - start_idx + 1); }
+    PRIMER_CATCH_BAD_ALLOC {}
     return result;
   }
   static constexpr int nrets = LUA_MULTRET;

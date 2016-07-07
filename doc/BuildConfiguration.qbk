@@ -4,19 +4,22 @@ Primer responds to a few configuration defines:
 
 [table
   [[symbol] [effect]]
-  [[`PRIMER_DEBUG`] [This is used to enable internal assertions that primer uses to check its integrity. Especially, lua stack discipline assertions. You can turn these on if you are having lua stack corruption or overflow.]]
+  [[`PRIMER_DEBUG`] [This is used to enable internal assertions that Primer uses to check its integrity. Especially, lua stack discipline assertions. You can turn these on if you are having strange lua errors, they may reveal stack discipline problems in usre specializatoins of `push` or `read`.]]
   [[`PRIMER_LUA_AS_CPP`] [This should be used if lua is being compiled as C++ rather than as C in your project. It causes primer not to use `extern "C"` when it includes lua headers.]]
-  [[`PRIMER_NO_STATIC_ASSERTS`] [Disables all static assertions made by primer.]]
-  [[`PRIMER_NO_EXCEPTIONS`] [Disables all try / catch blocks in primer. Use this if you want to compile with -fno-exceptions.]]
+  [[`PRIMER_NO_STATIC_ASSERTS`] [Disables all static assertions made by Primer.]]
+  [[`PRIMER_NO_EXCEPTIONS`] [Disables all try / catch blocks in primer. Use this if you want to compile with `-fno-exceptions`.]]
+  [[`PRIMER_NO_MEMORY_FAILURE`] [Tells primer to use, as an optimization assumption, that lua memory allocation will never fail, and, that when populating `std::string` and standard C++ containers, that `std::bad_alloc` will not be thrown either. This allows many try/catch blocks and extra `pcall` wrappers to be eliminated.]]
 ]
 
-[caution Several data structures and functions in primer make assumptions that types used with them do not throw exceptions when default constructed, moved, etc. These assumptions are generally true for most user types and standard library types that they would be used with.
+[caution Several data structures and functions in Primer make assumptions that types used with them do not throw exceptions when default constructed, moved, etc. These assumptions are generally true for most user types and standard library types that they would be used with.
 
 However, if you are using an old compiler with an old version of the standard library, crucial constructors for objects like `std::string` are not marked `noexcept` which means that these assertions fail. In such a scenario, you cannot compile and cannot easily work around the problem.
 
 To disable the safety checks, you can define `PRIMER_NO_STATIC_ASSERTS`. You should only do this if you have an old compiler and cannot upgrade, ['and the assertions are in fact true], just not annotated appropriately in your standard library headers.
 
 In general the failure of the conditions checked by these assertions can lead to undefined behavior.]
+
+[note If lua is compiled as C, i.e., `PRIMER_LUA_AS_CPP` is not defined, then `PRIMER_NO_MEMORY_FAILURE` will be defined automatically. See Exception Safety section for rationale. (TODO Link).]
 
 To enable these, you can add them in your build system, define them in your source files before including primer, or uncomment them in the `<primer/base.hpp>` source.
 
