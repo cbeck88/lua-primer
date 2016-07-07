@@ -44,9 +44,14 @@ class bound_function {
   detail::get_return_t<return_pattern> call_impl(Args &&... args) const noexcept {
     detail::get_return_t<return_pattern> result{primer::error{"Can't lock VM"}};
     if (lua_State * L = ref_.push()) {
-      PRIMER_CHECK_STACK_PUSH_EACH(L, Args);
-      primer::push_each(L, std::forward<Args>(args)...);
-      result = detail::fcn_call<return_pattern>(L, sizeof...(args));
+      auto stack_check = primer::detail::check_stack_push_each<Args...>(L);
+      if (!stack_check) {
+        lua_pop(L, 1);
+        result = std::move(stack_check.err());
+      } else {
+        primer::push_each(L, std::forward<Args>(args)...);
+        result = detail::fcn_call<return_pattern>(L, sizeof...(args));
+      }
     }
     return result;
   }

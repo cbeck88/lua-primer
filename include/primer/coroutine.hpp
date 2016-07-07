@@ -79,13 +79,16 @@ class coroutine {
     detail::get_return_t<return_pattern> result{primer::error{"Can't lock VM"}};
 
     if (thread_stack_ && ref_) {
-      PRIMER_CHECK_STACK_PUSH_EACH(thread_stack_, Args);
+      auto stack_check = primer::detail::check_stack_push_each<Args...>(thread_stack_);
+      if (!stack_check) {
+        result = std::move(stack_check.err());
+      } else {
+        primer::push_each(thread_stack_, std::forward<Args>(args)...);
+        result = detail::resume_call<return_pattern>(thread_stack_, sizeof...(args));
+        int error_code = lua_status(thread_stack_);
 
-      primer::push_each(thread_stack_, std::forward<Args>(args)...);
-      result = detail::resume_call<return_pattern>(thread_stack_, sizeof...(args));
-      int error_code = lua_status(thread_stack_);
-
-      if (error_code != LUA_YIELD) { this->reset(); }
+        if (error_code != LUA_YIELD) { this->reset(); }
+      }
     }
 
     return result;
