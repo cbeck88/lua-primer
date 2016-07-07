@@ -108,7 +108,8 @@ public:
   coroutine & operator=(const coroutine &) = delete;
 
   // Construct from bound_function
-  explicit coroutine(const bound_function & bf) noexcept //
+  // Note: Can cause lua memory allocation failure
+  explicit coroutine(const bound_function & bf) //
     : coroutine()                                        //
   {
     if (lua_State * L = bf.push()) {

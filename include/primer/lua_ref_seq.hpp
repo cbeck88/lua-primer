@@ -100,7 +100,7 @@ See `lua_ref`. >>*/
 /*<< Pop `n` elements from the stack `L` and put them in a lua_ref_seq.
      They are ordered such that calling `push_each(L)` will restore them.
 
-     Throws `std::bad_alloc`
+     Throws `std::bad_alloc`. Can cause lua memory alloc failure
   >>*/
 lua_ref_seq pop_n(lua_State * L, int n) {
   lua_ref_seq result;
@@ -120,7 +120,7 @@ lua_ref_seq pop_n(lua_State * L, int n) {
   return result;
 }
 
-/*<< Pop the entire stack. Throws `std::bad_alloc`. >>*/
+/*<< Pop the entire stack. Throws `std::bad_alloc`. Can cause lua memory alloc failure >>*/
 lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
 
 } // end namespace primer

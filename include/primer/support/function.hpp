@@ -110,9 +110,10 @@ using result_t = typename T::return_type;
 
 /***
  * Generic scheme for calling a function
+ * Note: NOT `noexcept`, it can `primer::pop_n` can cause lua memory allocation failure
  */
 template <typename return_pattern>
-result_t<return_pattern> fcn_call(lua_State * L, int narg) noexcept {
+result_t<return_pattern> fcn_call(lua_State * L, int narg) {
   result_t<return_pattern> result;
 
   int err_code;
@@ -137,7 +138,7 @@ result_t<return_pattern> fcn_call(lua_State * L, int narg) noexcept {
  */
 template <typename return_pattern>
 std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L,
-                                                              int narg) noexcept {
+                                                              int narg) {
   result_t<return_pattern> result;
 
   int err_code;
@@ -162,21 +163,21 @@ std::tuple<detail::result_t<return_pattern>, int> resume_call(lua_State * L,
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns: Either a reference to the value, or an error message. In either case
 // the results are cleared from the stack.
-inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) noexcept {
+inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) {
   return detail::fcn_call<detail::return_one>(L, narg);
 }
 
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns either a reference to the value, or an error message. In either case
 // the results are cleared from the stack.
-inline expected<void> fcn_call_no_ret(lua_State * L, int narg) noexcept {
+inline expected<void> fcn_call_no_ret(lua_State * L, int narg) {
   return detail::fcn_call<detail::return_none>(L, narg);
 }
 
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns all of the functions' results or an error message. In either case
 // the results are cleared from the stack.
-inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) noexcept {
+inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) {
   return detail::fcn_call<detail::return_many>(L, narg);
 }
 
@@ -196,7 +197,7 @@ inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) noexcept {
 // The expected<lua_ref> is first return value, the second is the error code, so
 // you can tell if yield occurred (LUA_YIELD) or return occurred (LUA_OK).
 inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L,
-                                                         int narg) noexcept {
+                                                         int narg) {
   return detail::resume_call<detail::return_one>(L, narg);
 }
 
@@ -215,7 +216,7 @@ inline std::tuple<expected<lua_ref>, int> resume_one_ret(lua_State * L,
 // The expected<void> is (potentially) the error message, the second is the
 // error code, so you can tell if yield occurred (LUA_YIELD) or return occurred
 // (LUA_OK).
-inline std::tuple<expected<void>, int> resume_no_ret(lua_State * L, int narg) noexcept {
+inline std::tuple<expected<void>, int> resume_no_ret(lua_State * L, int narg) {
   return detail::resume_call<detail::return_none>(L, narg);
 }
 
@@ -233,7 +234,7 @@ inline std::tuple<expected<void>, int> resume_no_ret(lua_State * L, int narg) no
 // after running an error handler over it.
 // The expected<lua_ref_seq> is return sequence, the second is the error code,
 // so you can tell if yield occurred (LUA_YIELD) or return occurred (LUA_OK).
-inline std::tuple<expected<lua_ref_seq>, int> resume(lua_State * L, int narg) noexcept {
+inline std::tuple<expected<lua_ref_seq>, int> resume(lua_State * L, int narg) {
   return detail::resume_call<detail::return_many>(L, narg);
 }
 

@@ -53,8 +53,8 @@ class lua_ref {
   }
 
   // Not to be called unless the ref is in an empty / disengaged state.
-  // Note: Technically, memory allocation failure can occur im luaL_ref.
-  void init(lua_State * L) noexcept {
+  // Note: Technically, memory allocation failure can occur in luaL_ref.
+  void init(lua_State * L) {
     if (L) {
       if (lua_gettop(L)) {
         sref_ = primer::obtain_state_ref(L);
@@ -90,7 +90,7 @@ public:
 
   lua_ref() noexcept { this->set_empty(); }
   lua_ref(lua_ref && other) noexcept { this->move(other); }
-  lua_ref(const lua_ref & other) noexcept { this->init(other.push()); }
+  lua_ref(const lua_ref & other) { this->init(other.push()); }
   ~lua_ref() noexcept { this->release(); }
 
   lua_ref & operator=(const lua_ref & other) noexcept {
@@ -108,7 +108,7 @@ public:
   // Primary constructor
   /*<< Pops an object from the top of given stack, and binds to it. If no
        object is on top, enters the empty state. >>*/
-  explicit lua_ref(lua_State * L) noexcept { this->init(L); }
+  explicit lua_ref(lua_State * L) { this->init(L); }
 
   /*<< Releases the lua reference, reverts to empty state. >>*/
   void reset() noexcept { this->release(); }

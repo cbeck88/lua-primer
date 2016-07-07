@@ -64,7 +64,8 @@ public:
   // Only capture the top item if it is actually a function.
   // Pop the item *whether or not* it is a function, knowing that lua_ref will
   // pop it if we pass L
-  explicit bound_function(lua_State * L) noexcept //
+  // Note: Can cause lua memory allocation failure from `ref_` ctor.
+  explicit bound_function(lua_State * L) //
     : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
                          : nullptr) //
   {}
