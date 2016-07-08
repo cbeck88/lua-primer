@@ -99,6 +99,7 @@ class coroutine {
         } else {
 #ifdef PRIMER_NO_MEMORY_FAILURE
           call_impl(result, thread_stack_, std::forward<Args>(args)...);
+          static_cast<void>(L);
 #else
           primer::cpp_pcall(L, &call_impl<expected<return_type>, Args...>,
                             result, thread_stack_, std::forward<Args>(args)...);
