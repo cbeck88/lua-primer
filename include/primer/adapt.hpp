@@ -140,9 +140,7 @@ public:
     // If we don't have enough, then signal an error
     // We are guaranteed at least LUA_MINSTACK by the implementation whenever
     // this function is called by lua.
-    constexpr auto estimate =
-      maybe_int::max(maybe_int{0},
-                             primer::stack_space_for_read<Args>()...);
+    constexpr auto estimate = maybe_int::max(0, stack_space_for_read<Args>()...);
     if (estimate && *estimate > LUA_MINSTACK) {
       if (!lua_checkstack(L, *estimate)) {
         return luaL_error(L, "not enough stack space, needed %d", *estimate);

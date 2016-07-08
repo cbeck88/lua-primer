@@ -53,9 +53,8 @@ struct map_push_helper {
     }
   }
   static constexpr maybe_int stack_space_needed{
-    1 + maybe_int::
-          max(stack_space_needed<traits::push<second_t>>::value,
-              1 + stack_space_needed<traits::push<first_t>>::value)};
+    1 + maybe_int::max(stack_space_needed<traits::push<second_t>>::value,
+                       1 + stack_space_needed<traits::push<first_t>>::value)};
 };
 
 template <typename M>
@@ -107,9 +106,8 @@ struct map_read_helper {
     return result;
   }
   static constexpr maybe_int stack_space_needed{
-    3 + maybe_int::
-          max(stack_space_needed<traits::read<second_t>>::value,
-              stack_space_needed<traits::read<first_t>>::value)};
+    3 + maybe_int::max(stack_space_needed<traits::read<second_t>>::value,
+                       stack_space_needed<traits::read<first_t>>::value)};
 };
 
 } // end namespace detail

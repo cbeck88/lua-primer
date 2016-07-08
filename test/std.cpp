@@ -74,8 +74,7 @@ static_assert(!(maybe_int{} + maybe_int{} + maybe_int{}),
 
 static_assert(primer::traits::push<std::string>::stack_space_needed, "hmm");
 static_assert(
-  primer::stack_space_needed<primer::traits::push<std::string>>::value,
-  "hmm");
+  primer::stack_space_needed<primer::traits::push<std::string>>::value, "hmm");
 
 static_assert(stack_space_for_push<std::string>(),
               "stack space calculations wrong");

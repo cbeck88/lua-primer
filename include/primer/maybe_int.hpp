@@ -64,11 +64,10 @@ public:
   }
 
   template <typename F, typename T, typename... Args>
-  static constexpr maybe_int right_associate(F && f,
-                                             T a,
-                                             Args &&... args) {
+  static constexpr maybe_int right_associate(F && f, T a, Args &&... args) {
     return std::forward<F>(
-      f)(maybe_int::to_maybe_int(a), right_associate(std::forward<F>(f), std::forward<Args>(args)...));
+      f)(maybe_int::to_maybe_int(a),
+         right_associate(std::forward<F>(f), std::forward<Args>(args)...));
   }
 
   // Lift
