@@ -1078,7 +1078,7 @@ p_special(Info *info, Callback literal) {                          /* ... obj */
         lua_pushvalue(info->L, -2);                       /* ... obj func obj */
 
         if (info->passIOToPersist) {
-          lua_pushlightuserdata(info->L, info->u.pi.writer);
+          lua_pushlightuserdata(info->L, (void*)info->u.pi.writer);
                                                    /* ... obj func obj writer */
           lua_pushlightuserdata(info->L, info->u.pi.ud);
                                                 /* ... obj func obj writer ud */
@@ -1338,7 +1338,7 @@ u_proto(Info *info) {                                            /* ... proto */
     p->p[i] = eris_newproto(info->L);
     lua_pushlightuserdata(info->L, (void*)p->p[i]);              /* ... proto nproto */
     unpersist(info);                        /* ... proto nproto nproto/oproto */
-    cp = lua_touserdata(info->L, -1);
+    cp = (Proto*)lua_touserdata(info->L, -1);
     if (cp != p->p[i]) {                           /* ... proto nproto oproto */
       /* Just overwrite it, GC will clean this up. */
       p->p[i] = cp;
