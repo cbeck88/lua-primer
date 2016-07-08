@@ -97,9 +97,12 @@ class coroutine {
         if (!check) {
           result = std::move(check.err());
         } else {
-          // call_impl(result, thread_stack_, std::forward<Args>(args)...);
+#ifdef PRIMER_NO_MEMORY_FAILURE
+          call_impl(result, thread_stack_, std::forward<Args>(args)...);
+#else
           primer::cpp_pcall(L, &call_impl<expected<return_type>, Args...>,
                             result, thread_stack_, std::forward<Args>(args)...);
+#endif
 
           if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
         }

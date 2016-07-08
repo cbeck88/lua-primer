@@ -39,11 +39,8 @@ class bound_function {
 
   //<-
 
-  // Takes one of the structures `detail::return_none`, `detail::return_one`,
-  // `detail::return_many` as first parameter, and all args as second.
-  // Pushes, calls, and pops them.
-  // TODO: Would fix some leakage here if it passes the return type reference
-  // down the callstack, even if its less "functional".
+  // Actually execute a call. This is permitted to raise lua errors but not
+  // not to throw exceptions.
   template <typename return_type, typename... Args>
   static void call_impl(return_type & ret,
                         lua_State * L,
@@ -54,7 +51,7 @@ class bound_function {
     detail::fcn_call(ret, L, sizeof...(Args));
   }
 
-  // Calls the call_impl in a protected context. This version is noexcept. :)
+  // Calls the call_impl in a protected context. This is no fail.
   template <typename return_type, typename... Args>
   expected<return_type> protected_call(Args &&... args) const noexcept {
     expected<return_type> result{primer::error{"Can't lock VM"}};
@@ -63,9 +60,12 @@ class bound_function {
       if (!stack_check) {
         result = std::move(stack_check.err());
       } else {
-        // call_impl(result, L, ref_, std::forward<Args>(args)...);
+#ifdef PRIMER_NO_MEMORY_FAILURE
+        call_impl(result, L, ref_, std::forward<Args>(args)...);
+#else
         primer::cpp_pcall(L, &call_impl<expected<return_type>, Args...>, result,
                           L, ref_, std::forward<Args>(args)...);
+#endif
       }
     }
     return result;
