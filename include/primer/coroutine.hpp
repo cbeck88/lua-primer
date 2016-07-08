@@ -89,17 +89,21 @@ class coroutine {
   // `detail::return_many` as first parameter
   template <typename return_type, typename... Args>
   expected<return_type> protected_call(Args &&... args) noexcept {
-    expected<return_type> result{primer::error{"Can't lock VM"}};
+    expected<return_type> result{primer::error{"Invalid coroutine"}};
 
-    if (thread_stack_ && ref_) {
-      auto check = detail::check_stack_push_each<Args...>(thread_stack_);
-      if (!check) {
-        result = std::move(check.err());
+    if (thread_stack_) {
+      if (lua_State * L = ref_.lock()) {
+        auto check = detail::check_stack_push_each<Args...>(thread_stack_);
+        if (!check) {
+          result = std::move(check.err());
+        } else {
+          // call_impl(result, thread_stack_, std::forward<Args>(args)...);
+          primer::cpppcall(L, &call_impl<expected<return_type>, Args...>, result, thread_stack_, std::forward<Args>(args)...);
+
+          if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
+        }
       } else {
-        // TODO: Use cppp_call
-        call_impl(result, thread_stack_, std::forward<Args>(args)...);
-
-        if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
+        result = primer::error{"Can't lock VM"};
       }
     }
 
