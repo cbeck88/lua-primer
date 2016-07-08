@@ -74,6 +74,7 @@ struct lua_ref_seq {
 
   // Manipulation
 
+  void clear() { refs_.clear(); }
   void resize(std::size_t s) { refs_.resize(s); }
   void pop_back() { refs_.pop_back(); }
   template <typename... Args>
@@ -100,10 +101,11 @@ See `lua_ref`. >>*/
 /*<< Pop `n` elements from the stack `L` and put them in a lua_ref_seq.
      They are ordered such that calling `push_each(L)` will restore them.
 
-     Throws `std::bad_alloc`. Can cause lua memory alloc failure
+     Throws `std::bad_alloc`. Can cause lua memory alloc failure.
+     First step is clearing the lua_ref_seq, so, no strong exception-safety.
   >>*/
-lua_ref_seq pop_n(lua_State * L, int n) {
-  lua_ref_seq result;
+void pop_n(lua_State * L, int n, lua_ref_seq & result) {
+  result.clear();
 
   {
     int top = lua_gettop(L);
@@ -116,9 +118,15 @@ lua_ref_seq pop_n(lua_State * L, int n) {
   for (--n; n >= 0; --n) {
     result[n] = lua_ref{L};
   }
+}
 
+/*<< Same thing but with different return convention >>*/
+lua_ref_seq pop_n(lua_State * L, int n) {
+  lua_ref_seq result;
+  pop_n(L, n, result);
   return result;
 }
+
 
 /*<< Pop the entire stack. Throws `std::bad_alloc`. Can cause lua memory alloc failure >>*/
 lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
