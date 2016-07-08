@@ -58,7 +58,7 @@ namespace primer { typedef unsigned int uint; } // end namespace primer
 // Implement PRIMER_NO_MEMORY_FAILURE for bad_alloc handling
 #ifdef PRIMER_NO_MEMORY_FAILURE
 #define PRIMER_TRY_BAD_ALLOC PRIMER_TRY
-#define PRIMER_CATCH_BAD_ALLOC PRIMER_CATCH(std::bad_alloc&)
+#define PRIMER_CATCH_BAD_ALLOC PRIMER_CATCH(std::bad_alloc &)
 #else
 #define PRIMER_TRY_BAD_ALLOC if (1)
 #define PRIMER_CATCH_BAD_ALLOC if (0)

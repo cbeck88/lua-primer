@@ -91,9 +91,9 @@ class coroutine {
     expected<return_type> result{primer::error{"Can't lock VM"}};
 
     if (thread_stack_ && ref_) {
-      auto stack_check = primer::detail::check_stack_push_each<Args...>(thread_stack_);
-      if (!stack_check) {
-        result = std::move(stack_check.err());
+      auto check = detail::check_stack_push_each<Args...>(thread_stack_);
+      if (!check) {
+        result = std::move(check.err());
       } else {
         call_impl(result, thread_stack_, std::forward<Args>(args)...);
 
@@ -121,7 +121,7 @@ public:
   // Construct from bound_function
   // Note: Can cause lua memory allocation failure
   explicit coroutine(const bound_function & bf) //
-    : coroutine()                                        //
+    : coroutine()                               //
   {
     if (lua_State * L = bf.push()) {
       thread_stack_ = lua_newthread(L);
@@ -167,8 +167,6 @@ public:
 };
 //]
 
-inline void swap(coroutine & one, coroutine & other) {
-  one.swap(other);
-}
+inline void swap(coroutine & one, coroutine & other) noexcept { one.swap(other); }
 
 } // end namespace primer

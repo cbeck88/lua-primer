@@ -128,7 +128,8 @@ lua_ref_seq pop_n(lua_State * L, int n) {
 }
 
 
-/*<< Pop the entire stack. Throws `std::bad_alloc`. Can cause lua memory alloc failure >>*/
+/*<< Pop the entire stack. Throws `std::bad_alloc`. Can cause lua memory alloc
+ * failure >>*/
 lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
 
 } // end namespace primer

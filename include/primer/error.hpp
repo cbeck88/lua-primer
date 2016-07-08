@@ -104,7 +104,9 @@ public:
       and concatenates them to form the message. >>*/
   template <typename... Args>
   explicit error(Args &&... args) noexcept {
-    PRIMER_TRY_BAD_ALLOC { msg_ = primer::detail::str_cat(std::forward<Args>(args)...); }
+    PRIMER_TRY_BAD_ALLOC {
+      msg_ = primer::detail::str_cat(std::forward<Args>(args)...);
+    }
     PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
   }
 

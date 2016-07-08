@@ -87,7 +87,9 @@ struct map_read_helper {
       lua_pushvalue(L, -2); // original_top, k, v, k
       if (auto first = traits::read<first_t>::from_stack(L, -1)) {
         if (auto second = traits::read<second_t>::from_stack(L, -2)) {
-          PRIMER_TRY_BAD_ALLOC { result.emplace(std::move(*first), std::move(*second)); }
+          PRIMER_TRY_BAD_ALLOC {
+            result.emplace(std::move(*first), std::move(*second));
+          }
           PRIMER_CATCH_BAD_ALLOC {
             lua_pop(L, 3);
             return primer::error(bad_alloc_tag{});

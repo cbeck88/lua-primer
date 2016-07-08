@@ -25,7 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 namespace detail {
 
-template <typename ... Args>
+template <typename... Args>
 expected<void> check_stack_push_each(lua_State * L) {
   constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
   if (estimate && !lua_checkstack(L, *estimate)) {

@@ -211,9 +211,7 @@ struct read<stringy> {
     if (luaL_callmeta(L, idx, "__tostring")) {
       if (const char * str = lua_tostring(L, -1)) {
         PRIMER_TRY_BAD_ALLOC { result = stringy{str}; }
-        PRIMER_CATCH_BAD_ALLOC {
-          result = primer::error{bad_alloc_tag{}};
-        }
+        PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
       } else {
         result =
           primer::error{"__tostring metamethod did not produce a string: ",
@@ -224,18 +222,14 @@ struct read<stringy> {
       switch (lua_type(L, idx)) {
         case LUA_TSTRING: {
           PRIMER_TRY_BAD_ALLOC { result = stringy{lua_tostring(L, idx)}; }
-          PRIMER_CATCH_BAD_ALLOC {
-            result = primer::error{bad_alloc_tag{}};
-          }
+          PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
           break;
         }
         case LUA_TNUMBER: {
           lua_pushvalue(L, idx);
 
           PRIMER_TRY_BAD_ALLOC { result = stringy{lua_tostring(L, -1)}; }
-          PRIMER_CATCH_BAD_ALLOC {
-            result = primer::error{bad_alloc_tag{}};
-          }
+          PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
 
           lua_pop(L, 1);
           break;

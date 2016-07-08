@@ -89,7 +89,9 @@ template <>
 struct return_helper<void> {
   using return_type = expected<void>;
 
-  static void pop(lua_State *, int, return_type & result) noexcept { result = {}; }
+  static void pop(lua_State *, int, return_type & result) noexcept {
+    result = {};
+  }
   static constexpr int nrets = 0;
 };
 
@@ -97,7 +99,9 @@ template <>
 struct return_helper<lua_ref> {
   using return_type = expected<lua_ref>;
 
-  static void pop(lua_State * L, int, return_type & result) { result = lua_ref{L}; }
+  static void pop(lua_State * L, int, return_type & result) {
+    result = lua_ref{L};
+  }
   static constexpr int nrets = 1;
 };
 
@@ -108,10 +112,9 @@ struct return_helper<lua_ref_seq> {
   static void pop(lua_State * L, int start_idx, return_type & result) {
     PRIMER_TRY_BAD_ALLOC {
       result = return_type{default_construct_in_place_tag{}};
-      primer::pop_n(L, lua_gettop(L) - start_idx + 1, *result); }
-    PRIMER_CATCH_BAD_ALLOC {
-      result = primer::error{bad_alloc_tag{}};
+      primer::pop_n(L, lua_gettop(L) - start_idx + 1, *result);
     }
+    PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
   }
 
   static constexpr int nrets = LUA_MULTRET;
@@ -120,7 +123,8 @@ struct return_helper<lua_ref_seq> {
 
 /***
  * Generic scheme for calling a function
- * Note: NOT noexcept, it can `primer::pop_n` can cause lua memory allocation failure.
+ * Note: NOT noexcept, it can `primer::pop_n` can cause lua memory allocation
+ * failure.
  * It is `noexcept` in the no return values case.
  *
  * Note: This function should not have nontrivial objects on the stack.
