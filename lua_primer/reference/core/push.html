@@ -21,6 +21,14 @@
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is a template function used to push
           a C++ value to the stack.
         </p>
+<p>
+          In the case of primitive values, it is always a direct call to the corresponding
+          <code class="computeroutput"><span class="identifier">lua_pushX</span></code> function.
+        </p>
+<p>
+          In the case of containers, it generally resolves to the creation of a table,
+          with recursive calls to push to populate the members.
+        </p>
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
   <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">t</span><span class="special">);</span>
@@ -29,8 +37,8 @@
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
               <code class="computeroutput"><span class="identifier">push</span></code> is not permitted
-              to fail -- any C++ value that currently can be pushed, can be pushed
-              without fail.
+              to fail, except in the case of lua memory allocation failure. In this
+              case, it raises a lua error.
             </li>
 <li class="listitem">
               <code class="computeroutput"><span class="identifier">push</span></code> always pushes

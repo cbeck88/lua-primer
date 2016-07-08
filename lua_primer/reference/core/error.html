@@ -61,19 +61,7 @@
 <pre class="programlisting"><span class="keyword">class</span> <span class="identifier">error</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">msg_</span><span class="special">;</span>
 
-  <a class="co" name="lua_primer.reference.core.error.c0" href="error.html#lua_primer.reference.core.error.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">void</span> <span class="identifier">set_bad_alloc_state</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="identifier">PRIMER_TRY</span> <span class="special">{</span> <span class="identifier">msg_</span> <span class="special">=</span> <span class="string">"bad_alloc"</span><span class="special">;</span> <span class="special">}</span>
-    <span class="identifier">PRIMER_CATCH</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span> <span class="special">&amp;)</span> <span class="special">{</span>
-      <span class="comment">// no small string optimization ?! O_o</span>
-      <span class="comment">// try a really small string</span>
-      <span class="identifier">PRIMER_TRY</span> <span class="special">{</span> <span class="identifier">msg_</span> <span class="special">=</span> <span class="string">"mem"</span><span class="special">;</span> <span class="special">}</span>
-      <span class="identifier">PRIMER_CATCH</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span> <span class="special">&amp;)</span> <span class="special">{</span>
-        <span class="comment">// default ctor is noexcept in C++11</span>
-        <span class="comment">// so is the move ctor</span>
-        <span class="identifier">msg_</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{};</span>
-      <span class="special">}</span>
-    <span class="special">}</span>
-  <span class="special">}</span>
+  <a class="co" name="lua_primer.reference.core.error.c0" href="error.html#lua_primer.reference.core.error.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">void</span> <span class="identifier">set_bad_alloc_state</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
 <span class="keyword">public</span><span class="special">:</span>
   <span class="comment">// Defaulted special member functions</span>
@@ -90,17 +78,19 @@
   <span class="comment">// Primary constructor</span>
   <a class="co" name="lua_primer.reference.core.error.c4" href="error.html#lua_primer.reference.core.error.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
   <span class="keyword">explicit</span> <span class="identifier">error</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="identifier">PRIMER_TRY</span> <span class="special">{</span> <span class="identifier">msg_</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">str_cat</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span> <span class="special">}</span>
-    <span class="identifier">PRIMER_CATCH</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span> <span class="special">&amp;)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">set_bad_alloc_state</span><span class="special">();</span> <span class="special">}</span>
+    <span class="identifier">PRIMER_TRY_BAD_ALLOC</span> <span class="special">{</span>
+      <span class="identifier">msg_</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">str_cat</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+    <span class="special">}</span>
+    <span class="identifier">PRIMER_CATCH_BAD_ALLOC</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">set_bad_alloc_state</span><span class="special">();</span> <span class="special">}</span>
   <span class="special">}</span>
 
   <span class="comment">// Help to give context to errors</span>
   <a class="co" name="lua_primer.reference.core.error.c6" href="error.html#lua_primer.reference.core.error.c7"><img src="../../../images/callouts/4.png" alt="4" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
   <span class="identifier">error</span> <span class="special">&amp;</span> <span class="identifier">prepend_error_line</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="identifier">PRIMER_TRY</span> <span class="special">{</span>
+    <span class="identifier">PRIMER_TRY_BAD_ALLOC</span> <span class="special">{</span>
       <span class="identifier">msg_</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">str_cat</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...)</span> <span class="special">+</span> <span class="string">"\n"</span> <span class="special">+</span> <span class="identifier">msg_</span><span class="special">;</span>
     <span class="special">}</span>
-    <span class="identifier">PRIMER_CATCH</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span> <span class="special">&amp;)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">set_bad_alloc_state</span><span class="special">();</span> <span class="special">}</span>
+    <span class="identifier">PRIMER_CATCH_BAD_ALLOC</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">set_bad_alloc_state</span><span class="special">();</span> <span class="special">}</span>
     <span class="keyword">return</span> <span class="special">*</span><span class="keyword">this</span><span class="special">;</span>
   <span class="special">}</span>
 

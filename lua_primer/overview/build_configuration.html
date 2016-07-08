@@ -46,10 +46,11 @@
               </td>
 <td>
                 <p>
-                  This is used to enable internal assertions that primer uses to
+                  This is used to enable internal assertions that Primer uses to
                   check its integrity. Especially, lua stack discipline assertions.
-                  You can turn these on if you are having lua stack corruption or
-                  overflow.
+                  You can turn these on if you are having strange lua errors, they
+                  may reveal stack discipline problems in usre specializatoins of
+                  <code class="computeroutput"><span class="identifier">push</span></code> or <code class="computeroutput"><span class="identifier">read</span></code>.
                 </p>
               </td>
 </tr>
@@ -75,7 +76,7 @@
               </td>
 <td>
                 <p>
-                  Disables all static assertions made by primer.
+                  Disables all static assertions made by Primer.
                 </p>
               </td>
 </tr>
@@ -88,7 +89,22 @@
 <td>
                 <p>
                   Disables all try / catch blocks in primer. Use this if you want
-                  to compile with -fno-exceptions.
+                  to compile with <code class="computeroutput"><span class="special">-</span><span class="identifier">fno</span><span class="special">-</span><span class="identifier">exceptions</span></code>.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Tells primer to use, as an optimization assumption, that lua memory
+                  allocation will never fail, and, that when populating <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> and standard C++ containers,
+                  that <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code> will not be thrown
+                  either. This allows many try/catch blocks and extra <code class="computeroutput"><span class="identifier">pcall</span></code> wrappers to be eliminated.
                 </p>
               </td>
 </tr>
@@ -101,7 +117,7 @@
 </tr>
 <tr><td align="left" valign="top">
 <p>
-          Several data structures and functions in primer make assumptions that types
+          Several data structures and functions in Primer make assumptions that types
           used with them do not throw exceptions when default constructed, moved,
           etc. These assumptions are generally true for most user types and standard
           library types that they would be used with.
@@ -124,6 +140,18 @@
           lead to undefined behavior.
         </p>
 </td></tr>
+</table></div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          If lua is compiled as C, i.e., <code class="computeroutput"><span class="identifier">PRIMER_LUA_AS_CPP</span></code>
+          is not defined, then <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>
+          will be defined automatically. See Exception Safety section for rationale.
+          (TODO Link).
+        </p></td></tr>
 </table></div>
 <p>
         To enable these, you can add them in your build system, define them in your

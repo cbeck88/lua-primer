@@ -43,37 +43,37 @@
         </p>
 <p>
           In <code class="computeroutput"><span class="identifier">primer</span></code>, we support pushing
-          complex containers in a single operation.
+          complex containers in a single operation. For that to be workable, we need
+          to give you a way to figure out how much stack clearance is needed to succeed.
         </p>
 <p>
-          For convenience, we provide two functions which can estimate the stack
-          space needed:
+          We provide some <code class="computeroutput"><span class="keyword">constexpr</span></code>
+          functions that can do that for you.
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">constexpr</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">maybe_int</span> <span class="identifier">stack_space_for_read</span><span class="special">()</span> <span class="special">{</span>
-  <span class="keyword">return</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">stack_space_needed</span><span class="special">&lt;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">;</span>
-<span class="special">}</span>
-</pre>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">constexpr</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">maybe_int</span> <span class="identifier">stack_space_for_push</span><span class="special">()</span> <span class="special">{</span>
-  <span class="keyword">return</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">stack_space_needed</span><span class="special">&lt;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">;</span>
-<span class="special">}</span>
-</pre>
+<h4>
+<a name="lua_primer.reference.miscellaneous.stack_space_needed.h0"></a>
+          <span><a name="lua_primer.reference.miscellaneous.stack_space_needed.maybe_int"></a></span><a class="link" href="stack_space_needed.html#lua_primer.reference.miscellaneous.stack_space_needed.maybe_int"><code class="computeroutput"><span class="identifier">maybe_int</span></code></a>
+        </h4>
 <p>
-          These are <code class="computeroutput"><span class="keyword">constexpr</span></code> template
-          functions that tell you how much stack space is needed for a <code class="computeroutput"><span class="identifier">push</span></code> or <code class="computeroutput"><span class="identifier">read</span></code>
-          operation with a given type.
+          We provide a literal type called <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
         </p>
 <p>
-          The value that they return is <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">maybe_int</span></code>.
-        </p>
-<p>
-          You can think of this as a poor man's <code class="computeroutput"><span class="keyword">constexpr</span>
-          <span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>,
+          You can think of <code class="computeroutput"><span class="identifier">maybe_int</span></code>
+          as a poor man's <code class="computeroutput"><span class="keyword">constexpr</span> <span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>,
           with semantics such that the result of manipulating an unknown value is
           unknown.
         </p>
-<pre class="programlisting"><span class="keyword">using</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">maybe_int</span><span class="special">;</span>
+<p>
+          The value is <span class="emphasis"><em>tested</em></span> using <code class="computeroutput"><span class="keyword">operator</span>
+          <span class="keyword">bool</span></code>. If the <code class="computeroutput"><span class="identifier">maybe_int</span></code>
+          represents a known value, the operator returns <code class="computeroutput"><span class="keyword">true</span></code>.
+          If the <code class="computeroutput"><span class="identifier">maybe_int</span></code> represents
+          an unknown value, the operator returns <code class="computeroutput"><span class="keyword">false</span></code>.
+        </p>
+<p>
+          In case that there is a known value, it can be queried using <code class="computeroutput"><span class="keyword">operator</span> <span class="special">*</span></code>.
+        </p>
+<pre class="programlisting"><span class="keyword">using</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">maybe_int</span><span class="special">;</span>
 
 <span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="identifier">x</span> <span class="special">=</span> <span class="identifier">maybe_int</span><span class="special">{</span><span class="number">1</span><span class="special">};</span>
 <span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="identifier">y</span> <span class="special">=</span> <span class="identifier">maybe_int</span><span class="special">{</span><span class="number">2</span><span class="special">};</span>
@@ -90,16 +90,40 @@
 <span class="keyword">static_assert</span><span class="special">(!(</span><span class="identifier">x</span> <span class="special">+</span> <span class="identifier">z</span><span class="special">),</span> <span class="string">""</span><span class="special">);</span>
 </pre>
 <p>
-          If the <code class="computeroutput"><span class="identifier">maybe_int</span></code> is vacant
-          (<code class="computeroutput"><span class="keyword">operator</span> <span class="keyword">bool</span></code>
-          returns false), it means that no estimate was possible, for lack of information.
-          This may happen if a user-defined container or type doesn't provide an
-          estimate, by accident, or because no apriori upper bound is possible for
-          a given type.
+          <code class="computeroutput"><span class="identifier">maybe_int</span></code> supports addition,
+          subtraction, and multiplication, with <code class="computeroutput"><span class="keyword">int</span></code>
+          and with other <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
+          The result is always a <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
         </p>
 <p>
-          The estimate can be accessed using <code class="computeroutput"><span class="keyword">operator</span>
-          <span class="special">*</span></code>.
+          The <code class="computeroutput"><span class="identifier">min</span></code> and <code class="computeroutput"><span class="identifier">max</span></code> can be computed by <code class="computeroutput"><span class="identifier">maybe_int</span><span class="special">::</span><span class="identifier">min</span></code> and <code class="computeroutput"><span class="identifier">maybe_int</span><span class="special">::</span><span class="identifier">max</span></code>.
+        </p>
+<h4>
+<a name="lua_primer.reference.miscellaneous.stack_space_needed.h1"></a>
+          <span><a name="lua_primer.reference.miscellaneous.stack_space_needed.querying_stack_space_for_an_oper"></a></span><a class="link" href="stack_space_needed.html#lua_primer.reference.miscellaneous.stack_space_needed.querying_stack_space_for_an_oper">Querying
+          stack space for an operation</a>
+        </h4>
+<p>
+          For convenience, we provide two functions which can estimate the stack
+          space needed for a read or push operation with a given type.
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="identifier">maybe_int</span> <span class="identifier">stack_space_for_read</span><span class="special">()</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">stack_space_needed</span><span class="special">&lt;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="identifier">maybe_int</span> <span class="identifier">stack_space_for_push</span><span class="special">()</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">stack_space_needed</span><span class="special">&lt;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+          If the resulting <code class="computeroutput"><span class="identifier">maybe_int</span></code>
+          is vacant (<code class="computeroutput"><span class="keyword">operator</span> <span class="keyword">bool</span></code>
+          returns false), it means that no estimate was possible, for lack of information.
+          This may happen if a user-defined container or type doesn't provide an
+          estimate, by accident, or because no upper bound is possible for a given
+          type without knowledge of its runtime value.
         </p>
 <p>
           Currently we cannot provide an estimate for "visitable structures",
@@ -121,17 +145,13 @@
           or <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>.
         </p>
 <p>
-          This adds some debuggability to your project - if your lua state is running
-          out of slots or runs out of slots, if one of the adapted functions is called
-          it is likely to generate an error rather than fail silently.
-        </p>
-<p>
           If you don't define a <code class="computeroutput"><span class="identifier">stack_space_needed</span></code>
-          value then primer can't form an estimate and will just skip the stack space
-          checks.
+          value for a custom specialization of <code class="computeroutput"><span class="identifier">push</span></code>
+          or <code class="computeroutput"><span class="identifier">read</span></code>, then primer can't
+          form an estimate and will just skip the stack space checks.
         </p>
 <h5>
-<a name="lua_primer.reference.miscellaneous.stack_space_needed.h0"></a>
+<a name="lua_primer.reference.miscellaneous.stack_space_needed.h2"></a>
           <span><a name="lua_primer.reference.miscellaneous.stack_space_needed.providing_stack_space_estimates"></a></span><a class="link" href="stack_space_needed.html#lua_primer.reference.miscellaneous.stack_space_needed.providing_stack_space_estimates">Providing
           stack space estimates</a>
         </h5>
@@ -142,7 +162,7 @@
         </p>
 <p>
           <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">constexpr</span>
-          <span class="identifier">detail</span><span class="special">::</span><span class="identifier">maybe_int</span> <span class="identifier">stack_space_needed</span><span class="special">{</span><span class="number">4</span><span class="special">};</span></code>
+          <span class="identifier">maybe_int</span> <span class="identifier">stack_space_needed</span><span class="special">{</span><span class="number">4</span><span class="special">};</span></code>
         </p>
 <p>
           if e.g. four additional stack spaces are needed to complete the operation.
