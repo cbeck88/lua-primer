@@ -25,16 +25,21 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 namespace detail {
 
-template <typename... Args>
-expected<void> check_stack_push_each(lua_State * L) {
-  constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
-  if (estimate && !lua_checkstack(L, *estimate)) {
-    return primer::error{"Insufficient stack space: needed ", *estimate,
+expected<void> check_stack_push_n(lua_State * L, int n) {
+  if (n && !lua_checkstack(L, n)) {
+    return primer::error{"Insufficient stack space: needed ", n,
                          "  lua MAXSTACK = ", LUAI_MAXSTACK};
   }
   return {};
 }
 
+
+template <typename... Args>
+expected<void> check_stack_push_each(lua_State * L) {
+  constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
+  if (estimate) { return check_stack_push_n(L, *estimate); }
+  return {};
+}
 
 } // end namespace detail
 } // end namespace primer

@@ -118,7 +118,9 @@ class coroutine {
 
   // Another version, using `lua_ref_seq` as input instead of a parameter pack.
   template <typename return_type>
-  static void call_impl2(return_type & ret, lua_State * L, const lua_ref_seq & inputs) {
+  static void call_impl2(return_type & ret,
+                         lua_State * L,
+                         const lua_ref_seq & inputs) {
     inputs.push_each(L);
     detail::resume_call(ret, L, inputs.size());
   }
@@ -129,14 +131,16 @@ class coroutine {
     expected<return_type> result{primer::error{"Invalid coroutine"}};
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
-        if (!lua_checkstack(thread_stack_, inputs.size())) {
-          result = primer::error("Insufficient stack space, needed ", inputs.size());
+        auto check = detail::check_stack_push_n(thread_stack_, inputs.size());
+        if (!check) {
+          result = std::move(check.err());
         } else {
 #ifdef PRIMER_NO_MEMORY_FAILURE
           call_impl2(result, thread_stack_, inputs);
           static_cast<void>(L);
 #else
-          primer::cpp_pcall(L, &call_impl2<expected<return_type>>, result, thread_stack_, inputs);
+          primer::cpp_pcall(L, &call_impl2<expected<return_type>>, result,
+                            thread_stack_, inputs);
 #endif
         }
       } else {
@@ -208,17 +212,17 @@ public:
     return this->protected_call<lua_ref_seq>(std::forward<Args>(args)...);
   }
 
-  // Same thing but using lua_ref_seq as argument
-  // Use a macro so that we can get const &, &&, and & qualifiers defined.
-  #define CALL_REF_SEQ_HELPER(N, T, QUAL)                                      \
+// Same thing but using lua_ref_seq as argument
+// Use a macro so that we can get const &, &&, and & qualifiers defined.
+#define CALL_REF_SEQ_HELPER(N, T, QUAL)                                        \
   expected<T> N(lua_ref_seq QUAL inputs) noexcept {                            \
     return this->protected_call2<T>(inputs);                                   \
   }
 
-  #define CALL_REF_SEQ(N, T)                                                   \
+#define CALL_REF_SEQ(N, T)                                                     \
   CALL_REF_SEQ_HELPER(N, T, &)                                                 \
   CALL_REF_SEQ_HELPER(N, T, const &)                                           \
-  CALL_REF_SEQ_HELPER(N, T, &&)                                                \
+  CALL_REF_SEQ_HELPER(N, T, &&)
 
   // Actual declarations
 
@@ -226,8 +230,8 @@ public:
   CALL_REF_SEQ(call_one_ret, lua_ref)
   CALL_REF_SEQ(call, lua_ref_seq)
 
-  #undef CALL_REF_SEQ
-  #undef CALL_REF_SEQ_HELPER
+#undef CALL_REF_SEQ
+#undef CALL_REF_SEQ_HELPER
 };
 //]
 

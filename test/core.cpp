@@ -1036,11 +1036,11 @@ void test_coroutine() {
   CHECK_STACK(L, 0);
 
   const char * script =
-   "return function(x, y)                               \n"
-   "  while true do                                     \n"
-   "    x, y = yield(x + y, x - y)                      \n"
-   "  end                                               \n"
-   "end                                                 \n";
+    "return function(x, y)                               \n"
+    "  while true do                                     \n"
+    "    x, y = yield(x + y, x - y)                      \n"
+    "  end                                               \n"
+    "end                                                 \n";
 
   TEST_EQ(LUA_OK, luaL_loadstring(L, script));
   TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
