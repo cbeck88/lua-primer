@@ -19,6 +19,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/support/diagnostics.hpp>
 #include <primer/traits/userdata.hpp>
+#include <type_traits>
 
 namespace primer {
 
@@ -26,6 +27,8 @@ namespace detail {
 
 template <typename T>
 int common_gc_impl(lua_State * L) noexcept {
+  PRIMER_STATIC_ASSERT(std::is_nothrow_destructible<T>::value, "userdata type must be no-throw destructible, or you must write a custom __gc which handles the exception");
+
   using udata = primer::traits::userdata<T>;
 
   void * d = luaL_testudata(L, 1, udata::name);
