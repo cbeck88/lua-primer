@@ -6,48 +6,31 @@
 #pragma once
 
 /***
- * A coroutine is a thread of execution in a lua VM. Unlike a function call,
- * a coroutine can "pause", or "yield", see documentation. It can be then be
- * "resumed" and continue execution from the point of pause.
+ * primer::coroutine is a safe and convenient wrapper over lua's coroutines.
  *
- * When it yields, that is an opportunity to return some "intermediate" values
- * to the caller if desired, and when it is resumed, the caller can pass some
- * more values back to it. This is especially useful for GUI programming and
- * other things where you might want to invoke a dialog to get user input,
- * and pause yourself until the user comes back with an answer. Without the
- * benefit of coroutines, you need to make a polling / dispatch system for that,
- * and it ends up being a lot uglier to write the lua scripts usually.
+ * The idea is to abstract the difference between an uncalled coroutine and a
+ * yielded coroutine, and make calling it have the same interface as a bound
+ * function.
  *
- * Coroutines can be used just fine from the C api. The primer::coroutine object
- * is a convenient helper for a certain style of coroutine usage.
+ * Coroutines are either "valid to call" or "invalid" to call. You can tell by
+ * testing it using operator bool.
  *
- * A primer::coroutine is constructed from a bound function. This is initilaizes
- * the actual "thread" object, pushes the function onto the thread stack, and
- * stores a reference to the thread in the registry.
+ * It is called using methods `call_no_ret`, `call_one_ret` or `call`.
+ * This boils down to a `lua_resume` call. You can pass it a variable number of
+ * `pushables` or pass it a `lua_ref_seq` as arguments to the call.
  *
- * The coroutine can be "called", which passes it arguments and transfers
- * control to it, (calls `lua_resume`) whether starting for the first time,
- * or waking up again after a yield.
+ * Calling the coroutine object will not raise a lua error or throw an
+ * exception.
  *
- * The coroutine wrapper object has an `explicit operator bool()` which returns
- * true if the coroutine is legal to call. (Either, it has been properly
- * initialized and not called yet, or it was called already and it yielded.)
+ * It can only be constructed from a primer::bound_function.
  *
- * The idea of the object is to abstract the difference between an uncalled
- * coroutine
- * and a yielded coroutine, so the interface doesn't let you access `lua_status`
- * of
- * the coroutine. If you need fine-grained control then you might want to do it
- * manually using the C api.
+ * If a coroutine returns, or raises an error, then the coroutine object will
+ * become invalid to call. A new coroutine can be made from the bound_function.
  *
- * Coroutine is also non-copyable. Hypothetically we could use eris to duplicate
- * a yielded coroutine, but it would be complex and potentially expensive, so
- * in current versions, we don't.
+ * Not everything that you can do with coroutines can be done with this object.
+ * If you need fine-grained control then you should do it manually using the C
+ * api.
  *
- * If the coroutine finishes or reports an error, it is no longer legal to call
- * it.
- * You should construct a new wrapper object if you want to call the function
- * again.
  */
 
 #include <primer/base.hpp>

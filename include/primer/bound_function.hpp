@@ -8,12 +8,13 @@
 /***
  * A bound_function is a reference to an object of function type in a lua VM.
  *
- * This is just a convenience wrapper over lua_ref. The constructor provides
+ * This is a safe and convenience wrapper over lua_ref. The constructor provides
  * a check against `lua_isfunction`, and we provide several "call" methods which
  * are backed up by `primer/support/function.hpp`. These functions do not
  * require a lua_State * -- they attempt to lock the state that holds the
  * function, and the stack should be left unchanged, even if an error occurs.
  *
+ * Calling this object will not raise a lua error or throw an exception.
  */
 
 #include <primer/base.hpp>
