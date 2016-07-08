@@ -26,7 +26,7 @@ using primer::stack_space_for_push;
 using primer::stack_space_for_push_each;
 
 //[ primer_example_maybe_int
-using primer::detail::maybe_int;
+using primer::maybe_int;
 
 constexpr auto x = maybe_int{1};
 constexpr auto y = maybe_int{2};
@@ -74,7 +74,7 @@ static_assert(!(maybe_int{} + maybe_int{} + maybe_int{}),
 
 static_assert(primer::traits::push<std::string>::stack_space_needed, "hmm");
 static_assert(
-  primer::detail::stack_space_needed<primer::traits::push<std::string>>::value,
+  primer::stack_space_needed<primer::traits::push<std::string>>::value,
   "hmm");
 
 static_assert(stack_space_for_push<std::string>(),

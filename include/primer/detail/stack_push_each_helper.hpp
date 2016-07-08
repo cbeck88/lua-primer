@@ -15,7 +15,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/detail/count.hpp>
-#include <primer/detail/maybe_int.hpp>
+#include <primer/maybe_int.hpp>
 #include <primer/detail/type_traits.hpp>
 #include <primer/traits/push.hpp>
 

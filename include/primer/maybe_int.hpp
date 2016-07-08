@@ -33,13 +33,14 @@
 #include <utility>
 
 namespace primer {
-namespace detail {
 
 // Poor man's constexpr optional<int>
-struct maybe_int {
+class maybe_int {
   int value;
   bool unknown;
 
+public:
+  // Ctors
   constexpr maybe_int() noexcept : value(0), unknown(true) {}
   constexpr maybe_int(maybe_int &&) noexcept = default;
   constexpr maybe_int(const maybe_int &) noexcept = default;
@@ -48,21 +49,26 @@ struct maybe_int {
 
   constexpr explicit maybe_int(int v) noexcept : value(v), unknown(false) {}
 
+  // Accessors
   constexpr int operator*() const noexcept { return value; }
   constexpr explicit operator bool() const noexcept { return !unknown; }
 
-  // Right associate
-  template <typename F>
-  static constexpr maybe_int right_associate(F &&, maybe_int a) {
-    return a;
+  // No implicit constructor from int, but there is an explicit converter
+  static constexpr maybe_int to_maybe_int(maybe_int m) { return m; }
+  static constexpr maybe_int to_maybe_int(int i) { return maybe_int{i}; }
+
+  // Right associate a binary operation (F) over maybe_int's.
+  template <typename F, typename T>
+  static constexpr maybe_int right_associate(F &&, T && a) {
+    return maybe_int::to_maybe_int(a);
   }
 
-  template <typename F, typename... Args>
+  template <typename F, typename T, typename... Args>
   static constexpr maybe_int right_associate(F && f,
-                                             maybe_int a,
+                                             T a,
                                              Args &&... args) {
     return std::forward<F>(
-      f)(a, right_associate(std::forward<F>(f), std::forward<Args>(args)...));
+      f)(maybe_int::to_maybe_int(a), right_associate(std::forward<F>(f), std::forward<Args>(args)...));
   }
 
   // Lift
@@ -81,14 +87,10 @@ struct maybe_int {
 
   // Liftees
   static constexpr int add_int(int a, int b) { return a + b; }
+  static constexpr int sub_int(int a, int b) { return a - b; }
+  static constexpr int mult_int(int a, int b) { return a * b; }
   static constexpr int max_int(int a, int b) { return a > b ? a : b; }
   static constexpr int min_int(int a, int b) { return a < b ? a : b; }
-
-  // Add
-  template <typename... Args>
-  static constexpr maybe_int add(Args &&... args) noexcept {
-    return right_associate(lift(add_int), std::forward<Args>(args)...);
-  }
 
   // Max
   template <typename... Args>
@@ -104,15 +106,38 @@ struct maybe_int {
 
   // For convenience
   constexpr maybe_int operator+(int i) const {
-    return maybe_int::add(*this, maybe_int{i});
+    return lift(add_int)(*this, maybe_int{i});
   }
 
   constexpr maybe_int operator+(maybe_int i) const {
-    return maybe_int::add(*this, i);
+    return lift(add_int)(*this, i);
+  }
+
+  constexpr maybe_int operator*(int i) const {
+    return lift(mult_int)(*this, maybe_int{i});
+  }
+
+  constexpr maybe_int operator*(maybe_int i) const {
+    return lift(mult_int)(*this, i);
+  }
+
+  constexpr maybe_int operator-(int i) const {
+    return lift(sub_int)(*this, maybe_int{i});
+  }
+
+  constexpr maybe_int operator-(maybe_int i) const {
+    return lift(sub_int)(*this, i);
+  }
+
+  // Unary minus
+  constexpr maybe_int operator-() const {
+    return this->unknown ? maybe_int{} : maybe_int{-this->value};
   }
 };
 
 constexpr inline maybe_int operator+(int a, maybe_int b) { return b + a; }
+constexpr inline maybe_int operator-(int a, maybe_int b) { return b - a; }
+constexpr inline maybe_int operator*(int a, maybe_int b) { return b * a; }
 
 /***
  * Trait which grabs from a structure the value "stack_space_needed", as a
@@ -133,5 +158,4 @@ struct stack_space_needed<
   static constexpr maybe_int value{T::stack_space_needed};
 };
 
-} // end namespace detail
 } // end namespace primer

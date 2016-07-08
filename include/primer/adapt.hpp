@@ -47,7 +47,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/result.hpp>
 
 #include <primer/detail/count.hpp>
-#include <primer/detail/maybe_int.hpp>
+#include <primer/maybe_int.hpp>
 #include <primer/support/implement_result.hpp>
 
 #include <type_traits>
@@ -141,7 +141,7 @@ public:
     // We are guaranteed at least LUA_MINSTACK by the implementation whenever
     // this function is called by lua.
     constexpr auto estimate =
-      detail::maybe_int::max(detail::maybe_int{0},
+      maybe_int::max(maybe_int{0},
                              primer::stack_space_for_read<Args>()...);
     if (estimate && *estimate > LUA_MINSTACK) {
       if (!lua_checkstack(L, *estimate)) {

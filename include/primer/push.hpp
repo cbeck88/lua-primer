@@ -14,7 +14,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/detail/maybe_int.hpp>
+#include <primer/maybe_int.hpp>
 #include <primer/detail/stack_push_each_helper.hpp>
 #include <primer/traits/push.hpp>
 #include <utility>
@@ -41,14 +41,14 @@ void push_each(lua_State * L, Args &&... args) {
 
 //[ primer_stack_space_for_push
 template <typename T>
-constexpr detail::maybe_int stack_space_for_push() {
-  return detail::stack_space_needed<::primer::traits::push<T>>::value;
+constexpr maybe_int stack_space_for_push() {
+  return stack_space_needed<::primer::traits::push<T>>::value;
 }
 //]
 
 //[ primer_stack_space_for_push_each
 template <typename... Args>
-constexpr detail::maybe_int stack_space_for_push_each() {
+constexpr maybe_int stack_space_for_push_each() {
   return detail::stack_push_each_helper<Args...>::value();
 }
 //]

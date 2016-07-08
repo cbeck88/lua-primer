@@ -22,7 +22,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua_ref.hpp>
 
 #include <primer/detail/integral_conversions.hpp>
-#include <primer/detail/maybe_int.hpp>
+#include <primer/maybe_int.hpp>
 
 #include <primer/support/types.hpp>
 
@@ -42,7 +42,7 @@ struct push;
 template <>
 struct push<const char *> {
   static void to_stack(lua_State * L, const char * s) { lua_pushstring(L, s); }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // Std-String
@@ -51,7 +51,7 @@ struct push<std::string> {
   static void to_stack(lua_State * L, const std::string & str) {
     push<const char *>::to_stack(L, str.c_str());
   }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // Manually decay string literals...
@@ -60,14 +60,14 @@ struct push<char[n]> {
   static void to_stack(lua_State * L, const char(&str)[n]) {
     push<const char *>::to_stack(L, str);
   }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // Integral types
 template <>
 struct push<bool> {
   static void to_stack(lua_State * L, bool b) { lua_pushboolean(L, b); }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // Signed types
@@ -81,7 +81,7 @@ struct push<T,
     "Cannot push this type to lua, integer overflow could occur! "
     "Please convert to a smaller type.");
   static void to_stack(lua_State * L, T t) { lua_pushinteger(L, t); }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // Unsigned types
@@ -99,7 +99,7 @@ struct push<T,
     // Defer to push<LUA_INTEGER>
     push<LUA_INTEGER>::to_stack(L, temp2);
   }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // Floating point types
@@ -113,14 +113,14 @@ struct push<T,
     "Cannot push this type to lua, floating point overflow could "
     "occur! Please convert to a smaller type.");
   static void to_stack(lua_State * L, T t) { lua_pushnumber(L, t); }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // Misc support types
 template <>
 struct push<primer::nil_t> {
   static void to_stack(lua_State * L, primer::nil_t) { lua_pushnil(L); }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 template <>
@@ -128,7 +128,7 @@ struct push<truthy> {
   static void to_stack(lua_State * L, const truthy & t) {
     push<bool>::to_stack(L, t.value);
   }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 template <>
@@ -136,7 +136,7 @@ struct push<stringy> {
   static void to_stack(lua_State * L, const stringy & s) {
     push<std::string>::to_stack(L, s.value);
   }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 // lua_ref
@@ -144,7 +144,7 @@ struct push<stringy> {
 template <>
 struct push<primer::lua_ref> {
   static void to_stack(lua_State * L, primer::lua_ref r) { r.push(L); }
-  static constexpr detail::maybe_int stack_space_needed{1};
+  static constexpr maybe_int stack_space_needed{1};
 };
 
 } // end namespace traits

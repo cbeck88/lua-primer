@@ -16,7 +16,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/traits/read.hpp>
 #include <primer/expected.hpp>
-#include <primer/detail/maybe_int.hpp>
+#include <primer/maybe_int.hpp>
 #include <primer/support/asserts.hpp>
 
 namespace primer {
@@ -31,8 +31,8 @@ expected<T> read(lua_State * L, int index) {
 
 //[ primer_stack_space_for_read
 template <typename T>
-constexpr detail::maybe_int stack_space_for_read() {
-  return detail::stack_space_needed<::primer::traits::read<T>>::value;
+constexpr maybe_int stack_space_for_read() {
+  return stack_space_needed<::primer::traits::read<T>>::value;
 }
 //]
 
