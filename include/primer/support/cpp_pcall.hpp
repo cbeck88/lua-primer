@@ -6,15 +6,18 @@
 #pragma once
 
 /***
- * cpppcall is a template which implements the `cpcall` idiom in a generic
+ * cpp_pcall is a template which implements the `cpcall` idiom in a generic
  * fashion.
  *
  * Given any callbable C++ object which takes a lua_State *, whose operation
  * may generate lua errors, (but not foreign exceptions), cpppcall invokes it
  * from a protected context.
  *
- * The result is a function returning an `expected` type, which does not throw
- * exceptions or generate lua errors.
+ * The callable should have return type void -- any return value is discarded.
+ * The callable must not throw exceptions, but it may raise any lua errors.
+ *
+ * The cpp_pcall itself returns `expected<void>`. It does not throw exceptions
+ * or generate lua errors.
  */
 
 #include <primer/base.hpp>
@@ -54,7 +57,7 @@ struct protected_call_helper {
 };
 
 template <typename F, typename... Args>
-expected<void> cpppcall(lua_State * L, F && f, Args &&... args) noexcept {
+expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   using P = protected_call_helper<F, Args...>;
   typename P::tuple_t tuple{std::forward<F>(f), std::forward<Args>(args)...};
   lua_pushlightuserdata(L, static_cast<void *>(&tuple));

@@ -27,7 +27,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/push.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/function_check_stack.hpp>
-#include <primer/support/cpppcall.hpp>
+#include <primer/support/cpp_pcall.hpp>
 
 #include <utility>
 
@@ -64,8 +64,8 @@ class bound_function {
         result = std::move(stack_check.err());
       } else {
         // call_impl(result, L, ref_, std::forward<Args>(args)...);
-        primer::cpppcall(L, &call_impl<expected<return_type>, Args...>, result,
-                         L, ref_, std::forward<Args>(args)...);
+        primer::cpp_pcall(L, &call_impl<expected<return_type>, Args...>, result,
+                          L, ref_, std::forward<Args>(args)...);
       }
     }
     return result;
