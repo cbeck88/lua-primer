@@ -6,6 +6,8 @@
 #include <primer/lua_ref.hpp>
 #include <primer/lua_ref_as.hpp>
 #include <primer/support/function.hpp>
+#include <primer/bound_function.hpp>
+#include <primer/coroutine.hpp>
 
 #include "test_harness/test_harness.hpp"
 #include <cassert>
@@ -1019,6 +1021,115 @@ void test_vec2i_read() {
 }
 
 
+void test_coroutine() {
+  lua_raii L;
+
+  luaL_requiref(L, "", luaopen_base, 1);
+  lua_pop(L, 1);
+
+  luaopen_coroutine(L);
+  lua_getfield(L, -1, "yield");
+  TEST(lua_isfunction(L, -1), "couldn't find coroutine yield function");
+  lua_setglobal(L, "yield");
+  lua_pop(L, 1);
+
+  CHECK_STACK(L, 0);
+
+  const char * script =
+   "return function(x, y)                               \n"
+   "  while true do                                     \n"
+   "    x, y = yield(x + y, x - y)                      \n"
+   "  end                                               \n"
+   "end                                                 \n";
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+
+  primer::bound_function f{L};
+  TEST(f, "expected to find a function");
+
+  CHECK_STACK(L, 0);
+
+  primer::coroutine c{f};
+  TEST(c, "expected to find a corouitne");
+
+  CHECK_STACK(L, 0);
+
+  lua_pushinteger(L, 3);
+  lua_pushinteger(L, 5);
+
+  primer::lua_ref_seq a{primer::pop_stack(L)};
+
+  CHECK_STACK(L, 0);
+  TEST_EQ(a.size(), 2);
+  TEST(a[0], "expected a valid entry");
+  TEST(a[1], "expected a valid entry");
+
+  auto result = c.call(a);
+  CHECK_STACK(L, 0);
+  TEST_EXPECTED(result);
+  TEST_EQ(result->size(), 2);
+  TEST_EXPECTED((*result)[0].as<int>());
+  TEST_EXPECTED((*result)[1].as<int>());
+  TEST_EQ(*(*result)[0].as<int>(), 8);
+  TEST_EQ(*(*result)[1].as<int>(), -2);
+  CHECK_STACK(L, 0);
+
+  a = std::move(*result);
+
+  CHECK_STACK(L, 0);
+
+  result = c.call(a);
+  CHECK_STACK(L, 0);
+  TEST_EXPECTED(result);
+  TEST_EQ(result->size(), 2);
+  TEST_EXPECTED((*result)[0].as<int>());
+  TEST_EXPECTED((*result)[1].as<int>());
+  TEST_EQ(*(*result)[0].as<int>(), 6);
+  TEST_EQ(*(*result)[1].as<int>(), 10);
+  CHECK_STACK(L, 0);
+
+  a = std::move(*result);
+
+  CHECK_STACK(L, 0);
+
+  result = c.call(a);
+  CHECK_STACK(L, 0);
+  TEST_EXPECTED(result);
+  TEST_EQ(result->size(), 2);
+  TEST_EXPECTED((*result)[0].as<int>());
+  TEST_EXPECTED((*result)[1].as<int>());
+  TEST_EQ(*(*result)[0].as<int>(), 16);
+  TEST_EQ(*(*result)[1].as<int>(), -4);
+  CHECK_STACK(L, 0);
+
+  a = std::move(*result);
+
+  CHECK_STACK(L, 0);
+
+  result = c.call(a);
+  CHECK_STACK(L, 0);
+  TEST_EXPECTED(result);
+  TEST_EQ(result->size(), 2);
+  TEST_EXPECTED((*result)[0].as<int>());
+  TEST_EXPECTED((*result)[1].as<int>());
+  TEST_EQ(*(*result)[0].as<int>(), 12);
+  TEST_EQ(*(*result)[1].as<int>(), 20);
+  CHECK_STACK(L, 0);
+
+  a = std::move(*result);
+
+  CHECK_STACK(L, 0);
+
+  result = c.call("wrench");
+  TEST(!result, "expected failure");
+  TEST(!c, "expected dead coroutine");
+
+  result = c.call(a);
+  TEST(!result, "expected failure");
+  TEST(!c, "expected dead coroutine");
+}
+
 int main() {
   conf::log_conf();
 
@@ -1040,6 +1151,7 @@ int main() {
     {"ref examples", &primer_ref_examples},
     {"primer call", &primer_call_test},
     {"primer resume", &primer_resume_test},
+    {"primer coroutine test", &test_coroutine},
   };
   int num_fails = tests.run();
   std::cout << "\n";

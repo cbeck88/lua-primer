@@ -24,7 +24,7 @@ namespace primer {
 namespace detail {
 
 // Trait
-template <typename T>
+template <typename T, typename ENABLE = void>
 struct str_cat_helper {};
 
 template <>
@@ -37,21 +37,10 @@ struct str_cat_helper<const char *> {
   static std::string to_string(const char * s) { return s; }
 };
 
-template <>
-struct str_cat_helper<int> {
-  static std::string to_string(int i) { return std::to_string(i); }
+template <typename T>
+struct str_cat_helper<T, typename std::enable_if<std::is_integral<T>::value>::type> {
+  static std::string to_string(T t) { return std::to_string(t); }
 };
-
-template <>
-struct str_cat_helper<long int> {
-  static std::string to_string(long int i) { return std::to_string(i); }
-};
-
-template <>
-struct str_cat_helper<long long int> {
-  static std::string to_string(long long int i) { return std::to_string(i); }
-};
-
 
 // Template function
 inline std::string str_cat() { return {}; }

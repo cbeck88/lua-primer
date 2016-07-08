@@ -109,13 +109,45 @@ class coroutine {
         }
       } else {
         result = primer::error{"Can't lock VM"};
+        thread_stack_ = nullptr;
       }
     }
 
     return result;
   }
 
-  // Note: Technically, unhandled memory allocation failure on `lua_newthread`.
+  // Another version, using `lua_ref_seq` as input instead of a parameter pack.
+  template <typename return_type>
+  static void call_impl2(return_type & ret, lua_State * L, const lua_ref_seq & inputs) {
+    inputs.push_each(L);
+    detail::resume_call(ret, L, inputs.size());
+  }
+
+  // Calls the call_impl2 in a protected context. This is no fail.
+  template <typename return_type>
+  expected<return_type> protected_call2(const lua_ref_seq & inputs) noexcept {
+    expected<return_type> result{primer::error{"Invalid coroutine"}};
+    if (thread_stack_) {
+      if (lua_State * L = ref_.lock()) {
+        if (!lua_checkstack(thread_stack_, inputs.size())) {
+          result = primer::error("Insufficient stack space, needed ", inputs.size());
+        } else {
+#ifdef PRIMER_NO_MEMORY_FAILURE
+          call_impl2(result, thread_stack_, inputs);
+          static_cast<void>(L);
+#else
+          primer::cpp_pcall(L, &call_impl2<expected<return_type>>, result, thread_stack_, inputs);
+#endif
+        }
+      } else {
+        result = primer::error{"Can't lock VM"};
+        thread_stack_ = nullptr;
+      }
+    }
+    return result;
+  }
+
+
   //->
 public:
   // Special member functions
@@ -142,6 +174,20 @@ public:
     }
   }
 
+  /*<< Check if the coroutine is valid to call >>*/
+  explicit operator bool() const noexcept { return thread_stack_ && ref_; }
+
+  /*<< Reset to the empty state >>*/
+  void reset() noexcept {
+    ref_.reset();
+    thread_stack_ = nullptr;
+  }
+
+  void swap(coroutine & other) noexcept {
+    ref_.swap(other.ref_);
+    std::swap(thread_stack_, other.thread_stack_);
+  }
+
   /*<< Calls or resumes the coroutine, discards return values.
        (But not errors.)>>*/
   template <typename... Args>
@@ -162,19 +208,26 @@ public:
     return this->protected_call<lua_ref_seq>(std::forward<Args>(args)...);
   }
 
-  /*<< Check if the coroutine is valid to call >>*/
-  explicit operator bool() const noexcept { return thread_stack_ && ref_; }
-
-  /*<< Reset to the empty state >>*/
-  void reset() noexcept {
-    ref_.reset();
-    thread_stack_ = nullptr;
+  // Same thing but using lua_ref_seq as argument
+  // Use a macro so that we can get const &, &&, and & qualifiers defined.
+  #define CALL_REF_SEQ_HELPER(N, T, QUAL)                                      \
+  expected<T> N(lua_ref_seq QUAL inputs) noexcept {                            \
+    return this->protected_call2<T>(inputs);                                   \
   }
 
-  void swap(coroutine & other) noexcept {
-    ref_.swap(other.ref_);
-    std::swap(thread_stack_, other.thread_stack_);
-  }
+  #define CALL_REF_SEQ(N, T)                                                   \
+  CALL_REF_SEQ_HELPER(N, T, &)                                                 \
+  CALL_REF_SEQ_HELPER(N, T, const &)                                           \
+  CALL_REF_SEQ_HELPER(N, T, &&)                                                \
+
+  // Actual declarations
+
+  CALL_REF_SEQ(call_no_ret, void)
+  CALL_REF_SEQ(call_one_ret, lua_ref)
+  CALL_REF_SEQ(call, lua_ref_seq)
+
+  #undef CALL_REF_SEQ
+  #undef CALL_REF_SEQ_HELPER
 };
 //]
 
