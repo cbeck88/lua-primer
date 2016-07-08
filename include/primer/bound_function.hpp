@@ -45,7 +45,10 @@ class bound_function {
   // TODO: Would fix some leakage here if it passes the return type reference
   // down the callstack, even if its less "functional".
   template <typename return_type, typename... Args>
-  static void call_impl(return_type & ret, lua_State * L, const lua_ref & fcn, Args &&... args) {
+  static void call_impl(return_type & ret,
+                        lua_State * L,
+                        const lua_ref & fcn,
+                        Args &&... args) {
     fcn.push(L);
     primer::push_each(L, std::forward<Args>(args)...);
     detail::fcn_call(ret, L, sizeof...(Args));
@@ -61,7 +64,8 @@ class bound_function {
         result = std::move(stack_check.err());
       } else {
         // call_impl(result, L, ref_, std::forward<Args>(args)...);
-        primer::cpppcall(L, &call_impl<expected<return_type>, Args...>, result, L, ref_, std::forward<Args>(args)...);
+        primer::cpppcall(L, &call_impl<expected<return_type>, Args...>, result,
+                         L, ref_, std::forward<Args>(args)...);
       }
     }
     return result;

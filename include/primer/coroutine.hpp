@@ -98,7 +98,8 @@ class coroutine {
           result = std::move(check.err());
         } else {
           // call_impl(result, thread_stack_, std::forward<Args>(args)...);
-          primer::cpppcall(L, &call_impl<expected<return_type>, Args...>, result, thread_stack_, std::forward<Args>(args)...);
+          primer::cpppcall(L, &call_impl<expected<return_type>, Args...>,
+                           result, thread_stack_, std::forward<Args>(args)...);
 
           if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
         }
@@ -173,6 +174,8 @@ public:
 };
 //]
 
-inline void swap(coroutine & one, coroutine & other) noexcept { one.swap(other); }
+inline void swap(coroutine & one, coroutine & other) noexcept {
+  one.swap(other);
+}
 
 } // end namespace primer

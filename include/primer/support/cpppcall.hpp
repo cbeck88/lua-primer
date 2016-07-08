@@ -43,20 +43,21 @@ struct protected_call_helper {
   template <std::size_t... Is>
   struct impl<detail::SizeList<Is...>> {
     static int cfunc(lua_State * L) {
-      tuple_t & t = *static_cast<tuple_t*>(lua_touserdata(L, lua_upvalueindex(1)));
-      std::forward<F>(std::get<0>(t))(std::forward<Args>(std::get<1+Is>(t))...);
+      tuple_t & t =
+        *static_cast<tuple_t *>(lua_touserdata(L, lua_upvalueindex(1)));
+      std::forward<F>(std::get<0>(t))(std::forward<Args>(std::get<1 + Is>(t))...);
       return 0;
     }
   };
-  
-  static constexpr lua_CFunction cfunc = impl<detail::Count_t<sizeof...(Args)>>::cfunc;
+  using indices = detail::Count_t<sizeof...(Args)>;
+  static constexpr lua_CFunction cfunc = impl<indices>::cfunc;
 };
 
 template <typename F, typename... Args>
-expected<void> cpppcall(lua_State * L, F && f, Args && ... args) noexcept {
+expected<void> cpppcall(lua_State * L, F && f, Args &&... args) noexcept {
   using P = protected_call_helper<F, Args...>;
   typename P::tuple_t tuple{std::forward<F>(f), std::forward<Args>(args)...};
-  lua_pushlightuserdata(L, static_cast<void*>(&tuple));
+  lua_pushlightuserdata(L, static_cast<void *>(&tuple));
   lua_pushcclosure(L, P::cfunc, 1);
 
   return fcn_call_no_ret(L, 0); // Note that this is noexcept
