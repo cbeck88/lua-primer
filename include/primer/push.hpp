@@ -42,14 +42,14 @@ void push_each(lua_State * L, Args &&... args) {
 //[ primer_stack_space_for_push
 template <typename T>
 constexpr maybe_int stack_space_for_push() {
-  return stack_space_needed<::primer::traits::push<T>>::value;
+  return ::primer::stack_space_needed<::primer::traits::push<T>>::value;
 }
 //]
 
 //[ primer_stack_space_for_push_each
 template <typename... Args>
 constexpr maybe_int stack_space_for_push_each() {
-  return detail::stack_push_each_helper<Args...>::value();
+  return primer::detail::stack_push_each_helper<Args...>::value();
 }
 //]
 

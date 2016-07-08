@@ -20,28 +20,43 @@ The `lua_checkstack` function can tell you if there is enough space for a given
 number of extra slots.
 
 In `primer`, we support pushing complex containers in a single operation.
+For that to be workable, we need to give you a way to figure out how much stack
+clearance is needed to succeed.
 
-For convenience, we provide two functions which can estimate the stack space needed:
+We provide some `constexpr` functions that can do that for you.
+
+[h3 `maybe_int`]
+
+We provide a literal type called `maybe_int`.
+
+You can think of `maybe_int` as a poor man's `constexpr optional<int>`, with semantics
+such that the result of manipulating an unknown value is unknown.
+
+The value is ['tested] using `operator bool`. If the `maybe_int` represents a known
+value, the operator returns `true`. If the `maybe_int` represents an unknown value,
+the operator returns `false`.
+
+In case that there is a known value, it can be queried using `operator *`.
+
+[primer_example_maybe_int]
+
+`maybe_int` supports addition, subtraction, and multiplication, with `int` and
+with other `maybe_int`. The result is always a `maybe_int`.
+
+The `min` and `max` can be computed by `maybe_int::min` and `maybe_int::max`.
+
+[h3 Querying stack space for an operation]
+
+For convenience, we provide two functions which can estimate the stack space needed
+for a read or push operation with a given type.
 
 [primer_stack_space_for_read]
 [primer_stack_space_for_push]
 
-These are `constexpr` template functions that tell you how much stack space is
-needed for a `push` or `read` operation with a given type.
-
-The value that they return is `primer::detail::maybe_int`.
-
-You can think of this as a poor man's `constexpr optional<int>`, with semantics
-such that the result of manipulating an unknown value is unknown.
-
-[primer_example_maybe_int]
-
-If the `maybe_int` is vacant (`operator bool` returns false), it means that
+If the resulting `maybe_int` is vacant (`operator bool` returns false), it means that
 no estimate was possible, for lack of information. This may happen if a user-defined
-container or type doesn't provide an estimate, by accident, or because no apriori
-upper bound is possible for a given type.
-
-The estimate can be accessed using `operator *`.
+container or type doesn't provide an estimate, by accident, or because no
+upper bound is possible for a given type without knowledge of its runtime value.
 
 Currently we cannot provide an estimate for "visitable structures", although we
 would like to fix that. For the other types and containers that are built-in to
@@ -56,11 +71,7 @@ It also does such checks when calling a bound-function or coroutine.
 
 It does not do any checks when you are just calling `primer::push` or `primer::read`.
 
-This adds some debuggability to your project - if your lua state is running out of slots or runs out of slots,
-if one of the adapted functions is called it is likely to generate an error rather
-than fail silently.
-
-If you don't define a `stack_space_needed` value then primer can't form an estimate
+If you don't define a `stack_space_needed` value for a custom specialization of `push` or `read`, then primer can't form an estimate
 and will just skip the stack space checks.
 
 [h4 Providing stack space estimates]
@@ -68,7 +79,7 @@ and will just skip the stack space checks.
 To provide a stack space estimate, when you specialize `push` or `read`, you
 should provide a class member:
 
-`static constexpr detail::maybe_int stack_space_needed{4};`
+`static constexpr maybe_int stack_space_needed{4};`
 
 if e.g. four additional stack spaces are needed to complete the operation.
 

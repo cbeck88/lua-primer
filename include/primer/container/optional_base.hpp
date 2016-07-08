@@ -94,7 +94,7 @@ struct optional_push {
     }
   }
   static constexpr maybe_int stack_space_needed{
-    stack_space_needed<traits::push<value_t>>::value};
+    primer::stack_space_needed<traits::push<value_t>>::value};
 };
 
 /***
@@ -125,7 +125,7 @@ struct optional_strict_read {
     }
   }
   static constexpr maybe_int stack_space_needed{
-    stack_space_needed<traits::read<clean_val_t>>::value};
+    primer::stack_space_needed<traits::read<clean_val_t>>::value};
 };
 
 /***
@@ -155,7 +155,7 @@ struct optional_relaxed_read : traits::optional_access<T> {
     }
   }
   static constexpr maybe_int stack_space_needed{
-    stack_space_needed<traits::read<clean_val_t>>::value};
+    primer::stack_space_needed<traits::read<clean_val_t>>::value};
 };
 
 } // end namespace detail

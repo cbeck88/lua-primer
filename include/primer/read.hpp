@@ -32,7 +32,7 @@ expected<T> read(lua_State * L, int index) {
 //[ primer_stack_space_for_read
 template <typename T>
 constexpr maybe_int stack_space_for_read() {
-  return stack_space_needed<::primer::traits::read<T>>::value;
+  return ::primer::stack_space_needed<::primer::traits::read<T>>::value;
 }
 //]
 

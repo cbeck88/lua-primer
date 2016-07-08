@@ -53,7 +53,8 @@ struct set_push_helper {
   }
   // Either three, after pushing the boolean, or max achieved when pushing key
   static constexpr maybe_int stack_space_needed{
-    maybe_int::max(3, 1 + stack_space_needed<traits::push<first_t>>::value)};
+    maybe_int::max(3,
+                   1 + primer::stack_space_needed<traits::push<first_t>>::value)};
 };
 
 template <typename M>
@@ -97,7 +98,7 @@ struct set_read_helper {
     return std::move(result);
   }
   static constexpr maybe_int stack_space_needed{
-    3 + stack_space_needed<traits::read<first_t>>::value};
+    3 + primer::stack_space_needed<traits::read<first_t>>::value};
 };
 
 } // end namespace detail
