@@ -1058,7 +1058,7 @@ void test_coroutine() {
   lua_pushinteger(L, 3);
   lua_pushinteger(L, 5);
 
-  primer::lua_ref_seq a{primer::pop_stack(L)};
+  primer::lua_ref_seq a = primer::pop_stack(L);
 
   CHECK_STACK(L, 0);
   TEST_EQ(a.size(), 2);
