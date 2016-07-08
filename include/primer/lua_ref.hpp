@@ -119,6 +119,11 @@ public:
     std::swap(iref_, other.iref_);
   }
 
+  // Attempt to lock the ref.
+  /*<< Returns a valid lua_State * if successfully locked. Nullptr if not.
+       No-fail. >>*/
+   lua_State * lock() const noexcept { return this->check_engaged(); }
+
   // Push to main stack
   /*<< Attempts to push the object to the top of the primary stack of the state
 used to create this `lua_ref`.

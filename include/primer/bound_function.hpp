@@ -27,6 +27,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/push.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/function_check_stack.hpp>
+#include <primer/support/cpppcall.hpp>
 
 #include <utility>
 
@@ -44,7 +45,8 @@ class bound_function {
   // TODO: Would fix some leakage here if it passes the return type reference
   // down the callstack, even if its less "functional".
   template <typename return_type, typename... Args>
-  static void call_impl(return_type & ret, lua_State * L, Args &&... args) {
+  static void call_impl(return_type & ret, lua_State * L, const lua_ref & fcn, Args &&... args) {
+    fcn.push(L);
     primer::push_each(L, std::forward<Args>(args)...);
     detail::fcn_call(ret, L, sizeof...(Args));
   }
@@ -53,13 +55,13 @@ class bound_function {
   template <typename return_type, typename... Args>
   expected<return_type> protected_call(Args &&... args) const noexcept {
     expected<return_type> result{primer::error{"Can't lock VM"}};
-    if (lua_State * L = ref_.push()) {
-      auto stack_check = primer::detail::check_stack_push_each<Args...>(L);
+    if (lua_State * L = ref_.lock()) {
+      auto stack_check = detail::check_stack_push_each<int, Args...>(L);
       if (!stack_check) {
-        lua_pop(L, 1);
         result = std::move(stack_check.err());
       } else {
-        call_impl(result, L, std::forward<Args>(args)...);
+        // call_impl(result, L, ref_, std::forward<Args>(args)...);
+        primer::cpppcall(L, &call_impl<expected<return_type>, Args...>, result, L, ref_, std::forward<Args>(args)...);
       }
     }
     return result;

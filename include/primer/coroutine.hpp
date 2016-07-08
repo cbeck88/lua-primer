@@ -61,6 +61,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua_ref_seq.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/function_check_stack.hpp>
+#include <primer/support/cpppcall.hpp>
 
 namespace primer {
 
@@ -95,6 +96,7 @@ class coroutine {
       if (!check) {
         result = std::move(check.err());
       } else {
+        // TODO: Use cppp_call
         call_impl(result, thread_stack_, std::forward<Args>(args)...);
 
         if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
