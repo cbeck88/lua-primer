@@ -116,6 +116,10 @@ lua errors are exceptions, so `noexcept` cannot be used.]
 
 [h4 Comments]
 Note that this philosophy is different from how some C++ lua binding libraries work.
+Many of them have various ways of trying to handle the user's exceptions and
+either report them to lua as errors or try to get them across lua by various
+schemes without actually throwing them through lua.
+
 [footnote For instance, `luabind` attempts to ['make lua exception-safe] in a limited
 sense -- they put a wrapper over all functions that you pass to lua through
 their interface, which catches ['all] exceptions derived from `std::exception`,
@@ -133,8 +137,8 @@ can potentially lead to the exception being lost and swallowed if lua scripts
 are using `pcall` to call your functions, and then it becomes very difficult to
 reason about what happens next. So we consider that catching user exceptions
 and trying to sneak them across the lua call boundary is not a very robust
-solution, and we don't plan to do something like this in Primer. We consider
-that it is usually a better idea to just terminate the program in such cases.
+solution, and we don't plan to do something like this in Primer. We think it is
+a better idea to just terminate the program in such cases.
 If you want to create an exception-to-lua-error translation mechanism for use
 with Primer in your program you are welcome to specialize the `adapt` class
 template in order to do it.
@@ -144,7 +148,8 @@ and preempting exceptions in places where we can't handle them.
 
 [h3 Exception Safety Requirements]
 
-There are three (main) ways that an exception can reach Primer:
+There are three ways that we will consider here that a user exception can reach
+Primer:
 
 # A function which the user gave to `PRIMER_ADAPT`, to push to lua, throws an
   exception.
@@ -175,8 +180,10 @@ Userdata types are permitted to throw exceptions from their constructors.
 
 Userdata types must not throw exceptions from their destructors, if they are
   using the "default" garbage collection function. Even if they have custom `__gc`
-  metamethods, those metamethods must not throw exceptions. If `PRIMER_NO_MEMORY_FAILURE` is defined
-  then they are not permitted to raise lua errors either.
+  metamethods, those metamethods must not throw exceptions. They aren't
+  permitted to raise lua errors either, since lua gc happens as a continual
+  process and those errors could appear at times that we aren't prepared to
+  handle them.
 
 [h4 An object which Primer was pushing or reading throws an exception from a special member function]
 
