@@ -108,14 +108,11 @@ public:
   bound_function & operator=(bound_function &&) noexcept = default;
   ~bound_function() noexcept = default;
 
+  // Primary constructor: Bind to a function on top of the stack.
   // Only capture the top item if it is actually a function.
-  // Pop the item *whether or not* it is a function, knowing that lua_ref will
-  // pop it if we pass L
-  // Note: Can cause lua memory allocation failure from `ref_` ctor.
-  explicit bound_function(lua_State * L) //
-    : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
-                         : nullptr) //
-  {}
+  // Pop the item *whether or not* it is a function.
+  /*<< Note: Can cause lua memory allocation failure from `ref_` ctor. >>*/
+  explicit bound_function(lua_State * L);
 
   // Forwarded methods from lua_ref
   explicit operator bool() const noexcept { return static_cast<bool>(ref_); }
@@ -129,48 +126,67 @@ public:
   // These methods attempt to lock the state which holds the lua function,
   // and perform the call there. They clean up after themselves and leave the
   // stack as they found it afterwards.
-  /*<< Calls the function, discards any return values. (But not errors.) >>*/
-  template <typename... Args>
-  expected<void> call_no_ret(Args &&... args) const noexcept {
-    return this->protected_call<void>(std::forward<Args>(args)...);
-  }
+  //
+  // If passed a lua_ref_seq, its members are the call arguments. If passed
+  // any other sequence of C++ types, those objects are pushed onto the stack
+  // and are the call arguments.
 
-  /*<< Calls the function, returns a ref to the ['first] return value.
-    (Or an error.) Discards any others. >>*/
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args &&... args) const noexcept {
-    return this->protected_call<lua_ref>(std::forward<Args>(args)...);
-  }
+  expected<void> call_no_ret(Args &&... args) const noexcept;
+  expected<void> call_no_ret(lua_ref_seq &) const noexcept;
+  expected<void> call_no_ret(lua_ref_seq const &) const noexcept;
+  expected<void> call_no_ret(lua_ref_seq &&) const noexcept;
 
-  /*<< Calls the function, returns all the return values of the function,
-       Or an error. >>*/
   template <typename... Args>
-  expected<lua_ref_seq> call(Args &&... args) const noexcept {
-    return this->protected_call<lua_ref_seq>(std::forward<Args>(args)...);
-  }
+  expected<lua_ref> call_one_ret(Args &&... args) const noexcept;
+  expected<lua_ref> call_one_ret(lua_ref_seq &) const noexcept;
+  expected<lua_ref> call_one_ret(lua_ref_seq const &) const noexcept;
+  expected<lua_ref> call_one_ret(lua_ref_seq &&) const noexcept;
+
+  template <typename... Args>
+  expected<lua_ref_seq> call(Args &&... args) const noexcept;
+  expected<lua_ref_seq> call(lua_ref_seq &) const noexcept;
+  expected<lua_ref_seq> call(lua_ref_seq const &) const noexcept;
+  expected<lua_ref_seq> call(lua_ref_seq &&) const noexcept;
+};
+//]
+
+inline bound_function::bound_function(lua_State * L) //
+    : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
+                         : nullptr) //
+  {}
+
 
 /// Same thing now but with a lua_ref_seq
 // Use a macro so that we can get const &, &&, and & qualifiers defined.
-#define CALL_REF_SEQ_HELPER(N, T, QUAL)                                        \
-  expected<T> N(lua_ref_seq QUAL inputs) noexcept {                            \
+#define CALL_ARGS_HELPER(N, T)                                                 \
+  template <typename... Args>                                                  \
+  inline expected<T> bound_function::N(Args &&... args) const noexcept {       \
+    return this->protected_call<T>(std::forward<Args>(args)...);               \
+  }
+
+
+#define CALL_REF_SEQ_HELPER(N, T, Q)                                           \
+  inline expected<T> bound_function::N(lua_ref_seq Q inputs) const noexcept {  \
     return this->protected_call2<T>(inputs);                                   \
   }
 
-#define CALL_REF_SEQ(N, T)                                                     \
+#define CALL_DEFINITIONS(N, T)                                                 \
+  CALL_ARGS_HELPER(N, T)                                                       \
   CALL_REF_SEQ_HELPER(N, T, &)                                                 \
   CALL_REF_SEQ_HELPER(N, T, const &)                                           \
   CALL_REF_SEQ_HELPER(N, T, &&)
 
   // Actual declarations
 
-  CALL_REF_SEQ(call_no_ret, void)
-  CALL_REF_SEQ(call_one_ret, lua_ref)
-  CALL_REF_SEQ(call, lua_ref_seq)
+  CALL_DEFINITIONS(call_no_ret, void)
+  CALL_DEFINITIONS(call_one_ret, lua_ref)
+  CALL_DEFINITIONS(call, lua_ref_seq)
 
-#undef CALL_REF_SEQ
+#undef CALL_ARGS_HELPER
 #undef CALL_REF_SEQ_HELPER
-};
-//]
+#undef CALL_DEFINITIONS
+
 
 inline void swap(bound_function & one, bound_function & other) noexcept {
   one.swap(other);

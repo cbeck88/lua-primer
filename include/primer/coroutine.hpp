@@ -218,7 +218,7 @@ inline void swap(coroutine & one, coroutine & other) noexcept {
 
 // Instantiate call definitions
 
-#define CALL_HELPER(N, T)                                                      \
+#define CALL_ARGS_HELPER(N, T)                                                 \
   template <typename... Args>                                                  \
   inline expected<T> coroutine::N(Args &&... args) noexcept {                  \
     return this->protected_call<T>(std::forward<Args>(args)...);               \
@@ -231,21 +231,21 @@ inline void swap(coroutine & one, coroutine & other) noexcept {
     return this->protected_call2<T>(inputs);                                   \
   }
 
-#define CALL_REF_SEQ(N, T)                                                     \
-  CALL_HELPER(N, T)                                                            \
+#define CALL_DEFINITIONS(N, T)                                                 \
+  CALL_ARGS_HELPER(N, T)                                                       \
   CALL_REF_SEQ_HELPER(N, T, &)                                                 \
   CALL_REF_SEQ_HELPER(N, T, &&)                                                \
   CALL_REF_SEQ_HELPER(N, T, const &)
 
   // Actual declarations
 
-  CALL_REF_SEQ(call_no_ret, void)
-  CALL_REF_SEQ(call_one_ret, lua_ref)
-  CALL_REF_SEQ(call, lua_ref_seq)
+  CALL_DEFINITIONS(call_no_ret, void)
+  CALL_DEFINITIONS(call_one_ret, lua_ref)
+  CALL_DEFINITIONS(call, lua_ref_seq)
 
-#undef CALL_HELPER
-#undef CALL_REF_SEQ
+#undef CALL_ARGS_HELPER
 #undef CALL_REF_SEQ_HELPER
+#undef CALL_DEFINITIONS
   //->
 
 
