@@ -23,6 +23,11 @@ namespace primer {
 
 //[ primer_push
 template <typename T>
+void push(lua_State * L, const T & t);
+//]
+
+//[ primer_push_impl
+template <typename T>
 void push(lua_State * L, const T & t) {
   ::primer::traits::push<T>::to_stack(L, t);
 }

@@ -1,14 +1,15 @@
 [section push]
 
-`primer::push` is a template function used to push a C++ value to the stack.
+`primer::push` is a template function used to push a C++ value to a lua Stack.
+
+[primer_push]
 
 In the case of primitive values, it is always a direct call to the corresponding
 `lua_pushX` function.
 
 In the case of containers, it generally resolves to the
-creation of a table, with recursive calls to push to populate the members. 
-
-[primer_push]
+creation of a table, with recursive calls to `push`, to push the elements and
+populate the table.
 
 * `push` is not permitted to fail, except in the case of lua memory allocation
 failure. In this case, it raises a lua error.
@@ -56,14 +57,14 @@ The following core types are supported:
 
       ['If a push operation
       requires a narrowing conversion of a signed integer type to `LUA_INTEGER`,
-      a `static_assert` will fail and your code will not compile.]]
+      a `static_assert` will fail, to prevent overflow.]]
 
-[caution When pushing a floating point type, primer will not check for overflow or
+[caution When pushing a floating point type, Primer will not check for overflow or
       loss of precision.
 
       ['If a push operation requires a narrowing conversion of a floating point
       type to `LUA_NUMBER`,
-      a `static_assert` will fail and your code will not compile.]]
+      a `static_assert` will fail, to prevent overflow.]]
 
 [note When pushing an unsigned integral type which is larger than `LUA_INTEGER`,
       primer will implicitly narrow it to the unsigned version of `LUA_INTEGER`,
@@ -74,7 +75,7 @@ The following core types are supported:
       lua may be configured to use 32-bit or 64-bit integers,
       you must avoid such narrowing conversions.]
 
-[note For maximum portability, consider:
+[note If you want your program to be portable no matter how lua is compiled, consider:
 
       - Only pushing 32 bit types, e.g., `int`, `unsigned int`, `float` on most
         platforms.
@@ -86,7 +87,6 @@ The following core types are supported:
       with expressions like
 
       ``
-        long long i;
         primer::push(L, static_cast<LUA_INTEGER>(i));
       ``
 
@@ -117,7 +117,11 @@ details.
 
 [h3 Customization]
 
-The trait `primer::traits::push` can be specialized to override primer's behavior
+`primer::push` is defined in terms of a type trait, `primer::traits::push`.
+
+[primer_push_impl]
+
+The trait can be specialized to override primer's behavior
 for certain types, or to add new behavior for custom types.
 
 [primer_example_vec2i_defn]
