@@ -76,14 +76,14 @@ class coroutine {
 
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
-        auto check = detail::check_stack_push_each<Args...>(thread_stack_);
-        if (!check) {
-          result = std::move(check.err());
-        } else {
-          primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
+        if (auto check = detail::check_stack_push_each<Args...>(thread_stack_)) {
+          auto ok = primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
                             result, thread_stack_, std::forward<Args>(args)...);
+          if (!ok) { result = std::move(ok.err()); }
 
           if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
+        } else {
+          result = std::move(check.err());
         }
       } else {
         result = primer::error{"Can't lock VM"};
@@ -109,12 +109,12 @@ class coroutine {
     expected<return_type> result{primer::error{"Invalid coroutine"}};
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
-        auto check = detail::check_stack_push_n(thread_stack_, inputs.size());
-        if (!check) {
-          result = std::move(check.err());
-        } else {
-          primer::mem_pcall(L, &call_impl2<expected<return_type>>, result,
+        if (auto check = detail::check_stack_push_n(thread_stack_, inputs.size())) {
+          auto ok = primer::mem_pcall(L, &call_impl2<expected<return_type>>, result,
                             thread_stack_, inputs);
+          if (!ok) { result = ok.err(); }
+        } else {
+          result = std::move(check.err());
         }
       } else {
         result = primer::error{"Can't lock VM"};

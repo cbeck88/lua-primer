@@ -254,7 +254,8 @@ struct read<lua_ref> {
 
     if (!lua_isnoneornil(L, idx)) {
       lua_pushvalue(L, idx);
-      mem_pcall<1>(L, &impl, L, result);
+      auto ok = mem_pcall<1>(L, &impl, L, result);
+      if (!ok) { result = ok.err(); }
     }
 
     return result;

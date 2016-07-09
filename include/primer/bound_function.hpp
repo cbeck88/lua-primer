@@ -57,12 +57,12 @@ class bound_function {
   expected<return_type> protected_call(Args &&... args) const noexcept {
     expected<return_type> result{primer::error{"Can't lock VM"}};
     if (lua_State * L = ref_.lock()) {
-      auto stack_check = detail::check_stack_push_each<int, Args...>(L);
-      if (!stack_check) {
-        result = std::move(stack_check.err());
+      if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
+        auto ok = primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
+                                    result, L, ref_, std::forward<Args>(args)...);
+        if (!ok) { result = std::move(ok.err()); }
       } else {
-        primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
-                          result, L, ref_, std::forward<Args>(args)...);
+        result = std::move(stack_check.err());
       }
     }
     return result;
@@ -85,12 +85,12 @@ class bound_function {
     noexcept {
     expected<return_type> result{primer::error{"Can't lock VM"}};
     if (lua_State * L = ref_.lock()) {
-      auto stack_check = detail::check_stack_push_n(L, 1 + inputs.size());
-      if (!stack_check) {
-        result = std::move(stack_check.err());
-      } else {
-        primer::mem_pcall(L, &call_impl2<expected<return_type>>, result, L,
+      if (auto stack_check = detail::check_stack_push_n(L, 1 + inputs.size())) {
+        auto ok = primer::mem_pcall(L, &call_impl2<expected<return_type>>, result, L,
                           ref_, inputs);
+        if (!ok) { result = std::move(ok.err()); }
+      } else {
+        result = std::move(stack_check.err());
       }
     }
     return result;
