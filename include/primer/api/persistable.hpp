@@ -24,7 +24,7 @@
                    - Invoke eris and serialize the result into the given string
                      buffer.
    unpersist:      - Create a (reversed) permanent objects table by asking each
-                     feature to register its permenant objects. ("on_unpersist")
+                     feature to register its permanent objects. ("on_unpersist")
                    - Recreate the target table from the persisted string, using
                      eris.
                    - Install the reconstructed globals table, and ask each
@@ -41,6 +41,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/eris.hpp>
+#include <primer/error_handler.hpp>
 
 #include <primer/api/feature.hpp>
 #include <primer/detail/rank.hpp>
@@ -48,6 +49,8 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/detail/typelist_iterator.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/lua_reader_writer.hpp>
+#include <primer/support/lua_state_ref.hpp>
+#include <primer/support/push_cached.hpp>
 
 namespace primer {
 
@@ -124,6 +127,15 @@ protected:
    */
 
   void initialize_api(lua_State * L) {
+    PRIMER_ASSERT_STACK_NEUTRAL(L);
+
+    // Initialize some cached objects. If these can't be created later in a low
+    // memory situation it will cause problems, so, try to preempt this.
+    lua_state_ref::obtain_weak_ref_to_state(L);
+
+    detail::push_cached<primer::fetch_traceback_function>(L);
+    lua_pop(L, 1);
+
 #ifdef PRIMER_DEBUG
     // Set debugging mode for eris
     lua_pushboolean(L, true);
