@@ -34,6 +34,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <type_traits>
 #include <utility>
 
+//[ cpp_pcall implementation
 namespace primer {
 
 template <typename F, typename... Args>
@@ -56,6 +57,17 @@ struct protected_call_helper {
   static constexpr lua_CFunction cfunc = impl<indices>::cfunc;
 };
 
+/*<< Takes a callable and some arguments, performs the call in a protected
+context which captures lua errors.
+
+Usually, F needs a lua State * also as one of the arguments, to do whatever it
+will do. It might or might not be the same lua_State *, it could be operating
+on a thread. The first parameter to cpp_pcall should be the main thread, and
+it should be related to whatever threads F is operating on.
+
+The optional template parameter "narg" signals how many values on the top of L's
+stack should be visible within the pcall. By default, none are.
+>>*/
 template <int narg = 0, typename F, typename... Args>
 expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   using P = protected_call_helper<F, Args...>;
@@ -69,5 +81,31 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
 
   return fcn_call_no_ret(L, narg); // Note that this is noexcept
 }
+//]
+
+//[ mem_pcall implementation
+//` Sometimes, we perform operations which can raise lua errors, but only of the
+//` memory variety. In this case, we call mem_pcall instead of cpp_pcall, which
+//` is resolves to either a cpp_pcall or an unprotected call depending on the
+//` PRIMER_NO_MEMORY_FAILURE define.
+//`
+//` This, together with PRIMER_TRY_BAD_ALLOC / PRIMER_CATCH_BAD_ALLOC, is the
+//` total effect of the PRIMER_NO_MEMORY_FAILURE switch.
+//`
+//` mem_pcall should not be used with calls that can throw an exception, or
+//` that can raise lua errors of the non-memory variety.
+
+template <int narg = 0, typename F, typename... Args>
+expected<void> mem_pcall(lua_State * L, F && f, Args &&... args) noexcept {
+#ifdef PRIMER_NO_MEMORY_FAILURE
+  static_cast<void>(L);
+  std::forward<F>(f)(std::forward<Args>(args)...);
+  return {};
+#else
+  return cpp_pcall<narg>(L, std::forward<F>(f), std::forward<Args>(args)...);
+#endif
+}
+
+//]
 
 } // end namespace primer

@@ -61,12 +61,8 @@ class bound_function {
       if (!stack_check) {
         result = std::move(stack_check.err());
       } else {
-#ifdef PRIMER_NO_MEMORY_FAILURE
-        call_impl(result, L, ref_, std::forward<Args>(args)...);
-#else
-        primer::cpp_pcall(L, &call_impl<expected<return_type>, Args...>, result,
-                          L, ref_, std::forward<Args>(args)...);
-#endif
+        primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
+                          result, L, ref_, std::forward<Args>(args)...);
       }
     }
     return result;
@@ -93,12 +89,8 @@ class bound_function {
       if (!stack_check) {
         result = std::move(stack_check.err());
       } else {
-#ifdef PRIMER_NO_MEMORY_FAILURE
-        call_impl2(result, L, ref_, inputs);
-#else
-        primer::cpp_pcall(L, &call_impl2<expected<return_type>>, result, L,
+        primer::mem_pcall(L, &call_impl2<expected<return_type>>, result, L,
                           ref_, inputs);
-#endif
       }
     }
     return result;

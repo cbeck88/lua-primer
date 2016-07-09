@@ -80,13 +80,8 @@ class coroutine {
         if (!check) {
           result = std::move(check.err());
         } else {
-#ifdef PRIMER_NO_MEMORY_FAILURE
-          call_impl(result, thread_stack_, std::forward<Args>(args)...);
-          static_cast<void>(L);
-#else
-          primer::cpp_pcall(L, &call_impl<expected<return_type>, Args...>,
+          primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
                             result, thread_stack_, std::forward<Args>(args)...);
-#endif
 
           if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
         }
@@ -118,13 +113,8 @@ class coroutine {
         if (!check) {
           result = std::move(check.err());
         } else {
-#ifdef PRIMER_NO_MEMORY_FAILURE
-          call_impl2(result, thread_stack_, inputs);
-          static_cast<void>(L);
-#else
-          primer::cpp_pcall(L, &call_impl2<expected<return_type>>, result,
+          primer::mem_pcall(L, &call_impl2<expected<return_type>>, result,
                             thread_stack_, inputs);
-#endif
         }
       } else {
         result = primer::error{"Can't lock VM"};
