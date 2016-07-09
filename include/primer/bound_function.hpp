@@ -21,6 +21,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/cpp_pcall.hpp>
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
@@ -30,7 +31,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/function.hpp>
 #include <primer/support/function_check_stack.hpp>
 #include <primer/support/function_return.hpp>
-#include <primer/support/cpp_pcall.hpp>
 
 #include <utility>
 

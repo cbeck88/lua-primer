@@ -22,6 +22,7 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 
 //[ primer_read
+template <typename T>
 expected<T> read(lua_State * L, int index);
 //]
 

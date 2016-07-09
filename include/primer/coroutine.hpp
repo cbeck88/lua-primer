@@ -41,15 +41,15 @@ API.
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/lua.hpp>
 #include <primer/bound_function.hpp>
+#include <primer/cpp_pcall.hpp>
 #include <primer/expected.hpp>
+#include <primer/lua.hpp>
 #include <primer/lua_ref.hpp>
 #include <primer/lua_ref_seq.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/function_check_stack.hpp>
 #include <primer/support/function_return.hpp>
-#include <primer/support/cpp_pcall.hpp>
 
 namespace primer {
 

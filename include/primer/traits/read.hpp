@@ -15,6 +15,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
+#include <primer/cpp_pcall.hpp>
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua_ref.hpp>
@@ -22,7 +23,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/maybe_int.hpp>
 #include <primer/detail/is_userdata.hpp>
 #include <primer/detail/type_traits.hpp>
-#include <primer/support/cpp_pcall.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/types.hpp>
 
