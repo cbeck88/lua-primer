@@ -94,6 +94,7 @@ struct on_persist_table_visitor {
 
   template <typename H, typename T>
   void visit_type(T & t) {
+    PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     H::get_target(t).on_persist_table(L);
   }
@@ -104,6 +105,7 @@ struct on_unpersist_table_visitor {
 
   template <typename H, typename T>
   void visit_type(T & t) {
+    PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     H::get_target(t).on_unpersist_table(L);
   }
@@ -114,6 +116,7 @@ struct on_serialize_visitor {
 
   template <typename H, typename T>
   enable_if_t<H::target_type::is_serial> visit_type(T & t) {
+    PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     H::get_target(t).on_serialize(L);
     lua_setfield(L, -2, H::get_name_func()());
@@ -128,8 +131,9 @@ struct on_deserialize_visitor {
 
   template <typename H, typename T>
   enable_if_t<H::target_type::is_serial> visit_type(T & t) {
+    PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
-    lua_getfield(L, -2, H::get_name_func()());
+    lua_getfield(L, -1, H::get_name_func()());
     H::get_target(t).on_deserialize(L);
   }
 

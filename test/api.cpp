@@ -2,6 +2,7 @@
 #include <primer/api/callbacks.hpp>
 #include <primer/api/libraries.hpp>
 #include <primer/api/userdatas.hpp>
+#include <primer/api/persistent_value.hpp>
 // #include <primer/detail/make_array.hpp>
 #include <primer/primer.hpp>
 #include <primer/std/vector.hpp>
@@ -408,6 +409,70 @@ void test_api_userdata() {
   }
 }
 
+
+struct test_api_four : primer::api::base<test_api_four> {
+  lua_raii L_;
+
+  API_FEATURE(primer::api::persistent_value<std::string>, my_string_);
+
+  test_api_four()
+    : L_()
+    , my_string_()
+  {
+    this->initialize_api(L_);
+  }
+
+  std::string save() {
+    std::string result;
+    this->persist(L_, result);
+    return result;
+  }
+
+  void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
+
+  void assign_my_string(const std::string & s) { my_string_.get() = s; }
+  const std::string & get_my_string() const { return my_string_.get(); }
+};
+
+void test_api_persistent_value() {
+  std::string buffer;
+  std::string buffer2;
+
+  {
+    test_api_four a;
+    TEST_EQ("", a.get_my_string());
+
+    a.assign_my_string("foo");
+    TEST_EQ("foo", a.get_my_string());
+
+    buffer = a.save();
+    TEST_EQ("foo", a.get_my_string());
+
+    a.assign_my_string("bar");
+    TEST_EQ("bar", a.get_my_string());
+
+    buffer2 = a.save();
+    TEST_EQ("bar", a.get_my_string());
+
+    a.restore(buffer);
+    TEST_EQ("foo", a.get_my_string());
+
+    a.restore(buffer2);
+    TEST_EQ("bar", a.get_my_string());
+  }
+
+  {
+    test_api_four a;
+    TEST_EQ("", a.get_my_string());
+
+    a.restore(buffer2);
+    TEST_EQ("bar", a.get_my_string());
+
+    a.restore(buffer);
+    TEST_EQ("foo", a.get_my_string());
+  }
+}
+
 int main() {
   conf::log_conf();
 
@@ -417,6 +482,7 @@ int main() {
     {"api base", &test_api_base},
     {"api help", &test_api_help},
     {"api userdata", &test_api_userdata},
+    {"api persistent value", &test_api_persistent_value},
   };
   int num_fails = tests.run();
   std::cout << "\n";
