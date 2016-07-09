@@ -102,13 +102,14 @@ struct lua_ref_seq {
   */
 
   template <typename InputIt>
-  iterator insert(const_iterator pos, InputIt first, InputIt last ) {
+  iterator insert(const_iterator pos, InputIt first, InputIt last) {
     return refs_.insert(pos, first, last);
   }
 
   // Also makes travis fail
   // iterator erase(const_iterator pos) { return refs_.erase(pos); }
-  // iterator erase(const_iterator first, const_iterator last) { return refs_.erase(first, last); }
+  // iterator erase(const_iterator first, const_iterator last) { return
+  // refs_.erase(first, last); }
 
   /*<< Push all the refs onto the stack in succession.
 Return of `true` means every push succeeded.

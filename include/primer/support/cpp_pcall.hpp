@@ -55,7 +55,6 @@ The callable itself must not throw a C++ exception, or terminate will be called.
 >>*/
 template <int narg = 0, typename F, typename... Args>
 expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept;
-
 }
 //]
 
@@ -89,9 +88,7 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   lua_pushlightuserdata(L, static_cast<void *>(&tuple));
   lua_pushcclosure(L, P::cfunc, 1);
 
-  if (narg) {
-    lua_insert(L, -1 - narg);
-  }
+  if (narg) { lua_insert(L, -1 - narg); }
 
   return fcn_call_no_ret(L, narg); // Note that this is noexcept
 }

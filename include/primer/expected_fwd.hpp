@@ -17,7 +17,7 @@ template <typename T>
 class expected;
 
 template <typename T>
-class expected<T&>;
+class expected<T &>;
 
 template <>
 class expected<void>;
