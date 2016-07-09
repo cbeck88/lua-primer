@@ -21,7 +21,10 @@ function errs or the lua VM is destroyed.
 
 [h2 Read / Push semantics]
 
-Similar to `lua_ref`, these can be pushed onto the stack. On read, anything
-that's not a function causes an error, otherwise it binds to it.
+Similar to `lua_ref`, these can be pushed onto the stack by `primer::push`.
+
+On read, the nil value is read as putting the `bound_function` into the empty
+state. Otherwise, if it's a function, it is bound, and anything else causes an
+error.
 
 [endsect]

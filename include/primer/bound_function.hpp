@@ -210,7 +210,9 @@ struct read<primer::bound_function> {
   static expected<bound_function> from_stack(lua_State * L, int idx) {
     expected<bound_function> result{};
 
-    if (!lua_isnoneornil(L, idx) && lua_isfunction(L, idx)) {
+    if (lua_isnoneornil(L, idx)) {
+      result = bound_function{};
+    } else if lua_isfunction(L, idx)) {
       lua_pushvalue(L, idx);
       auto ok = mem_pcall<1>(L, &impl, L, result);
       if (!ok) { result = ok.err(); }
