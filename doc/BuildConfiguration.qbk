@@ -66,6 +66,7 @@ or
 #include <primer/eris.hpp>
 ``
 
+Primer searches for its configuration defines in `<primer/conf.hpp>`
 
 [note All other headers are considered implementation details, and may be moved
 or nonexistant in future releases, so you shouldn't include them directly. ]
@@ -93,7 +94,6 @@ In general the failure of the conditions checked by these assertions can lead to
 
 [note If lua is compiled as C, i.e., `PRIMER_LUA_AS_CPP` is not defined, then `PRIMER_NO_MEMORY_FAILURE` will be defined automatically. See Exception Safety section for rationale. (TODO Link).]
 
-To enable these, you can add them in your build system, define them in your source files before including primer, or create an autotools-style configuration file that contains them, and include that
-before including primer. If you are willing to modify your distribution of the library source, you could uncomment any of these defines in `<primer/base.hpp>`.
+To enable these, you can add them in your build system, define them in your source files before including primer, or create a custom version of `<primer/conf.hpp>`.
 
 [endsect]

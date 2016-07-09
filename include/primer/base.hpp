@@ -10,13 +10,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/conf.hpp>
 #include <primer/version.hpp>
-
-/* #define PRIMER_DEBUG */
-/* #define PRIMER_LUA_AS_CPP */
-/* #define PRIMER_NO_STATIC_ASSERTS */
-/* #define PRIMER_NO_EXCEPTIONS */
-/* #define PRIMER_NO_MEMORY_FAILURE */
 
 // Forward declare some lua types
 struct lua_State;
