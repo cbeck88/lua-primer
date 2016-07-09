@@ -86,6 +86,7 @@ alias test_harness : : : : <include>include/ ;
 lib lualib : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/lua.c $(LUA_PATH)/luac.c ] : $(LUA_PRIVATE_FLAGS) $(LUA_SHARED_FLAGS) : : $(LUA_SHARED_FLAGS) ;
 exe lua : $(LUA_PATH)/lua.c lualib : $(LUA_PRIVATE_FLAGS) ;
 
+
 install install-lua-bin : lua : <location>stage/ ;
 
 ### Build primer
@@ -93,7 +94,7 @@ install install-lua-bin : lua : <location>stage/ ;
 exe core : core.cpp lualib primer test_harness : ;
 exe visitable : visitable.cpp lualib primer test_harness : ;
 exe std : std.cpp lualib primer test_harness : ;
-exe noexcept : noexcept.cpp lualib primer test_harness : <define>PRIMER_NO_EXCEPTIONS <cxxflags>"-fno-exceptions" ;
+exe noexcept : noexcept.cpp lualib primer test_harness : <define>PRIMER_NO_EXCEPTIONS <cxxflags>"-fno-exceptions -fno-rtti" ;
 
 install install-bin : core visitable std noexcept : $(INSTALL_LOC) ;
 
