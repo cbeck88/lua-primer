@@ -5,33 +5,37 @@
 
 #pragma once
 
-/***
- * primer::coroutine is a safe and convenient wrapper over lua's coroutines.
- *
- * The idea is to abstract the difference between an uncalled coroutine and a
- * yielded coroutine, and make calling it have the same interface as a bound
- * function.
- *
- * Coroutines are either "valid to call" or "invalid" to call. You can tell by
- * testing it using operator bool.
- *
- * It is called using methods `call_no_ret`, `call_one_ret` or `call`.
- * This boils down to a `lua_resume` call. You can pass it a variable number of
- * `pushables` or pass it a `lua_ref_seq` as arguments to the call.
- *
- * Calling the coroutine object will not raise a lua error or throw an
- * exception.
- *
- * It can only be constructed from a primer::bound_function.
- *
- * If a coroutine returns, or raises an error, then the coroutine object will
- * become invalid to call. A new coroutine can be made from the bound_function.
- *
- * Not everything that you can do with coroutines can be done with this object.
- * If you need fine-grained control then you should do it manually using the C
- * api.
- *
+//[ primer_coroutine_docu
+
+/*`
+`primer::coroutine` is a safe and convenient wrapper over lua's coroutines,
+similar in spirit to `primer::bound_function`.
+
+The idea is to abstract the difference between an uncalled coroutine and a
+yielded coroutine, and make calling it have the same interface as a bound
+function.
+
+Coroutines are either "valid to call" or "invalid" to call. You can tell by
+testing it using operator bool.
+
+It is called using methods `call_no_ret`, `call_one_ret` or `call`.
+This boils down to a `lua_resume` call. You can pass it a variable number of
+`pushables` or pass it a `lua_ref_seq` as arguments to the call.
+
+Calling the coroutine object will not raise a lua error or throw an
+exception.
+
+It can only be constructed from a primer::bound_function.
+
+If a coroutine returns, or raises an error, then the coroutine object will
+become invalid to call. A new coroutine can be made from the bound_function.
+
+Not everything that you can do with coroutines can be done with this object.
+If you need fine-grained control then you should do it manually using the C
+API.
  */
+
+//]
 
 #include <primer/base.hpp>
 
@@ -142,63 +146,96 @@ public:
   coroutine & operator=(const coroutine &) = delete;
 
   // Construct from bound_function
-  // Note: Can cause lua memory allocation failure
-  explicit coroutine(const bound_function & bf) //
-    : coroutine()                               //
-  {
-    if (lua_State * L = bf.push()) {
-      thread_stack_ = lua_newthread(L);
-      lua_insert(L, -2);              // put the thread below the function
-      lua_xmove(L, thread_stack_, 1); // Move function to thread stack
-      ref_ = lua_ref(L);              // Get ref to the thread
-    }
-  }
+  /*<< Note: Can cause lua memory allocation failure >>*/
+  explicit coroutine(const bound_function & bf);
 
   /*<< Check if the coroutine is valid to call >>*/
   explicit operator bool() const noexcept { return thread_stack_ && ref_; }
 
   /*<< Reset to the empty state >>*/
-  void reset() noexcept {
-    ref_.reset();
-    thread_stack_ = nullptr;
-  }
+  void reset() noexcept;
 
-  void swap(coroutine & other) noexcept {
-    ref_.swap(other.ref_);
-    std::swap(thread_stack_, other.thread_stack_);
-  }
+  void swap(coroutine & other) noexcept;
 
-  /*<< Calls or resumes the coroutine, discards return values.
-       (But not errors.)>>*/
+  // Call the coroutine.
+  //
+  // Use `call_no_ret`, `call_one_ret`, or `call` to select
+  // how many return values you expect, any extras are discarded.
+  //
+  // If called with a sequence of C++ values, they will become the function
+  // call arguments, using primer::push.
+  //
+  // If a lua_ref_seq is passed, then its members will be pushed in succession.
+  //
+  // These functions catch any lua errors and do not throw exceptions.
+
   template <typename... Args>
-  expected<void> call_no_ret(Args &&... args) noexcept {
-    return this->protected_call<void>(std::forward<Args>(args)...);
-  }
+  expected<void> call_no_ret(Args &&... args) noexcept;
+  expected<void> call_no_ret(lua_ref_seq &) noexcept;
+  expected<void> call_no_ret(lua_ref_seq const &) noexcept;
+  expected<void> call_no_ret(lua_ref_seq &&) noexcept;
 
-  /*<< Calls or resumes the coroutine, returns one value, or an error >>*/
   template <typename... Args>
-  expected<lua_ref> call_one_ret(Args &&... args) noexcept {
-    return this->protected_call<lua_ref>(std::forward<Args>(args)...);
-  }
+  expected<lua_ref> call_one_ret(Args &&... args) noexcept;
+  expected<lua_ref> call_one_ret(lua_ref_seq &) noexcept;
+  expected<lua_ref> call_one_ret(lua_ref_seq const &) noexcept;
+  expected<lua_ref> call_one_ret(lua_ref_seq &&) noexcept;
 
-  /*<< Calls or resumes the coroutine, returns all return values, or an error
-    >>*/
   template <typename... Args>
-  expected<lua_ref_seq> call(Args &&... args) noexcept {
-    return this->protected_call<lua_ref_seq>(std::forward<Args>(args)...);
+  expected<lua_ref_seq> call(Args &&... args) noexcept;
+  expected<lua_ref_seq> call(lua_ref_seq &) noexcept;
+  expected<lua_ref_seq> call(lua_ref_seq const &) noexcept;
+  expected<lua_ref_seq> call(lua_ref_seq &&) noexcept;
+
+};
+
+//]
+
+inline coroutine::coroutine(const bound_function & bf) //
+  : coroutine()                                        //
+{
+  if (lua_State * L = bf.push()) {
+    thread_stack_ = lua_newthread(L);
+    lua_insert(L, -2);              // put the thread below the function
+    lua_xmove(L, thread_stack_, 1); // Move function to thread stack
+    ref_ = lua_ref(L);              // Get ref to the thread
+  }
+}
+
+inline void coroutine::reset() noexcept {
+  ref_.reset();
+  thread_stack_ = nullptr;
+}
+
+inline void coroutine::swap(coroutine & other) noexcept {
+  ref_.swap(other.ref_);
+  std::swap(thread_stack_, other.thread_stack_);
+}
+
+inline void swap(coroutine & one, coroutine & other) noexcept {
+  one.swap(other);
+}
+
+// Instantiate call definitions
+
+#define CALL_HELPER(N, T)                                                      \
+  template <typename... Args>                                                  \
+  inline expected<T> coroutine::N(Args &&... args) noexcept {                  \
+    return this->protected_call<T>(std::forward<Args>(args)...);               \
   }
 
 // Same thing but using lua_ref_seq as argument
 // Use a macro so that we can get const &, &&, and & qualifiers defined.
 #define CALL_REF_SEQ_HELPER(N, T, QUAL)                                        \
-  expected<T> N(lua_ref_seq QUAL inputs) noexcept {                            \
+  inline expected<T> coroutine::N(lua_ref_seq QUAL inputs) noexcept {          \
     return this->protected_call2<T>(inputs);                                   \
   }
 
 #define CALL_REF_SEQ(N, T)                                                     \
+  CALL_HELPER(N, T)                                                            \
   CALL_REF_SEQ_HELPER(N, T, &)                                                 \
-  CALL_REF_SEQ_HELPER(N, T, const &)                                           \
-  CALL_REF_SEQ_HELPER(N, T, &&)
+  CALL_REF_SEQ_HELPER(N, T, &&)                                                \
+  CALL_REF_SEQ_HELPER(N, T, const &)
 
   // Actual declarations
 
@@ -206,13 +243,10 @@ public:
   CALL_REF_SEQ(call_one_ret, lua_ref)
   CALL_REF_SEQ(call, lua_ref_seq)
 
+#undef CALL_HELPER
 #undef CALL_REF_SEQ
 #undef CALL_REF_SEQ_HELPER
-};
-//]
+  //->
 
-inline void swap(coroutine & one, coroutine & other) noexcept {
-  one.swap(other);
-}
 
 } // end namespace primer
