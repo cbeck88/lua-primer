@@ -91,6 +91,7 @@ struct lua_ref_seq {
     refs_.emplace(pos, std::forward<Args>(args)...);
   }
 
+  /* Currently makes travis builds fail...
   iterator insert( const_iterator pos, const lua_ref & value ) {
     return refs_.insert(pos, value);
   }
@@ -98,14 +99,16 @@ struct lua_ref_seq {
   iterator insert( const_iterator pos, lua_ref && value ) {
     return refs_.insert(pos, std::move(value));
   }
+  */
 
   template <typename InputIt>
   iterator insert(const_iterator pos, InputIt first, InputIt last ) {
     return refs_.insert(pos, first, last);
   }
 
-  iterator erase(const_iterator pos) { return refs_.erase(pos); }
-  iterator erase(const_iterator first, const_iterator last) { return refs_.erase(first, last); }
+  // Also makes travis fail
+  // iterator erase(const_iterator pos) { return refs_.erase(pos); }
+  // iterator erase(const_iterator first, const_iterator last) { return refs_.erase(first, last); }
 
   /*<< Push all the refs onto the stack in succession.
 Return of `true` means every push succeeded.
