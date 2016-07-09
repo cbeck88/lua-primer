@@ -19,8 +19,6 @@ PRIMER_ASSERT_FILESCOPE;
 struct lua_State;
 typedef int (*lua_CFunction)(lua_State *);
 
-namespace primer { typedef unsigned int uint; } // end namespace primer
-
 // Force PRIMER_NO_MEMORY_FAILURE if lua is compiled as C
 #if !defined(PRIMER_LUA_AS_CPP) && !defined(PRIMER_NO_MEMORY_FAILURE)
 #define PRIMER_NO_MEMORY_FAILURE

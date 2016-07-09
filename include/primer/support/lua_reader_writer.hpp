@@ -51,7 +51,7 @@ inline int trivial_string_writer(lua_State *,
                                  void * B) {
   std::string & output = *reinterpret_cast<std::string *>(B);
   const char * incoming = reinterpret_cast<const char *>(b);
-  for (uint i = 0; i < size; ++i) {
+  for (size_t i = 0; i < size; ++i) {
     output.push_back(incoming[i]);
   }
   return 0;
