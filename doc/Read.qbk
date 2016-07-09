@@ -4,7 +4,7 @@
 
 [primer_read]
 
-* `read` returns a value of type `T`, or a human-readable error message explaining
+* `read` returns a value of type `T`, or an error message explaining
   why the value on the stack could not be converted to `T`.
 * `read` is not permitted to leave the stack in a different state than it was found.
 
@@ -49,7 +49,7 @@ In the above table, "Checks" means that, the checked function must report "true"
       and the conversion is performed using a `static_cast`. This is because in many applications, the possibility of floating point overflow, underflow,
       or loss of precision is not a significant concern.
 
-      If this is a major concern for you, consider specializing the `read` trait for `float`, `double`, etc., or using `LUA_NUMBER` in your code. ]
+      If this is a concern for you, consider specializing the `read` trait for `float`, `double`, etc., or using `LUA_NUMBER` in your code. ]
 
 The following extra types are supported, which allow "flexible" reads.
 
@@ -74,11 +74,14 @@ details.
 * `std::set`
 * `std::map`
 * `std::unordered_map`
-* `boost::flat_set`
+* `boost::vector`
 
 [h3 Customization]
 
 `primer::read`'s implementation is quite simple -- it delegates work to a ['type trait].
+
+[primer_read_impl]
+
 This trait, named `primer::traits::read`, can be specialized to override primer's behavior
 for certain types, or to add new behavior for these custom types.
 

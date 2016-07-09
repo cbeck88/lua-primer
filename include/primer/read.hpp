@@ -22,6 +22,10 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 
 //[ primer_read
+expected<T> read(lua_State * L, int index);
+//]
+
+//[ primer_read_impl
 template <typename T>
 expected<T> read(lua_State * L, int index) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
