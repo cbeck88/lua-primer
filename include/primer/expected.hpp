@@ -39,7 +39,17 @@ namespace primer {
 // Tag used in tag dispactch
 struct default_construct_in_place_tag {};
 
-// Expected class template
+// Declare primary template and specializations
+template <typename T>
+class expected;
+
+template <typename T>
+class expected<T&>;
+
+template <>
+class expected<void>;
+
+// Define primary class template
 template <typename T>
 class expected {
   union {
@@ -238,6 +248,7 @@ public:
 
 //[ primer_expected_ref
 //` `expected<T&>` is implemented as a special interface over `expected<T*>`.
+// Define `T&` specialization
 template <typename T>
 class expected<T &> {
   expected<T *> internal_;
@@ -289,6 +300,7 @@ public:
 //]
 
 //[ primer_expected_void
+// define void specialization
 template <>
 class expected<void> {
   bool no_error_;
