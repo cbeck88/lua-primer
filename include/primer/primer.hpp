@@ -18,6 +18,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/coroutine.hpp>
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
+#include <primer/function.hpp>
 #include <primer/lua.hpp>
 #include <primer/lua_ref.hpp>
 #include <primer/lua_ref_as.hpp>

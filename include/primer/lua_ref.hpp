@@ -6,7 +6,7 @@
 #pragma once
 
 /***
- * A lua_ref is a safe reference to an object in a lua VM.
+ * A lua_ref is a reference to an object in a lua VM.
  */
 
 #include <primer/base.hpp>
@@ -19,8 +19,10 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/expected.hpp>
 
 #include <primer/support/asserts.hpp>
+#include <primer/support/cpp_pcall.hpp>
 #include <primer/support/lua_state_ref.hpp>
 
+#include <new>
 #include <utility>
 
 namespace primer {
@@ -91,10 +93,11 @@ public:
   // Special member functions
   lua_ref() noexcept = default;
   lua_ref(lua_ref && other) noexcept;
+  /*<< If lua can't allocate memory for the copy, throws `std::bad_alloc`. >>*/
   lua_ref(const lua_ref & other);
   ~lua_ref() noexcept;
 
-  lua_ref & operator=(const lua_ref & other) noexcept;
+  lua_ref & operator=(const lua_ref & other);
   lua_ref & operator=(lua_ref && other) noexcept;
 
   // Primary constructor
@@ -126,7 +129,7 @@ Note: This can cause a lua memory allocation failure.
 This cannot cause lua memory allocation error.>>*/
   lua_State * push() const noexcept;
 
-  // Push to a thread stack
+  // Push to a thread stack (see "coroutines" in the manual)
   /*<< Attempts to push the object onto the top of a given ['thread stack].
 It *must* be a thread in the same VM as the original stack, or the same
 as the original stack.
@@ -163,10 +166,22 @@ This cannot cause an exception or raise a lua error.
 inline lua_ref::lua_ref(lua_State * L) { this->init(L); }
 
 inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
-inline lua_ref::lua_ref(const lua_ref & other) { this->init(other.push()); }
+inline lua_ref::lua_ref(const lua_ref & other) {
+  if (lua_State * L = other.push()) {
+    // Protect against memory failure in `luaL_ref`.
+    auto ok = primer::mem_pcall<1>(L, [this, L](){ init(L); });
+    if (!ok) {
+      lua_pop(L, 1);
+#ifndef PRIMER_NO_EXCEPTIONS
+      throw std::bad_alloc{};
+#endif
+    }
+  }
+}
+
 inline lua_ref::~lua_ref() noexcept { this->release(); }
 
-inline lua_ref & lua_ref::operator=(const lua_ref & other) noexcept {
+inline lua_ref & lua_ref::operator=(const lua_ref & other) {
   lua_ref temp{other};
   *this = std::move(temp);
   return *this;
@@ -178,9 +193,7 @@ inline lua_ref & lua_ref::operator=(lua_ref && other) noexcept {
   return *this;
 }
 
-
 inline void lua_ref::reset() noexcept { this->release(); }
-
 
 inline void lua_ref::swap(lua_ref & other) noexcept {
   sref_.swap(other.sref_);

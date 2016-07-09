@@ -48,6 +48,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua_ref_seq.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/function_check_stack.hpp>
+#include <primer/support/function_return.hpp>
 #include <primer/support/cpp_pcall.hpp>
 
 namespace primer {

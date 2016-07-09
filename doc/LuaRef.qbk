@@ -2,9 +2,6 @@
 
 A `primer::lua_ref` is a reference to a lua value which exists in a lua VM.
 
-It is a "weak pointer", in the sense that, obtaining the value from the reference may fail,
-if for instance, the VM has already been destroyed.
-
 Despite it's name, `lua_ref` does not have the semantics of a C++ reference. It has
 an empty state, and can be assigned and reassigned to point to different objects.
 
@@ -30,39 +27,54 @@ The value can be obtained from the reference by using the `push` methods, or the
 
 [primer_example_ref]
 
-[h2 Header]
+[h2 Synopsis]
 
 [primer_lua_ref]
 
-[note While `primer::lua_ref` is copyable, copying it is not that cheap as it has
- has to lock the VM, push the object, and create a new ref. ]
-
 [h2 Safety and ownership]
 
-`primer::lua_ref` is safe in the sense that it will fail to lock
-in that case, rather than giving undefined behavior.
+`primer::lua_ref` is safe in the sense that if the lua VM is destroyed, it
+doesn't become a dangling pointer.
 
-However, `primer::lua_ref` cannot take ownership of a lua VM, nor
-is it thread-safe.
+However, `primer::lua_ref` cannot take ownership of a lua VM. It will fail to
+lock after that point, rather than give undefined behavior.
 
-[caution You must not pass these objects across threads. Lua is generally not thread safe anyways, so this
-should come as no surprise. ]
+As long as the lua VM is alive, it will not garbage collect the refered object. [footnote See `luaL_ref` docs.]
 
-As long as the lua state is alive, it will not garbage collect an object referred to by `primer::lua_ref`.
+So it's not quite a `weak_ptr` or strong pointer -- it's perhaps "medium strength".
+It preserves the lifetime of the pointed value, unless the entire VM is destroyed.
 
-This is achieved using the `luaL_ref` mechanism, see lua docs.
+If the VM still exists and the `lua_ref` is engaged, locking the state and
+pushing the object are both `noexcept`, no-fail operations. They can't cause
+lua memory allocation failure either.
+
+Binding a `lua_ref` to an object on the stack ['can] cause a lua memory
+allocation failure, but not `std::bad_alloc`.
+
+[caution Copying a `lua_ref` is expensive and usually something that you want
+to avoid, since it involves interacting with the lua VM. When running without
+`PRIMER_NO_MEMORY_FAILURE`, it further requires a protected context to catch
+a lua memory allocation failure.
+
+In low memory scenarios, this should likely be avoided.
+For instance, a `shared_ptr<lua_ref>` is just as useful as a `lua_ref` and
+can be copied without fail.]
+
+[caution You must not pass these objects across operating-system threads. Lua is
+generally not thread-safe anyways, so this should come as no surprise. ]
 
 [h2 Read / Push semantics]
 
 Using `primer::push` with a `primer::lua_ref` calls the thread-push member function,
-and so comes with all the caveats above.
+and so comes with all the caveats above -- if you push it to an unrelated lua VM,
+it won't work and bad things will happen.
 
 Using `primer::read` with a `primer::lua_ref` *always* succeeds in binding to a value
 at the given position, unless it is nil or out of bounds, in which case it produces
 a `lua_ref` in the empty state.
 
 This makes it effectively an "any" type for purposes of function parameters,
-and you can use "as" to easily try to interpret it as other values later. So it
+and you can use `lua_ref::as` to easily try to interpret it as other values later. So it
 can be used sort of as a poor man's variant.
 
 Here's an example function to illustrate:
@@ -74,8 +86,8 @@ And example semantics:
 [primer_example_ref_read_test]
 
 Note that, it is not too difficult to implement your own `read` and `push`
-specializations for a proper variant type that appears in your program -- but
-generating a good *generic* `primer::traits::read` template for e.g. `boost::variant` seems quite difficult, and
-so we don't do it right now.
+specializations for a proper variant type that appears in your program.
+We don't currently have a ['generic] `boost::variant` header in Primer, so you
+would have to make your own.
 
 [endsect]

@@ -90,7 +90,9 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
 
   if (narg) { lua_insert(L, -1 - narg); }
 
-  return fcn_call_no_ret(L, narg); // Note that this is noexcept
+  expected<void> result;
+  detail::fcn_call(result, L, narg); // Note that this is noexcept
+  return result;
 }
 //]
 
