@@ -32,7 +32,7 @@ class lua_ref {
   lua_state_ref sref_;
   /*<< Holds the registry index to the object. Mutable because, if `sref_`
        becomes empty, we want to set `iref_` to `LUA_NOREF` immediately. >>*/
-  mutable int iref_;
+  mutable int iref_ = LUA_NOREF;
 
   //<-
 
@@ -68,6 +68,8 @@ class lua_ref {
     this->set_empty();
   }
 
+  // Release the *ref* but not the lua state ref necessarily.
+
   // Release the ref if we are in an engaged state. Ends in empty state.
   void release() noexcept {
     if (lua_State * L = this->check_engaged()) {
@@ -87,58 +89,42 @@ class lua_ref {
   //->
 public:
   // Special member functions
+  lua_ref() noexcept = default;
+  lua_ref(lua_ref && other) noexcept;
+  lua_ref(const lua_ref & other);
+  ~lua_ref() noexcept;
 
-  lua_ref() noexcept { this->set_empty(); }
-  lua_ref(lua_ref && other) noexcept { this->move(other); }
-  lua_ref(const lua_ref & other) { this->init(other.push()); }
-  ~lua_ref() noexcept { this->release(); }
-
-  lua_ref & operator=(const lua_ref & other) noexcept {
-    lua_ref temp{other};
-    *this = std::move(temp);
-    return *this;
-  }
-
-  lua_ref & operator=(lua_ref && other) noexcept {
-    this->release();
-    this->move(other);
-    return *this;
-  }
+  lua_ref & operator=(const lua_ref & other) noexcept;
+  lua_ref & operator=(lua_ref && other) noexcept;
 
   // Primary constructor
   /*<< Pops an object from the top of given stack, and binds to it. If no
-       object is on top, enters the empty state. >>*/
-  explicit lua_ref(lua_State * L) { this->init(L); }
+       object is on top, enters the empty state.
 
+Note: This can cause a lua memory allocation failure.
+  >>*/
+  explicit lua_ref(lua_State * L);
+
+  // Reset to empty state
   /*<< Releases the lua reference, reverts to empty state. >>*/
-  void reset() noexcept { this->release(); }
+  void reset() noexcept;
 
-  /*<< Swap >>*/
-  void swap(lua_ref & other) noexcept {
-    sref_.swap(other.sref_);
-    std::swap(iref_, other.iref_);
-  }
+  // Standard swap function
+  void swap(lua_ref & other) noexcept;
 
-  // Attempt to lock the ref.
+  // Attempt to obtain a pointer to the underlying lua VM.
+  // Succeeds if it wasn't destroyed yet.
+  // Always returns a pointer to the *main thread* stack.
   /*<< Returns a valid lua_State * if successfully locked. Nullptr if not.
        No-fail. >>*/
-  lua_State * lock() const noexcept { return this->check_engaged(); }
+  lua_State * lock() const noexcept;
 
-  // Push to main stack
-  /*<< Attempts to push the object to the top of the primary stack of the state
-used to create this `lua_ref`.
+  // Push to the main stack
+  // Return value is same as lock()
+  /*<< Note: Does not check for stack space
 
-Returns a (valid) `lua_State *` if successfully locked.
-
-Returns `nullptr` if that VM is closed, or if we are in the empty state.
-      >>*/
-  lua_State * push() const noexcept {
-    if (lua_State * L = this->check_engaged()) {
-      lua_rawgeti(L, LUA_REGISTRYINDEX, iref_);
-      return L;
-    }
-    return nullptr;
-  }
+This cannot cause lua memory allocation error.>>*/
+  lua_State * push() const noexcept;
 
   // Push to a thread stack
   /*<< Attempts to push the object onto the top of a given ['thread stack].
@@ -154,41 +140,90 @@ the given stack if the original VM is gone.
 undefined and unspecified behavior will result.
 
 If `PRIMER_DEBUG` is defined, then
-primer will check for this and call `std::abort` if it finds that you
-broke this rule.
+primer will check for this and call `std::abort` if an error was made.
 
 If `PRIMER_DEBUG` is not defined... very bad things are
 likely to happen, including stack corruption of lua VMs.] >>*/
-  bool push(lua_State * T) const noexcept {
-    if (lua_State * L = this->check_engaged()) {
-#ifdef PRIMER_DEBUG
-      // This causes a lua_assert failure if states are unrelated
-      lua_xmove(L, T, 0);
-#else
-      static_cast<void>(L); // suppress unused warning
-#endif
-      lua_rawgeti(T, LUA_REGISTRYINDEX, iref_);
-      return true;
-    } else {
-      // Even if we are empty, T exists, and expects a value, so push nil.
-      lua_pushnil(T);
-      return false;
-    }
-  }
-
+  bool push(lua_State * T) const noexcept;
 
   // test validity
-  /*<< Test if we are not in the empty state and can still be locked. >>*/
-  explicit operator bool() const noexcept {
-    return static_cast<bool>(this->check_engaged());
-  }
+  /*<< Test if we can still be locked. >>*/
+  explicit operator bool() const noexcept;
 
   // Try to interpret the value as a specific C++ type
-  /*<< Attempt to cast the lua value to a C++ value, using primer::read >>*/
+  /*<< Attempt to cast the lua value to a C++ value, using primer::read
+
+This cannot cause an exception or raise a lua error.
+  >>*/
   template <typename T>
   expected<T> as() const noexcept;
 };
 //]
+
+inline lua_ref::lua_ref(lua_State * L) { this->init(L); }
+
+inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
+inline lua_ref::lua_ref(const lua_ref & other) { this->init(other.push()); }
+inline lua_ref::~lua_ref() noexcept { this->release(); }
+
+inline lua_ref & lua_ref::operator=(const lua_ref & other) noexcept {
+  lua_ref temp{other};
+  *this = std::move(temp);
+  return *this;
+}
+
+inline lua_ref & lua_ref::operator=(lua_ref && other) noexcept {
+  this->release();
+  this->move(other);
+  return *this;
+}
+
+
+inline void lua_ref::reset() noexcept { this->release(); }
+
+
+inline void lua_ref::swap(lua_ref & other) noexcept {
+  sref_.swap(other.sref_);
+  std::swap(iref_, other.iref_);
+}
+
+
+inline lua_State * lua_ref::lock() const noexcept {
+  return this->check_engaged();
+}
+
+
+inline lua_State * lua_ref::push() const noexcept {
+  if (lua_State * L = this->check_engaged()) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, iref_);
+    return L;
+  }
+  return nullptr;
+}
+
+
+inline bool lua_ref::push(lua_State * T) const noexcept {
+  if (lua_State * L = this->check_engaged()) {
+#ifdef PRIMER_DEBUG
+    // This causes a lua_assert failure if states are unrelated
+    lua_xmove(L, T, 0);
+#else
+    static_cast<void>(L); // suppress unused warning
+#endif
+    lua_rawgeti(T, LUA_REGISTRYINDEX, iref_);
+    return true;
+  } else {
+    // Even if we are empty, T exists, and expects a value, so push nil.
+    lua_pushnil(T);
+    return false;
+  }
+}
+
+
+inline lua_ref::operator bool() const noexcept {
+  return static_cast<bool>(this->check_engaged());
+}
+
 
 inline void swap(lua_ref & one, lua_ref & other) noexcept { one.swap(other); }
 
