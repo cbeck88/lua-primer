@@ -3,21 +3,17 @@
 One aspect of lua that you may miss on your first pass through the manual is the
 note about stack overflow.
 
-lua's stack has only a limited size. In current versions of lua it is quite high,
-e.g. more than ten thousand elements, but in past versions it may have only been 
-a few hundred elements. With eris, it is somewhat smaller than in a default
-configuration for various reasons. The stack space may also depend on the integer
-sizes that lua is configured to use.
-
-lua does not perform any bounds checking. When you push a string or an integer,
+lua's stack has only a limited size, and it doesn't perform bounds checking.
+When you push a string or an integer,
 etc., if there is not enough space in the stack left, you get undefined
 behavior.
 
-This is of course to avoid the overhead of constant bounds checking. It is
-expected that when you perform a "large" operation you might do some bounds
-checking at the beginning, having an estimate of how much clearance you need.
-The `lua_checkstack` function can tell you if there is enough space for a given
-number of extra slots.
+When you push things onto the stack, generically, you should use `lua_checkstack`,
+which ensures that there is space for at least `n` more elements, or returns
+`false` if allocation fails.
+
+Instead of calling this constantly, usually you want to call it once at the
+beginning of a "large-ish" operation.
 
 In `primer`, we support pushing complex containers in a single operation.
 For that to be workable, we need to give you a way to figure out how much stack
@@ -57,6 +53,7 @@ If the resulting `maybe_int` is vacant (`operator bool` returns false), it means
 no estimate was possible, for lack of information. This may happen if a user-defined
 container or type doesn't provide an estimate, by accident, or because no
 upper bound is possible for a given type without knowledge of its runtime value.
+(In that case the operation itself should perform a stack check.)
 
 Currently we cannot provide an estimate for "visitable structures", although we
 would like to fix that. For the other types and containers that are built-in to
@@ -71,8 +68,9 @@ It also does such checks when calling a bound-function or coroutine.
 
 It does not do any checks when you are just calling `primer::push` or `primer::read`.
 
-If you don't define a `stack_space_needed` value for a custom specialization of `push` or `read`, then primer can't form an estimate
-and will just skip the stack space checks.
+If you don't define a `stack_space_needed` value for a custom specialization of
+`push` or `read`, then primer can't form an estimate and will just skip the
+stack space checks.
 
 [h4 Providing stack space estimates]
 
