@@ -10,7 +10,7 @@
  * fashion.
  *
  * Given any callbable C++ object which takes a lua_State *, whose operation
- * may generate lua errors, (but not foreign exceptions), cpppcall invokes it
+ * may generate lua errors, (but not foreign exceptions), cpp_pcall invokes it
  * from a protected context.
  *
  * The callable should have return type void -- any return value is discarded.
@@ -34,9 +34,34 @@ PRIMER_ASSERT_FILESCOPE;
 #include <type_traits>
 #include <utility>
 
-//[ cpp_pcall implementation
+//[ cpp_pcall_synopsis
 namespace primer {
 
+/*<< Takes a callable and some arguments, performs the call in a protected
+context which captures lua errors.
+
+Usually, `f` needs a `lua State *` also as one of the arguments, to do whatever
+it will do. It might or might not be the same `lua_State *`, it could be
+operating on a thread.
+
+The first parameter to `cpp_pcall` should be the main
+thread, and it should be related to whatever threads `f` is operating on, or the
+error capture won't work.
+
+The optional template parameter `narg` signals how many values on the top of L's
+stack should be consumed as arguments to the `pcall`. By default, none are.
+
+The callable itself must not throw a C++ exception, or terminate will be called.
+>>*/
+template <int narg = 0, typename F, typename... Args>
+expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept;
+
+}
+//]
+
+namespace primer {
+
+//[ cpp_pcall_implementation
 template <typename F, typename... Args>
 struct protected_call_helper {
   using tuple_t = std::tuple<F, Args...>;
@@ -57,17 +82,6 @@ struct protected_call_helper {
   static constexpr lua_CFunction cfunc = impl<indices>::cfunc;
 };
 
-/*<< Takes a callable and some arguments, performs the call in a protected
-context which captures lua errors.
-
-Usually, F needs a lua State * also as one of the arguments, to do whatever it
-will do. It might or might not be the same lua_State *, it could be operating
-on a thread. The first parameter to cpp_pcall should be the main thread, and
-it should be related to whatever threads F is operating on.
-
-The optional template parameter "narg" signals how many values on the top of L's
-stack should be visible within the pcall. By default, none are.
->>*/
 template <int narg = 0, typename F, typename... Args>
 expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   using P = protected_call_helper<F, Args...>;
@@ -83,17 +97,20 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
 }
 //]
 
-//[ mem_pcall implementation
+//[ mem_pcall_implementation
 //` Sometimes, we perform operations which can raise lua errors, but only of the
-//` memory variety. In this case, we call mem_pcall instead of cpp_pcall, which
-//` is resolves to either a cpp_pcall or an unprotected call depending on the
-//` PRIMER_NO_MEMORY_FAILURE define.
+//` memory variety. In this case, we call `mem_pcall` instead of `cpp_pcall`,
+//` which is resolves to either a `cpp_pcall` or a simple invocation of the
+//` callable, depending on the `PRIMER_NO_MEMORY_FAILURE` define.
 //`
-//` This, together with PRIMER_TRY_BAD_ALLOC / PRIMER_CATCH_BAD_ALLOC, is the
-//` total effect of the PRIMER_NO_MEMORY_FAILURE switch.
+//` This, together with `PRIMER_TRY_BAD_ALLOC` / `PRIMER_CATCH_BAD_ALLOC`, is
+//` the total effect of the `PRIMER_NO_MEMORY_FAILURE` switch.
 //`
-//` mem_pcall should not be used with calls that can throw an exception, or
-//` that can raise lua errors of the non-memory variety.
+//` mem_pcall should not be used with calls that can throw an exception. It
+//` also should not be used with calls that can raise lua errors of the
+//` non-memory variety, since when `PRIMER_NO_MEMORY_FAILURE` is defined the
+//` protection is stripped out. If you need full protection then use `cpp_pcall`
+//` directly.
 
 template <int narg = 0, typename F, typename... Args>
 expected<void> mem_pcall(lua_State * L, F && f, Args &&... args) noexcept {

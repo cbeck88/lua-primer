@@ -25,6 +25,7 @@
 [import ../include/primer/api/persistable.hpp]
 [import ../include/primer/boost/optional.hpp]
 [import ../include/primer/container/optional_base.hpp]
+[import ../include/primer/support/cpp_pcall.hpp]
 [import ../include/primer/support/metatable.hpp]
 [import ../include/primer/support/types.hpp]
 
