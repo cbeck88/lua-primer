@@ -15,12 +15,10 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
-#include <primer/cpp_pcall.hpp>
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
-#include <primer/lua_ref.hpp>
-#include <primer/userdata.hpp>
 #include <primer/maybe_int.hpp>
+#include <primer/userdata.hpp>
 #include <primer/detail/is_userdata.hpp>
 #include <primer/detail/type_traits.hpp>
 #include <primer/support/diagnostics.hpp>
@@ -243,29 +241,6 @@ struct read<stringy> {
     return result;
   }
   static constexpr maybe_int stack_space_needed{1};
-};
-
-// lua_ref
-// Sort of a poor man's variant type, on read
-template <>
-struct read<lua_ref> {
-  static expected<lua_ref> from_stack(lua_State * L, int idx) {
-    expected<lua_ref> result{default_construct_in_place_tag{}};
-
-    if (!lua_isnoneornil(L, idx)) {
-      lua_pushvalue(L, idx);
-      auto ok = mem_pcall<1>(L, &impl, L, result);
-      if (!ok) { result = ok.err(); }
-    }
-
-    return result;
-  }
-  static constexpr maybe_int stack_space_needed{1};
-
-  // This can cause memory allocation failure
-  static void impl(lua_State * L, expected<lua_ref> & result) {
-    result = lua_ref{L};
-  }
 };
 
 } // end namespace traits

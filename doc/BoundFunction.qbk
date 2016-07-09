@@ -19,4 +19,9 @@ function errs or the lua VM is destroyed.
 
 [primer_bound_function]
 
+[h2 Read / Push semantics]
+
+Similar to `lua_ref`, these can be pushed onto the stack. On read, anything
+that's not a function causes an error, otherwise it binds to it.
+
 [endsect]

@@ -19,7 +19,6 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
-#include <primer/lua_ref.hpp>
 
 #include <primer/detail/integral_conversions.hpp>
 #include <primer/maybe_int.hpp>
@@ -79,7 +78,7 @@ struct push<T,
   PRIMER_STATIC_ASSERT(
     sizeof(T) <= sizeof(LUA_INTEGER),
     "Cannot push this type to lua, integer overflow could occur! "
-    "Please convert to a smaller type.");
+    "Please convert to LUA_INTEGER or smaller.");
   static void to_stack(lua_State * L, T t) { lua_pushinteger(L, t); }
   static constexpr maybe_int stack_space_needed{1};
 };
@@ -111,7 +110,7 @@ struct push<T,
   PRIMER_STATIC_ASSERT(
     sizeof(T) <= sizeof(LUA_NUMBER),
     "Cannot push this type to lua, floating point overflow could "
-    "occur! Please convert to a smaller type.");
+    "occur! Please convert to LUA_NUMBER or smaller.");
   static void to_stack(lua_State * L, T t) { lua_pushnumber(L, t); }
   static constexpr maybe_int stack_space_needed{1};
 };
@@ -136,14 +135,6 @@ struct push<stringy> {
   static void to_stack(lua_State * L, const stringy & s) {
     push<std::string>::to_stack(L, s.value);
   }
-  static constexpr maybe_int stack_space_needed{1};
-};
-
-// lua_ref
-
-template <>
-struct push<primer::lua_ref> {
-  static void to_stack(lua_State * L, primer::lua_ref r) { r.push(L); }
   static constexpr maybe_int stack_space_needed{1};
 };
 
