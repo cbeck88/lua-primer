@@ -51,8 +51,6 @@ Traits are used because it provides for more precise and powerful customization.
 function overloading, then all kinds of implicit conversions can come into play, and your ability to provide partial
 specializations is limited.
 
-(The type traits approach to providing customization points is well-established in C++ libraries like `boost::spirit` -- see for instance an intro [@http://www.boost.org/doc/libs/1_61_0/libs/type_traits/doc/html/boost_typetraits/background.html here].)
-
 [h3 Reflecting C++ into lua]
 
 [h4 Adapting classes as userdata types]
