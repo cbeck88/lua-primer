@@ -255,7 +255,7 @@ struct read<lua_ref> {
     if (!lua_isnoneornil(L, idx)) {
       lua_pushvalue(L, idx);
 #ifndef PRIMER_NO_MEMORY_FAILURE
-      impl(L, idx, result);
+      impl(L, result);
 #else
       cpp_pcall<1>(L, &impl, L, result);
 #endif
