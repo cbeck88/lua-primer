@@ -40,7 +40,7 @@ In case that there is a known value, it can be queried using `operator *`.
 
 [primer_example_maybe_int]
 
-`maybe_int` supports addition, subtraction, and multiplication, with `int` and
+`maybe_int` supports `constexpr` addition, subtraction, and multiplication, with `int` and
 with other `maybe_int`. The result is always a `maybe_int`.
 
 The `min` and `max` can be computed by `maybe_int::min` and `maybe_int::max`.
@@ -77,25 +77,37 @@ and will just skip the stack space checks.
 [h4 Providing stack space estimates]
 
 To provide a stack space estimate, when you specialize `push` or `read`, you
-should provide a class member:
+should provide a class member `stack_space_needed` within the specialization:
 
-`static constexpr maybe_int stack_space_needed{4};`
+``
+namespace primer {
+namespace traits {
 
-if e.g. four additional stack spaces are needed to complete the operation.
+template <>
+struct push<foo> {
+  static void to_stack(lua_State * L, const foo & f) { ... }
+  static constexpr maybe_int stack_space_needed{4};
+};
 
-[note When defining `primer::traits::push::stack_space_needed`, the value should
- be the smallest value `X` such that if `lua_checkstack(L, X)` returns true,
-then the push operation will always succed without exausting the stack. This
-value is always at least one -- `push` should always push something at the end,
-even if it is just `nil`. It may be larger for complex objects like containers,
-and may depend on the template parameters in that case.
+} // end namespace traits
+} // end namespace primer
+
+if e.g. four additional stack spaces are needed to complete the push operation.
+
+[note When defining `stack_space_needed` for `primer::traits::push`, the value
+should be the smallest value `X` such that if `lua_checkstack(L, X)` returns
+`true`, then the push operation will always succed without exausting the stack.
+This value is always at least one -- `push` should always push something at the
+end, even if it is just `nil`. It may be larger for complex objects like
+containers, and may depend on the template parameters in that case.
 
 If you don't define it, it is the same as defining it to "unknown".]
 
-[note When defining `primer::traits::read::stack_space_needed`, the value should
- be the smallest value `X` such that if `lua_checkstack(L, X)` returns true,
-then the read operation will always succeed without exhausting the stack. This
-value is always at least zero. It may be larger for more complex objects.
+[note When defining `stack_space_needed` for `primer::traits::read`, the value
+should be the smallest value `X` such that if `lua_checkstack(L, X)` returns
+`true`, then the read operation will always succeed without exhausting the
+stack. This value is always at least zero. It may be larger for more complex
+objects.
 
 If you don't define it, it is the same as defining it to "unknown".]
 

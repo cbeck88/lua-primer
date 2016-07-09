@@ -165,16 +165,21 @@ This cannot cause an exception or raise a lua error.
 inline lua_ref::lua_ref(lua_State * L) { this->init(L); }
 
 inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
+
+// Note: Copy ctor used to be really simple: `this->init(other.push())`.
+//       However that has a really nasty problem of causing lua memory
+//       allocation failure, and it's really not very practical to require the
+//       user to create a protected context for any, accidental, copy.
 inline lua_ref::lua_ref(const lua_ref & other) {
   if (lua_State * L = other.push()) {
     // Protect against memory failure in `luaL_ref`.
     auto ok = primer::mem_pcall<1>(L, [this, L](){ init(L); });
-    if (!ok) {
-      lua_pop(L, 1);
-#ifndef PRIMER_NO_EXCEPTIONS
-      throw std::bad_alloc{};
+#ifdef PRIMER_NO_EXCEPTIONS
+    static_cast<void>(ok); // I don't see what else we can do here
+                           // We could assert(false) I suppose.
+#else
+    if (!ok) { throw std::bad_alloc{}; }
 #endif
-    }
   }
 }
 
