@@ -22,6 +22,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/maybe_int.hpp>
 #include <primer/detail/is_userdata.hpp>
 #include <primer/detail/type_traits.hpp>
+#include <primer/support/cpp_pcall.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/types.hpp>
 
@@ -253,12 +254,21 @@ struct read<lua_ref> {
 
     if (!lua_isnoneornil(L, idx)) {
       lua_pushvalue(L, idx);
-      result = lua_ref{L};
+#ifndef PRIMER_NO_MEMORY_FAILURE
+      impl(L, idx, result);
+#else
+      cpp_pcall<1>(L, &impl, L, result);
+#endif
     }
 
     return result;
   }
   static constexpr maybe_int stack_space_needed{1};
+
+  // This can cause memory allocation failure
+  static void impl(lua_State * L, expected<lua_ref> & result) {
+    result = lua_ref{L};
+  }
 };
 
 } // end namespace traits

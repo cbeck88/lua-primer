@@ -56,14 +56,18 @@ struct protected_call_helper {
   static constexpr lua_CFunction cfunc = impl<indices>::cfunc;
 };
 
-template <typename F, typename... Args>
+template <int narg = 0, typename F, typename... Args>
 expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   using P = protected_call_helper<F, Args...>;
   typename P::tuple_t tuple{std::forward<F>(f), std::forward<Args>(args)...};
   lua_pushlightuserdata(L, static_cast<void *>(&tuple));
   lua_pushcclosure(L, P::cfunc, 1);
 
-  return fcn_call_no_ret(L, 0); // Note that this is noexcept
+  if (narg) {
+    lua_insert(L, -1 - narg);
+  }
+
+  return fcn_call_no_ret(L, narg); // Note that this is noexcept
 }
 
 } // end namespace primer
