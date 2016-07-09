@@ -15,13 +15,21 @@ The ['core] of Primer may be included with
 #include <primer/primer.hpp>
 ``
 
+You may include ['forward declarations] of the core types via
+
+``
+#include <primer/primer_fwd.hpp>
+``
+
 To enable support for individual standard and boost containers, you may include
 any of the ['extra] headers
 
 ``
 #include <primer/std/vector.hpp>
 #incldue <primer/std/set.hpp>
+...
 #include <primer/boost/optional.hpp>
+...
 ``
 
 or include ['all] standard container headers or ['all] boost container

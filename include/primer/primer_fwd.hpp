@@ -5,21 +5,21 @@
 
 #pragma once
 
+// Forward declarations
+
 #include <primer/base.hpp>
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/expected_fwd.hpp>
+
 namespace primer {
 
-class error;
-
-template <typename T>
-class expected;
-
-template <typename T>
-class expected<T&>;
-
-template <>
-class expected<void>;
+class bound_function;
+class coroutine;
+class lua_ref;
+struct lua_ref_seq;
+class lua_state_ref;
+class maybe_int;
 
 } // end namespace primer

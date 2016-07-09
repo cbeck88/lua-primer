@@ -39,16 +39,6 @@ namespace primer {
 // Tag used in tag dispactch
 struct default_construct_in_place_tag {};
 
-// Declare primary template and specializations
-template <typename T>
-class expected;
-
-template <typename T>
-class expected<T&>;
-
-template <>
-class expected<void>;
-
 // Define primary class template
 template <typename T>
 class expected {

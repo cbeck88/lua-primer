@@ -13,6 +13,8 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/conf.hpp>
 #include <primer/version.hpp>
 
+#include <primer/primer_fwd.hpp>
+
 // Forward declare some lua types
 struct lua_State;
 typedef int (*lua_CFunction)(lua_State *);
