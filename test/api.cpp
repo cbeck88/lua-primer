@@ -2,11 +2,8 @@
 #include <primer/api/callbacks.hpp>
 #include <primer/api/libraries.hpp>
 #include <primer/api/userdatas.hpp>
-#include <primer/detail/make_array.hpp>
-#include <primer/support/function.hpp>
-#include <primer/support/userdata_dispatch.hpp>
-#include <primer/lua.hpp>
-#include <primer/lua_ref_as.hpp>
+// #include <primer/detail/make_array.hpp>
+#include <primer/primer.hpp>
 #include <primer/std/vector.hpp>
 
 #include "test_harness/test_harness.hpp"

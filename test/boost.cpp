@@ -1,11 +1,5 @@
+#include <primer/primer.hpp>
 #include <primer/boost.hpp>
-
-#include <primer/adapt.hpp>
-#include <primer/bound_function.hpp>
-#include <primer/coroutine.hpp>
-#include <primer/lua_ref_as.hpp>
-#include <primer/push.hpp>
-#include <primer/read.hpp>
 
 #include "test_harness/test_harness.hpp"
 #include <cassert>

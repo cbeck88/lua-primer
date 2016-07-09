@@ -10,17 +10,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-// clang-format off
-
-#define PRIMER_VERSION_MAJOR    "0"
-#define PRIMER_VERSION_MINOR    "0"
-#define PRIMER_VERSION_NUM      000
-#define PRIMER_VERSION_RELEASE  "1"
-
-#define PRIMER_VERSION          "Lua Primer " PRIMER_VERSION_MAJOR "." PRIMER_VERSION_MINOR
-#define PRIMER_RELEASE          PRIMER_VERSION "." PRIMER_VERSION_RELEASE
-
-// clang-format on
+#include <primer/version.hpp>
 
 /* #define PRIMER_DEBUG */
 /* #define PRIMER_LUA_AS_CPP */
@@ -39,12 +29,14 @@ namespace primer { typedef unsigned int uint; } // end namespace primer
 #define PRIMER_NO_MEMORY_FAILURE
 #endif
 
+// Enable static assertions
 #ifndef PRIMER_NO_STATIC_ASSERTS
 #define PRIMER_STATIC_ASSERT(C, M) static_assert(C, M)
 #else
 #define PRIMER_STATIC_ASSERT(C, M) static_assert(true, "")
 #endif
 
+// Enable exception handling
 #ifndef PRIMER_NO_EXCEPTIONS
 #define PRIMER_TRY try
 #define PRIMER_CATCH(X) catch (X)
@@ -55,7 +47,7 @@ namespace primer { typedef unsigned int uint; } // end namespace primer
 #define PRIMER_RETHROW static_assert(true, "")
 #endif
 
-// Implement PRIMER_NO_MEMORY_FAILURE for bad_alloc handling
+// Implement PRIMER_NO_MEMORY_FAILURE for std::bad_alloc handling
 #ifdef PRIMER_NO_MEMORY_FAILURE
 #define PRIMER_TRY_BAD_ALLOC PRIMER_TRY
 #define PRIMER_CATCH_BAD_ALLOC PRIMER_CATCH(std::bad_alloc &)

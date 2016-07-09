@@ -1,10 +1,5 @@
+#include <primer/primer.hpp>
 #include <primer/visit_struct.hpp>
-
-#include <primer/adapt.hpp>
-#include <primer/push.hpp>
-#include <primer/read.hpp>
-
-#include <primer/support/function.hpp>
 
 #include <primer/api/callbacks.hpp>
 #include <primer/api/callback_registrar.hpp>

@@ -1,7 +1,4 @@
-#include <primer/expected.hpp>
-#include <primer/lua.hpp>
-#include <primer/push.hpp>
-#include <primer/read.hpp>
+#include <primer/primer.hpp>
 
 #include "test_harness/conf.hpp"
 #include "test_harness/lua_raii.hpp"

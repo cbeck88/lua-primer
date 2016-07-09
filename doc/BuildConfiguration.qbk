@@ -1,4 +1,76 @@
-[section Build Configuration]
+[section Usage and Configuration]
+
+Primer is header only -- this means that to use Primer in a C++ project, its
+`include` directory needs to be added to your include search path.
+
+This includes the `primer` subfolder, as well as two extra libraries `visit_struct`
+and `weak_ref`. These both stand alone and are potentially useful outside of
+Primer, but they are small enough to justify distributing them with Primer.
+
+[heading What to Include]
+
+The ['core] of Primer may be included with
+
+``
+#include <primer/primer.hpp>
+``
+
+To enable support for individual standard and boost containers, you may include
+any of the ['extra] headers
+
+``
+#include <primer/std/vector.hpp>
+#incldue <primer/std/set.hpp>
+#include <primer/boost/optional.hpp>
+``
+
+or include ['all] standard container headers or ['all] boost container
+headers with
+
+``
+#include <primer/std.hpp>
+#include <primer/boost.hpp>
+``
+
+To include both `visit_struct` and the related support headers in
+primer, you may include
+
+``
+#include <primer/visit_struct.hpp>
+``
+
+To use the features of primer that require lua-eris, which live in the `api` namespace,
+you may include
+
+``
+#include <primer/api.hpp>
+``
+
+If you just want to get the version number of primer, you may include
+
+``
+#include <primer/version.hpp>
+``
+
+
+Finally, if you would like to include lua or eris using the same headers that
+Primer does internally, you may include
+
+``
+#include <primer/lua.hpp>
+``
+
+or
+
+``
+#include <primer/eris.hpp>
+``
+
+
+[note All other headers are considered implementation details, and may be moved
+or nonexistant in future releases, so you shouldn't include them directly. ]
+
+[heading Build Configuration]
 
 Primer responds to a few configuration defines:
 
@@ -21,6 +93,7 @@ In general the failure of the conditions checked by these assertions can lead to
 
 [note If lua is compiled as C, i.e., `PRIMER_LUA_AS_CPP` is not defined, then `PRIMER_NO_MEMORY_FAILURE` will be defined automatically. See Exception Safety section for rationale. (TODO Link).]
 
-To enable these, you can add them in your build system, define them in your source files before including primer, or uncomment them in the `<primer/base.hpp>` source.
+To enable these, you can add them in your build system, define them in your source files before including primer, or create an autotools-style configuration file that contains them, and include that
+before including primer. If you are willing to modify your distribution of the library source, you could uncomment any of these defines in `<primer/base.hpp>`.
 
 [endsect]

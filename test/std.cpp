@@ -1,13 +1,5 @@
+#include <primer/primer.hpp>
 #include <primer/std.hpp>
-
-#include <primer/adapt.hpp>
-#include <primer/lua_ref_as.hpp>
-#include <primer/push.hpp>
-#include <primer/read.hpp>
-#include <primer/result.hpp>
-#include <primer/userdata.hpp>
-#include <primer/support/function.hpp>
-#include <primer/support/userdata_dispatch.hpp>
 
 #include "test_harness/test_harness.hpp"
 #include <iostream>
