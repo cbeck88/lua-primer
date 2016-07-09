@@ -81,7 +81,7 @@ struct protected_call_helper {
   static constexpr lua_CFunction cfunc = impl<indices>::cfunc;
 };
 
-template <int narg = 0, typename F, typename... Args>
+template <int narg, typename F, typename... Args>
 expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   using P = protected_call_helper<F, Args...>;
   typename P::tuple_t tuple{std::forward<F>(f), std::forward<Args>(args)...};
