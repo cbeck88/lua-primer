@@ -6,12 +6,12 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../overview.html" title="Overview">
-<link rel="prev" href="build_configuration.html" title="Build Configuration">
+<link rel="prev" href="usage_and_configuration.html" title="Usage and Configuration">
 <link rel="next" href="../reference.html" title="Reference">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="build_configuration.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="usage_and_configuration.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -37,21 +37,34 @@
           </li>
 </ul></div>
 <p>
-        The main things that you must do to ensure good behavior are * When making
-        a customization of <code class="computeroutput"><span class="identifier">push</span></code>,
-        do not throw C++ exceptions. A lua error should only be raised in case of
-        lua memory allocation failure. * When making a customization of <code class="computeroutput"><span class="identifier">read</span></code>, do not throw C++ exceptions, or raise
-        lua errors. If reading fails, return a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>.
-        * Don't make lua callbacks (<code class="computeroutput"><span class="keyword">int</span><span class="special">(</span><span class="identifier">lua_State</span><span class="special">*)</span></code>) that throw. Those functions should handle
-        problems internally or signal lua errors using the C api directly. * Don't
-        use PRIMER_ADAPT with functions <code class="computeroutput"><span class="identifier">primer_result</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="special">...)</span></code> that
-        throw. These functions should return a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
-        if they fail, which will cause primer to raise a corresponding lua error.
-        These functions should only raise lua errors directly in case of lua memory
-        allocation failure. If this really cramps your style, consider making a specialization
-        of <code class="computeroutput"><span class="identifier">adapt</span></code> that catches some
-        choice exceptions.
+        The main things that you must do to ensure good behavior are
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            When making a customization of <code class="computeroutput"><span class="identifier">push</span></code>,
+            do not throw C++ exceptions. A lua error should only be raised in case
+            of lua memory allocation failure.
+          </li>
+<li class="listitem">
+            When making a customization of <code class="computeroutput"><span class="identifier">read</span></code>,
+            do not throw C++ exceptions, or raise lua errors. If reading fails, return
+            a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>.
+          </li>
+<li class="listitem">
+            Don't make lua callbacks (<code class="computeroutput"><span class="keyword">int</span><span class="special">(</span><span class="identifier">lua_State</span><span class="special">*)</span></code>) that throw. Those functions should
+            handle problems internally or signal lua errors using the C api directly.
+          </li>
+<li class="listitem">
+            Don't use PRIMER_ADAPT with functions <code class="computeroutput"><span class="identifier">primer_result</span><span class="special">(</span><span class="identifier">lua_State</span>
+            <span class="special">*,</span> <span class="special">...)</span></code>
+            that throw. These functions should return a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
+            if they fail, which will cause primer to raise a corresponding lua error.
+            These functions should only raise lua errors directly in case of lua
+            memory allocation failure. If this really cramps your style, consider
+            making a specialization of <code class="computeroutput"><span class="identifier">adapt</span></code>
+            that catches some choice exceptions.
+          </li>
+</ul></div>
 <h4>
 <a name="lua_primer.overview.exception_safety.h0"></a>
         <span><a name="lua_primer.overview.exception_safety.design_considerations"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.design_considerations">Design
@@ -224,7 +237,12 @@
       </h5>
 <p>
         Note that this philosophy is different from how some C++ lua binding libraries
-        work. <sup>[<a name="lua_primer.overview.exception_safety.f6" href="#ftn.lua_primer.overview.exception_safety.f6" class="footnote">7</a>]</sup> <sup>[<a name="lua_primer.overview.exception_safety.f7" href="#ftn.lua_primer.overview.exception_safety.f7" class="footnote">8</a>]</sup>
+        work. Many of them have various ways of trying to handle the user's exceptions
+        and either report them to lua as errors or try to get them across lua by
+        various schemes without actually throwing them through lua.
+      </p>
+<p>
+        <sup>[<a name="lua_primer.overview.exception_safety.f6" href="#ftn.lua_primer.overview.exception_safety.f6" class="footnote">7</a>]</sup> <sup>[<a name="lua_primer.overview.exception_safety.f7" href="#ftn.lua_primer.overview.exception_safety.f7" class="footnote">8</a>]</sup>
       </p>
 <p>
         We consider that exceptions should only be used for very serious problems,
@@ -235,10 +253,11 @@
         to call your functions, and then it becomes very difficult to reason about
         what happens next. So we consider that catching user exceptions and trying
         to sneak them across the lua call boundary is not a very robust solution,
-        and we don't plan to do something like this in Primer. We consider that it
-        is usually a better idea to just terminate the program in such cases. If
-        you want to create an exception-to-lua-error translation mechanism for use
-        with Primer in your program you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code> class template in order to do it.
+        and we don't plan to do something like this in Primer. We think it is a better
+        idea to just terminate the program in such cases. If you want to create an
+        exception-to-lua-error translation mechanism for use with Primer in your
+        program you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code>
+        class template in order to do it.
       </p>
 <p>
         Instead, we are mainly concerned with avoiding leaks and indeterminate states,
@@ -250,7 +269,8 @@
         Safety Requirements</a>
       </h4>
 <p>
-        There are three (main) ways that an exception can reach Primer:
+        There are three ways that we will consider here that a user exception can
+        reach Primer:
       </p>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
@@ -301,8 +321,9 @@
         Userdata types must not throw exceptions from their destructors, if they
         are using the "default" garbage collection function. Even if they
         have custom <code class="computeroutput"><span class="identifier">__gc</span></code> metamethods,
-        those metamethods must not throw exceptions. If <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>
-        is defined then they are not permitted to raise lua errors either.
+        those metamethods must not throw exceptions. They aren't permitted to raise
+        lua errors either, since lua gc happens as a continual process and those
+        errors could appear at times that we aren't prepared to handle them.
       </p>
 <h5>
 <a name="lua_primer.overview.exception_safety.h7"></a>
@@ -482,7 +503,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="build_configuration.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="usage_and_configuration.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="../reference.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

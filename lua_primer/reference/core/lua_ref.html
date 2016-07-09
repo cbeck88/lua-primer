@@ -22,13 +22,9 @@
           which exists in a lua VM.
         </p>
 <p>
-          It is a "weak pointer", in the sense that, obtaining the value
-          from the reference may fail, if for instance, the VM has already been destroyed.
-        </p>
-<p>
-          Despite it's name, <code class="computeroutput"><span class="identifier">lua_ref</span></code>
-          does not have the semantics of a C++ reference. It has an empty state,
-          and can be assigned and reassigned to point to different objects.
+          <code class="computeroutput"><span class="identifier">lua_ref</span></code> is not quite like
+          a C++ reference. It has an empty state, and can be assigned and reassigned
+          to point to different objects.
         </p>
 <h3>
 <a name="lua_primer.reference.core.lua_ref.h0"></a>
@@ -57,16 +53,12 @@
           It can be default constructed in the empty state as well.
         </p>
 <p>
-          If the lua VM is destroyed (closed), the <code class="computeroutput"><span class="identifier">lua_ref</span></code>
-          reverts to the empty state the next time an attempt is made to access it.
-        </p>
-<p>
-          While the VM is not closed, the referred object will not be garbage collected
-          by lua.
-        </p>
-<p>
           The value can be obtained from the reference by using the <code class="computeroutput"><span class="identifier">push</span></code> methods, or the <code class="computeroutput"><span class="identifier">as</span></code>
           method.
+        </p>
+<p>
+          If the lua VM is destroyed (closed), the <code class="computeroutput"><span class="identifier">lua_ref</span></code>
+          reverts to the empty state the next time an attempt is made to access it.
         </p>
 <pre class="programlisting"><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span> <span class="special">=</span> <span class="identifier">luaL_newstate</span><span class="special">();</span>
 
@@ -100,77 +92,45 @@
 </pre>
 <h3>
 <a name="lua_primer.reference.core.lua_ref.h1"></a>
-          <span><a name="lua_primer.reference.core.lua_ref.header"></a></span><a class="link" href="lua_ref.html#lua_primer.reference.core.lua_ref.header">Header</a>
+          <span><a name="lua_primer.reference.core.lua_ref.synopsis"></a></span><a class="link" href="lua_ref.html#lua_primer.reference.core.lua_ref.synopsis">Synopsis</a>
         </h3>
 <pre class="programlisting"><span class="keyword">class</span> <span class="identifier">lua_ref</span> <span class="special">{</span>
   <a class="co" name="lua_primer.reference.core.lua_ref.c0" href="lua_ref.html#lua_primer.reference.core.lua_ref.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="identifier">lua_state_ref</span> <span class="identifier">sref_</span><span class="special">;</span>
-  <a class="co" name="lua_primer.reference.core.lua_ref.c2" href="lua_ref.html#lua_primer.reference.core.lua_ref.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">mutable</span> <span class="keyword">int</span> <span class="identifier">iref_</span><span class="special">;</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c2" href="lua_ref.html#lua_primer.reference.core.lua_ref.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">mutable</span> <span class="keyword">int</span> <span class="identifier">iref_</span> <span class="special">=</span> <span class="identifier">LUA_NOREF</span><span class="special">;</span>
 
 <span class="keyword">public</span><span class="special">:</span>
   <span class="comment">// Special member functions</span>
+  <span class="identifier">lua_ref</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">lua_ref</span><span class="special">(</span><span class="identifier">lua_ref</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c4" href="lua_ref.html#lua_primer.reference.core.lua_ref.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="identifier">lua_ref</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">);</span>
+  <span class="special">~</span><span class="identifier">lua_ref</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-  <span class="identifier">lua_ref</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">set_empty</span><span class="special">();</span> <span class="special">}</span>
-  <span class="identifier">lua_ref</span><span class="special">(</span><span class="identifier">lua_ref</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">other</span><span class="special">);</span> <span class="special">}</span>
-  <span class="identifier">lua_ref</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init</span><span class="special">(</span><span class="identifier">other</span><span class="special">.</span><span class="identifier">push</span><span class="special">());</span> <span class="special">}</span>
-  <span class="special">~</span><span class="identifier">lua_ref</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">release</span><span class="special">();</span> <span class="special">}</span>
-
-  <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="identifier">lua_ref</span> <span class="identifier">temp</span><span class="special">{</span><span class="identifier">other</span><span class="special">};</span>
-    <span class="special">*</span><span class="keyword">this</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">temp</span><span class="special">);</span>
-    <span class="keyword">return</span> <span class="special">*</span><span class="keyword">this</span><span class="special">;</span>
-  <span class="special">}</span>
-
-  <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">lua_ref</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">release</span><span class="special">();</span>
-    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">other</span><span class="special">);</span>
-    <span class="keyword">return</span> <span class="special">*</span><span class="keyword">this</span><span class="special">;</span>
-  <span class="special">}</span>
+  <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">);</span>
+  <span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">lua_ref</span> <span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
   <span class="comment">// Primary constructor</span>
-  <a class="co" name="lua_primer.reference.core.lua_ref.c4" href="lua_ref.html#lua_primer.reference.core.lua_ref.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="keyword">explicit</span> <span class="identifier">lua_ref</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">init</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c6" href="lua_ref.html#lua_primer.reference.core.lua_ref.c7"><img src="../../../images/callouts/4.png" alt="4" border="0"></a><span class="keyword">explicit</span> <span class="identifier">lua_ref</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">);</span>
 
-  <a class="co" name="lua_primer.reference.core.lua_ref.c6" href="lua_ref.html#lua_primer.reference.core.lua_ref.c7"><img src="../../../images/callouts/4.png" alt="4" border="0"></a><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">release</span><span class="special">();</span> <span class="special">}</span>
+  <span class="comment">// Reset to empty state</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c8" href="lua_ref.html#lua_primer.reference.core.lua_ref.c9"><img src="../../../images/callouts/5.png" alt="5" border="0"></a><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-  <a class="co" name="lua_primer.reference.core.lua_ref.c8" href="lua_ref.html#lua_primer.reference.core.lua_ref.c9"><img src="../../../images/callouts/5.png" alt="5" border="0"></a><span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="identifier">sref_</span><span class="special">.</span><span class="identifier">swap</span><span class="special">(</span><span class="identifier">other</span><span class="special">.</span><span class="identifier">sref_</span><span class="special">);</span>
-    <span class="identifier">std</span><span class="special">::</span><span class="identifier">swap</span><span class="special">(</span><span class="identifier">iref_</span><span class="special">,</span> <span class="identifier">other</span><span class="special">.</span><span class="identifier">iref_</span><span class="special">);</span>
-  <span class="special">}</span>
+  <span class="comment">// Standard swap function</span>
+  <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">lua_ref</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-  <span class="comment">// Attempt to lock the ref.</span>
-  <a class="co" name="lua_primer.reference.core.lua_ref.c10" href="lua_ref.html#lua_primer.reference.core.lua_ref.c11"><img src="../../../images/callouts/6.png" alt="6" border="0"></a><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">lock</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">check_engaged</span><span class="special">();</span> <span class="special">}</span>
+  <span class="comment">// Attempt to obtain a pointer to the underlying lua VM.</span>
+  <span class="comment">// Succeeds if it wasn't destroyed yet.</span>
+  <span class="comment">// Always returns a pointer to the *main thread* stack.</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c10" href="lua_ref.html#lua_primer.reference.core.lua_ref.c11"><img src="../../../images/callouts/6.png" alt="6" border="0"></a><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">lock</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-  <span class="comment">// Push to main stack</span>
-  <a class="co" name="lua_primer.reference.core.lua_ref.c12" href="lua_ref.html#lua_primer.reference.core.lua_ref.c13"><img src="../../../images/callouts/7.png" alt="7" border="0"></a><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">push</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span> <span class="special">=</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">check_engaged</span><span class="special">())</span> <span class="special">{</span>
-      <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">LUA_REGISTRYINDEX</span><span class="special">,</span> <span class="identifier">iref_</span><span class="special">);</span>
-      <span class="keyword">return</span> <span class="identifier">L</span><span class="special">;</span>
-    <span class="special">}</span>
-    <span class="keyword">return</span> <span class="keyword">nullptr</span><span class="special">;</span>
-  <span class="special">}</span>
+  <span class="comment">// Push to the main stack</span>
+  <span class="comment">// Return value is same as lock()</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c12" href="lua_ref.html#lua_primer.reference.core.lua_ref.c13"><img src="../../../images/callouts/7.png" alt="7" border="0"></a><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">push</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
-  <span class="comment">// Push to a thread stack</span>
-  <a class="co" name="lua_primer.reference.core.lua_ref.c14" href="lua_ref.html#lua_primer.reference.core.lua_ref.c15"><img src="../../../images/callouts/8.png" alt="8" border="0"></a><span class="keyword">bool</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">T</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span> <span class="special">=</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">check_engaged</span><span class="special">())</span> <span class="special">{</span>
-<span class="preprocessor">#ifdef</span> <span class="identifier">PRIMER_DEBUG</span>
-      <span class="comment">// This causes a lua_assert failure if states are unrelated</span>
-      <span class="identifier">lua_xmove</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">T</span><span class="special">,</span> <span class="number">0</span><span class="special">);</span>
-<span class="preprocessor">#else</span>
-      <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">);</span> <span class="comment">// suppress unused warning</span>
-<span class="preprocessor">#endif</span>
-      <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">T</span><span class="special">,</span> <span class="identifier">LUA_REGISTRYINDEX</span><span class="special">,</span> <span class="identifier">iref_</span><span class="special">);</span>
-      <span class="keyword">return</span> <span class="keyword">true</span><span class="special">;</span>
-    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
-      <span class="comment">// Even if we are empty, T exists, and expects a value, so push nil.</span>
-      <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">T</span><span class="special">);</span>
-      <span class="keyword">return</span> <span class="keyword">false</span><span class="special">;</span>
-    <span class="special">}</span>
-  <span class="special">}</span>
-
+  <span class="comment">// Push to a thread stack (see "coroutines" in the manual)</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c14" href="lua_ref.html#lua_primer.reference.core.lua_ref.c15"><img src="../../../images/callouts/8.png" alt="8" border="0"></a><span class="keyword">bool</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">T</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
   <span class="comment">// test validity</span>
-  <a class="co" name="lua_primer.reference.core.lua_ref.c16" href="lua_ref.html#lua_primer.reference.core.lua_ref.c17"><img src="../../../images/callouts/9.png" alt="9" border="0"></a><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="keyword">return</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">&gt;(</span><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">check_engaged</span><span class="special">());</span>
-  <span class="special">}</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref.c16" href="lua_ref.html#lua_primer.reference.core.lua_ref.c17"><img src="../../../images/callouts/9.png" alt="9" border="0"></a><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
   <span class="comment">// Try to interpret the value as a specific C++ type</span>
   <a class="co" name="lua_primer.reference.core.lua_ref.c18" href="lua_ref.html#lua_primer.reference.core.lua_ref.c19"><img src="../../../images/callouts/10.png" alt="10" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
@@ -195,20 +155,25 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref.c5"></a><a href="#lua_primer.reference.core.lua_ref.c4"><img src="../../../images/callouts/3.png" alt="3" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-              Pops an object from the top of given stack, and binds to it. If no
-              object is on top, enters the empty state.
+              If lua can't allocate memory for the copy, throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
             </p></td>
 </tr>
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref.c7"></a><a href="#lua_primer.reference.core.lua_ref.c6"><img src="../../../images/callouts/4.png" alt="4" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-              Releases the lua reference, reverts to empty state.
-            </p></td>
+<td valign="top" align="left">
+<p>
+              Pops an object from the top of given stack, and binds to it. If no
+              object is on top, enters the empty state.
+            </p>
+<p>
+              Note: This can cause a lua memory allocation failure.
+            </p>
+</td>
 </tr>
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref.c9"></a><a href="#lua_primer.reference.core.lua_ref.c8"><img src="../../../images/callouts/5.png" alt="5" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-              Swap
+              Releases the lua reference, reverts to empty state.
             </p></td>
 </tr>
 <tr>
@@ -222,16 +187,10 @@
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref.c13"></a><a href="#lua_primer.reference.core.lua_ref.c12"><img src="../../../images/callouts/7.png" alt="7" border="0"></a> </p></td>
 <td valign="top" align="left">
 <p>
-              Attempts to push the object to the top of the primary stack of the
-              state used to create this <code class="computeroutput"><span class="identifier">lua_ref</span></code>.
+              Note: Does not check for stack space
             </p>
 <p>
-              Returns a (valid) <code class="computeroutput"><span class="identifier">lua_State</span>
-              <span class="special">*</span></code> if successfully locked.
-            </p>
-<p>
-              Returns <code class="computeroutput"><span class="keyword">nullptr</span></code> if that
-              VM is closed, or if we are in the empty state.
+              This cannot cause lua memory allocation error.
             </p>
 </td>
 </tr>
@@ -266,7 +225,7 @@
 <p>
                 If <code class="computeroutput"><span class="identifier">PRIMER_DEBUG</span></code> is
                 defined, then primer will check for this and call <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">abort</span></code>
-                if it finds that you broke this rule.
+                if an error was made.
               </p>
 <p>
                 If <code class="computeroutput"><span class="identifier">PRIMER_DEBUG</span></code> is
@@ -280,26 +239,20 @@
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref.c17"></a><a href="#lua_primer.reference.core.lua_ref.c16"><img src="../../../images/callouts/9.png" alt="9" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-              Test if we are not in the empty state and can still be locked.
+              Test if we can still be locked.
             </p></td>
 </tr>
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref.c19"></a><a href="#lua_primer.reference.core.lua_ref.c18"><img src="../../../images/callouts/10.png" alt="10" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
+<td valign="top" align="left">
+<p>
               Attempt to cast the lua value to a C++ value, using primer::read
-            </p></td>
+            </p>
+<p>
+              This cannot cause an exception or raise a lua error.
+            </p>
+</td>
 </tr>
-</table></div>
-<div class="note"><table border="0" summary="Note">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
-<th align="left">Note</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-            While <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> is copyable, copying it is
-            not that cheap as it has has to lock the VM, push the object, and create
-            a new ref.
-          </p></td></tr>
 </table></div>
 <h3>
 <a name="lua_primer.reference.core.lua_ref.h2"></a>
@@ -307,31 +260,69 @@
           and ownership</a>
         </h3>
 <p>
-          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> is safe in the sense that it
-          will fail to lock in that case, rather than giving undefined behavior.
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> is safe in the sense that if
+          the lua VM is destroyed, it doesn't become a dangling pointer.
         </p>
 <p>
           However, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> cannot take ownership of a lua
-          VM, nor is it thread-safe.
+          VM. It will fail to lock after that point, rather than give undefined behavior.
+        </p>
+<p>
+          As long as the lua VM is alive, it will not garbage collect the refered
+          object. <sup>[<a name="lua_primer.reference.core.lua_ref.f0" href="#ftn.lua_primer.reference.core.lua_ref.f0" class="footnote">9</a>]</sup>
+        </p>
+<p>
+          So it's not quite a <code class="computeroutput"><span class="identifier">weak_ptr</span></code>
+          or strong pointer -- it's perhaps "medium strength". It preserves
+          the lifetime of the pointed value, unless the entire VM is destroyed.
+        </p>
+<p>
+          If the VM still exists and the <code class="computeroutput"><span class="identifier">lua_ref</span></code>
+          is engaged, locking the state and pushing the object are both <code class="computeroutput"><span class="keyword">noexcept</span></code>, no-fail operations. They can't
+          cause lua memory allocation failure either.
+        </p>
+<p>
+          Binding a <code class="computeroutput"><span class="identifier">lua_ref</span></code> to an
+          object on the stack <span class="emphasis"><em>can</em></span> cause a lua memory allocation
+          failure, but not <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
         </p>
 <div class="caution"><table border="0" summary="Caution">
 <tr>
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
 <th align="left">Caution</th>
 </tr>
+<tr><td align="left" valign="top">
+<p>
+            Copying a <code class="computeroutput"><span class="identifier">lua_ref</span></code> is
+            expensive relative to most other small objects and usually something
+            that you want to avoid, since it involves interacting with the lua VM.
+          </p>
+<p>
+            When running without <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>,
+            it further requires a protected context to catch a lua memory allocation
+            failure.
+          </p>
+<p>
+            In low memory scenarios, this should likely be avoided. For instance,
+            a <code class="computeroutput"><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code>
+            is just as useful as a <code class="computeroutput"><span class="identifier">lua_ref</span></code>
+            and can be copied without making new dynamic allocations.
+          </p>
+<p>
+            In general prefer to move these whenever possible.
+          </p>
+</td></tr>
+</table></div>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
 <tr><td align="left" valign="top"><p>
-            You must not pass these objects across threads. Lua is generally not
-            thread safe anyways, so this should come as no surprise.
+            You must not pass these objects across operating-system threads. Lua
+            is generally not thread-safe anyways, so this should come as no surprise.
           </p></td></tr>
 </table></div>
-<p>
-          As long as the lua state is alive, it will not garbage collect an object
-          referred to by <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>.
-        </p>
-<p>
-          This is achieved using the <code class="computeroutput"><span class="identifier">luaL_ref</span></code>
-          mechanism, see lua docs.
-        </p>
 <h3>
 <a name="lua_primer.reference.core.lua_ref.h3"></a>
           <span><a name="lua_primer.reference.core.lua_ref.read_push_semantics"></a></span><a class="link" href="lua_ref.html#lua_primer.reference.core.lua_ref.read_push_semantics">Read /
@@ -340,7 +331,8 @@
 <p>
           Using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> with a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>
           calls the thread-push member function, and so comes with all the caveats
-          above.
+          above -- if you push it to an unrelated lua VM, it won't work and bad things
+          will happen.
         </p>
 <p>
           Using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> with a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>
@@ -351,8 +343,9 @@
         </p>
 <p>
           This makes it effectively an "any" type for purposes of function
-          parameters, and you can use "as" to easily try to interpret it
-          as other values later. So it can be used sort of as a poor man's variant.
+          parameters, and you can use <code class="computeroutput"><span class="identifier">lua_ref</span><span class="special">::</span><span class="identifier">as</span></code>
+          to easily try to interpret it as other values later. So it can be used
+          sort of as a poor man's variant.
         </p>
 <p>
           Here's an example function to illustrate:
@@ -396,10 +389,16 @@
 </pre>
 <p>
           Note that, it is not too difficult to implement your own <code class="computeroutput"><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">push</span></code>
-          specializations for a proper variant type that appears in your program
-          -- but generating a good <span class="bold"><strong>generic</strong></span> <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code> template for e.g. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code> seems quite difficult, and so
-          we don't do it right now.
+          specializations for a proper variant type that appears in your program.
+          We don't currently have a <span class="emphasis"><em>generic</em></span> <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant</span></code>
+          header in Primer, so you would have to make your own.
         </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.reference.core.lua_ref.f0" href="#lua_primer.reference.core.lua_ref.f0" class="para">9</a>] </sup>
+            See <code class="computeroutput"><span class="identifier">luaL_ref</span></code> docs.
+          </p></div>
+</div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

@@ -22,16 +22,13 @@
           a C++ value from the lua stack.
         </p>
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">)</span> <span class="special">{</span>
-  <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
-  <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">);</span>
-<span class="special">}</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">);</span>
 </pre>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
               <code class="computeroutput"><span class="identifier">read</span></code> returns a value
-              of type <code class="computeroutput"><span class="identifier">T</span></code>, or a human-readable
-              error message explaining why the value on the stack could not be converted
+              of type <code class="computeroutput"><span class="identifier">T</span></code>, or an error
+              message explaining why the value on the stack could not be converted
               to <code class="computeroutput"><span class="identifier">T</span></code>.
             </li>
 <li class="listitem">
@@ -250,7 +247,7 @@
             overflow, underflow, or loss of precision is not a significant concern.
           </p>
 <p>
-            If this is a major concern for you, consider specializing the <code class="computeroutput"><span class="identifier">read</span></code> trait for <code class="computeroutput"><span class="keyword">float</span></code>,
+            If this is a concern for you, consider specializing the <code class="computeroutput"><span class="identifier">read</span></code> trait for <code class="computeroutput"><span class="keyword">float</span></code>,
             <code class="computeroutput"><span class="keyword">double</span></code>, etc., or using
             <code class="computeroutput"><span class="identifier">LUA_NUMBER</span></code> in your code.
           </p>
@@ -365,7 +362,7 @@
               <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unordered_map</span></code>
             </li>
 <li class="listitem">
-              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">flat_set</span></code>
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">vector</span></code>
             </li>
 </ul></div>
 <h4>
@@ -374,10 +371,18 @@
         </h4>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>'s implementation is quite simple
-          -- it delegates work to a <span class="emphasis"><em>type trait</em></span>. This trait,
-          named <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code>, can be specialized to override
-          primer's behavior for certain types, or to add new behavior for these custom
-          types.
+          -- it delegates work to a <span class="emphasis"><em>type trait</em></span>.
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          This trait, named <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code>,
+          can be specialized to override primer's behavior for certain types, or
+          to add new behavior for these custom types.
         </p>
 <p>
           For example, suppose we have a simple vector type:

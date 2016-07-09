@@ -85,7 +85,7 @@
 <pre class="programlisting"><span class="comment">// Tag used in tag dispactch</span>
 <span class="keyword">struct</span> <span class="identifier">default_construct_in_place_tag</span> <span class="special">{};</span>
 
-<span class="comment">// Expected class template</span>
+<span class="comment">// Define primary class template</span>
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">expected</span> <span class="special">{</span>
   <span class="keyword">union</span> <span class="special">{</span>
@@ -243,7 +243,8 @@
           <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span></code>
           is implemented as a special interface over <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">*&gt;</span></code>.
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<pre class="programlisting"><span class="comment">// Define `T&amp;` specialization</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">class</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">&amp;&gt;</span> <span class="special">{</span>
   <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*&gt;</span> <span class="identifier">internal_</span><span class="special">;</span>
 
@@ -314,7 +315,8 @@
           It is default constructed in the "no error" state, unlike the
           others.
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<pre class="programlisting"><span class="comment">// define void specialization</span>
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
 <span class="keyword">class</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="special">{</span>
   <span class="keyword">bool</span> <span class="identifier">no_error_</span><span class="special">;</span>
   <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span> <span class="identifier">error_</span><span class="special">;</span>

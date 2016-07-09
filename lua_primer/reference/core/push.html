@@ -19,21 +19,20 @@
 </h4></div></div></div>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is a template function used to push
-          a C++ value to the stack.
+          a C++ value to a lua Stack.
         </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+</pre>
 <p>
           In the case of primitive values, it is always a direct call to the corresponding
           <code class="computeroutput"><span class="identifier">lua_pushX</span></code> function.
         </p>
 <p>
           In the case of containers, it generally resolves to the creation of a table,
-          with recursive calls to push to populate the members.
+          with recursive calls to <code class="computeroutput"><span class="identifier">push</span></code>,
+          to push the elements and populate the table.
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
-  <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">t</span><span class="special">);</span>
-<span class="special">}</span>
-</pre>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
               <code class="computeroutput"><span class="identifier">push</span></code> is not permitted
@@ -224,8 +223,8 @@
 <p>
             <span class="emphasis"><em>If a push operation requires a narrowing conversion of a signed
             integer type to <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code>,
-            a <code class="computeroutput"><span class="keyword">static_assert</span></code> will fail
-            and your code will not compile.</em></span>
+            a <code class="computeroutput"><span class="keyword">static_assert</span></code> will fail,
+            to prevent overflow.</em></span>
           </p>
 </td></tr>
 </table></div>
@@ -236,14 +235,14 @@
 </tr>
 <tr><td align="left" valign="top">
 <p>
-            When pushing a floating point type, primer will not check for overflow
+            When pushing a floating point type, Primer will not check for overflow
             or loss of precision.
           </p>
 <p>
             <span class="emphasis"><em>If a push operation requires a narrowing conversion of a floating
             point type to <code class="computeroutput"><span class="identifier">LUA_NUMBER</span></code>,
-            a <code class="computeroutput"><span class="keyword">static_assert</span></code> will fail
-            and your code will not compile.</em></span>
+            a <code class="computeroutput"><span class="keyword">static_assert</span></code> will fail,
+            to prevent overflow.</em></span>
           </p>
 </td></tr>
 </table></div>
@@ -273,7 +272,8 @@
 </tr>
 <tr><td align="left" valign="top">
 <p>
-            For maximum portability, consider:
+            If you want your program to be portable no matter how lua is compiled,
+            consider:
           </p>
 <p>
             - Only pushing 32 bit types, e.g., <code class="computeroutput"><span class="keyword">int</span></code>,
@@ -288,8 +288,7 @@
             If you just want to compile and don't care about overflow, you can do
             so with expressions like
           </p>
-<pre class="programlisting"><span class="keyword">long</span> <span class="keyword">long</span> <span class="identifier">i</span><span class="special">;</span>
-<span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">LUA_INTEGER</span><span class="special">&gt;(</span><span class="identifier">i</span><span class="special">));</span>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">LUA_INTEGER</span><span class="special">&gt;(</span><span class="identifier">i</span><span class="special">));</span>
 </pre>
 <p>
             Or, install custom handling for integer types like <code class="computeroutput"><span class="keyword">long</span></code>
@@ -388,8 +387,17 @@
           <span><a name="lua_primer.reference.core.push.customization"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.customization">Customization</a>
         </h4>
 <p>
-          The trait <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span></code> can be specialized to override primer's
-          behavior for certain types, or to add new behavior for custom types.
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is defined in terms of a type trait,
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span></code>.
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+  <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">t</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          The trait can be specialized to override primer's behavior for certain
+          types, or to add new behavior for custom types.
         </p>
 <p>
           For example, suppose we have a simple vector type:
