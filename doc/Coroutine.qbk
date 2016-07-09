@@ -12,15 +12,16 @@ A `primer::coroutine`, unlike a general coroutine,
 * Exists only in the registry.
 
 `primer::coroutine` is merely a helper object to give a nice interface for "calling" the coroutine, similar to `primer::bound_function`.
-It abstracts away the details of manipulating thread stacks. Not all uses of coroutines are well-served by the `primer::coroutine` object.
+It abstracts away the details of manipulating thread stacks.
 
 The coroutine can be called again and again, provided that it yields each time. After it returns or produces an error, it goes to an
 empty state and needs to be recreated from a `primer::bound_function`.
 
-[caution lua threads have nothing to do with operating system threads, it an unfortunate name collision.
-
- Lua is not thread-safe, and coroutines are not a way to make it thread-safe somehow.]
+Not all uses of coroutines are well-served by the `primer::coroutine` object, this is only good for certain purposes. You may be better
+off using lua thread objects directly in some cases. Note that you can still easily use `lua_ref` and `bound_function` in such cases.
 
 [primer_coroutine]
+
+[caution As usual, this object is not thread-safe.]
 
 [endsect]

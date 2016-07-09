@@ -14,8 +14,8 @@ Primer is also intended to be light-weight in another more important way -- the 
 core components should be transparent and they should be cohesive with the lua C API.
 Mechanisms like `primer::read`, `primer::push`, and `primer::adapt`, are meant to be readily
 understandable as a short series of calls to the lua C API following a pattern. Primer is meant
-to provide primitives which supplement the lua C API, not to replace it, and to provide
-organizational structures that facilitate its use.
+to provide tools which supplement the lua C API, not to replace it, and to provide
+organizational structures that facilitate its use. We aren't trying to "abstract away the lua stack" or anything like that.
 
 [h3 Error Handling]
 

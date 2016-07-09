@@ -8,6 +8,7 @@ Primer is designed with the following constraints in mind:
 * Primer should be fast -- similar in performance to if you skipped primer and coded using the C API directly.
 
 The main things that you must do to ensure good behavior are
+
 * When making a customization of `push`, do not throw C++ exceptions. A lua error should only be raised in case of lua memory allocation failure.
 * When making a customization of `read`, do not throw C++ exceptions, or raise lua errors. If reading fails, return a `primer::error`.
 * Don't make lua callbacks (`int(lua_State*)`) that throw. Those functions should handle problems internally or signal lua errors using the C api directly.

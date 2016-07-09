@@ -2,8 +2,7 @@
 
 A `primer::lua_ref` is a reference to a lua value which exists in a lua VM.
 
-Despite it's name, `lua_ref` does not have the semantics of a C++ reference. It has
-an empty state, and can be assigned and reassigned to point to different objects.
+`lua_ref` is not quite like a C++ reference. It has an empty state, and can be assigned and reassigned to point to different objects.
 
 [h2 Usage]
 
@@ -17,13 +16,10 @@ If the stack is empty, then the `lua_ref` is placed in the empty state.
 
 It can be default constructed in the empty state as well.
 
+The value can be obtained from the reference by using the `push` methods, or the `as` method.
+
 If the lua VM is destroyed (closed), the `lua_ref` reverts to the empty
 state the next time an attempt is made to access it.
-
-While the VM is not closed, the referred object will not be garbage
-collected by lua.
-
-The value can be obtained from the reference by using the `push` methods, or the `as` method.
 
 [primer_example_ref]
 
