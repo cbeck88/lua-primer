@@ -25,22 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-//` `lua_ref_seq` represents a sequence of elements. The purpose is to support
-//` lua functions that have multiple / variable numbers of return values from
-//` C++. The idea is that you call
-//= primer::pop_stack(L)
-// or
-//= primer::pop_n(L, num)
-//` and you pop a large number of elements off the stack, or the entire stack,
-//` and get them in a nice vector of lua_ref's.
-//
-/*` An important thing to note is that `lua_ref_seq` cannot participate in
-   `push` or `read` because it has the wrong semantics. `primer::push` always
-   pushes exactly one object on the stack, and `read` only reads a single
-   position. `lua_ref_seq` needs to be pushed as multiple objects on the stack,
-   so it is pushed using its `push_each` method.
-*/
-//` For this reason it cannot be simply a typedef of `std::vector`.
+//[ lua_ref_seq_synopsis
 struct lua_ref_seq {
   using refs_t = std::vector<lua_ref>;
   refs_t refs_;
@@ -91,6 +76,7 @@ struct lua_ref_seq {
     refs_.emplace(pos, std::forward<Args>(args)...);
   }
 
+  //<-
   /* Currently makes travis builds fail...
   iterator insert( const_iterator pos, const lua_ref & value ) {
     return refs_.insert(pos, value);
@@ -100,17 +86,17 @@ struct lua_ref_seq {
     return refs_.insert(pos, std::move(value));
   }
   */
-
+  //->
   template <typename InputIt>
   iterator insert(const_iterator pos, InputIt first, InputIt last) {
     return refs_.insert(pos, first, last);
   }
-
+  //<-
   // Also makes travis fail
   // iterator erase(const_iterator pos) { return refs_.erase(pos); }
   // iterator erase(const_iterator first, const_iterator last) { return
   // refs_.erase(first, last); }
-
+  //->
   /*<< Push all the refs onto the stack in succession.
 Return of `true` means every push succeeded.
 You can usually ignore the result, it only fails if some of the refs in the
@@ -126,14 +112,25 @@ See `lua_ref`. >>*/
     return result;
   }
 };
+//]
 
+//[ lua_ref_seq_pop_decl
 /*<< Pop `n` elements from the stack `L` and put them in a lua_ref_seq.
      They are ordered such that calling `push_each(L)` will restore them.
-
      Throws `std::bad_alloc`. Can cause lua memory alloc failure.
-     First step is clearing the lua_ref_seq, so, no strong exception-safety.
+     First step is clearing the `lua_ref_seq`, so, no strong exception-safety.
   >>*/
-void pop_n(lua_State * L, int n, lua_ref_seq & result) {
+inline void pop_n(lua_State * L, int n, lua_ref_seq & result);
+
+/*<< Same thing but with different return convention >>*/
+inline lua_ref_seq pop_n(lua_State * L, int n);
+
+/*<< Pop the entire stack. Throws `std::bad_alloc`. Can cause lua memory alloc
+failure >>*/
+inline lua_ref_seq pop_stack(lua_State * L);
+//]
+
+inline void pop_n(lua_State * L, int n, lua_ref_seq & result) {
   result.clear();
 
   {
@@ -149,16 +146,12 @@ void pop_n(lua_State * L, int n, lua_ref_seq & result) {
   }
 }
 
-/*<< Same thing but with different return convention >>*/
-lua_ref_seq pop_n(lua_State * L, int n) {
+inline lua_ref_seq pop_n(lua_State * L, int n) {
   lua_ref_seq result;
   pop_n(L, n, result);
   return result;
 }
 
-
-/*<< Pop the entire stack. Throws `std::bad_alloc`. Can cause lua memory alloc
- * failure >>*/
-lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
+inline lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
 
 } // end namespace primer

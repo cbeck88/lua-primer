@@ -1,0 +1,27 @@
+[section lua_ref_seq]
+
+A `primer::lua_ref_seq` is a dynamically-sized sequence of `lua_ref` objects.
+
+The intended usage is to allow handling lua functions with multiple return
+values. Given a stack full of return values, they can all be popped at once into
+a `lua_ref_seq` using a call to `pop_stack` or `pop_n`.
+
+[lua_ref_seq_pop_decl]
+
+They can be restored in the same order using `lua_ref_seq` member function `push_each`.
+
+Because a `lua_ref_seq` represents multiple values and not just one, it can't be used
+with `primer::push`, as it would break the preconditions.
+
+However, `lua_ref_seq` is essentially just a `std::vector<lua_ref>`, as you'll
+see from it's synopsis.
+
+To prevent it from being used as a `std::vector<lua_ref>` with push or read,
+which would cause bugs, it is implemented as a `struct` containing a `std::vector<lua_ref>`
+member, which forwards most of the member functions of `std::vector`.
+
+[heading Synopsis]
+
+[lua_ref_seq_synopsis]
+
+[endsect]
