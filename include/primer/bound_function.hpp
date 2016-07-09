@@ -58,8 +58,7 @@ class bound_function {
     expected<return_type> result{primer::error{"Can't lock VM"}};
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
-        auto ok =
-          primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
+        auto ok = mem_pcall(L, &call_impl<expected<return_type>, Args...>,
                             result, L, ref_, std::forward<Args>(args)...);
         if (!ok) { result = std::move(ok.err()); }
       } else {
@@ -152,9 +151,9 @@ public:
 //]
 
 inline bound_function::bound_function(lua_State * L) //
-    : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
-                         : nullptr) //
-  {}
+  : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
+                       : nullptr) //
+{}
 
 
 /// Same thing now but with a lua_ref_seq
@@ -177,11 +176,11 @@ inline bound_function::bound_function(lua_State * L) //
   CALL_REF_SEQ_HELPER(N, T, const &)                                           \
   CALL_REF_SEQ_HELPER(N, T, &&)
 
-  // Actual declarations
+// Actual declarations
 
-  CALL_DEFINITIONS(call_no_ret, void)
-  CALL_DEFINITIONS(call_one_ret, lua_ref)
-  CALL_DEFINITIONS(call, lua_ref_seq)
+CALL_DEFINITIONS(call_no_ret, void)
+CALL_DEFINITIONS(call_one_ret, lua_ref)
+CALL_DEFINITIONS(call, lua_ref_seq)
 
 #undef CALL_ARGS_HELPER
 #undef CALL_REF_SEQ_HELPER

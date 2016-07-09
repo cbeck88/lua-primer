@@ -115,13 +115,12 @@ class coroutine {
     expected<return_type> result{primer::error{"Invalid coroutine"}};
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
-        if (auto check =
-              detail::check_stack_push_n(thread_stack_, inputs.size())) {
+        if (auto c = detail::check_stack_push_n(thread_stack_, inputs.size())) {
           auto ok = primer::mem_pcall(L, &call_impl2<expected<return_type>>,
                                       result, thread_stack_, inputs);
           if (!ok) { result = ok.err(); }
         } else {
-          result = std::move(check.err());
+          result = std::move(c.err());
         }
       } else {
         result = primer::error{"Can't lock VM"};
@@ -186,7 +185,6 @@ public:
   expected<lua_ref_seq> call(lua_ref_seq &) noexcept;
   expected<lua_ref_seq> call(lua_ref_seq const &) noexcept;
   expected<lua_ref_seq> call(lua_ref_seq &&) noexcept;
-
 };
 
 //]
@@ -237,16 +235,16 @@ inline void swap(coroutine & one, coroutine & other) noexcept {
   CALL_REF_SEQ_HELPER(N, T, &&)                                                \
   CALL_REF_SEQ_HELPER(N, T, const &)
 
-  // Actual declarations
+// Actual declarations
 
-  CALL_DEFINITIONS(call_no_ret, void)
-  CALL_DEFINITIONS(call_one_ret, lua_ref)
-  CALL_DEFINITIONS(call, lua_ref_seq)
+CALL_DEFINITIONS(call_no_ret, void)
+CALL_DEFINITIONS(call_one_ret, lua_ref)
+CALL_DEFINITIONS(call, lua_ref_seq)
 
 #undef CALL_ARGS_HELPER
 #undef CALL_REF_SEQ_HELPER
 #undef CALL_DEFINITIONS
-  //->
+//->
 
 
 } // end namespace primer
