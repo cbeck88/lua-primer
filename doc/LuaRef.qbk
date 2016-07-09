@@ -51,14 +51,19 @@ lua memory allocation failure either.
 Binding a `lua_ref` to an object on the stack ['can] cause a lua memory
 allocation failure, but not `std::bad_alloc`.
 
-[caution Copying a `lua_ref` is expensive and usually something that you want
-to avoid, since it involves interacting with the lua VM. When running without
+[caution Copying a `lua_ref` is expensive relative to most other small objects
+and usually something that you want to avoid, since it involves interacting with
+the lua VM.
+
+When running without
 `PRIMER_NO_MEMORY_FAILURE`, it further requires a protected context to catch
 a lua memory allocation failure.
 
 In low memory scenarios, this should likely be avoided.
 For instance, a `shared_ptr<lua_ref>` is just as useful as a `lua_ref` and
-can be copied without fail.]
+can be copied without making new dynamic allocations.
+
+In general prefer to move these whenever possible.]
 
 [caution You must not pass these objects across operating-system threads. Lua is
 generally not thread-safe anyways, so this should come as no surprise. ]
