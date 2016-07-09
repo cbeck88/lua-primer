@@ -438,19 +438,19 @@ void test_bound_function_mult_ret() {
   {
     auto result = func.call(3, 4);
     TEST_EXPECTED(result);
-    TEST_EXPECTED((*result)[0].as<bool>());
-    TEST_EQ(false, *(*result)[0].as<bool>());
-    TEST_EXPECTED((*result)[1].as<int>());
-    TEST_EQ(-1, *(*result)[1].as<int>());
+    TEST_EXPECTED(result->at(0).as<bool>());
+    TEST_EQ(false, *result->at(0).as<bool>());
+    TEST_EXPECTED(result->at(1).as<int>());
+    TEST_EQ(-1, *result->at(1).as<int>());
   }
 
   {
     auto result = func.call(7, 4);
     TEST_EXPECTED(result);
-    TEST_EXPECTED((*result)[0].as<bool>());
-    TEST_EQ(true, *(*result)[0].as<bool>());
-    TEST_EXPECTED((*result)[1].as<int>());
-    TEST_EQ(3, *(*result)[1].as<int>());
+    TEST_EXPECTED(result->at(0).as<bool>());
+    TEST_EQ(true, *result->at(0).as<bool>());
+    TEST_EXPECTED(result->at(1).as<int>());
+    TEST_EQ(3, *result->at(1).as<int>());
   }
 }
 

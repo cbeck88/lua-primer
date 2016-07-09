@@ -56,6 +56,9 @@ struct lua_ref_seq {
   reference operator[](std::size_t i) { return refs_[i]; }
   const_reference operator[](std::size_t i) const { return refs_[i]; }
 
+  reference at(std::size_t i) { return refs_.at(i); }
+  const_reference at(std::size_t i) const { return refs_.at(i); }
+
   reference front() { return refs_.front(); }
   const_reference front() const { return refs_.front(); }
 
@@ -74,6 +77,7 @@ struct lua_ref_seq {
 
   // Manipulation
 
+  void reserve(std::size_t s) { refs_.reserve(s); }
   void clear() { refs_.clear(); }
   void resize(std::size_t s) { refs_.resize(s); }
   void pop_back() { refs_.pop_back(); }
@@ -81,6 +85,27 @@ struct lua_ref_seq {
   void emplace_back(Args &&... args) {
     refs_.emplace_back(std::forward<Args>(args)...);
   }
+
+  template <typename... Args>
+  void emplace(const_iterator pos, Args &&... args) {
+    refs_.emplace(pos, std::forward<Args>(args)...);
+  }
+
+  iterator insert( const_iterator pos, const lua_ref & value ) {
+    return refs_.insert(pos, value);
+  }
+
+  iterator insert( const_iterator pos, lua_ref && value ) {
+    return refs_.insert(pos, std::move(value));
+  }
+
+  template <typename InputIt>
+  iterator insert(const_iterator pos, InputIt first, InputIt last ) {
+    return refs_.insert(pos, first, last);
+  }
+
+  iterator erase(const_iterator pos) { return refs_.erase(pos); }
+  iterator erase(const_iterator first, const_iterator last) { return refs_.erase(first, last); }
 
   /*<< Push all the refs onto the stack in succession.
 Return of `true` means every push succeeded.
