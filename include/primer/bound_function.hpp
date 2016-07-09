@@ -212,7 +212,7 @@ struct read<primer::bound_function> {
 
     if (lua_isnoneornil(L, idx)) {
       result = bound_function{};
-    } else if lua_isfunction(L, idx)) {
+    } else if (lua_isfunction(L, idx)) {
       lua_pushvalue(L, idx);
       auto ok = mem_pcall<1>(L, &impl, L, result);
       if (!ok) { result = ok.err(); }
