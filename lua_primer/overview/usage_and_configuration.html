@@ -40,12 +40,11 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">primer</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 </pre>
-<p>
-        You may include <span class="emphasis"><em>forward declarations</em></span> of the core types
-        via
-      </p>
-<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">primer_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-</pre>
+<h6>
+<a name="lua_primer.overview.usage_and_configuration.h1"></a>
+        <span><a name="lua_primer.overview.usage_and_configuration.container_support"></a></span><a class="link" href="usage_and_configuration.html#lua_primer.overview.usage_and_configuration.container_support">Container
+        support</a>
+      </h6>
 <p>
         To enable support for individual standard and boost containers, you may include
         any of the <span class="emphasis"><em>extra</em></span> headers
@@ -69,19 +68,51 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">visit_struct</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 </pre>
+<h6>
+<a name="lua_primer.overview.usage_and_configuration.h2"></a>
+        <span><a name="lua_primer.overview.usage_and_configuration.api_persistence"></a></span><a class="link" href="usage_and_configuration.html#lua_primer.overview.usage_and_configuration.api_persistence">Api
+        / Persistence</a>
+      </h6>
 <p>
         To use the features of primer that require lua-eris, which live in the <code class="computeroutput"><span class="identifier">api</span></code> namespace, you may include
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">api</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 </pre>
+<h6>
+<a name="lua_primer.overview.usage_and_configuration.h3"></a>
+        <span><a name="lua_primer.overview.usage_and_configuration.miscellaneous"></a></span><a class="link" href="usage_and_configuration.html#lua_primer.overview.usage_and_configuration.miscellaneous">Miscellaneous</a>
+      </h6>
+<p>
+        You may include <span class="emphasis"><em>forward declarations of the core types</em></span>
+        via
+      </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">primer_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+</pre>
+<p>
+        If you only want to get the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
+        or <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code> types, without pulling in the
+        rest of primer, you may include
+      </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">error</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">expected</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+</pre>
+<p>
+        and forward declarations of these:
+      </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">expected_fwd</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+</pre>
+<p>
+        Pulling those in is very lightweight, they only rely on e.g. <code class="computeroutput"><span class="special">&lt;</span><span class="keyword">new</span><span class="special">&gt;</span></code>,
+        <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span></code> and <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">utility</span><span class="special">&gt;</span></code>.
+      </p>
 <p>
         If you just want to get the version number of primer, you may include
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">version</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 </pre>
 <p>
-        Finally, if you would like to include lua or eris using the same headers
-        that Primer does internally, you may include
+        Finally, if you would like to include lua or eris using exactly the same
+        headers that Primer does internally, you may include
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">lua</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 </pre>
@@ -104,7 +135,7 @@
         </p></td></tr>
 </table></div>
 <h5>
-<a name="lua_primer.overview.usage_and_configuration.h1"></a>
+<a name="lua_primer.overview.usage_and_configuration.h4"></a>
         <span><a name="lua_primer.overview.usage_and_configuration.build_configuration"></a></span><a class="link" href="usage_and_configuration.html#lua_primer.overview.usage_and_configuration.build_configuration">Build
         Configuration</a>
       </h5>
@@ -195,7 +226,7 @@
                   Tells primer to use, as an optimization assumption, that lua memory
                   allocation will never fail, and, that when populating <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> and standard C++ containers,
                   that <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code> will not be thrown
-                  either. This allows many try/catch blocks and extra <code class="computeroutput"><span class="identifier">pcall</span></code> wrappers to be eliminated.
+                  either. This allows a number of try/catch blocks and <code class="computeroutput"><span class="identifier">pcall</span></code> wrappers to be eliminated.
                 </p>
               </td>
 </tr>

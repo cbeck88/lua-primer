@@ -1,0 +1,464 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Miscellaneous</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="api.html" title="API">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="api.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.miscellaneous"></a><a class="link" href="miscellaneous.html" title="Miscellaneous">Miscellaneous</a>
+</h4></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="miscellaneous.html#lua_primer.reference.core.miscellaneous.std_function">std::function</a></span></dt>
+<dt><span class="section"><a href="miscellaneous.html#lua_primer.reference.core.miscellaneous.stack_space_needed">Stack
+          Space Needed</a></span></dt>
+<dt><span class="section"><a href="miscellaneous.html#lua_primer.reference.core.miscellaneous.cpppcall">CppPcall</a></span></dt>
+</dl></div>
+<p>
+          Other features:
+        </p>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.miscellaneous.std_function"></a><a class="link" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.std_function" title="std::function">std::function</a>
+</h5></div></div></div>
+<p>
+            Primer also provides a header so that you can push <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code>
+            objects directly to lua.
+          </p>
+<p>
+            The idea is that it takes the signature <code class="computeroutput"><span class="identifier">R</span><span class="special">(</span><span class="identifier">Args</span><span class="special">...)</span></code> from the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code>
+            type, and puts that signature through <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>.
+            The <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code> object itself is stored in
+            userdata as an upvalue to a closure, and the extracted arguments are
+            passed to it when it is invoked.
+          </p>
+<p>
+            Example Usage:
+          </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span><span class="special">&lt;</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">x</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">y</span><span class="special">)&gt;</span> <span class="identifier">f</span> <span class="special">=</span>
+  <span class="special">[](</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">x</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">-&gt;</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">y</span> <span class="special">==</span> <span class="identifier">x</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="string">"bad input"</span><span class="special">};</span> <span class="special">}</span>
+  <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">x</span> <span class="special">-</span> <span class="identifier">y</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_std_function</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">f</span><span class="special">));</span>
+</pre>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code> is somewhat at odds with
+              the design goals of primer. It involves type erasure and extra dynamic
+              allocations, and there's no obvious way to serialize a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code>, so we don't even try.
+            </p>
+<p>
+              We only provide this feature for convenience in a pure lua (not eris)
+              application.
+            </p>
+</td></tr>
+</table></div>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+              The <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code> must not throw any exceptions
+              when it is called, or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span></code>
+              will be called.
+            </p></td></tr>
+</table></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.miscellaneous.stack_space_needed"></a><a class="link" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.stack_space_needed" title="Stack Space Needed">Stack
+          Space Needed</a>
+</h5></div></div></div>
+<p>
+            One aspect of lua that you may miss on your first pass through the manual
+            is the note about stack overflow.
+          </p>
+<p>
+            lua's stack has only a limited size. In current versions of lua it is
+            quite high, e.g. more than ten thousand elements, but in past versions
+            it may have only been a few hundred elements. With eris, it is somewhat
+            smaller than in a default configuration for various reasons. The stack
+            space may also depend on the integer sizes that lua is configured to
+            use.
+          </p>
+<p>
+            lua does not perform any bounds checking. When you push a string or an
+            integer, etc., if there is not enough space in the stack left, you get
+            undefined behavior.
+          </p>
+<p>
+            This is of course to avoid the overhead of constant bounds checking.
+            It is expected that when you perform a "large" operation you
+            might do some bounds checking at the beginning, having an estimate of
+            how much clearance you need. The <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+            function can tell you if there is enough space for a given number of
+            extra slots.
+          </p>
+<p>
+            In <code class="computeroutput"><span class="identifier">primer</span></code>, we support
+            pushing complex containers in a single operation. For that to be workable,
+            we need to give you a way to figure out how much stack clearance is needed
+            to succeed.
+          </p>
+<p>
+            We provide some <code class="computeroutput"><span class="keyword">constexpr</span></code>
+            functions that can do that for you.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.miscellaneous.stack_space_needed.h0"></a>
+            <span><a name="lua_primer.reference.core.miscellaneous.stack_space_needed.maybe_int"></a></span><a class="link" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.stack_space_needed.maybe_int"><code class="computeroutput"><span class="identifier">maybe_int</span></code></a>
+          </h4>
+<p>
+            We provide a literal type called <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
+          </p>
+<p>
+            You can think of <code class="computeroutput"><span class="identifier">maybe_int</span></code>
+            as a poor man's <code class="computeroutput"><span class="keyword">constexpr</span> <span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>,
+            with semantics such that the result of manipulating an unknown value
+            is unknown.
+          </p>
+<p>
+            The value is <span class="emphasis"><em>tested</em></span> using <code class="computeroutput"><span class="keyword">operator</span>
+            <span class="keyword">bool</span></code>. If the <code class="computeroutput"><span class="identifier">maybe_int</span></code>
+            represents a known value, the operator returns <code class="computeroutput"><span class="keyword">true</span></code>.
+            If the <code class="computeroutput"><span class="identifier">maybe_int</span></code> represents
+            an unknown value, the operator returns <code class="computeroutput"><span class="keyword">false</span></code>.
+          </p>
+<p>
+            In case that there is a known value, it can be queried using <code class="computeroutput"><span class="keyword">operator</span> <span class="special">*</span></code>.
+          </p>
+<pre class="programlisting"><span class="keyword">using</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">maybe_int</span><span class="special">;</span>
+
+<span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="identifier">x</span> <span class="special">=</span> <span class="identifier">maybe_int</span><span class="special">{</span><span class="number">1</span><span class="special">};</span>
+<span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="identifier">y</span> <span class="special">=</span> <span class="identifier">maybe_int</span><span class="special">{</span><span class="number">2</span><span class="special">};</span>
+<span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="identifier">z</span> <span class="special">=</span> <span class="identifier">maybe_int</span><span class="special">{};</span>
+
+<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">x</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">y</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!</span><span class="identifier">z</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(*</span><span class="identifier">x</span> <span class="special">==</span> <span class="number">1</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(*</span><span class="identifier">y</span> <span class="special">==</span> <span class="number">2</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+
+<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">x</span> <span class="special">+</span> <span class="identifier">y</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(*(</span><span class="identifier">x</span> <span class="special">+</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">==</span> <span class="number">3</span><span class="special">,</span> <span class="string">""</span><span class="special">);</span>
+<span class="keyword">static_assert</span><span class="special">(!(</span><span class="identifier">x</span> <span class="special">+</span> <span class="identifier">z</span><span class="special">),</span> <span class="string">""</span><span class="special">);</span>
+</pre>
+<p>
+            <code class="computeroutput"><span class="identifier">maybe_int</span></code> supports addition,
+            subtraction, and multiplication, with <code class="computeroutput"><span class="keyword">int</span></code>
+            and with other <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
+            The result is always a <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
+          </p>
+<p>
+            The <code class="computeroutput"><span class="identifier">min</span></code> and <code class="computeroutput"><span class="identifier">max</span></code> can be computed by <code class="computeroutput"><span class="identifier">maybe_int</span><span class="special">::</span><span class="identifier">min</span></code> and <code class="computeroutput"><span class="identifier">maybe_int</span><span class="special">::</span><span class="identifier">max</span></code>.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.miscellaneous.stack_space_needed.h1"></a>
+            <span><a name="lua_primer.reference.core.miscellaneous.stack_space_needed.querying_stack_space_for_an_oper"></a></span><a class="link" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.stack_space_needed.querying_stack_space_for_an_oper">Querying
+            stack space for an operation</a>
+          </h4>
+<p>
+            For convenience, we provide two functions which can estimate the stack
+            space needed for a read or push operation with a given type.
+          </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="identifier">maybe_int</span> <span class="identifier">stack_space_for_read</span><span class="special">()</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">stack_space_needed</span><span class="special">&lt;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="identifier">maybe_int</span> <span class="identifier">stack_space_for_push</span><span class="special">()</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">stack_space_needed</span><span class="special">&lt;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+            If the resulting <code class="computeroutput"><span class="identifier">maybe_int</span></code>
+            is vacant (<code class="computeroutput"><span class="keyword">operator</span> <span class="keyword">bool</span></code>
+            returns false), it means that no estimate was possible, for lack of information.
+            This may happen if a user-defined container or type doesn't provide an
+            estimate, by accident, or because no upper bound is possible for a given
+            type without knowledge of its runtime value.
+          </p>
+<p>
+            Currently we cannot provide an estimate for "visitable structures",
+            although we would like to fix that. For the other types and containers
+            that are built-in to primer, we do provide an accurate estimate.
+          </p>
+<p>
+            Primer also uses these estimates interally. For instance, the <code class="computeroutput"><span class="identifier">adapt</span></code> mechanism will compute at compile-time
+            a conservative estimate of how much space it needs to read the arguments
+            off of the stack, and call <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+            before it begins. (<code class="computeroutput"><span class="identifier">adapt</span></code>
+            also knows that it can skip the check unless the estimate exceeds <code class="computeroutput"><span class="identifier">LUA_MINSTACK</span></code>.)
+          </p>
+<p>
+            It also does such checks when calling a bound-function or coroutine.
+          </p>
+<p>
+            It does not do any checks when you are just calling <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>
+            or <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>.
+          </p>
+<p>
+            If you don't define a <code class="computeroutput"><span class="identifier">stack_space_needed</span></code>
+            value for a custom specialization of <code class="computeroutput"><span class="identifier">push</span></code>
+            or <code class="computeroutput"><span class="identifier">read</span></code>, then primer
+            can't form an estimate and will just skip the stack space checks.
+          </p>
+<h5>
+<a name="lua_primer.reference.core.miscellaneous.stack_space_needed.h2"></a>
+            <span><a name="lua_primer.reference.core.miscellaneous.stack_space_needed.providing_stack_space_estimates"></a></span><a class="link" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.stack_space_needed.providing_stack_space_estimates">Providing
+            stack space estimates</a>
+          </h5>
+<p>
+            To provide a stack space estimate, when you specialize <code class="computeroutput"><span class="identifier">push</span></code> or <code class="computeroutput"><span class="identifier">read</span></code>,
+            you should provide a class member:
+          </p>
+<p>
+            <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">constexpr</span>
+            <span class="identifier">maybe_int</span> <span class="identifier">stack_space_needed</span><span class="special">{</span><span class="number">4</span><span class="special">};</span></code>
+          </p>
+<p>
+            if e.g. four additional stack spaces are needed to complete the operation.
+          </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+              When defining <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">::</span><span class="identifier">stack_space_needed</span></code>,
+              the value should be the smallest value <code class="computeroutput"><span class="identifier">X</span></code>
+              such that if <code class="computeroutput"><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">X</span><span class="special">)</span></code> returns true, then the push operation
+              will always succed without exausting the stack. This value is always
+              at least one -- <code class="computeroutput"><span class="identifier">push</span></code>
+              should always push something at the end, even if it is just <code class="computeroutput"><span class="identifier">nil</span></code>. It may be larger for complex
+              objects like containers, and may depend on the template parameters
+              in that case.
+            </p>
+<p>
+              If you don't define it, it is the same as defining it to "unknown".
+            </p>
+</td></tr>
+</table></div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+              When defining <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">::</span><span class="identifier">stack_space_needed</span></code>,
+              the value should be the smallest value <code class="computeroutput"><span class="identifier">X</span></code>
+              such that if <code class="computeroutput"><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">X</span><span class="special">)</span></code> returns true, then the read operation
+              will always succeed without exhausting the stack. This value is always
+              at least zero. It may be larger for more complex objects.
+            </p>
+<p>
+              If you don't define it, it is the same as defining it to "unknown".
+            </p>
+</td></tr>
+</table></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.miscellaneous.cpppcall"></a><a class="link" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.cpppcall" title="CppPcall">CppPcall</a>
+</h5></div></div></div>
+<p>
+            Primer contains a handy utility called <code class="computeroutput"><span class="identifier">cpp_pcall</span></code>
+            which can be used to execute any C++ call with any arguments inside of
+            a lua protected context.
+          </p>
+<p>
+            This is essentially an extension of the <code class="computeroutput"><span class="identifier">cpcall</span></code>
+            idiom described on the lua mailing lists, except using template metaprogramming.
+          </p>
+<p>
+            For reference, see <a href="http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus" target="_top">this
+            description and example</a> of <code class="computeroutput"><span class="identifier">lua_cpcall</span></code>
+            usage.
+          </p>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">operate</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">s</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">x</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">msg</span> <span class="special">=</span> <span class="string">"Calling "</span> <span class="special">+</span> <span class="identifier">s</span> <span class="special">+</span> <span class="string">"\n"</span><span class="special">;</span>  <span class="comment">// can raise exception; must be destroyed</span>
+    <span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">msg</span><span class="special">;</span>
+    <span class="comment">// caution: this code by raise exceptions but not longjump.</span>
+    <span class="keyword">struct</span> <span class="identifier">C</span> <span class="special">{</span>
+        <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+            <span class="comment">// caution: this code may longjump but not raise exceptions.</span>
+
+            <span class="identifier">C</span> <span class="special">*</span> <span class="identifier">p</span> <span class="special">=</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">C</span><span class="special">*&gt;(</span><span class="identifier">lua_touserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">));</span>
+            <span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">4</span><span class="special">));</span>
+            <span class="identifier">lua_getglobal</span><span class="special">(</span><span class="string">"add"</span><span class="special">);</span> <span class="comment">// can longjump</span>
+            <span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_isfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">));</span>
+            <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">s</span><span class="special">);</span> <span class="comment">// can longjump</span>
+            <span class="identifier">lua_pushnumber</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">p</span><span class="special">-&gt;</span><span class="identifier">x</span><span class="special">);</span>
+            <span class="identifier">lua_pushnumber</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">p</span><span class="special">-&gt;</span><span class="identifier">y</span><span class="special">);</span>
+            <span class="identifier">lua_call</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>    <span class="comment">// can longjump</span>
+            <span class="identifier">p</span><span class="special">-&gt;</span><span class="identifier">z</span> <span class="special">=</span> <span class="identifier">lua_tonumber</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span> <span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_isnumber</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">));</span>
+            <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+        <span class="special">}</span>
+        <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">s</span><span class="special">;</span> <span class="keyword">int</span> <span class="identifier">x</span><span class="special">;</span> <span class="keyword">int</span> <span class="identifier">y</span><span class="special">;</span> <span class="keyword">int</span> <span class="identifier">z</span><span class="special">;</span>
+    <span class="special">}</span> <span class="identifier">p</span> <span class="special">=</span> <span class="special">{</span><span class="identifier">s</span><span class="special">.</span><span class="identifier">c_str</span><span class="special">(),</span> <span class="identifier">x</span><span class="special">,</span> <span class="identifier">y</span><span class="special">,</span> <span class="number">0</span><span class="special">};</span>
+    <span class="keyword">int</span> <span class="identifier">res</span> <span class="special">=</span> <span class="identifier">lua_cpcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">C</span><span class="special">::</span><span class="identifier">call</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">p</span><span class="special">);</span> <span class="comment">// never longjumps</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">res</span> <span class="special">!=</span> <span class="number">0</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">handle_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>  <span class="comment">// do something with the error; can raise exception</span>
+        <span class="comment">//note: we let handle_error do lua_pop(L, 1);</span>
+    <span class="special">}</span>
+    <span class="keyword">return</span> <span class="identifier">p</span><span class="special">.</span><span class="identifier">z</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+            In summary, the idea is to create a local <code class="computeroutput"><span class="keyword">struct</span></code>
+            that will hold pointers to the call parameters, then do something with
+            them in a lua callback, then, push that callback and a pointer to the
+            structure to pcall.
+          </p>
+<p>
+            <code class="computeroutput"><span class="identifier">cpp_pcall</span></code> accomplishes
+            the same but without the boiler-plate.
+          </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+
+<a class="co" name="lua_primer.reference.core.miscellaneous.cpppcall.c0" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.cpppcall.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">int</span> <span class="identifier">narg</span> <span class="special">=</span> <span class="number">0</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">F</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">cpp_pcall</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list"><tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.miscellaneous.cpppcall.c1"></a><a href="#lua_primer.reference.core.miscellaneous.cpppcall.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left">
+<p>
+                Takes a callable and some arguments, performs the call in a protected
+                context which captures lua errors.
+              </p>
+<p>
+                Usually, <code class="computeroutput"><span class="identifier">f</span></code> needs
+                a <code class="computeroutput"><span class="identifier">lua</span> <span class="identifier">State</span>
+                <span class="special">*</span></code> also as one of the arguments,
+                to do whatever it will do. It might or might not be the same <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>,
+                it could be operating on a thread.
+              </p>
+<p>
+                The first parameter to <code class="computeroutput"><span class="identifier">cpp_pcall</span></code>
+                should be the main thread, and it should be related to whatever threads
+                <code class="computeroutput"><span class="identifier">f</span></code> is operating on,
+                or the error capture won't work.
+              </p>
+<p>
+                The optional template parameter <code class="computeroutput"><span class="identifier">narg</span></code>
+                signals how many values on the top of L's stack should be consumed
+                as arguments to the <code class="computeroutput"><span class="identifier">pcall</span></code>.
+                By default, none are.
+              </p>
+<p>
+                The callable itself must not throw a C++ exception, or terminate
+                will be called.
+              </p>
+</td>
+</tr></table></div>
+<p>
+            A related function, <code class="computeroutput"><span class="identifier">mem_pcall</span></code>,
+            is used internally by the Primer to capture lua memory errors as appropriate
+            according to the value of <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>.
+          </p>
+<p>
+            Sometimes, we perform operations which can raise lua errors, but only
+            of the memory variety. In this case, we call <code class="computeroutput"><span class="identifier">mem_pcall</span></code>
+            instead of <code class="computeroutput"><span class="identifier">cpp_pcall</span></code>,
+            which is resolves to either a <code class="computeroutput"><span class="identifier">cpp_pcall</span></code>
+            or a simple invocation of the callable, depending on the <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code> define. This,
+            together with <code class="computeroutput"><span class="identifier">PRIMER_TRY_BAD_ALLOC</span></code>
+            / <code class="computeroutput"><span class="identifier">PRIMER_CATCH_BAD_ALLOC</span></code>,
+            is the total effect of the <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>
+            switch. mem_pcall should not be used with calls that can throw an exception.
+            It also should not be used with calls that can raise lua errors of the
+            non-memory variety, since when <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>
+            is defined the protection is stripped out. If you need full protection
+            then use <code class="computeroutput"><span class="identifier">cpp_pcall</span></code> directly.
+          </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">int</span> <span class="identifier">narg</span> <span class="special">=</span> <span class="number">0</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">F</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">mem_pcall</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+<span class="preprocessor">#ifdef</span> <span class="identifier">PRIMER_NO_MEMORY_FAILURE</span>
+  <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+  <span class="keyword">return</span> <span class="special">{};</span>
+<span class="preprocessor">#else</span>
+  <span class="keyword">return</span> <span class="identifier">cpp_pcall</span><span class="special">&lt;</span><span class="identifier">narg</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+<span class="preprocessor">#endif</span>
+<span class="special">}</span>
+</pre>
+<h5>
+<a name="lua_primer.reference.core.miscellaneous.cpppcall.h0"></a>
+            <span><a name="lua_primer.reference.core.miscellaneous.cpppcall.implementation_details"></a></span><a class="link" href="miscellaneous.html#lua_primer.reference.core.miscellaneous.cpppcall.implementation_details">Implementation
+            Details</a>
+          </h5>
+<p>
+            For the curious, <code class="computeroutput"><span class="identifier">cpp_pcall</span></code>'s
+            implementation looks like this:
+          </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">F</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">protected_call_helper</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">tuple_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...&gt;;</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">struct</span> <span class="identifier">impl</span><span class="special">;</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">...</span> <span class="identifier">Is</span><span class="special">&gt;</span>
+  <span class="keyword">struct</span> <span class="identifier">impl</span><span class="special">&lt;</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">SizeList</span><span class="special">&lt;</span><span class="identifier">Is</span><span class="special">...&gt;&gt;</span> <span class="special">{</span>
+    <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">cfunc</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">tuple_t</span> <span class="special">&amp;</span> <span class="identifier">t</span> <span class="special">=</span>
+        <span class="special">*</span><span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">tuple_t</span> <span class="special">*&gt;(</span><span class="identifier">lua_touserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_upvalueindex</span><span class="special">(</span><span class="number">1</span><span class="special">)));</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">get</span><span class="special">&lt;</span><span class="number">0</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">))(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">get</span><span class="special">&lt;</span><span class="number">1</span> <span class="special">+</span> <span class="identifier">Is</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">))...);</span>
+      <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+    <span class="special">}</span>
+  <span class="special">};</span>
+  <span class="keyword">using</span> <span class="identifier">indices</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">Count_t</span><span class="special">&lt;</span><span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">Args</span><span class="special">)&gt;;</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">lua_CFunction</span> <span class="identifier">cfunc</span> <span class="special">=</span> <span class="identifier">impl</span><span class="special">&lt;</span><span class="identifier">indices</span><span class="special">&gt;::</span><span class="identifier">cfunc</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">int</span> <span class="identifier">narg</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">F</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">cpp_pcall</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">P</span> <span class="special">=</span> <span class="identifier">protected_call_helper</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...&gt;;</span>
+  <span class="keyword">typename</span> <span class="identifier">P</span><span class="special">::</span><span class="identifier">tuple_t</span> <span class="identifier">tuple</span><span class="special">{</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...};</span>
+  <span class="identifier">lua_pushlightuserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span> <span class="special">*&gt;(&amp;</span><span class="identifier">tuple</span><span class="special">));</span>
+  <span class="identifier">lua_pushcclosure</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">P</span><span class="special">::</span><span class="identifier">cfunc</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">narg</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">lua_insert</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span> <span class="special">-</span> <span class="identifier">narg</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fcn_call</span><span class="special">(</span><span class="identifier">result</span><span class="special">,</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">narg</span><span class="special">);</span> <span class="comment">// Note that this is noexcept</span>
+  <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="api.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
+</div>
+</body>
+</html>

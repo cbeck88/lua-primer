@@ -23,24 +23,19 @@
           is the note about stack overflow.
         </p>
 <p>
-          lua's stack has only a limited size. In current versions of lua it is quite
-          high, e.g. more than ten thousand elements, but in past versions it may
-          have only been a few hundred elements. With eris, it is somewhat smaller
-          than in a default configuration for various reasons. The stack space may
-          also depend on the integer sizes that lua is configured to use.
+          lua's stack has only a limited size, and it doesn't perform bounds checking.
+          When you push a string or an integer, etc., if there is not enough space
+          in the stack left, you get undefined behavior.
         </p>
 <p>
-          lua does not perform any bounds checking. When you push a string or an
-          integer, etc., if there is not enough space in the stack left, you get
-          undefined behavior.
+          When you push things onto the stack, generically, you should use <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>, which ensures that there
+          is space for at least <code class="computeroutput"><span class="identifier">n</span></code>
+          more elements, or returns <code class="computeroutput"><span class="keyword">false</span></code>
+          if allocation fails.
         </p>
 <p>
-          This is of course to avoid the overhead of constant bounds checking. It
-          is expected that when you perform a "large" operation you might
-          do some bounds checking at the beginning, having an estimate of how much
-          clearance you need. The <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
-          function can tell you if there is enough space for a given number of extra
-          slots.
+          Instead of calling this constantly, usually you want to call it once at
+          the beginning of a "large-ish" operation.
         </p>
 <p>
           In <code class="computeroutput"><span class="identifier">primer</span></code>, we support pushing
@@ -91,10 +86,8 @@
 <span class="keyword">static_assert</span><span class="special">(!(</span><span class="identifier">x</span> <span class="special">+</span> <span class="identifier">z</span><span class="special">),</span> <span class="string">""</span><span class="special">);</span>
 </pre>
 <p>
-          <code class="computeroutput"><span class="identifier">maybe_int</span></code> supports addition,
-          subtraction, and multiplication, with <code class="computeroutput"><span class="keyword">int</span></code>
-          and with other <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
-          The result is always a <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
+          <code class="computeroutput"><span class="identifier">maybe_int</span></code> supports <code class="computeroutput"><span class="keyword">constexpr</span></code> addition, subtraction, and multiplication,
+          with <code class="computeroutput"><span class="keyword">int</span></code> and with other <code class="computeroutput"><span class="identifier">maybe_int</span></code>. The result is always a <code class="computeroutput"><span class="identifier">maybe_int</span></code>.
         </p>
 <p>
           The <code class="computeroutput"><span class="identifier">min</span></code> and <code class="computeroutput"><span class="identifier">max</span></code> can be computed by <code class="computeroutput"><span class="identifier">maybe_int</span><span class="special">::</span><span class="identifier">min</span></code> and <code class="computeroutput"><span class="identifier">maybe_int</span><span class="special">::</span><span class="identifier">max</span></code>.
@@ -124,7 +117,8 @@
           returns false), it means that no estimate was possible, for lack of information.
           This may happen if a user-defined container or type doesn't provide an
           estimate, by accident, or because no upper bound is possible for a given
-          type without knowledge of its runtime value.
+          type without knowledge of its runtime value. (In that case the operation
+          itself should perform a stack check.)
         </p>
 <p>
           Currently we cannot provide an estimate for "visitable structures",
@@ -159,14 +153,23 @@
 <p>
           To provide a stack space estimate, when you specialize <code class="computeroutput"><span class="identifier">push</span></code>
           or <code class="computeroutput"><span class="identifier">read</span></code>, you should provide
-          a class member:
+          a class member <code class="computeroutput"><span class="identifier">stack_space_needed</span></code>
+          within the specialization:
         </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">foo</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">foo</span> <span class="special">&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span> <span class="special">...</span> <span class="special">}</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">maybe_int</span> <span class="identifier">stack_space_needed</span><span class="special">{</span><span class="number">4</span><span class="special">};</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
 <p>
-          <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">constexpr</span>
-          <span class="identifier">maybe_int</span> <span class="identifier">stack_space_needed</span><span class="special">{</span><span class="number">4</span><span class="special">};</span></code>
-        </p>
-<p>
-          if e.g. four additional stack spaces are needed to complete the operation.
+          if e.g. four additional stack spaces are needed to complete the push operation.
         </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -175,11 +178,13 @@
 </tr>
 <tr><td align="left" valign="top">
 <p>
-            When defining <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">::</span><span class="identifier">stack_space_needed</span></code>,
-            the value should be the smallest value <code class="computeroutput"><span class="identifier">X</span></code>
-            such that if <code class="computeroutput"><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">X</span><span class="special">)</span></code> returns true, then the push operation
-            will always succed without exausting the stack. This value is always
-            at least one -- <code class="computeroutput"><span class="identifier">push</span></code>
+            When defining <code class="computeroutput"><span class="identifier">stack_space_needed</span></code>
+            for <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span></code>, the value should be the smallest
+            value <code class="computeroutput"><span class="identifier">X</span></code> such that if
+            <code class="computeroutput"><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">X</span><span class="special">)</span></code>
+            returns <code class="computeroutput"><span class="keyword">true</span></code>, then the push
+            operation will always succed without exausting the stack. This value
+            is always at least one -- <code class="computeroutput"><span class="identifier">push</span></code>
             should always push something at the end, even if it is just <code class="computeroutput"><span class="identifier">nil</span></code>. It may be larger for complex objects
             like containers, and may depend on the template parameters in that case.
           </p>
@@ -195,11 +200,13 @@
 </tr>
 <tr><td align="left" valign="top">
 <p>
-            When defining <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">::</span><span class="identifier">stack_space_needed</span></code>,
-            the value should be the smallest value <code class="computeroutput"><span class="identifier">X</span></code>
-            such that if <code class="computeroutput"><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">X</span><span class="special">)</span></code> returns true, then the read operation
-            will always succeed without exhausting the stack. This value is always
-            at least zero. It may be larger for more complex objects.
+            When defining <code class="computeroutput"><span class="identifier">stack_space_needed</span></code>
+            for <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code>, the value should be the smallest
+            value <code class="computeroutput"><span class="identifier">X</span></code> such that if
+            <code class="computeroutput"><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">X</span><span class="special">)</span></code>
+            returns <code class="computeroutput"><span class="keyword">true</span></code>, then the read
+            operation will always succeed without exhausting the stack. This value
+            is always at least zero. It may be larger for more complex objects.
           </p>
 <p>
             If you don't define it, it is the same as defining it to "unknown".

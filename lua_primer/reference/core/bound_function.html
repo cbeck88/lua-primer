@@ -6,12 +6,12 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../core.html" title="Core">
-<link rel="prev" href="lua_ref.html" title="lua_ref">
+<link rel="prev" href="lua_ref_seq.html" title="lua_ref_seq">
 <link rel="next" href="coroutine.html" title="coroutine">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="lua_ref.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="coroutine.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="lua_ref_seq.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="coroutine.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
@@ -121,8 +121,12 @@
         </h3>
 <p>
           Similar to <code class="computeroutput"><span class="identifier">lua_ref</span></code>, these
-          can be pushed onto the stack. On read, anything that's not a function causes
-          an error, otherwise it binds to it.
+          can be pushed onto the stack by <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+        </p>
+<p>
+          On read, the nil value is read as putting the <code class="computeroutput"><span class="identifier">bound_function</span></code>
+          into the empty state. Otherwise, if it's a function, it is bound, and anything
+          else causes an error.
         </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
@@ -135,7 +139,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="lua_ref.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="coroutine.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="lua_ref_seq.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="coroutine.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

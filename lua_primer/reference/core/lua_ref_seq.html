@@ -1,0 +1,172 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>lua_ref_seq</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="lua_ref.html" title="lua_ref">
+<link rel="next" href="bound_function.html" title="bound_function">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="lua_ref.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="bound_function.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.lua_ref_seq"></a><a class="link" href="lua_ref_seq.html" title="lua_ref_seq">lua_ref_seq</a>
+</h4></div></div></div>
+<p>
+          A <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref_seq</span></code> is a dynamically-sized sequence
+          of <code class="computeroutput"><span class="identifier">lua_ref</span></code> objects.
+        </p>
+<p>
+          The intended usage is to allow handling lua functions with multiple return
+          values. Given a stack full of return values, they can all be popped at
+          once into a <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>
+          using a call to <code class="computeroutput"><span class="identifier">pop_stack</span></code>
+          or <code class="computeroutput"><span class="identifier">pop_n</span></code>.
+        </p>
+<pre class="programlisting"><a class="co" name="lua_primer.reference.core.lua_ref_seq.c0" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">inline</span> <span class="keyword">void</span> <span class="identifier">pop_n</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">n</span><span class="special">,</span> <span class="identifier">lua_ref_seq</span> <span class="special">&amp;</span> <span class="identifier">result</span><span class="special">);</span>
+
+<a class="co" name="lua_primer.reference.core.lua_ref_seq.c2" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_n</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">n</span><span class="special">);</span>
+
+<a class="co" name="lua_primer.reference.core.lua_ref_seq.c4" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">);</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c1"></a><a href="#lua_primer.reference.core.lua_ref_seq.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Pop <code class="computeroutput"><span class="identifier">n</span></code> elements from
+              the stack <code class="computeroutput"><span class="identifier">L</span></code> and put
+              them in a lua_ref_seq. They are ordered such that calling <code class="computeroutput"><span class="identifier">push_each</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span></code>
+              will restore them. Throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+              Can cause lua memory alloc failure. First step is clearing the <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>, so, no strong exception-safety.
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c3"></a><a href="#lua_primer.reference.core.lua_ref_seq.c2"><img src="../../../images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Same thing but with different return convention
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c5"></a><a href="#lua_primer.reference.core.lua_ref_seq.c4"><img src="../../../images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Pop the entire stack. Throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+              Can cause lua memory alloc failure
+            </p></td>
+</tr>
+</table></div>
+<p>
+          They can be restored in the same order using <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>
+          member function <code class="computeroutput"><span class="identifier">push_each</span></code>.
+        </p>
+<p>
+          Because a <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> represents
+          multiple values and not just one, it can't be used with <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>,
+          as it would break the preconditions.
+        </p>
+<p>
+          However, <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> is
+          essentially just a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code>, as you'll see from it's synopsis.
+        </p>
+<p>
+          To prevent it from being used as a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code> with push or read, which would cause
+          bugs, it is implemented as a <code class="computeroutput"><span class="keyword">struct</span></code>
+          containing a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code>
+          member, which forwards most of the member functions of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>.
+        </p>
+<h6>
+<a name="lua_primer.reference.core.lua_ref_seq.h0"></a>
+          <span><a name="lua_primer.reference.core.lua_ref_seq.synopsis"></a></span><a class="link" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.synopsis">Synopsis</a>
+        </h6>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_ref_seq</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">refs_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;;</span>
+  <span class="identifier">refs_t</span> <span class="identifier">refs_</span><span class="special">;</span>
+
+  <span class="comment">// Forward some choice methods from std::vector</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">size</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">using</span> <span class="identifier">value_type</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">value_type</span><span class="special">;</span>
+  <span class="keyword">using</span> <span class="identifier">reference</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">reference</span><span class="special">;</span>
+  <span class="keyword">using</span> <span class="identifier">const_reference</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">const_reference</span><span class="special">;</span>
+
+  <span class="comment">// Index</span>
+  <span class="identifier">reference</span> <span class="keyword">operator</span><span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">[</span><span class="identifier">i</span><span class="special">];</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="keyword">operator</span><span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">[</span><span class="identifier">i</span><span class="special">];</span> <span class="special">}</span>
+
+  <span class="identifier">reference</span> <span class="identifier">at</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">at</span><span class="special">(</span><span class="identifier">i</span><span class="special">);</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="identifier">at</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">at</span><span class="special">(</span><span class="identifier">i</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="identifier">reference</span> <span class="identifier">front</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="identifier">front</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="identifier">reference</span> <span class="identifier">back</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">back</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="identifier">back</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">back</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="comment">// Support iteration</span>
+  <span class="keyword">using</span> <span class="identifier">iterator</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">iterator</span><span class="special">;</span>
+  <span class="keyword">using</span> <span class="identifier">const_iterator</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">const_iterator</span><span class="special">;</span>
+
+  <span class="identifier">iterator</span> <span class="identifier">begin</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_iterator</span> <span class="identifier">begin</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="identifier">iterator</span> <span class="identifier">end</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">end</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_iterator</span> <span class="identifier">end</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">end</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="comment">// Manipulation</span>
+
+  <span class="keyword">void</span> <span class="identifier">reserve</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">reserve</span><span class="special">(</span><span class="identifier">s</span><span class="special">);</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">clear</span><span class="special">()</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">clear</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">resize</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">resize</span><span class="special">(</span><span class="identifier">s</span><span class="special">);</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">pop_back</span><span class="special">()</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">pop_back</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="keyword">void</span> <span class="identifier">emplace_back</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">emplace_back</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">const_iterator</span> <span class="identifier">pos</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">(</span><span class="identifier">pos</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">InputIt</span><span class="special">&gt;</span>
+  <span class="identifier">iterator</span> <span class="identifier">insert</span><span class="special">(</span><span class="identifier">const_iterator</span> <span class="identifier">pos</span><span class="special">,</span> <span class="identifier">InputIt</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">InputIt</span> <span class="identifier">last</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">pos</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">);</span>
+  <span class="special">}</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref_seq.c6" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c7"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">bool</span> <span class="identifier">push_each</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="keyword">bool</span> <span class="identifier">result</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+    <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">r</span> <span class="special">:</span> <span class="identifier">refs_</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">bool</span> <span class="identifier">temp</span> <span class="special">=</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">result</span> <span class="special">&amp;&amp;</span> <span class="identifier">temp</span><span class="special">;</span>
+    <span class="special">}</span>
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list"><tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c7"></a><a href="#lua_primer.reference.core.lua_ref_seq.c6"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Push all the refs onto the stack in succession. Return of <code class="computeroutput"><span class="keyword">true</span></code> means every push succeeded. You
+              can usually ignore the result, it only fails if some of the refs in
+              the ref_seq are actually in an empty state. If not all of the refs
+              are in the same VM as the argument, then you get UB. See <code class="computeroutput"><span class="identifier">lua_ref</span></code>.
+            </p></td>
+</tr></table></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="lua_ref.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="bound_function.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

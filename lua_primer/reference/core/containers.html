@@ -1,0 +1,504 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Containers</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="lua_ref_seq.html" title="lua_ref_seq">
+<link rel="next" href="api.html" title="API">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="lua_ref_seq.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.containers"></a><a class="link" href="containers.html" title="Containers">Containers</a>
+</h4></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="containers.html#lua_primer.reference.core.containers.standard_containers">Standard
+          Containers</a></span></dt>
+<dt><span class="section"><a href="containers.html#lua_primer.reference.core.containers.heterogeneous_containers">Heterogeneous
+          Containers</a></span></dt>
+<dt><span class="section"><a href="containers.html#lua_primer.reference.core.containers.optionals">Optionals</a></span></dt>
+</dl></div>
+<p>
+          Besides reading and writing primitive values like numbers and strings,
+          primer is also able to intelligently move <span class="bold"><strong>aggregate</strong></span>
+          objects to and from lua as tables.
+        </p>
+<p>
+          This is accomplished by a number of (opt-in) partial-specializations of
+          the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span></code>
+          traits for these container types.
+        </p>
+<p>
+          Because of the overall design, this makes primer able to recognize such
+          containers as function parameters in API callbacks, or to pass such containers
+          as arguments to calls to <code class="computeroutput"><span class="identifier">bound_function</span></code>
+          function objects. (See "Design" section.)
+        </p>
+<p>
+          Primer can also give nice semantics to optional types like <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span></code>, or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code>
+          from C++17. In primer, these types can be used to specify that a table
+          member or function parameter is permitted to be missing, and that it is
+          not an error if it could not be read.
+        </p>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.containers.standard_containers"></a><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers" title="Standard Containers">Standard
+          Containers</a>
+</h5></div></div></div>
+<p>
+            Primer contains some auxiliary headers which can make it aware of many
+            standard C++ containers.
+          </p>
+<p>
+            These auxiliary headers are optional, and may be included individually
+            as needed using e.g.
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">std</span><span class="special">/</span><span class="identifier">vector</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>,
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">optional</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+          </p>
+<p>
+            or wholesale:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">std</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+                pulls in all available headers for standard library containers.
+              </li>
+<li class="listitem">
+                <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">boost</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+                pulls in all available headers for boost containers.
+              </li>
+</ul></div>
+<p>
+            In all cases, these containers are mapped to tables, using lua idioms
+            as follows:
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.standard_containers.h0"></a>
+            <span><a name="lua_primer.reference.core.containers.standard_containers.lua_map_idiom"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers.lua_map_idiom">Lua
+            Map Idiom</a>
+          </h4>
+<p>
+            <span class="emphasis"><em>maps</em></span> such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code>
+            and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unordered_map</span></code> are translated to lua
+            directly as tables.
+          </p>
+<p>
+            When such a map is pushed, each key-value pair in the map becomes a key-value
+            pair in the table, and the keys and values are converted recursively
+            using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+          </p>
+<p>
+            When such a map is read, the argument is expected to be a table, and
+            it is recursed over using <code class="computeroutput"><span class="identifier">lua_next</span></code>.
+            Each key value pair is attempted to be converted using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>, and added to the table. If reading
+            of any key or value as the expected type fails, then reading the map
+            fails.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.standard_containers.h1"></a>
+            <span><a name="lua_primer.reference.core.containers.standard_containers.lua_array_idiom"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers.lua_array_idiom">Lua
+            Array Idiom</a>
+          </h4>
+<p>
+            <span class="emphasis"><em>arrays</em></span> such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>
+            and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code> are translated to lua as tables,
+            in which only the "array part" of the table is used.
+          </p>
+<p>
+            When an array <code class="computeroutput"><span class="identifier">v</span></code> is pushed,
+            the entry <code class="computeroutput"><span class="identifier">v</span><span class="special">[</span><span class="number">0</span><span class="special">]</span></code> becomes
+            entry <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">1</span><span class="special">]</span></code> of a
+            lua table <code class="computeroutput"><span class="identifier">t</span></code> upon pushing.
+          </p>
+<p>
+            When a vector is read, the lua value is expected to be a table. <code class="computeroutput"><span class="identifier">lua_rawlen</span></code> is used to determine its
+            length. Then <code class="computeroutput"><span class="identifier">lua_rawgeti</span></code>
+            is used to query entries <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">1</span><span class="special">],</span>
+            <span class="identifier">t</span><span class="special">[</span><span class="number">2</span><span class="special">],</span> <span class="special">...</span></code>.
+            If any of these cannot be read as the expected type, then reading the
+            vector fails.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.standard_containers.h2"></a>
+            <span><a name="lua_primer.reference.core.containers.standard_containers.lua_set_idiom"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.standard_containers.lua_set_idiom">Lua
+            Set Idiom</a>
+          </h4>
+<p>
+            <span class="emphasis"><em>sets</em></span> such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>
+            are translated to lua as tables, in which the value in every key-value
+            pair is <code class="computeroutput"><span class="keyword">true</span></code>.
+          </p>
+<p>
+            It is otherwise similar to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code>
+            in terms of pushing and reading.
+          </p>
+<p>
+            In lua, tables cannot have custom "comparators" for their keys.
+            If you have something more complex than <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code> or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>, e.g. containing tables or userdata,
+            you will most likely want to create custom semantics for it rather than
+            using the primer built-in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>
+            semantics.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.containers.heterogeneous_containers"></a><a class="link" href="containers.html#lua_primer.reference.core.containers.heterogeneous_containers" title="Heterogeneous Containers">Heterogeneous
+          Containers</a>
+</h5></div></div></div>
+<p>
+            Primer has support for reading and pushing hetergeneous containers which
+            use strings as their keys.
+          </p>
+<p>
+            This can be used to easily implement a "named parameter" idiom
+            in your callback functions, or for many other uses.
+          </p>
+<p>
+            The primary form of support for this is a compatibility header between
+            Primer and a small library called <a href="https://github.com/cbeck88/visit_struct" target="_top">visit_struct</a>,
+            which is distributed with Primer.
+          </p>
+<p>
+            <code class="computeroutput"><span class="identifier">visit_struct</span></code> provides
+            a way of attaching metadata to a struct-type, by way of a type trait,
+            such that arbitrary visitors may be applied to instances of it.
+          </p>
+<p>
+            Any structure which has been so declared "visitable", may be
+            read or written to lua as a table, in which the keys correspond to the
+            names of the struct members, and the values are determined using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+          </p>
+<p>
+            In other words, the <code class="computeroutput"><span class="keyword">struct</span></code>
+            definition becomes like a schema for a table layout.
+          </p>
+<p>
+            The use of this can be seen with an example:
+          </p>
+<p>
+            <span class="bold"><strong>lua:</strong></span>
+          </p>
+<pre class="programlisting"><span class="identifier">h</span><span class="special">{</span> <span class="identifier">name</span> <span class="special">=</span> <span class="char">'Charlie'</span><span class="special">,</span> <span class="identifier">id</span> <span class="special">=</span> <span class="number">44</span> <span class="special">}</span>
+</pre>
+<p>
+            <span class="bold"><strong>C++:</strong></span>
+          </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">h_arguments</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span>
+  <span class="keyword">int</span> <span class="identifier">id</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">group</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">task</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="identifier">VISITABLE_STRUCT</span><span class="special">(</span><span class="identifier">h_arguments</span><span class="special">,</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">id</span><span class="special">,</span> <span class="identifier">group</span><span class="special">,</span> <span class="identifier">task</span><span class="special">);</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">h</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">h_arguments</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">it</span> <span class="special">=</span> <span class="identifier">database</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">args</span><span class="special">.</span><span class="identifier">id</span><span class="special">);</span>
+  <span class="special">...</span>
+<span class="special">}</span>
+</pre>
+<h4>
+<a name="lua_primer.reference.core.containers.heterogeneous_containers.h0"></a>
+            <span><a name="lua_primer.reference.core.containers.heterogeneous_containers.usage"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.heterogeneous_containers.usage">Usage</a>
+          </h4>
+<p>
+            There are two methods of making a struct visitable:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                The <code class="computeroutput"><span class="identifier">VISITABLE_STRUCT</span></code>
+                macro takes the name of a structure, possibly qualfiied by namespaces,
+                as its first argument. Then, it takes the names of the fields which
+                should be visitable.
+              </li>
+<li class="listitem">
+                The three macros <code class="computeroutput"><span class="identifier">BEGIN_VISITABLES</span></code>,
+                <code class="computeroutput"><span class="identifier">VISITABLE</span></code>, <code class="computeroutput"><span class="identifier">END_VISITABLES</span></code> can be used <span class="emphasis"><em>inline</em></span>
+                in a structure definition, to declare it visitable at the same time
+                that it is defined.
+              </li>
+</ul></div>
+<p>
+            See <a href="https://github.com/cbeck88/visit_struct" target="_top">documentation</a>
+            for <code class="computeroutput"><span class="identifier">visit_struct</span></code> for
+            extended examples. These declarations are useful for purposes outside
+            of primer as well.
+          </p>
+<h4>
+<a name="lua_primer.reference.core.containers.heterogeneous_containers.h1"></a>
+            <span><a name="lua_primer.reference.core.containers.heterogeneous_containers.includes"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.heterogeneous_containers.includes">includes</a>
+          </h4>
+<p>
+            Within primer, the support for such structures is pulled in by including
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">container</span><span class="special">/</span><span class="identifier">visit_struct</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+            .
+          </p>
+<p>
+            You can pull in this header and all the <code class="computeroutput"><span class="identifier">visit_struct</span></code>
+            headers using
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">visit_struct</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="lua_primer.reference.core.containers.optionals"></a><a class="link" href="containers.html#lua_primer.reference.core.containers.optionals" title="Optionals">Optionals</a>
+</h5></div></div></div>
+<p>
+            Primer includes some support for <span class="emphasis"><em>optional</em></span> containers.
+          </p>
+<p>
+            An optional is a container which contains either one or zero of a given
+            type. A popular example is <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span></code>
+            -- a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code> type was recently added to
+            C++17.
+          </p>
+<p>
+            Optionals are extremely useful for representing optional parameters to
+            a function. In primer, this gives you a flexible way to allow users of
+            your callbacks to omit certain arguments.
+          </p>
+<h5>
+<a name="lua_primer.reference.core.containers.optionals.h0"></a>
+            <span><a name="lua_primer.reference.core.containers.optionals.pushing_optionals"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.optionals.pushing_optionals">Pushing
+            optionals</a>
+          </h5>
+<p>
+            Pushing optionals is straightforward in primer. If the optional is empty,
+            then primer will push <code class="computeroutput"><span class="identifier">nil</span></code>.
+            If it is occupied, then primer pushes the value.
+          </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">x</span><span class="special">;</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">x</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_isnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">));</span>
+
+<span class="identifier">x</span> <span class="special">=</span> <span class="number">7</span><span class="special">;</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">x</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">2</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_isinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">));</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_tointeger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">)</span> <span class="special">==</span> <span class="number">7</span><span class="special">);</span>
+</pre>
+<h5>
+<a name="lua_primer.reference.core.containers.optionals.h1"></a>
+            <span><a name="lua_primer.reference.core.containers.optionals.reading_optionals"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.optionals.reading_optionals">Reading
+            optionals</a>
+          </h5>
+<p>
+            Optionals can usefully have at least two different kinds of semantics
+            when reading: <span class="emphasis"><em>strict</em></span> and <span class="emphasis"><em>relaxed</em></span>.
+          </p>
+<p>
+            When strictly reading optionals, only values that would round-trip with
+            "push" are accepted, and anything that isn't nil or acceptable
+            as an instance of the value type, is an error.
+          </p>
+<pre class="programlisting"><span class="identifier">lua_pushnumber</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">5.5f</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result1</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result1</span><span class="special">);</span>
+
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;</span> <span class="identifier">my_number</span> <span class="special">=</span> <span class="special">*</span><span class="identifier">result1</span><span class="special">;</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">my_number</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(*</span><span class="identifier">my_number</span> <span class="special">==</span> <span class="number">5.5f</span><span class="special">);</span>
+
+<span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">2</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result2</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result2</span><span class="special">);</span>
+
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;</span> <span class="identifier">my_number2</span> <span class="special">=</span> <span class="special">*</span><span class="identifier">result2</span><span class="special">;</span>
+<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">my_number2</span><span class="special">);</span> <span class="comment">// got an empty state (nil)</span>
+
+<span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"foo"</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">3</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result3</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result3</span><span class="special">);</span> <span class="comment">// string is not nil or a number</span>
+</pre>
+<p>
+            The main use of course is as function parameters. Given a function taking
+            optional parameters like so,
+          </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">maximum</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span>
+                       <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">x</span><span class="special">,</span>
+                       <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">x</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">y</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">max</span><span class="special">(*</span><span class="identifier">x</span><span class="special">,</span> <span class="special">*</span><span class="identifier">y</span><span class="special">));</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">*</span><span class="identifier">x</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">y</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">*</span><span class="identifier">y</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+  <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+            these are the kinds of semantics that primer would give when it is pushed
+            to lua:
+          </p>
+<pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">maximum</span><span class="special">));</span>
+<span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"maximum"</span><span class="special">);</span>
+
+<span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span>
+                <span class="string">"local x = 5                              \n"</span>
+                <span class="string">"local y = 7                              \n"</span>
+                <span class="string">"assert(maximum(x, y) == 7)               \n"</span>
+                <span class="string">"assert(maximum(x, nil) == 5)             \n"</span>
+                <span class="string">"assert(maximum(nil, y) == 7)             \n"</span>
+                <span class="string">"assert(not maximum(nil, nil))            \n"</span>
+                <span class="string">"assert(not pcall(maximum, 'foo', 'bar')) \n"</span>
+                <span class="string">"assert(not pcall(maximum, 5, 'bar'))     \n"</span>
+                <span class="string">"assert(not pcall(maximum, 'foo', nil))   \n"</span>
+                <span class="string">"assert(pcall(maximum, 6, -14))           \n"</span>
+                <span class="string">"assert(pcall(maximum, 6))                \n"</span>
+                <span class="string">"assert(maximum(6) == 6)                  \n"</span><span class="special">);</span>
+
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+</pre>
+<h5>
+<a name="lua_primer.reference.core.containers.optionals.h2"></a>
+            <span><a name="lua_primer.reference.core.containers.optionals.relaxed_semantics"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.optionals.relaxed_semantics">Relaxed
+            semantics</a>
+          </h5>
+<p>
+            In the <span class="emphasis"><em>relaxed</em></span> semantics, we simply try to read
+            an instance of the value type. If it succeeds, then that becomes the
+            value of the optional. If an error results, then the optional is returned
+            in the empty state, and the error is discarded.
+          </p>
+<p>
+            This can be useful, for instance, if you have a complex function which
+            takes inputs using a named parameter idiom, and you want it to flexibly
+            ignore values that don't make sense. Possibly, the intention is that
+            the user will pass some table that also has other uses within your system,
+            and if every possible field must match exactly then the interface would
+            be too brittle to be used comfortably.
+          </p>
+<h5>
+<a name="lua_primer.reference.core.containers.optionals.h3"></a>
+            <span><a name="lua_primer.reference.core.containers.optionals.configuring"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.optionals.configuring">Configuring</a>
+          </h5>
+<p>
+            To give a type optional semantics, we simply specialize push and read
+            for it. The built-in semantics are implemented in a header
+          </p>
+<p>
+            <code class="computeroutput"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">container</span><span class="special">/</span><span class="identifier">optional_base</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+          </p>
+<p>
+            They can be enabled for an optional type, for example, as follows:
+          </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">container</span><span class="special">/</span><span class="identifier">optional_base</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">optional</span><span class="special">/</span><span class="identifier">optional</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">:</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">optional_push</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">{};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span>
+  <span class="special">:</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">optional_strict_read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">{};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<p>
+            If we had selected <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">optional_relaxed_read</span></code>
+            instead of <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">optional_strict_read</span></code>, then we would
+            get relaxed semantics.
+          </p>
+<h5>
+<a name="lua_primer.reference.core.containers.optionals.h4"></a>
+            <span><a name="lua_primer.reference.core.containers.optionals.optional_access"></a></span><a class="link" href="containers.html#lua_primer.reference.core.containers.optionals.optional_access">Optional
+            Access</a>
+          </h5>
+<p>
+            If you have an optional type which differs significantly from <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code>
+            in its interface, then in order to use the above traits implementing
+            the strict and relaxed read, you must specialize an additional trait
+            <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">optional_access</span></code> for your type, in order
+            to tell primer how to talk to it.
+          </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="comment">// This trait is used to tell primer in a basic way how to interact with an</span>
+<span class="comment">// optional template type.</span>
+<span class="comment">//</span>
+<span class="comment">// optional_access&lt;T&gt; should provide</span>
+<span class="comment">//</span>
+<span class="comment">// - typedef value_type</span>
+<span class="comment">// - static const value_type * as_ptr(const T &amp;) noexcept;</span>
+<span class="comment">// - static T make_empty() noexcept;</span>
+<span class="comment">// - static T from_value_type(value_type &amp;&amp;) noexcept;</span>
+<span class="comment">//</span>
+<span class="comment">// as_ptr should return nullptr if the optional is empty, or a pointer to the</span>
+<span class="comment">// contained value.</span>
+<span class="comment">//</span>
+<span class="comment">// make empty should create an empty optional.</span>
+<span class="comment">// from_value_type should move-construct an occupied optional.</span>
+<span class="comment">//</span>
+<span class="comment">// It must be specialized if your optional does not look like `boost::optional`</span>
+<span class="comment">// or `std::optional`.</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">optional_access</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">value_type</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">::</span><span class="identifier">value_type</span><span class="special">;</span>
+
+  <span class="identifier">PRIMER_STATIC_ASSERT</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+                       <span class="string">"optional must be nothrow constructible"</span><span class="special">);</span>
+
+  <span class="comment">// TODO: boost::optional doesn't do this...</span>
+  <span class="comment">// PRIMER_STATIC_ASSERT(noexcept(T{std::declval&lt;value_type&gt;()}),</span>
+  <span class="comment">//                      "optional must be nothrow constructible from r-value</span>
+  <span class="comment">//                      reference to value type");</span>
+
+
+  <span class="keyword">static</span> <span class="keyword">const</span> <span class="identifier">value_type</span> <span class="special">*</span> <span class="identifier">as_ptr</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="identifier">t</span> <span class="special">?</span> <span class="special">&amp;*</span><span class="identifier">t</span> <span class="special">:</span> <span class="keyword">nullptr</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">static</span> <span class="identifier">T</span> <span class="identifier">make_empty</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">{};</span> <span class="special">}</span>
+  <span class="keyword">static</span> <span class="identifier">T</span> <span class="identifier">from_value_type</span><span class="special">(</span><span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">v</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">T</span><span class="special">{</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">v</span><span class="special">)};</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+</pre>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="lua_ref_seq.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
