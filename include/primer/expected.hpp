@@ -53,16 +53,16 @@ public:
   // Accessors and dereference semantics
   explicit operator bool() const noexcept { return have_ham_; }
 
-  T & operator*() &;
-  T && operator*() &&;
-  const T & operator*() const &;
+  T & operator*() & noexcept;
+  T && operator*() && noexcept;
+  const T & operator*() const & noexcept;
 
-  T * operator->() &;
-  const T * operator->() const &;
+  T * operator->() & noexcept;
+  const T * operator->() const & noexcept;
 
-  primer::error & err() &;
-  primer::error && err() &&;
-  const primer::error & err() const &;
+  primer::error & err() & noexcept;
+  primer::error && err() && noexcept;
+  const primer::error & err() const & noexcept;
 
   // Succinct access to error string
   const char * err_c_str() const noexcept { return this->err().what(); }
@@ -185,49 +185,49 @@ public:
 
 // Accessors
 template <typename T>
-T & expected<T>::operator*() & {
+T & expected<T>::operator*() & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return ham_;
 }
 
 template <typename T>
-T const & expected<T>::operator*() const & {
+T const & expected<T>::operator*() const & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return ham_;
 }
 
 template <typename T>
-T && expected<T>::operator*() && {
+T && expected<T>::operator*() && noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return std::move(ham_);
 }
 
 template <typename T>
-T * expected<T>::operator->() & {
+T * expected<T>::operator->() & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return &ham_;
 }
 
 template <typename T>
-const T * expected<T>::operator->() const & {
+const T * expected<T>::operator->() const & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return &ham_;
 }
 
 template <typename T>
-  primer::error & expected<T>::err() & {
+  primer::error & expected<T>::err() & noexcept {
     PRIMER_BAD_ACCESS(!have_ham_);
     return spam_;
   }
 
 template <typename T>
-primer::error const & expected<T>::err() const & {
+primer::error const & expected<T>::err() const & noexcept {
   PRIMER_BAD_ACCESS(!have_ham_);
   return spam_;
 }
 
 template <typename T>
-  primer::error && expected<T>::err() && {
+  primer::error && expected<T>::err() && noexcept {
     PRIMER_BAD_ACCESS(!have_ham_);
     return std::move(spam_);
   }
@@ -355,8 +355,7 @@ public:
     : internal_(std::move(e))           //
   {}
 
-  // Don't allow converting from other kinds of expected, since could get a
-  // dangling reference.
+  // Don't allow converting from other kinds of expected
 };
 //]
 
@@ -369,58 +368,79 @@ class expected<void> {
 
 public:
   // Accessors
-  explicit operator bool() const noexcept { return no_error_; }
+  explicit operator bool() const noexcept;
 
-  const primer::error & err() const & noexcept {
-    PRIMER_BAD_ACCESS(!no_error_);
-    return error_;
-  }
-  primer::error && error() && noexcept {
-    PRIMER_BAD_ACCESS(!no_error_);
-    return std::move(error_);
-  }
+  const primer::error & err() const & noexcept;
+  primer::error && error() && noexcept;
 
   const char * err_c_str() const noexcept { return this->err().what(); }
   /*<< Note: May throw std::bad_alloc if `std::string` allocation fails. >>*/
   std::string err_str() const { return this->err_c_str(); }
 
   // Special member functions
-  expected() noexcept : no_error_(true),
-                        error_()
-  {}
-
+  expected() noexcept;
   expected(const expected &) = default;
   expected(expected &&) noexcept = default;
   expected & operator=(const expected &) = default;
   expected & operator=(expected &&) = default;
 
   // Additional Constructors
-  /*<< Allow implicit conversion from `primer::error`, so we can return those
-      from functions that return `expected<void>`. >>*/
-  expected(const primer::error & e)
-    : no_error_(false)
-    , error_(e) //
-  {}
-
-  expected(primer::error && e) noexcept : no_error_(false),
-                                          error_(std::move(e))
-  {}
-
+  // Allow implicit conversion from `primer::error`, so we can return those
+  // from functions that return `expected<void>`.
+  expected(const primer::error & e);
+  expected(primer::error && e) noexcept;
 
   // Conversion from other expected types
   // Note this ASSUMES that the other one has an error! Does not discard a
   // value.
   template <typename U>
-  expected(const expected<U> & u)
+  expected(const expected<U> & u);
+
+  template <typename U>
+  expected(expected<U> && u) noexcept;
+};
+//]
+
+expected<void>::operator bool() const noexcept { return no_error_; }
+
+
+  const primer::error & expected<void>::err() const & noexcept {
+    PRIMER_BAD_ACCESS(!no_error_);
+    return error_;
+  }
+
+
+  primer::error && expected<void>::error() && noexcept {
+    PRIMER_BAD_ACCESS(!no_error_);
+    return std::move(error_);
+  }
+
+// Ctors
+expected<void>::expected() noexcept : no_error_(true),
+                        error_()
+  {}
+
+// Converting from primer::error
+expected<void>::expected(const primer::error & e)
+  : no_error_(false)
+  , error_(e) //
+{}
+
+expected<void>::expected(primer::error && e) noexcept
+  : no_error_(false)
+  , error_(std::move(e)) //
+{}
+
+// Converting from other expected
+  template <typename U>
+expected<void>::expected(const expected<U> & u)
     : expected(u.err())
   {}
 
   template <typename U>
-  expected(expected<U> && u) noexcept //
+expected<void>::expected(expected<U> && u) noexcept //
     : expected(std::move(u.err()))    //
   {}
-};
-//]
 
 #undef PRIMER_BAD_ACCESS
 
