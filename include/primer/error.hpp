@@ -114,7 +114,7 @@ public:
 
 
   // Accessor
-  const std::string & str() const noexcept;
+  const char * what() const noexcept;
 };
 
 //]
@@ -164,7 +164,7 @@ inline error & error::prepend_error_line(Args &&... args) noexcept {
   return *this;
 }
 
-inline const std::string & error::str() const noexcept { return msg_; }
+inline const char * error::what() const noexcept { return msg_.c_str(); }
 
 inline void error::set_bad_alloc_state() noexcept {
     PRIMER_TRY_BAD_ALLOC { msg_ = "bad_alloc"; }

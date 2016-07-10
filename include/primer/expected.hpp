@@ -98,8 +98,9 @@ public:
   }
 
   // Succinct access to error string
-  const std::string & err_str() const noexcept { return this->err().str(); }
-  const char * err_c_str() const noexcept { return this->err_str().c_str(); }
+  const char * err_c_str() const noexcept { return this->err().what(); }
+  /*<< Note: May throw std::bad_alloc if `std::string` allocation fails. >>*/
+  std::string err_str() const { return this->err_c_str(); }
 
   //<- Don't put internals in the docu
 private:
@@ -260,8 +261,9 @@ public:
   const primer::error & err() const & { return internal_.err(); }
   primer::error && err() && { return std::move(internal_.err()); }
 
-  const std::string & err_str() const noexcept { return this->err().str(); }
-  const char * err_c_str() const noexcept { return this->err_str().c_str(); }
+  const char * err_c_str() const noexcept { return this->err().what(); }
+  /*<< Note: May throw std::bad_alloc if `std::string` allocation fails. >>*/
+  std::string err_str() const { return this->err_c_str(); }
 
   // Defaulted special member functions
   expected() noexcept = default;
@@ -309,9 +311,9 @@ public:
     return std::move(error_);
   }
 
-  const std::string & err_str() const noexcept { return this->err().str(); }
-  const char * err_c_str() const noexcept { return this->err_str().c_str(); }
-
+  const char * err_c_str() const noexcept { return this->err().what(); }
+  /*<< Note: May throw std::bad_alloc if `std::string` allocation fails. >>*/
+  std::string err_str() const { return this->err_c_str(); }
 
   // Special member functions
   expected() noexcept : no_error_(true),
