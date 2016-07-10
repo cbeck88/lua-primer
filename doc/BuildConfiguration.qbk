@@ -7,7 +7,7 @@ This includes the `primer` subfolder, as well as two extra libraries `visit_stru
 and `weak_ref`. These both stand alone and are potentially useful outside of
 Primer, but they are small enough to justify distributing them with Primer.
 
-[heading What to Include]
+[h4 What to Include]
 
 The ['core] of Primer may be included with
 
@@ -15,11 +15,7 @@ The ['core] of Primer may be included with
 #include <primer/primer.hpp>
 ``
 
-You may include ['forward declarations] of the core types via
-
-``
-#include <primer/primer_fwd.hpp>
-``
+[h5 Container support]
 
 To enable support for individual standard and boost containers, you may include
 any of the ['extra] headers
@@ -47,12 +43,39 @@ primer, you may include
 #include <primer/visit_struct.hpp>
 ``
 
+[h5 Api / Persistence]
+
 To use the features of primer that require lua-eris, which live in the `api` namespace,
 you may include
 
 ``
 #include <primer/api.hpp>
 ``
+
+[h5 Miscellaneous]
+
+You may include ['forward declarations of the core types] via
+
+``
+#include <primer/primer_fwd.hpp>
+``
+
+If you only want to get the `primer::error` or `primer::expected` types, without
+pulling in the rest of primer, you may include
+
+``
+#include <primer/error.hpp>
+#include <primer/expected.hpp>
+``
+
+and forward declarations of these:
+
+``
+#include <primer/expected_fwd.hpp>
+``
+
+Pulling those in is very lightweight, they only rely on e.g. `<new>`,
+`<string>` and `<utility>`.
 
 If you just want to get the version number of primer, you may include
 
@@ -61,8 +84,8 @@ If you just want to get the version number of primer, you may include
 ``
 
 
-Finally, if you would like to include lua or eris using the same headers that
-Primer does internally, you may include
+Finally, if you would like to include lua or eris using exactly the same
+headers that Primer does internally, you may include
 
 ``
 #include <primer/lua.hpp>
@@ -79,7 +102,7 @@ Primer searches for its configuration defines in `<primer/conf.hpp>`
 [note All other headers are considered implementation details, and may be moved
 or nonexistant in future releases, so you shouldn't include them directly. ]
 
-[heading Build Configuration]
+[h4 Build Configuration]
 
 Primer responds to a few configuration defines:
 
