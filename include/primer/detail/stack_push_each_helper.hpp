@@ -34,7 +34,8 @@ struct stack_push_each_helper {
   template <std::size_t... Is>
   struct impl<SizeList<Is...>> {
     static constexpr int value() noexcept {
-      return detail::max_int(0, (traits::push<clean_t<Args>>::stack_space_needed + Is)...);
+      return detail::max_int(0, (traits::push<clean_t<Args>>::stack_space_needed +
+                                 Is)...);
     }
   };
 

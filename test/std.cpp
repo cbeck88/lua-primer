@@ -18,7 +18,8 @@ using primer::stack_space_for_push;
 using primer::stack_space_for_push_each;
 
 static_assert(primer::traits::push<std::string>::stack_space_needed, "hmm");
-static_assert(primer::traits::push<std::string>::stack_space_needed == 1, "hmm");
+static_assert(primer::traits::push<std::string>::stack_space_needed == 1,
+              "hmm");
 
 static_assert(stack_space_for_push<std::string>() == 1,
               "stack space calculations wrong");
@@ -44,11 +45,10 @@ static_assert(
     stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(),
   "stack space calculations wrong");
 
-static_assert(4 ==
-                stack_space_for_push_each<std::string,
-                                           std::string,
-                                           std::vector<std::string>,
-                                           int>(),
+static_assert(4 == stack_space_for_push_each<std::string,
+                                             std::string,
+                                             std::vector<std::string>,
+                                             int>(),
               "stack space calculations wrong");
 
 } // end namespace maybe_int_tests

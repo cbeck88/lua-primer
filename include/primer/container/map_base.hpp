@@ -107,8 +107,8 @@ struct map_read_helper {
     return result;
   }
   static constexpr int stack_space_needed{
-    3 +
-    detail::max_int(traits::read<second_t>::stack_space_needed, traits::read<first_t>::stack_space_needed)};
+    3 + detail::max_int(traits::read<second_t>::stack_space_needed,
+                        traits::read<first_t>::stack_space_needed)};
 };
 
 } // end namespace detail
