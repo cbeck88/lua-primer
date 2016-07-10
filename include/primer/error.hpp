@@ -67,73 +67,26 @@ class error {
     enum class state { uninitialized, bad_alloc, cant_lock_vm, invalid_coroutine, dynamic_text };
 
     using string_t = std::string;
-    union {
-      string_t str_;
-      char dummy;
-    };
 
+
+    string_t str_;
     state state_;
 
     // Helpers
     template <typename T>
     void initialize_string(T && t) {
       state_ = state::dynamic_text;
-      new(&str_) string_t{std::move(t)};
+      str_ = std::move(t);
     }
  
-    void deinitialize() {
-      if (state_ == state::dynamic_text) {
-        str_.~string_t();
-        state_ = state::uninitialized;
-      }
-    }
 
-
-    // Rule of five
 public:
-    constexpr impl() noexcept : dummy(), state_(state::uninitialized) {}
-
-    impl(impl && other) noexcept
-      : state_(other.state_)
-    {
-      if (other.state_ == state::dynamic_text) {
-        this->initialize_string(std::move(other.str_));
-      }
-    }
-
-    impl(const impl & other)
-      : state_(other.state_)
-    {
-      if (other.state_ == state::dynamic_text) {
-        this->initialize_string(other.str_);
-      }
-    }
-
-
-    impl & operator = (impl && other) noexcept {
-      if (other.state_ == state::dynamic_text) {
-        if (state_ == state::dynamic_text) {
-          str_ = std::move(other.str_);
-        } else {
-          this->initialize_string(std::move(other.str_));
-        }        
-      } else {
-        this->deinitialize();
-        state_ = other.state_;
-      }
-      return *this;
-    }
-
-    impl & operator = (const impl & other) {
-      impl temp{other};
-      *this = std::move(temp);
-      return *this;
-    }
-
-    ~impl() noexcept {
-      this->deinitialize();
-    }
-
+    impl() : str_(), state_(state::uninitialized) {}
+    impl(impl && other) = default;
+    impl(const impl & other) = default;
+    impl & operator = (impl && other) = default;
+    impl & operator = (const impl & other) = default;
+    ~impl() = default;
 
     // Construct with fixed error messages
     struct bad_alloc_tag{ static constexpr state value = state::bad_alloc; };
@@ -141,7 +94,7 @@ public:
     struct invalid_coroutine_tag{ static constexpr state value = state::invalid_coroutine; };
 
     template <typename T, typename = decltype(T::value)>
-    explicit constexpr impl(T) noexcept : dummy(), state_(T::value) {}
+    explicit impl(T) noexcept : str_(), state_(T::value) {}
 
     // Construct from string
     explicit impl(std::string s) noexcept : impl() {
