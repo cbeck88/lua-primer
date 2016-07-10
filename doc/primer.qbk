@@ -45,7 +45,7 @@
 [section:overview Overview]
 [include Motivation.qbk]
 [include Design.qbk]
-[include BuildConfiguration.qbk]
+[include UsageAndConfiguration.qbk]
 [include ExceptionSafety.qbk]
 [endsect]
 

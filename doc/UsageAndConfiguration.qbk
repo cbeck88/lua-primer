@@ -112,7 +112,7 @@ Primer responds to a few configuration defines:
   [[`PRIMER_LUA_AS_CPP`] [This should be used if lua is being compiled as C++ rather than as C in your project. It causes primer not to use `extern "C"` when it includes lua headers.]]
   [[`PRIMER_NO_STATIC_ASSERTS`] [Disables all static assertions made by Primer.]]
   [[`PRIMER_NO_EXCEPTIONS`] [Disables all try / catch blocks in primer. Use this if you want to compile with `-fno-exceptions`.]]
-  [[`PRIMER_NO_MEMORY_FAILURE`] [Tells primer to use, as an optimization assumption, that lua memory allocation will never fail, and, that when populating `std::string` and standard C++ containers, that `std::bad_alloc` will not be thrown either. This allows many try/catch blocks and extra `pcall` wrappers to be eliminated.]]
+  [[`PRIMER_NO_MEMORY_FAILURE`] [Tells primer to use, as an optimization assumption, that lua memory allocation will never fail, and, that when populating `std::string` and standard C++ containers, that `std::bad_alloc` will not be thrown either. This allows a number of try/catch blocks and `pcall` wrappers to be eliminated.]]
 ]
 
 [caution Several data structures and functions in Primer make assumptions that types used with them do not throw exceptions when default constructed, moved, etc. These assumptions are generally true for most user types and standard library types that they would be used with.
