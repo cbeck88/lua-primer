@@ -405,15 +405,6 @@ public:
   // from functions that return `expected<void>`.
   expected(const primer::error & e);
   expected(primer::error && e) noexcept;
-
-  // Conversion from other expected types
-  // Note this ASSUMES that the other one has an error! Does not discard a
-  // value.
-  template <typename U>
-  expected(const expected<U> & u);
-
-  template <typename U>
-  expected(expected<U> && u) noexcept;
 };
 //]
 
@@ -444,17 +435,6 @@ expected<void>::expected(primer::error && e) noexcept //
   : no_error_(false)                                  //
     ,
     error_(std::move(e)) //
-{}
-
-// Converting from other expected
-template <typename U>
-expected<void>::expected(const expected<U> & u)
-  : expected(u.err())
-{}
-
-template <typename U>
-expected<void>::expected(expected<U> && u) noexcept //
-  : expected(std::move(u.err()))                    //
 {}
 
 #undef PRIMER_BAD_ACCESS
