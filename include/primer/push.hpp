@@ -29,6 +29,9 @@ void push(lua_State * L, const T & t);
 template <typename T>
 void push(lua_State * L, const T & t) {
   ::primer::traits::push<T>::to_stack(L, t);
+
+  // Silence an unused warning
+  static_cast<void>(::primer::traits::push<T>::stack_space_needed);
 }
 //]
 

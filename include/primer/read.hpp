@@ -30,6 +30,9 @@ template <typename T>
 expected<T> read(lua_State * L, int index) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   return ::primer::traits::read<T>::from_stack(L, index);
+
+  // Silence an unused warning
+  static_cast<void>(::primer::traits::read<T>::stack_space_needed);
 }
 //]
 
