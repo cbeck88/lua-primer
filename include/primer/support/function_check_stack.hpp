@@ -36,8 +36,7 @@ expected<void> check_stack_push_n(lua_State * L, int n) {
 template <typename... Args>
 expected<void> check_stack_push_each(lua_State * L) {
   constexpr auto estimate = primer::stack_space_for_push_each<Args...>();
-  if (estimate) { return check_stack_push_n(L, *estimate); }
-  return {};
+  return check_stack_push_n(L, estimate);
 }
 
 } // end namespace detail

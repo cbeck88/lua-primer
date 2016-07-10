@@ -15,7 +15,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/detail/count.hpp>
-#include <primer/maybe_int.hpp>
+#include <primer/detail/max_int.hpp>
 #include <primer/detail/type_traits.hpp>
 #include <primer/traits/push.hpp>
 
@@ -26,20 +26,22 @@ template <typename... Args>
 struct stack_push_each_helper {
 
   template <typename T>
+  using clean_t = remove_reference_t<remove_cv_t<typename std::decay<T>::type>>;
+
+  template <typename T>
   struct impl;
 
   template <std::size_t... Is>
   struct impl<SizeList<Is...>> {
-    static constexpr maybe_int value() noexcept {
-      return maybe_int::max(maybe_int{0},
-                            (stack_space_needed<::primer::traits::push<
-                               remove_reference_t<remove_cv_t<Args>>>>::value +
-                             Is)...);
+    static constexpr int value() noexcept {
+      return detail::max_int(0, (traits::push<clean_t<Args>>::stack_space_needed + Is)...);
     }
   };
 
+  // We need to add the index sequence in because, when pushing the `k`'th item,
+  // there are already `k` things that we pushed onto the stack.
 
-  static constexpr maybe_int value() noexcept {
+  static constexpr int value() noexcept {
     return impl<Count_t<sizeof...(Args)>>::value();
   }
 };

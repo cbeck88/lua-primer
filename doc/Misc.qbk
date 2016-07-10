@@ -3,7 +3,6 @@
 Other features:
 
 [include StdFunction.qbk]
-[include StackSpaceNeeded.qbk]
 [include CppPcall.qbk]
 
 [endsect]

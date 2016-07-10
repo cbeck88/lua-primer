@@ -17,105 +17,35 @@ using primer::stack_space_for_read;
 using primer::stack_space_for_push;
 using primer::stack_space_for_push_each;
 
-//[ primer_example_maybe_int
-using primer::maybe_int;
-
-constexpr auto x = maybe_int{1};
-constexpr auto y = maybe_int{2};
-constexpr auto z = maybe_int{};
-
-static_assert(x, "");
-static_assert(y, "");
-static_assert(!z, "");
-static_assert(*x == 1, "");
-static_assert(*y == 2, "");
-
-static_assert(x + y, "");
-static_assert(*(x + y) == 3, "");
-static_assert(!(x + z), "");
-//]
-
-static_assert((maybe_int{1} + 2 + 3), "maybe_int is broken");
-static_assert(*(maybe_int{1} + 2 + 3) == 6, "maybe_int is broken");
-static_assert(!(maybe_int{} + 2 + 3), "maybe_int is broken");
-
-static_assert(maybe_int::max(maybe_int{1}, maybe_int{2}, maybe_int{3}),
-              "maybe_int is broken");
-static_assert(3 == *maybe_int::max(maybe_int{1}, maybe_int{2}, maybe_int{3}),
-              "maybe_int is broken");
-static_assert(!maybe_int::max(maybe_int{1}, maybe_int{}, maybe_int{3}),
-              "maybe_int is broken");
-static_assert(!maybe_int::max(maybe_int{1}, maybe_int{2}, maybe_int{}),
-              "maybe_int is broken");
-
-static_assert(maybe_int::min(maybe_int{1}, maybe_int{2}, maybe_int{3}),
-              "maybe_int is broken");
-static_assert(1 == *maybe_int::min(maybe_int{1}, maybe_int{2}, maybe_int{3}),
-              "maybe_int is broken");
-static_assert(!maybe_int::min(maybe_int{1}, maybe_int{}, maybe_int{3}),
-              "maybe_int is broken");
-static_assert(!maybe_int::min(maybe_int{}, maybe_int{2}, maybe_int{3}),
-              "maybe_int is broken");
-
-static_assert(*(maybe_int{1} + maybe_int{2} + maybe_int{42}) == 45,
-              "maybe_int is broken");
-static_assert(!(maybe_int{} + maybe_int{} + maybe_int{}),
-              "maybe_int is broken");
-
-
-
 static_assert(primer::traits::push<std::string>::stack_space_needed, "hmm");
+static_assert(primer::traits::push<std::string>::stack_space_needed == 1, "hmm");
+
+static_assert(stack_space_for_push<std::string>() == 1,
+              "stack space calculations wrong");
+static_assert(stack_space_for_read<std::string>() == 0,
+              "stack space calculations wrong");
+
+static_assert(stack_space_for_push<std::vector<std::string>>() == 2,
+              "stack space calculations wrong");
+static_assert(stack_space_for_read<std::vector<std::string>>() == 1,
+              "stack space calculations wrong");
+
+static_assert(stack_space_for_push<std::vector<std::vector<std::string>>>() == 3,
+              "stack space calculations wrong");
+static_assert(stack_space_for_read<std::vector<std::vector<std::string>>>() == 2,
+              "stack space calculations wrong");
+
 static_assert(
-  primer::stack_space_needed<primer::traits::push<std::string>>::value, "hmm");
-
-static_assert(stack_space_for_push<std::string>(),
-              "stack space calculations wrong");
-static_assert(stack_space_for_read<std::string>(),
-              "stack space calculations wrong");
-static_assert(*stack_space_for_push<std::string>() == 1,
-              "stack space calculations wrong");
-static_assert(*stack_space_for_read<std::string>() == 0,
-              "stack space calculations wrong");
-
-static_assert(stack_space_for_push<std::vector<std::string>>(),
-              "stack space calculations wrong");
-static_assert(stack_space_for_read<std::vector<std::string>>(),
-              "stack space calculations wrong");
-static_assert(*stack_space_for_push<std::vector<std::string>>() == 2,
-              "stack space calculations wrong");
-static_assert(*stack_space_for_read<std::vector<std::string>>() == 1,
-              "stack space calculations wrong");
-
-static_assert(stack_space_for_push<std::vector<std::vector<std::string>>>(),
-              "stack space calculations wrong");
-static_assert(stack_space_for_read<std::vector<std::vector<std::string>>>(),
-              "stack space calculations wrong");
-static_assert(*stack_space_for_push<std::vector<std::vector<std::string>>>() == 3,
-              "stack space calculations wrong");
-static_assert(*stack_space_for_read<std::vector<std::vector<std::string>>>() == 2,
-              "stack space calculations wrong");
-
-static_assert(!stack_space_for_push<char>(), "hmm");
-
-static_assert(stack_space_for_push_each<std::string, std::string, std::string>(),
-              "stack space calculations wrong");
-static_assert(
-  3 == *stack_space_for_push_each<std::string, std::string, std::string>(),
+  3 == stack_space_for_push_each<std::string, std::string, std::string>(),
   "stack space calculations wrong");
 
-static_assert(
-  stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(),
-  "stack space calculations wrong");
 static_assert(
   4 ==
-    *stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(),
+    stack_space_for_push_each<std::string, std::string, std::vector<std::string>>(),
   "stack space calculations wrong");
 
-static_assert(
-  stack_space_for_push_each<std::string, std::string, std::vector<std::string>, int>(),
-  "stack space calculations wrong");
 static_assert(4 ==
-                *stack_space_for_push_each<std::string,
+                stack_space_for_push_each<std::string,
                                            std::string,
                                            std::vector<std::string>,
                                            int>(),

@@ -89,4 +89,15 @@ for certain types, or to add new behavior for these custom types.
 [primer_example_vec2i_read_trait]
 [primer_example_vec2i_read_test]
 
+[h3 Stack Space]
+
+Similar to `primer::push`, specializations of `primer::read` must declare how much
+stack space they *assume* that they will have available. If your specialization
+performs it's own calls to `lua_checkstack`, then the `stack_space_needed` value
+can be zero.
+
+The stack space needed for a given type can be calculated at compile-time using
+
+[primer_stack_space_for_read]
+
 [endsect]

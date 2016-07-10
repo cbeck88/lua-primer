@@ -17,7 +17,6 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
-#include <primer/maybe_int.hpp>
 #include <primer/userdata.hpp>
 #include <primer/detail/is_userdata.hpp>
 #include <primer/detail/type_traits.hpp>

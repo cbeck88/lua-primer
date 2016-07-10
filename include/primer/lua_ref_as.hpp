@@ -23,7 +23,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/error.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua_ref.hpp>
-#include <primer/maybe_int.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
@@ -46,18 +45,13 @@ struct read<lua_ref> {
 
     if (!lua_isnoneornil(L, idx)) {
       lua_pushvalue(L, idx);
-      auto ok = mem_pcall<1>(L, [L, &result]() { result = lua_ref{L}; });
+      auto ok = mem_pcall<1>(L, [&]() { result = lua_ref{L}; });
       if (!ok) { result = ok.err(); }
     }
 
     return result;
   }
   static constexpr int stack_space_needed{1};
-
-  // This can cause memory allocation failure
-  static void impl(lua_State * L, expected<lua_ref> & result) {
-    result = lua_ref{L};
-  }
 };
 
 } // end namespace traits

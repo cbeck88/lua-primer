@@ -23,7 +23,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua_ref.hpp>
 #include <primer/lua_ref_as.hpp>
 #include <primer/lua_ref_seq.hpp>
-#include <primer/maybe_int.hpp>
 #include <primer/metatable.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>

@@ -15,7 +15,6 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
-#include <primer/maybe_int.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
@@ -93,8 +92,8 @@ struct optional_push {
       lua_pushnil(L);
     }
   }
-  static constexpr maybe_int stack_space_needed{
-    primer::stack_space_needed<traits::push<value_t>>::value};
+  static constexpr int stack_space_needed{
+    traits::push<value_t>::stack_space_needed};
 };
 
 /***
@@ -124,8 +123,8 @@ struct optional_strict_read {
       return std::move(result).err();
     }
   }
-  static constexpr maybe_int stack_space_needed{
-    primer::stack_space_needed<traits::read<clean_val_t>>::value};
+  static constexpr int stack_space_needed{
+    traits::read<clean_val_t>::stack_space_needed};
 };
 
 /***
@@ -154,8 +153,8 @@ struct optional_relaxed_read : traits::optional_access<T> {
       return helper_t::make_empty();
     }
   }
-  static constexpr maybe_int stack_space_needed{
-    primer::stack_space_needed<traits::read<clean_val_t>>::value};
+  static constexpr int stack_space_needed{
+    traits::read<clean_val_t>::stack_space_needed};
 };
 
 } // end namespace detail

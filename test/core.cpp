@@ -895,6 +895,7 @@ struct push<vec2i> {
     lua_pushinteger(L, v.y);
     lua_rawseti(L, -2, 2);
   }
+  static constexpr int stack_space_needed = 2;
 };
 
 } // end namespace traits
@@ -965,6 +966,8 @@ struct read<vec2i> {
 
     return result;
   }
+
+  static constexpr int stack_space_needed = 1;
 };
 
 } // end namespace traits

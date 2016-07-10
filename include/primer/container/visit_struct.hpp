@@ -78,6 +78,7 @@ struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
     detail::push_helper vis{L};
     visit_struct::apply_visitor(vis, t);
   }
+  static constexpr int stack_space_needed = 2; // XXX: Fixme
 };
 
 } // end namespace traits
@@ -143,6 +144,7 @@ struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
 
     return result;
   }
+  static constexpr int stack_space_needed = 3; // XXX: Fix me
 };
 
 } // end namespace traits

@@ -17,10 +17,10 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
-#include <primer/maybe_int.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
+#include <primer/detail/max_int.hpp>
 #include <primer/detail/type_traits.hpp>
 
 #include <utility>
@@ -52,10 +52,9 @@ struct map_push_helper {
       }
     }
   }
-  static constexpr maybe_int stack_space_needed{
-    1 +
-    maybe_int::max(primer::stack_space_needed<traits::push<second_t>>::value,
-                   1 + primer::stack_space_needed<traits::push<first_t>>::value)};
+  static constexpr int stack_space_needed{
+    1 + detail::max_int(traits::push<second_t>::stack_space_needed,
+                        traits::push<first_t>::stack_space_needed)};
 };
 
 template <typename M>
@@ -107,10 +106,9 @@ struct map_read_helper {
     }
     return result;
   }
-  static constexpr maybe_int stack_space_needed{
+  static constexpr int stack_space_needed{
     3 +
-    maybe_int::max(primer::stack_space_needed<traits::read<second_t>>::value,
-                   primer::stack_space_needed<traits::read<first_t>>::value)};
+    detail::max_int(traits::read<second_t>::stack_space_needed, traits::read<first_t>::stack_space_needed)};
 };
 
 } // end namespace detail

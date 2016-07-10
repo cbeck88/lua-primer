@@ -21,7 +21,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 
 #include <primer/detail/integral_conversions.hpp>
-#include <primer/maybe_int.hpp>
 
 #include <primer/support/types.hpp>
 

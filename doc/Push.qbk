@@ -128,4 +128,63 @@ for certain types, or to add new behavior for custom types.
 [primer_example_vec2i_push_trait]
 [primer_example_vec2i_push_test]
 
+[h3 Stack Space]
+
+One aspect of lua that you may easily miss on your first pass through the manual
+is [@http://www.lua.org/manual/5.3/manual.html#4.2 the note about stack overflow].
+
+The lua stack is dynamically sized. When a lua state is created, it is
+relatively small. It can grow to a quite large size (thousands of elements).
+
+Some of the more complex lua calls, like `lua_pcall`, will manage the checking
+of stack bounds and ensure that they have enough space.
+
+Most of the primitive lua calls, for efficiency, do not do any such bounds
+checking.
+
+The function `lua_checkstack(lua_State *, int)` ensures that the stack has
+a given amount of extra spaces, and enlarges it if needed.
+(`lua_checkstack` can conceivably fail, if lua runs out of memory.)
+
+['lua leaves it up to you to manage this] -- if you don't manage it, simple
+programs will work (because of a small built-in minimum space) but large
+programs will give undefined behavior.
+
+[h4 In Primer]
+
+Most `primer::push` operations are primitive operations and we don't really want
+to call `lua_checkstack` for each one. It's more economical to gather such checks
+into large groups, so that the checks are performed before a large operation.
+
+So, a custom push specialization has two options -- it can call `lua_checkstack`
+itself, or it can ['assume] that the caller will do it. To tell the caller how
+much space it needs, it ['must] declare the amount using
+
+``
+static constexpr int stack_space_needed = ...
+``
+
+More complex operations in Primer use this information to calculate at
+compile-time how much stack space they need. For instance, Primer computes
+how much space is needed to push `std::map<std::string, int>` based on it
+knowledge of how much space is needed for `std::string`, and `int`. When a
+`primer::bound_function` is called, it computes at compile-time how much stack
+space it needs to push all of the arguments and calls `lua_checkstack` to make
+sure it has enough space.
+
+The space needed for any individual type can be obtained as a `constexpr` using
+
+[primer_stack_space_for_push]
+
+You can use such functions to get the correct `lua_checkstack` values into your
+program without hard-coding them -- invariably such values tend to become
+inaccurate after a refactor at a later date.
+
+[note `stack_space_needed` should be at least one,
+since you are pushing *something*.
+
+If your type is complex enough that no fixed estimate of the stack space is
+possible, then you should simply define it to be one, and your implementation
+['must] call `lua_checkstack` manually to ensure correct behavior.]
+
 [endsect]

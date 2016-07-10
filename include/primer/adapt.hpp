@@ -47,7 +47,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/result.hpp>
 
 #include <primer/detail/count.hpp>
-#include <primer/maybe_int.hpp>
+#include <primer/detail/max_int.hpp>
 #include <primer/support/implement_result.hpp>
 
 #include <type_traits>
@@ -142,10 +142,10 @@ public:
     // If we don't have enough, then signal an error
     // We are guaranteed at least LUA_MINSTACK by the implementation whenever
     // this function is called by lua.
-    constexpr auto estimate = maybe_int::max(0, stack_space_for_read<Args>()...);
-    if (estimate && *estimate > LUA_MINSTACK) {
-      if (!lua_checkstack(L, *estimate)) {
-        return luaL_error(L, "not enough stack space, needed %d", *estimate);
+    constexpr int estimate = detail::max_int(0, stack_space_for_read<Args>()...);
+    if (estimate > LUA_MINSTACK) {
+      if (!lua_checkstack(L, estimate)) {
+        return luaL_error(L, "not enough stack space, needed %d", estimate);
       }
     }
 

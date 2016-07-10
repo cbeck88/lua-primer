@@ -17,10 +17,10 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
-#include <primer/maybe_int.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
+#include <primer/detail/max_int.hpp>
 #include <primer/detail/type_traits.hpp>
 
 #include <utility>
@@ -52,9 +52,8 @@ struct set_push_helper {
     }
   }
   // Either three, after pushing the boolean, or max achieved when pushing key
-  static constexpr maybe_int stack_space_needed{
-    maybe_int::max(3,
-                   1 + primer::stack_space_needed<traits::push<first_t>>::value)};
+  static constexpr int stack_space_needed{
+    detail::max_int(3, 1 + traits::push<first_t>::stack_space_needed)};
 };
 
 template <typename M>
@@ -98,8 +97,8 @@ struct set_read_helper {
     }
     return std::move(result);
   }
-  static constexpr maybe_int stack_space_needed{
-    3 + primer::stack_space_needed<traits::read<first_t>>::value};
+  static constexpr int stack_space_needed{
+    3 + traits::read<first_t>::stack_space_needed};
 };
 
 } // end namespace detail
