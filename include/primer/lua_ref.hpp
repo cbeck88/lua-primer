@@ -178,10 +178,13 @@ inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
 #ifdef PRIMER_NO_EXCEPTIONS
 #define PRIMER_COPY_CTOR_FAIL std::abort()
 #else
-#define PRIMER_COPY_CTOR_FAIL throw std::bad_alloc{}
+#define PRIMER_COPY_CTOR_FAIL                                                  \
+  throw std::bad_alloc {}
 #endif
 
-inline lua_ref::lua_ref(const lua_ref & other) : lua_ref() {
+inline lua_ref::lua_ref(const lua_ref & other)
+  : lua_ref()
+{
   if (lua_State * L = other.lock()) {
     if (!lua_checkstack(L, 1)) { PRIMER_COPY_CTOR_FAIL; }
     if (!other.push(L)) { PRIMER_COPY_CTOR_FAIL; }
