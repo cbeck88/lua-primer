@@ -21,6 +21,10 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/asserts.hpp>
 #include <primer/support/lua_state_ref.hpp>
 
+#ifdef PRIMER_NO_EXCEPTIONS
+#include <cstdlib> // for std::abort
+#endif
+
 #include <new>
 #include <utility>
 
@@ -170,18 +174,25 @@ inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
 //       However that has a really nasty problem of causing lua memory
 //       allocation failure, and it's really not very practical to require the
 //       user to create a protected context for any, accidental, copy.
-inline lua_ref::lua_ref(const lua_ref & other) {
-  if (lua_State * L = other.push()) {
-    // Protect against memory failure in `luaL_ref`.
-    auto ok = primer::mem_pcall<1>(L, [this, L]() { init(L); });
+
 #ifdef PRIMER_NO_EXCEPTIONS
-    static_cast<void>(ok); // I don't see what else we can do here
-                           // We could assert(false) I suppose.
+#define PRIMER_COPY_CTOR_FAIL std::abort()
 #else
-    if (!ok) { throw std::bad_alloc{}; }
+#define PRIMER_COPY_CTOR_FAIL throw std::bad_alloc{}
 #endif
+
+inline lua_ref::lua_ref(const lua_ref & other) : lua_ref() {
+  if (lua_State * L = other.lock()) {
+    if (!lua_checkstack(L, 1)) { PRIMER_COPY_CTOR_FAIL; }
+    if (!other.push(L)) { PRIMER_COPY_CTOR_FAIL; }
+
+    // Protect against memory failure in `luaL_ref`.
+    auto ok = primer::mem_pcall<1>(L, [this, L]() { this->init(L); });
+    if (!ok) { PRIMER_COPY_CTOR_FAIL; }
   }
 }
+
+#undef PRIMER_COPY_CTOR_FAIL
 
 inline lua_ref::~lua_ref() noexcept { this->release(); }
 
