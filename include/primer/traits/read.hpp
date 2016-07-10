@@ -46,7 +46,7 @@ struct read<const char *> {
                                              primer::describe_lua_value(L, idx));
     }
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 template <>
@@ -55,7 +55,7 @@ struct read<std::string> {
     PRIMER_TRY_BAD_ALLOC { return read<const char *>::from_stack(L, idx).convert<std::string>(); }
     PRIMER_CATCH_BAD_ALLOC { return primer::error::bad_alloc(); }
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 template <>
@@ -68,7 +68,7 @@ struct read<bool> {
                                              primer::describe_lua_value(L, idx));
     }
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 // Integral types
@@ -87,7 +87,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) >= sizeof(LUA_INTEGER)>> {
                                              primer::describe_lua_value(L, idx));
     }
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 // Narrowing, must do overflow check
@@ -106,7 +106,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
                                              primer::describe_lua_value(L, idx));
     }
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 // When reading unsigned, must do 0 check
@@ -124,7 +124,7 @@ struct unsigned_read_helper {
 
     return maybe.template convert<unsigned_t>();
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 // Specialize read, using the helpers
@@ -164,7 +164,7 @@ struct read<T,
 
     return result;
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 
@@ -179,7 +179,7 @@ struct read<T &, enable_if_t<primer::detail::is_userdata<T>::value>> {
                            "', found ", primer::describe_lua_value(L, idx)};
     }
   }
-  static constexpr maybe_int stack_space_needed{1};
+  static constexpr int stack_space_needed{1};
   // have to push metatable to test
 };
 
@@ -193,7 +193,7 @@ struct read<nil_t> {
       return primer::error::unexpected_value("nil",
                                              primer::describe_lua_value(L, idx));
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 template <>
@@ -201,7 +201,7 @@ struct read<truthy> {
   static expected<truthy> from_stack(lua_State * L, int idx) {
     return primer::truthy{static_cast<bool>(lua_toboolean(L, idx))};
   }
-  static constexpr maybe_int stack_space_needed{0};
+  static constexpr int stack_space_needed{0};
 };
 
 template <>
@@ -243,7 +243,7 @@ struct read<stringy> {
     }
     return result;
   }
-  static constexpr maybe_int stack_space_needed{1};
+  static constexpr int stack_space_needed{1};
 };
 
 } // end namespace traits

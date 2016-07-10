@@ -34,7 +34,7 @@ namespace traits {
 template <>
 struct push<primer::lua_ref> {
   static void to_stack(lua_State * L, const primer::lua_ref & r) { r.push(L); }
-  static constexpr maybe_int stack_space_needed{1};
+  static constexpr int stack_space_needed{1};
 };
 
 // lua_ref
@@ -52,7 +52,7 @@ struct read<lua_ref> {
 
     return result;
   }
-  static constexpr maybe_int stack_space_needed{1};
+  static constexpr int stack_space_needed{1};
 
   // This can cause memory allocation failure
   static void impl(lua_State * L, expected<lua_ref> & result) {
