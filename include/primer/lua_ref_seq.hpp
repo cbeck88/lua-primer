@@ -30,7 +30,26 @@ struct lua_ref_seq {
   using refs_t = std::vector<lua_ref>;
   refs_t refs_;
 
-  // Forward some choice methods from std::vector
+  /*<< Push all the refs onto the stack in succession.
+Return of `true` means every push succeeded.
+You can usually ignore the result, it only fails if some of the refs in the
+`lua_ref_seq` are actually in an empty state.
+If not all of the refs are in the same VM as the argument `lua_State *`,
+then you get UB.
+See `lua_ref`. >>*/
+  bool push_each(lua_State * L) const noexcept {
+    bool result = true;
+    for (const auto & r : refs_) {
+      bool temp = r.push(L);
+      result = result && temp;
+    }
+    return result;
+  }
+
+  //
+  // Forward MANY methods from std::vector...
+  //
+
   std::size_t size() const { return refs_.size(); }
 
   using value_type = refs_t::value_type;
@@ -97,20 +116,6 @@ struct lua_ref_seq {
   // iterator erase(const_iterator first, const_iterator last) { return
   // refs_.erase(first, last); }
   //->
-  /*<< Push all the refs onto the stack in succession.
-Return of `true` means every push succeeded.
-You can usually ignore the result, it only fails if some of the refs in the
-ref_seq are actually in an empty state.
-If not all of the refs are in the same VM as the argument, then you get UB.
-See `lua_ref`. >>*/
-  bool push_each(lua_State * L) const noexcept {
-    bool result = true;
-    for (const auto & r : refs_) {
-      bool temp = r.push(L);
-      result = result && temp;
-    }
-    return result;
-  }
 };
 //]
 
