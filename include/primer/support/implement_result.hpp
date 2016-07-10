@@ -30,6 +30,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 #include <primer/result.hpp>
+#include <primer/support/error_capture.hpp>
 
 namespace primer {
 
@@ -41,7 +42,10 @@ inline primer::return_or_yield implement_result_step_one(lua_State * L,
   if (p) {
     return std::move(*p);
   } else {
-    lua_pushstring(L, p.err_c_str());
+    primer::detail::push_error(L, p.err());
+    // Implementation note: This push can raise a memory error, but in
+    // that case it must be an exception, so `r` is destroyed and nothing else
+    // is leaked. We were going to raise an error anyways, so its okay.
     return primer::return_or_yield{-1, true};
   }
 }

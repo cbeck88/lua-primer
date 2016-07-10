@@ -37,8 +37,7 @@ inline const char * error_code_to_string(const int err_code) noexcept {
   }
 }
 
-// Gets an error string from the top of the stack, forms a primer::error from
-// it.
+// Gets an error string from the top of the stack, forms a primer::error.
 // Pops the error string.
 inline primer::error pop_error(lua_State * L, int err_code) noexcept {
   PRIMER_ASSERT(lua_gettop(L), "No error object to pop!");
@@ -47,6 +46,13 @@ inline primer::error pop_error(lua_State * L, int err_code) noexcept {
   e.prepend_error_line(detail::error_code_to_string(err_code));
   lua_pop(L, 1);
   return e;
+}
+
+// Pushes an error onto the stack.
+// Use this rather than pushing `e.what` directly in case we change the
+// interface or something.
+inline void push_error(lua_State * L, const primer::error & e) noexcept {
+  lua_pushstring(L, e.what());
 }
 
 } // end namespace detail
