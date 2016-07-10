@@ -32,9 +32,6 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 
 //[ primer_expected
-// Tag used in tag dispactch
-struct default_construct_in_place_tag {};
-
 // Define primary class template
 template <typename T>
 class expected {
@@ -356,8 +353,6 @@ public:
   expected(primer::error && e) noexcept //
     : internal_(std::move(e))           //
   {}
-
-  // Don't allow converting from other kinds of expected
 };
 //]
 
