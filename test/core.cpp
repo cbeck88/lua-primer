@@ -1124,6 +1124,27 @@ void test_coroutine() {
   TEST(!c, "expected dead coroutine");
 }
 
+// This test catches a subtle issue regarding whether or not cpp_pcall
+// messes up the stack when it returns.
+void test_cpp_pcall_returns() {
+  lua_raii L;
+
+  lua_pushinteger(L, 2);
+  lua_pushinteger(L, 3);
+
+  // Use mem_pcall so that tests with lua as C++ and with lua as C go both ways
+  primer::mem_pcall(L, [&]() {  
+    lua_pushvalue(L, 1);
+    lua_pushvalue(L, 2);
+  });
+
+  TEST_EQ(4, lua_gettop(L));
+  TEST_EQ(2, lua_tointeger(L, 1));
+  TEST_EQ(3, lua_tointeger(L, 2));
+  TEST_EQ(2, lua_tointeger(L, 1));
+  TEST_EQ(3, lua_tointeger(L, 2));
+}
+
 int main() {
   conf::log_conf();
 
@@ -1146,7 +1167,8 @@ int main() {
     {"primer call", &primer_call_test},
     {"primer resume", &primer_resume_test},
     {"primer coroutine test", &test_coroutine},
-  };
+    {"primer cpp_pcall returns test", &test_cpp_pcall_returns}, 
+ };
   int num_fails = tests.run();
   std::cout << "\n";
   if (num_fails) {
