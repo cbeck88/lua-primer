@@ -76,7 +76,7 @@ struct read_seq_helper {
   static expected<T> from_stack(lua_State * L, int idx) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    expected<T> result{primer::default_construct_in_place_tag{}};
+    expected<T> result{};
 
     idx = lua_absindex(L, idx);
     if (lua_istable(L, idx)) {
@@ -118,7 +118,7 @@ struct read_fixed_seq_helper {
   static expected<T> from_stack(lua_State * L, int idx) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    expected<T> result{primer::default_construct_in_place_tag{}};
+    expected<T> result{};
 
     idx = lua_absindex(L, idx);
     if (!lua_istable(L, idx)) {

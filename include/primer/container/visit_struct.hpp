@@ -127,7 +127,7 @@ struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
                          "Primer cannot read this structure because it is not "
                          "no-throw constructible");
 
-    expected<T> result{primer::default_construct_in_place_tag{}};
+    expected<T> result{};
 
     index = lua_absindex(L, index);
 

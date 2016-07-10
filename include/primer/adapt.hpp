@@ -110,7 +110,8 @@ class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
     // This version simulates manually the short-circuiting logic.
     template <typename T>
     static expected<T> read_helper(lua_State * L, int index, expected<void> & ok) {
-      expected<T> result;
+      expected<T> result{primer::error{}};
+      // Empty error is okay, this only is returned if we are short circuiting
 
       // short-circuit if we would have thrown an exception by now
       if (ok) {

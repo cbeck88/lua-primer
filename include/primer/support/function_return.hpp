@@ -42,7 +42,7 @@ struct return_helper<lua_ref_seq> {
 
   static void pop(lua_State * L, int start_idx, return_type & result) {
     PRIMER_TRY_BAD_ALLOC {
-      result = return_type{default_construct_in_place_tag{}};
+      result = return_type{};
       primer::pop_n(L, lua_gettop(L) - start_idx + 1, *result);
     }
     PRIMER_CATCH_BAD_ALLOC { result = primer::error::bad_alloc(); }

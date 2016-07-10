@@ -174,7 +174,8 @@ public:
   //->
   // Special member functions
 
-  expected() noexcept { this->init_spam(primer::error{"uninit"}); }
+  // expected<T> is only default constructible if T is, and it throws if T does
+  expected() { this->init_ham(); }
 
   ~expected() noexcept { this->deinitialize(); }
 
@@ -220,9 +221,6 @@ public:
     return *this;
   }
 
-  // Additional constructors
-  explicit expected(default_construct_in_place_tag) { this->init_ham(); }
-
   /*<< Implicitly construct from T >>*/
   expected(const T & t) { this->init_ham(t); }
 
@@ -265,8 +263,10 @@ public:
   /*<< Note: May throw std::bad_alloc if `std::string` allocation fails. >>*/
   std::string err_str() const { return this->err_c_str(); }
 
+  // Not default constructible
+  expected() = delete;
+
   // Defaulted special member functions
-  expected() noexcept = default;
   expected(const expected &) = default;
   expected(expected &&) noexcept = default;
   expected & operator=(const expected &) = default;
@@ -317,9 +317,7 @@ public:
 
   // Special member functions
   expected() noexcept : no_error_(true),
-                        error_("uninit")
-  // ^ note the difference! default constructing this means "no error",
-  //   for other expected types it means error
+                        error_()
   {}
 
   expected(const expected &) = default;

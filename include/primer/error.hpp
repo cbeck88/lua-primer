@@ -135,12 +135,12 @@ public:
   //->
 public:
   // Defaulted special member functions
-  error() noexcept = default;
+  error() = default;
   error(const error &) = default;
   error(error &&) noexcept = default;
   error & operator=(const error &) = default;
   error & operator=(error &&) noexcept = default;
-  ~error() noexcept = default;
+  ~error() = default;
 
   // General constructor
   // Takes a sequence of strings, string literals, or numbers

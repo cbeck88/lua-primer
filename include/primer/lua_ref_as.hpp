@@ -42,7 +42,7 @@ struct push<primer::lua_ref> {
 template <>
 struct read<lua_ref> {
   static expected<lua_ref> from_stack(lua_State * L, int idx) {
-    expected<lua_ref> result{default_construct_in_place_tag{}};
+    expected<lua_ref> result{};
 
     if (!lua_isnoneornil(L, idx)) {
       lua_pushvalue(L, idx);
