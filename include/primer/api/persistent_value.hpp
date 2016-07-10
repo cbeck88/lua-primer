@@ -36,9 +36,7 @@ struct persistent_value {
   void on_unpersist_table(lua_State *) {}
 
   static constexpr bool is_serial = true;
-  void on_serialize(lua_State * L) {
-    primer::push(L, value_);
-  }
+  void on_serialize(lua_State * L) { primer::push(L, value_); }
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_move_constructible<T>::value,
                        "persistent value must be nothrow move constructible");

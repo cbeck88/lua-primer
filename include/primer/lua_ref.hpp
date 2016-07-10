@@ -173,7 +173,7 @@ inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
 inline lua_ref::lua_ref(const lua_ref & other) {
   if (lua_State * L = other.push()) {
     // Protect against memory failure in `luaL_ref`.
-    auto ok = primer::mem_pcall<1>(L, [this, L](){ init(L); });
+    auto ok = primer::mem_pcall<1>(L, [this, L]() { init(L); });
 #ifdef PRIMER_NO_EXCEPTIONS
     static_cast<void>(ok); // I don't see what else we can do here
                            // We could assert(false) I suppose.

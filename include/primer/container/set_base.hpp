@@ -69,7 +69,7 @@ struct set_read_helper {
   static expected<M> from_stack(lua_State * L, int index) {
     if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {
       return primer::error::unexpected_value("table",
-                             describe_lua_value(L, index));
+                                             describe_lua_value(L, index));
     }
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 

@@ -217,8 +217,8 @@ struct read<primer::bound_function> {
       auto ok = mem_pcall<1>(L, &impl, L, result);
       if (!ok) { result = ok.err(); }
     } else {
-      result = primer::error::unexpected_value("function",
-                             describe_lua_value(L, idx));
+      result =
+        primer::error::unexpected_value("function", describe_lua_value(L, idx));
     }
 
     return result;

@@ -156,7 +156,7 @@ public:
   expected(const T & t);
   expected(T && t) noexcept;
 
-  // Conversion from `primer::error`. 
+  // Conversion from `primer::error`.
   // This is to make it so that we can simply return `primer::error` from
   // functions that return `expected<T>`.
   expected(const primer::error & e);
@@ -177,7 +177,6 @@ public:
 
   template <typename U>
   expected & operator=(expected<U> && e);
-
 };
 //]
 
@@ -185,7 +184,7 @@ public:
 
 // Accessors
 template <typename T>
-T & expected<T>::operator*() & noexcept {
+  T & expected<T>::operator*() & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return ham_;
 }
@@ -197,13 +196,14 @@ T const & expected<T>::operator*() const & noexcept {
 }
 
 template <typename T>
-T && expected<T>::operator*() && noexcept {
+  T && expected<T>::operator*() && noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return std::move(ham_);
 }
 
 template <typename T>
-T * expected<T>::operator->() & noexcept {
+  T * expected<T>::operator->() &
+  noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return &ham_;
 }
@@ -216,9 +216,9 @@ const T * expected<T>::operator->() const & noexcept {
 
 template <typename T>
   primer::error & expected<T>::err() & noexcept {
-    PRIMER_BAD_ACCESS(!have_ham_);
-    return spam_;
-  }
+  PRIMER_BAD_ACCESS(!have_ham_);
+  return spam_;
+}
 
 template <typename T>
 primer::error const & expected<T>::err() const & noexcept {
@@ -228,36 +228,44 @@ primer::error const & expected<T>::err() const & noexcept {
 
 template <typename T>
   primer::error && expected<T>::err() && noexcept {
-    PRIMER_BAD_ACCESS(!have_ham_);
-    return std::move(spam_);
-  }
+  PRIMER_BAD_ACCESS(!have_ham_);
+  return std::move(spam_);
+}
 
 
 // Special member functions
 template <typename T>
-expected<T>::expected() { this->init_ham(); }
+expected<T>::expected() {
+  this->init_ham();
+}
 
 template <typename T>
-expected<T>::~expected() noexcept { this->deinitialize(); }
+expected<T>::~expected() noexcept {
+  this->deinitialize();
+}
 
 template <typename T>
-expected<T>::expected(const expected & e) { this->init_from_const_ref(e); }
+expected<T>::expected(const expected & e) {
+  this->init_from_const_ref(e);
+}
 
 template <typename T>
-expected<T>::expected(expected && e) noexcept { this->init_from_rvalue_ref(std::move(e)); }
+expected<T>::expected(expected && e) noexcept {
+  this->init_from_rvalue_ref(std::move(e));
+}
 
-template<typename T>
+template <typename T>
 expected<T> & expected<T>::operator=(const expected & e) {
-    expected temp{e};
-    *this = std::move(temp);
-    return *this;
-  }
+  expected temp{e};
+  *this = std::move(temp);
+  return *this;
+}
 
 template <typename T>
 expected<T> & expected<T>::operator=(expected && e) noexcept {
-    this->move_assign(std::move(e));
-    return *this;
-  }
+  this->move_assign(std::move(e));
+  return *this;
+}
 
 // Converting from other expected
 
@@ -290,17 +298,25 @@ expected<T> & expected<T>::operator=(expected<U> && e) {
 
 // Converting from T
 template <typename T>
-expected<T>::expected(const T & t) { this->init_ham(t); }
+expected<T>::expected(const T & t) {
+  this->init_ham(t);
+}
 
 template <typename T>
-expected<T>::expected(T && t) noexcept { this->init_ham(std::move(t)); }
+expected<T>::expected(T && t) noexcept {
+  this->init_ham(std::move(t));
+}
 
 // Converting from primer::error
 template <typename T>
-expected<T>::expected(const primer::error & e) { this->init_spam(e); }
+expected<T>::expected(const primer::error & e) {
+  this->init_spam(e);
+}
 
 template <typename T>
-expected<T>::expected(primer::error && e) noexcept { this->init_spam(std::move(e)); }
+expected<T>::expected(primer::error && e) noexcept {
+  this->init_spam(std::move(e));
+}
 
 
 
@@ -404,21 +420,19 @@ public:
 expected<void>::operator bool() const noexcept { return no_error_; }
 
 
-  const primer::error & expected<void>::err() const & noexcept {
-    PRIMER_BAD_ACCESS(!no_error_);
-    return error_;
-  }
+const primer::error & expected<void>::err() const & noexcept {
+  PRIMER_BAD_ACCESS(!no_error_);
+  return error_;
+}
 
 
-  primer::error && expected<void>::error() && noexcept {
-    PRIMER_BAD_ACCESS(!no_error_);
-    return std::move(error_);
-  }
+primer::error && expected<void>::error() && noexcept {
+  PRIMER_BAD_ACCESS(!no_error_);
+  return std::move(error_);
+}
 
 // Ctors
-expected<void>::expected() noexcept : no_error_(true),
-                        error_()
-  {}
+expected<void>::expected() noexcept : no_error_(true), error_() {}
 
 // Converting from primer::error
 expected<void>::expected(const primer::error & e)
@@ -426,21 +440,22 @@ expected<void>::expected(const primer::error & e)
   , error_(e) //
 {}
 
-expected<void>::expected(primer::error && e) noexcept
-  : no_error_(false)
-  , error_(std::move(e)) //
+expected<void>::expected(primer::error && e) noexcept //
+  : no_error_(false)                                  //
+    ,
+    error_(std::move(e)) //
 {}
 
 // Converting from other expected
-  template <typename U>
+template <typename U>
 expected<void>::expected(const expected<U> & u)
-    : expected(u.err())
-  {}
+  : expected(u.err())
+{}
 
-  template <typename U>
+template <typename U>
 expected<void>::expected(expected<U> && u) noexcept //
-    : expected(std::move(u.err()))    //
-  {}
+  : expected(std::move(u.err()))                    //
+{}
 
 #undef PRIMER_BAD_ACCESS
 

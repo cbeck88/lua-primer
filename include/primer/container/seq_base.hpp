@@ -97,8 +97,8 @@ struct read_seq_helper {
         lua_pop(L, 1);
       }
     } else {
-      result = primer::error::unexpected_value("table",
-                             describe_lua_value(L, idx));
+      result =
+        primer::error::unexpected_value("table", describe_lua_value(L, idx));
     }
 
     return result;
@@ -122,8 +122,8 @@ struct read_fixed_seq_helper {
 
     idx = lua_absindex(L, idx);
     if (!lua_istable(L, idx)) {
-      result = primer::error::unexpected_value("table",
-                             describe_lua_value(L, idx));
+      result =
+        primer::error::unexpected_value("table", describe_lua_value(L, idx));
     }
 
     int n = static_cast<int>(result->size());

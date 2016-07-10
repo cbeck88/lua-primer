@@ -43,7 +43,7 @@ struct read<const char *> {
       return lua_tostring(L, idx);
     } else {
       return primer::error::unexpected_value("string",
-                           primer::describe_lua_value(L, idx));
+                                             primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -65,7 +65,7 @@ struct read<bool> {
       return static_cast<bool>(lua_toboolean(L, idx));
     } else {
       return primer::error::unexpected_value("boolean",
-                           primer::describe_lua_value(L, idx));
+                                             primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -84,7 +84,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) >= sizeof(LUA_INTEGER)>> {
       return static_cast<T>(lua_tointeger(L, idx));
     } else {
       return primer::error::unexpected_value("integer",
-                           primer::describe_lua_value(L, idx));
+                                             primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -103,7 +103,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
       return static_cast<T>(i);
     } else {
       return primer::error::unexpected_value("integer",
-                           primer::describe_lua_value(L, idx));
+                                             primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -156,8 +156,9 @@ struct read<T,
     if (lua_isnumber(L, idx)) {
       result = static_cast<T>(lua_tonumber(L, idx));
     } else {
-      result = primer::error::unexpected_value("number",
-                             primer::describe_lua_value(L, idx));
+      result =
+        primer::error::unexpected_value("number",
+                                        primer::describe_lua_value(L, idx));
     }
 
     return result;
@@ -189,7 +190,7 @@ struct read<nil_t> {
       return nil_t{};
     } else
       return primer::error::unexpected_value("nil",
-                           primer::describe_lua_value(L, idx));
+                                             primer::describe_lua_value(L, idx));
   }
   static constexpr maybe_int stack_space_needed{0};
 };
@@ -234,8 +235,9 @@ struct read<stringy> {
           break;
         }
         default:
-          result = primer::error{"__tostring metamethod did not produce a string: ",
-                                 primer::describe_lua_value(L, idx)};
+          result =
+            primer::error{"__tostring metamethod did not produce a string: ",
+                          primer::describe_lua_value(L, idx)};
       }
     }
     return result;

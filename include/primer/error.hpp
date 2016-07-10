@@ -64,7 +64,13 @@ class error {
   //<-
 
   class impl {
-    enum class state { uninitialized, bad_alloc, cant_lock_vm, invalid_coroutine, dynamic_text };
+    enum class state {
+      uninitialized,
+      bad_alloc,
+      cant_lock_vm,
+      invalid_coroutine,
+      dynamic_text
+    };
 
     using string_t = std::string;
 
@@ -78,20 +84,29 @@ class error {
       state_ = state::dynamic_text;
       str_ = std::move(t);
     }
- 
 
-public:
-    impl() : str_(), state_(state::uninitialized) {}
+
+  public:
+    impl()
+      : str_()
+      , state_(state::uninitialized)
+    {}
     impl(impl && other) = default;
     impl(const impl & other) = default;
-    impl & operator = (impl && other) = default;
-    impl & operator = (const impl & other) = default;
+    impl & operator=(impl && other) = default;
+    impl & operator=(const impl & other) = default;
     ~impl() = default;
 
     // Construct with fixed error messages
-    struct bad_alloc_tag{ static constexpr state value = state::bad_alloc; };
-    struct cant_lock_vm_tag{ static constexpr state value = state::cant_lock_vm; };
-    struct invalid_coroutine_tag{ static constexpr state value = state::invalid_coroutine; };
+    struct bad_alloc_tag {
+      static constexpr state value = state::bad_alloc;
+    };
+    struct cant_lock_vm_tag {
+      static constexpr state value = state::cant_lock_vm;
+    };
+    struct invalid_coroutine_tag {
+      static constexpr state value = state::invalid_coroutine;
+    };
 
     template <typename T, typename = decltype(T::value)>
     explicit impl(T) noexcept : str_(), state_(T::value) {}
@@ -130,7 +145,9 @@ public:
 
   impl msg_;
 
-  explicit error(impl m) : msg_(std::move(m)) {}
+  explicit error(impl m)
+    : msg_(std::move(m))
+  {}
 
   //->
 public:
@@ -226,9 +243,11 @@ inline error::error(Args &&... args) noexcept {
 template <typename... Args>
 inline error & error::prepend_error_line(Args &&... args) noexcept {
   PRIMER_TRY_BAD_ALLOC {
-    msg_.str() = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_.str();
+    msg_.str() =
+      primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_.str();
   }
-  PRIMER_CATCH_BAD_ALLOC { /* msg_ = impl{impl::bad_alloc_tag{}}; */ }
+  PRIMER_CATCH_BAD_ALLOC { /* msg_ = impl{impl::bad_alloc_tag{}}; */
+  }
   // Note: Assigning bad_alloc there may be detrimental to error report quality
   // prepend error line is used to give context, better to keep the previous
   // error and skip the addition of context than lose all of the original.
