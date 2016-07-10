@@ -15,7 +15,9 @@
 
 */
 
-/*` It contains a `std::string` which holds the error message.
+/*` It is implemented using a union. Sometimes it refers to a fixed static
+    string, and sometimes it holds a `std::string` which contains the error
+    message.
 
 */
 
@@ -60,17 +62,132 @@ namespace primer {
 
 class error {
   //<-
-  std::string msg_;
-  void set_bad_alloc_state() noexcept;
+
+  class impl {
+    enum class state { uninitialized, bad_alloc, cant_lock_vm, invalid_coroutine, dynamic_text };
+
+    using string_t = std::string;
+    union {
+      string_t str_;
+      char dummy;
+    };
+
+    state state_;
+
+    // Helpers
+    template <typename T>
+    void initialize_string(T && t) {
+      state_ = state::dynamic_text;
+      new(&str_) string_t{std::move(t)};
+    }
+ 
+    void deinitialize() {
+      if (state_ == state::dynamic_text) {
+        str_.~string_t();
+        state_ = state::uninitialized;
+      }
+    }
+
+
+    // Rule of five
+public:
+    constexpr impl() noexcept : dummy(), state_(state::uninitialized) {}
+
+    impl(impl && other) noexcept
+      : state_(other.state_)
+    {
+      if (other.state_ == state::dynamic_text) {
+        this->initialize_string(std::move(other.str_));
+      }
+    }
+
+    impl(const impl & other)
+      : state_(other.state_)
+    {
+      if (other.state_ == state::dynamic_text) {
+        this->initialize_string(other.str_);
+      }
+    }
+
+
+    impl & operator = (impl && other) noexcept {
+      if (other.state_ == state::dynamic_text) {
+        if (state_ == state::dynamic_text) {
+          str_ = std::move(other.str_);
+        } else {
+          this->initialize_string(std::move(other.str_));
+        }        
+      } else {
+        this->deinitialize();
+        state_ = other.state_;
+      }
+      return *this;
+    }
+
+    impl & operator = (const impl & other) {
+      impl temp{other};
+      *this = std::move(temp);
+      return *this;
+    }
+
+    ~impl() noexcept {
+      this->deinitialize();
+    }
+
+
+    // Construct with fixed error messages
+    struct bad_alloc_tag{ static constexpr state value = state::bad_alloc; };
+    struct cant_lock_vm_tag{ static constexpr state value = state::cant_lock_vm; };
+    struct invalid_coroutine_tag{ static constexpr state value = state::invalid_coroutine; };
+
+    template <typename T, typename = decltype(T::value)>
+    explicit constexpr impl(T) noexcept : dummy(), state_(T::value) {}
+
+    // Construct from string
+    explicit impl(std::string s) noexcept : impl() {
+      this->initialize_string(std::move(s));
+    }
+
+    // Access error message
+    const char * c_str() const {
+      switch (state_) {
+        case state::uninitialized:
+          return "uninitialized error message";
+        case state::bad_alloc:
+          return "bad_alloc";
+        case state::cant_lock_vm:
+          return "couldn't access the lua VM";
+        case state::invalid_coroutine:
+          return "invalid coroutine";
+        case state::dynamic_text:
+          return str_.c_str();
+        default:
+          return "invalid error message state";
+      }
+    }
+
+    // Get reference to dynamic string, or convert it to such.
+    std::string & str() {
+      if (state_ != state::dynamic_text) {
+        this->initialize_string(this->c_str());
+      }
+      return str_;
+    }
+  };
+
+  impl msg_;
+
+  explicit error(impl m) : msg_(std::move(m)) {}
+
   //->
 public:
   // Defaulted special member functions
-  error() = default;
+  error() noexcept = default;
   error(const error &) = default;
-  error(error &&) = default;
+  error(error &&) noexcept = default;
   error & operator=(const error &) = default;
-  error & operator=(error &&) = default;
-  ~error() = default;
+  error & operator=(error &&) noexcept = default;
+  ~error() noexcept = default;
 
   // General constructor
   // Takes a sequence of strings, string literals, or numbers
@@ -119,12 +236,6 @@ public:
 
 //]
 
-inline error error::bad_alloc() noexcept {
-  error result;
-  result.set_bad_alloc_state();
-  return result;
-}
-
 template <typename T>
 inline error error::integer_overflow(const T & t) noexcept {
   return error("Integer overflow occurred: ", t);
@@ -139,46 +250,39 @@ inline error error::insufficient_stack_space(int n) noexcept {
   return error("Insufficient stack space: needed ", n);
 }
 
+inline error error::bad_alloc() noexcept {
+  return error{impl{impl::bad_alloc_tag{}}};
+}
+
 inline error error::expired_coroutine() noexcept {
-  return error("Expired coroutine");
+  return error{impl{impl::invalid_coroutine_tag{}}};
 }
 
 inline error error::cant_lock_vm() noexcept {
-  return error("Can't lock VM");
+  return error{impl{impl::cant_lock_vm_tag{}}};
 }
 
 template <typename... Args>
 inline error::error(Args &&... args) noexcept {
   PRIMER_TRY_BAD_ALLOC {
-    msg_ = primer::detail::str_cat(std::forward<Args>(args)...);
+    msg_ = impl{primer::detail::str_cat(std::forward<Args>(args)...)};
   }
-  PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
+  PRIMER_CATCH_BAD_ALLOC { msg_ = impl{impl::bad_alloc_tag{}}; }
 }
 
 template <typename... Args>
 inline error & error::prepend_error_line(Args &&... args) noexcept {
   PRIMER_TRY_BAD_ALLOC {
-    msg_ = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_;
+    msg_.str() = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_.str();
   }
-  PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
+  PRIMER_CATCH_BAD_ALLOC { /* msg_ = impl{impl::bad_alloc_tag{}}; */ }
+  // Note: Assigning bad_alloc there may be detrimental to error report quality
+  // prepend error line is used to give context, better to keep the previous
+  // error and skip the addition of context than lose all of the original.
   return *this;
 }
 
 inline const char * error::what() const noexcept { return msg_.c_str(); }
-
-inline void error::set_bad_alloc_state() noexcept {
-    PRIMER_TRY_BAD_ALLOC { msg_ = "bad_alloc"; }
-    PRIMER_CATCH_BAD_ALLOC {
-      // no small string optimization ?! O_o
-      // try a really small string
-      PRIMER_TRY_BAD_ALLOC { msg_ = "mem"; }
-      PRIMER_CATCH_BAD_ALLOC {
-        // default ctor is noexcept in C++11
-        // so is the move ctor
-        msg_ = std::string{};
-      }
-    }
-  }
 
 //[ primer_error_extra_notes
 
