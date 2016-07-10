@@ -46,7 +46,7 @@ struct read<lua_ref> {
 
     if (!lua_isnoneornil(L, idx)) {
       lua_pushvalue(L, idx);
-      auto ok = mem_pcall<1>(L, &impl, L, result);
+      auto ok = mem_pcall<1>(L, [L, &result](){ result = lua_ref{L}; });
       if (!ok) { result = ok.err(); }
     }
 
@@ -65,7 +65,7 @@ struct read<lua_ref> {
 template <typename T>
 expected<T> lua_ref::as() const noexcept {
   expected<T> result{primer::error::cant_lock_vm()};
-  // ^ hoping for small string optimization here
+
   if (lua_State * L = this->push()) {
     result = primer::read<T>(L, -1);
     lua_pop(L, 1);

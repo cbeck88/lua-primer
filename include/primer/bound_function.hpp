@@ -214,7 +214,7 @@ struct read<primer::bound_function> {
       result = bound_function{};
     } else if (lua_isfunction(L, idx)) {
       lua_pushvalue(L, idx);
-      auto ok = mem_pcall<1>(L, &impl, L, result);
+      auto ok = mem_pcall<1>(L, [L, &result]() { result = bound_function{L}; });
       if (!ok) { result = ok.err(); }
     } else {
       result =
@@ -224,11 +224,6 @@ struct read<primer::bound_function> {
     return result;
   }
   static constexpr int stack_space_needed{1};
-
-  // This can cause memory allocation failure
-  static void impl(lua_State * L, expected<bound_function> & result) {
-    result = bound_function{L};
-  }
 };
 
 } // end namespace traits
