@@ -112,6 +112,7 @@ class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
     static expected<T> read_helper(lua_State * L, int index, expected<void> & ok) {
       expected<T> result{primer::error{}};
       // Empty error is okay, this only is returned if we are short circuiting
+      // This allows NRVO to take place.
 
       // short-circuit if we would have thrown an exception by now
       if (ok) {
