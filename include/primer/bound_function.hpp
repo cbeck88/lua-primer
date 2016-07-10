@@ -44,26 +44,18 @@ class bound_function {
 
   //<-
 
-  // Actually execute a call. This is permitted to raise lua errors but not
-  // not to throw exceptions.
-  template <typename return_type, typename... Args>
-  static void call_impl(return_type & ret,
-                        lua_State * L,
-                        const lua_ref & fcn,
-                        Args &&... args) {
-    fcn.push(L);
-    primer::push_each(L, std::forward<Args>(args)...);
-    detail::fcn_call(ret, L, sizeof...(Args));
-  }
-
   // Calls the call_impl in a protected context. This is no fail.
   template <typename return_type, typename... Args>
   expected<return_type> protected_call(Args &&... args) const noexcept {
     expected<return_type> result{primer::error::cant_lock_vm()};
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
-        auto ok = mem_pcall(L, &call_impl<expected<return_type>, Args...>,
-                            result, L, ref_, std::forward<Args>(args)...);
+        auto ok = mem_pcall(L, [&]() {
+                               ref_.push(L);
+                               primer::push_each(L, std::forward<Args>(args)...);
+                               detail::fcn_call(result, L, sizeof...(args));
+                            });
+
         if (!ok) { result = std::move(ok.err()); }
       } else {
         result = std::move(stack_check.err());
@@ -74,24 +66,16 @@ class bound_function {
 
   // Another version, using `lua_ref_seq` as input instead of a parameter pack.
   template <typename return_type>
-  static void call_impl2(return_type & ret,
-                         lua_State * L,
-                         const lua_ref & fcn,
-                         const lua_ref_seq & inputs) {
-    fcn.push(L);
-    inputs.push_each(L);
-    detail::fcn_call(ret, L, inputs.size());
-  }
-
-  // Calls the call_impl2 in a protected context. This is no fail.
-  template <typename return_type>
   expected<return_type> protected_call2(const lua_ref_seq & inputs) const
     noexcept {
     expected<return_type> result{primer::error::cant_lock_vm()};
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_n(L, 1 + inputs.size())) {
-        auto ok = primer::mem_pcall(L, &call_impl2<expected<return_type>>,
-                                    result, L, ref_, inputs);
+        auto ok = primer::mem_pcall(L, [this, &result, L, &inputs]() {
+                                         ref_.push(L);
+                                         inputs.push_each(L);
+                                         detail::fcn_call(result, L, inputs.size());
+                                      });
         if (!ok) { result = std::move(ok.err()); }
       } else {
         result = std::move(stack_check.err());

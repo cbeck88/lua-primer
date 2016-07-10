@@ -61,17 +61,6 @@ class coroutine {
 
   //<-
 
-  // Takes one of the structures `detail::return_none`, `detail::return_one`,
-  // `detail::return_many` as first parameter, and all args as second.
-  // Pushes, calls, and pops them.
-  // TODO: Would fix some leakage here if it passes the return type reference
-  // down the callstack, even if its less "functional".
-  template <typename return_type, typename... Args>
-  static void call_impl(return_type & ret, lua_State * L, Args &&... args) {
-    primer::push_each(L, std::forward<Args>(args)...);
-    detail::resume_call(ret, L, sizeof...(Args));
-  }
-
 
   // Takes one of the structures `detail::return_none`, `detail::return_one`,
   // `detail::return_many` as first parameter
@@ -83,9 +72,11 @@ class coroutine {
       if (lua_State * L = ref_.lock()) {
         if (auto check = detail::check_stack_push_each<Args...>(thread_stack_)) {
           auto ok =
-            primer::mem_pcall(L, &call_impl<expected<return_type>, Args...>,
-                              result, thread_stack_,
-                              std::forward<Args>(args)...);
+            primer::mem_pcall(L, [&]() {
+                   primer::push_each(thread_stack_, std::forward<Args>(args)...);
+                   detail::resume_call(result, thread_stack_, sizeof...(Args));
+                });
+
           if (!ok) { result = std::move(ok.err()); }
 
           if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
@@ -101,24 +92,19 @@ class coroutine {
     return result;
   }
 
-  // Another version, using `lua_ref_seq` as input instead of a parameter pack.
-  template <typename return_type>
-  static void call_impl2(return_type & ret,
-                         lua_State * L,
-                         const lua_ref_seq & inputs) {
-    inputs.push_each(L);
-    detail::resume_call(ret, L, inputs.size());
-  }
 
-  // Calls the call_impl2 in a protected context. This is no fail.
+  // Another version, using `lua_ref_seq` as input instead of a parameter pack.
   template <typename return_type>
   expected<return_type> protected_call2(const lua_ref_seq & inputs) noexcept {
     expected<return_type> result{primer::error::expired_coroutine()};
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
         if (auto c = detail::check_stack_push_n(thread_stack_, inputs.size())) {
-          auto ok = primer::mem_pcall(L, &call_impl2<expected<return_type>>,
-                                      result, thread_stack_, inputs);
+          auto ok = primer::mem_pcall(L, [&]() {
+                      inputs.push_each(thread_stack_);
+                      detail::resume_call(result, thread_stack_, inputs.size());
+                   });
+
           if (!ok) { result = ok.err(); }
         } else {
           result = std::move(c.err());
