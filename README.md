@@ -140,7 +140,7 @@ To run the tests, go to the `/test` folder, type `b2` to run boost-build, and
 go to `stage` to run test executables there. (Refer to `run_tests.sh` or to `.travis.yml` to see how the
 CI works.)
 
-It is currently tested against `gcc 4.8, gcc 5.3, clang 3.5, clang 3.7`.
+It is currently tested against `gcc 4.9, gcc 5.3, clang 3.5, clang 3.7`.
 
 To build the docs, go to the `/doc` folder, and type `b2` to run boost-build.
 This requires quickbook version 1.6, see installation instructions.
