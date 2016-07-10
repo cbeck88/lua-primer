@@ -44,7 +44,7 @@ class bound_function {
 
   //<-
 
-  // Calls the call_impl in a protected context. This is no fail.
+  // Calls the bound_function in a protected context. This is no fail.
   template <typename return_type, typename... Args>
   expected<return_type> protected_call(Args &&... args) const noexcept {
     expected<return_type> result{primer::error::cant_lock_vm()};

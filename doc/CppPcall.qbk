@@ -42,6 +42,9 @@ the call parameters, then do something with them in a lua callback, then, push
 that callback and a pointer to the structure to pcall.
 
 `cpp_pcall` accomplishes the same but without the boiler-plate.
+In addition, `cpp_pcall` can work not only with a function pointer, but any
+C++ function object or lambda function, which often makes this whole idiom
+much nicer.
 
 [cpp_pcall_synopsis]
 
@@ -49,6 +52,38 @@ A related function, `mem_pcall`, is used internally by the Primer to capture lua
 memory errors as appropriate according to the value of `PRIMER_NO_MEMORY_FAILURE`.
 
 [mem_pcall_implementation]
+
+For instance, here's an example from the implementation of `bound_function`.
+`protected_call` is a member function of bound function which is used to
+implement all of its forwarding facing functions.
+
+``
+  // Calls the bound_function in a protected context. This is no fail.
+  template <typename return_type, typename... Args>
+  expected<return_type> protected_call(Args &&... args) const noexcept {
+    expected<return_type> result{primer::error::cant_lock_vm()};
+    if (lua_State * L = ref_.lock()) {
+      if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
+        auto ok = mem_pcall(L, [&]() {
+          ref_.push(L);
+          primer::push_each(L, std::forward<Args>(args)...);
+          detail::fcn_call(result, L, sizeof...(args));
+        });
+
+        if (!ok) { result = std::move(ok.err()); }
+      } else {
+        result = std::move(stack_check.err());
+      }
+    }
+    return result;
+  }
+``
+
+In this code, the lambda contains code that could potentially cause a lua
+memory failure, when pushing objects and also popping return values off of the
+stack. `mem_pcall` allows us to catch all such errors, and when `PRIMER_NO_MEMORY_FAILURE`
+is defined, the `mem_pcall` and the lambda are inlined, producing a direct call
+with no overhead.
 
 [h4 Implementation Details]
 

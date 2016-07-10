@@ -61,32 +61,23 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept;
 namespace primer {
 
 //[ cpp_pcall_implementation
-template <typename F, typename... Args>
-struct protected_call_helper {
-  using tuple_t = std::tuple<F, Args...>;
 
-  template <typename T>
-  struct impl;
+namespace detail {
 
-  template <std::size_t... Is>
-  struct impl<detail::SizeList<Is...>> {
-    static int cfunc(lua_State * L) {
-      tuple_t & t =
-        *static_cast<tuple_t *>(lua_touserdata(L, lua_upvalueindex(1)));
-      std::forward<F>(std::get<0>(t))(std::forward<Args>(std::get<1 + Is>(t))...);
-      return 0;
-    }
-  };
-  using indices = detail::Count_t<sizeof...(Args)>;
-  static constexpr lua_CFunction cfunc = impl<indices>::cfunc;
-};
+template <typename T>
+int lambda_upvalue_dispatch(lua_State * L) {
+  T * t = static_cast<T*>(lua_touserdata(L, lua_upvalueindex(1)));
+  (*t)();
+  return 0;
+}
+
+} // end namespace detail
 
 template <int narg, typename F, typename... Args>
 expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
-  using P = protected_call_helper<F, Args...>;
-  typename P::tuple_t tuple{std::forward<F>(f), std::forward<Args>(args)...};
-  lua_pushlightuserdata(L, static_cast<void *>(&tuple));
-  lua_pushcclosure(L, P::cfunc, 1);
+  auto lambda = [&](){ (std::forward<F>(f))(std::forward<Args>(args)...); };
+  lua_pushlightuserdata(L, static_cast<void *>(&lambda));
+  lua_pushcclosure(L, &detail::lambda_upvalue_dispatch<decltype(lambda)>, 1);
 
   if (narg) { lua_insert(L, -1 - narg); }
 
