@@ -67,7 +67,9 @@
         </p>
 <p>
           <code class="computeroutput"><span class="identifier">cpp_pcall</span></code> accomplishes
-          the same but without the boiler-plate.
+          the same but without the boiler-plate. In addition, <code class="computeroutput"><span class="identifier">cpp_pcall</span></code>
+          can work not only with a function pointer, but any C++ function object
+          or lambda function, which often makes this whole idiom much nicer.
         </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
 
@@ -138,6 +140,39 @@
 <span class="preprocessor">#endif</span>
 <span class="special">}</span>
 </pre>
+<p>
+          For instance, here's an example from the implementation of <code class="computeroutput"><span class="identifier">bound_function</span></code>. <code class="computeroutput"><span class="identifier">protected_call</span></code>
+          is a member function of bound function which is used to implement all of
+          its forwarding facing functions.
+        </p>
+<pre class="programlisting"><span class="comment">// Calls the bound_function in a protected context. This is no fail.</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">return_type</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_type</span><span class="special">&gt;</span> <span class="identifier">protected_call</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_type</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">{</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">::</span><span class="identifier">cant_lock_vm</span><span class="special">()};</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span> <span class="special">=</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">lock</span><span class="special">())</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">stack_check</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">check_stack_push_each</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...&gt;(</span><span class="identifier">L</span><span class="special">))</span> <span class="special">{</span>
+      <span class="keyword">auto</span> <span class="identifier">ok</span> <span class="special">=</span> <span class="identifier">mem_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">[&amp;]()</span> <span class="special">{</span>
+        <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+        <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_each</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+        <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fcn_call</span><span class="special">(</span><span class="identifier">result</span><span class="special">,</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">args</span><span class="special">));</span>
+      <span class="special">});</span>
+
+      <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">ok</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">ok</span><span class="special">.</span><span class="identifier">err</span><span class="special">());</span> <span class="special">}</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">stack_check</span><span class="special">.</span><span class="identifier">err</span><span class="special">());</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+  <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+          In this code, the lambda contains code that could potentially cause a lua
+          memory failure, when pushing objects and also popping return values off
+          of the stack. <code class="computeroutput"><span class="identifier">mem_pcall</span></code>
+          allows us to catch all such errors, and when <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>
+          is defined, the <code class="computeroutput"><span class="identifier">mem_pcall</span></code>
+          and the lambda are inlined, producing a direct call with no overhead.
+        </p>
 <h5>
 <a name="lua_primer.reference.miscellaneous.cpppcall.h0"></a>
           <span><a name="lua_primer.reference.miscellaneous.cpppcall.implementation_details"></a></span><a class="link" href="cpppcall.html#lua_primer.reference.miscellaneous.cpppcall.implementation_details">Implementation
@@ -147,37 +182,33 @@
           For the curious, <code class="computeroutput"><span class="identifier">cpp_pcall</span></code>'s
           implementation looks like this:
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">F</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-<span class="keyword">struct</span> <span class="identifier">protected_call_helper</span> <span class="special">{</span>
-  <span class="keyword">using</span> <span class="identifier">tuple_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...&gt;;</span>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">detail</span> <span class="special">{</span>
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-  <span class="keyword">struct</span> <span class="identifier">impl</span><span class="special">;</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">int</span> <span class="identifier">lambda_upvalue_dispatch</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">t</span> <span class="special">=</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">*&gt;(</span><span class="identifier">lua_touserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_upvalueindex</span><span class="special">(</span><span class="number">1</span><span class="special">)));</span>
+  <span class="special">(*</span><span class="identifier">t</span><span class="special">)();</span>
+  <span class="keyword">return</span> <span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+<span class="special">}</span>
 
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">...</span> <span class="identifier">Is</span><span class="special">&gt;</span>
-  <span class="keyword">struct</span> <span class="identifier">impl</span><span class="special">&lt;</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">SizeList</span><span class="special">&lt;</span><span class="identifier">Is</span><span class="special">...&gt;&gt;</span> <span class="special">{</span>
-    <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">cfunc</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
-      <span class="identifier">tuple_t</span> <span class="special">&amp;</span> <span class="identifier">t</span> <span class="special">=</span>
-        <span class="special">*</span><span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">tuple_t</span> <span class="special">*&gt;(</span><span class="identifier">lua_touserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_upvalueindex</span><span class="special">(</span><span class="number">1</span><span class="special">)));</span>
-      <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">get</span><span class="special">&lt;</span><span class="number">0</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">))(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">get</span><span class="special">&lt;</span><span class="number">1</span> <span class="special">+</span> <span class="identifier">Is</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">))...);</span>
-      <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
-    <span class="special">}</span>
-  <span class="special">};</span>
-  <span class="keyword">using</span> <span class="identifier">indices</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">Count_t</span><span class="special">&lt;</span><span class="keyword">sizeof</span><span class="special">...(</span><span class="identifier">Args</span><span class="special">)&gt;;</span>
-  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">lua_CFunction</span> <span class="identifier">cfunc</span> <span class="special">=</span> <span class="identifier">impl</span><span class="special">&lt;</span><span class="identifier">indices</span><span class="special">&gt;::</span><span class="identifier">cfunc</span><span class="special">;</span>
-<span class="special">};</span>
+<span class="special">}</span> <span class="comment">// end namespace detail</span>
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">int</span> <span class="identifier">narg</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">F</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
 <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">cpp_pcall</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-  <span class="keyword">using</span> <span class="identifier">P</span> <span class="special">=</span> <span class="identifier">protected_call_helper</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...&gt;;</span>
-  <span class="keyword">typename</span> <span class="identifier">P</span><span class="special">::</span><span class="identifier">tuple_t</span> <span class="identifier">tuple</span><span class="special">{</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...};</span>
-  <span class="identifier">lua_pushlightuserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span> <span class="special">*&gt;(&amp;</span><span class="identifier">tuple</span><span class="special">));</span>
-  <span class="identifier">lua_pushcclosure</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">P</span><span class="special">::</span><span class="identifier">cfunc</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+
+  <span class="keyword">auto</span> <span class="identifier">lambda</span> <span class="special">=</span> <span class="special">[&amp;](){</span> <span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">))(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span> <span class="special">};</span>
+  <span class="identifier">lua_pushlightuserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span> <span class="special">*&gt;(&amp;</span><span class="identifier">lambda</span><span class="special">));</span>
+  <span class="identifier">lua_pushcclosure</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">lambda_upvalue_dispatch</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">lambda</span><span class="special">)&gt;,</span> <span class="number">1</span><span class="special">);</span>
 
   <span class="keyword">if</span> <span class="special">(</span><span class="identifier">narg</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">lua_insert</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span> <span class="special">-</span> <span class="identifier">narg</span><span class="special">);</span> <span class="special">}</span>
 
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
-  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">fcn_call</span><span class="special">(</span><span class="identifier">result</span><span class="special">,</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">narg</span><span class="special">);</span> <span class="comment">// Note that this is noexcept</span>
+  <span class="keyword">int</span> <span class="identifier">code</span><span class="special">;</span> <span class="comment">// pcall_helper installs a custom error handler</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">tie</span><span class="special">(</span><span class="identifier">code</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ignore</span><span class="special">)</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">pcall_helper</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">narg</span><span class="special">,</span> <span class="identifier">LUA_MULTRET</span><span class="special">);</span>
+
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">code</span> <span class="special">!=</span> <span class="identifier">LUA_OK</span><span class="special">)</span>  <span class="special">{</span>
+    <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">pop_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">code</span><span class="special">);</span>
+  <span class="special">}</span>
   <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
 <span class="special">}</span>
 </pre>
