@@ -4,7 +4,13 @@ language: cpp
 matrix:
   include:
     - compiler: gcc
-#      env: NO_STATIC_ASSERTS=true
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env: COMPILER=g++-4.9
     - compiler: clang
 #      env: NO_STATIC_ASSERTS=true
     - compiler: gcc
