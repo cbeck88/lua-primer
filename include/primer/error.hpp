@@ -137,9 +137,9 @@ public:
   // Defaulted special member functions
   error() = default;
   error(const error &) = default;
-  error(error &&) noexcept = default;
+  error(error &&) = default;
   error & operator=(const error &) = default;
-  error & operator=(error &&) noexcept = default;
+  error & operator=(error &&) = default;
   ~error() = default;
 
   // General constructor
