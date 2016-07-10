@@ -77,7 +77,7 @@ class coroutine {
   // `detail::return_many` as first parameter
   template <typename return_type, typename... Args>
   expected<return_type> protected_call(Args &&... args) noexcept {
-    expected<return_type> result{primer::error{"Invalid coroutine"}};
+    expected<return_type> result{primer::error::expired_coroutine()};
 
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
@@ -93,7 +93,7 @@ class coroutine {
           result = std::move(check.err());
         }
       } else {
-        result = primer::error{"Can't lock VM"};
+        result = primer::error::cant_lock_vm();
         thread_stack_ = nullptr;
       }
     }
@@ -113,7 +113,7 @@ class coroutine {
   // Calls the call_impl2 in a protected context. This is no fail.
   template <typename return_type>
   expected<return_type> protected_call2(const lua_ref_seq & inputs) noexcept {
-    expected<return_type> result{primer::error{"Invalid coroutine"}};
+    expected<return_type> result{primer::error::expired_coroutine()};
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
         if (auto c = detail::check_stack_push_n(thread_stack_, inputs.size())) {
@@ -124,7 +124,7 @@ class coroutine {
           result = std::move(c.err());
         }
       } else {
-        result = primer::error{"Can't lock VM"};
+        result = primer::error::cant_lock_vm();
         thread_stack_ = nullptr;
       }
     }

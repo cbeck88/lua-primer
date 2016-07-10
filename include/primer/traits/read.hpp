@@ -42,8 +42,8 @@ struct read<const char *> {
     if (lua_type(L, idx) == LUA_TSTRING) {
       return lua_tostring(L, idx);
     } else {
-      return primer::error{"Expected string, found ",
-                           primer::describe_lua_value(L, idx)};
+      return primer::error::unexpected_value("string",
+                           primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -53,7 +53,7 @@ template <>
 struct read<std::string> {
   static expected<std::string> from_stack(lua_State * L, int idx) {
     PRIMER_TRY_BAD_ALLOC { return read<const char *>::from_stack(L, idx); }
-    PRIMER_CATCH_BAD_ALLOC { return primer::error(bad_alloc_tag{}); }
+    PRIMER_CATCH_BAD_ALLOC { return primer::error::bad_alloc(); }
   }
   static constexpr maybe_int stack_space_needed{0};
 };
@@ -64,8 +64,8 @@ struct read<bool> {
     if (lua_isboolean(L, idx)) {
       return static_cast<bool>(lua_toboolean(L, idx));
     } else {
-      return primer::error{"Expected boolean, found ",
-                           primer::describe_lua_value(L, idx)};
+      return primer::error::unexpected_value("boolean",
+                           primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -83,8 +83,8 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) >= sizeof(LUA_INTEGER)>> {
     if (lua_isinteger(L, idx)) {
       return static_cast<T>(lua_tointeger(L, idx));
     } else {
-      return primer::error{"Expected integer, found ",
-                           primer::describe_lua_value(L, idx)};
+      return primer::error::unexpected_value("integer",
+                           primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -98,12 +98,12 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
       LUA_INTEGER i = lua_tointeger(L, idx);
       if (i > std::numeric_limits<T>::max() ||
           i < std::numeric_limits<T>::min()) {
-        return primer::error{"Integer overflow occurred: ", i};
+        return primer::error::integer_overflow(i);
       }
       return static_cast<T>(i);
     } else {
-      return primer::error{"Expected integer, found ",
-                           primer::describe_lua_value(L, idx)};
+      return primer::error::unexpected_value("integer",
+                           primer::describe_lua_value(L, idx));
     }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -117,7 +117,7 @@ struct unsigned_read_helper {
     auto maybe = read<T>::from_stack(L, idx);
 
     if (maybe && *maybe < 0) {
-      maybe = primer::error{"Expected nonnegative integer, found ", *maybe};
+      maybe = primer::error::unexpected_value("nonnegative integer", *maybe);
     }
 
     // implicit conversion to expected<unsigned T> here, in expected ctor
@@ -156,8 +156,8 @@ struct read<T,
     if (lua_isnumber(L, idx)) {
       result = static_cast<T>(lua_tonumber(L, idx));
     } else {
-      result = primer::error{"Expected number, found ",
-                             primer::describe_lua_value(L, idx)};
+      result = primer::error::unexpected_value("number",
+                             primer::describe_lua_value(L, idx));
     }
 
     return result;
@@ -188,8 +188,8 @@ struct read<nil_t> {
     if (lua_isnoneornil(L, idx)) {
       return nil_t{};
     } else
-      return primer::error{"Expected nil, found ",
-                           primer::describe_lua_value(L, idx)};
+      return primer::error::unexpected_value("nil",
+                           primer::describe_lua_value(L, idx));
   }
   static constexpr maybe_int stack_space_needed{0};
 };
@@ -210,7 +210,7 @@ struct read<stringy> {
     if (luaL_callmeta(L, idx, "__tostring")) {
       if (const char * str = lua_tostring(L, -1)) {
         PRIMER_TRY_BAD_ALLOC { result = stringy{str}; }
-        PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
+        PRIMER_CATCH_BAD_ALLOC { result = primer::error::bad_alloc(); }
       } else {
         result =
           primer::error{"__tostring metamethod did not produce a string: ",
@@ -221,20 +221,20 @@ struct read<stringy> {
       switch (lua_type(L, idx)) {
         case LUA_TSTRING: {
           PRIMER_TRY_BAD_ALLOC { result = stringy{lua_tostring(L, idx)}; }
-          PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
+          PRIMER_CATCH_BAD_ALLOC { result = primer::error::bad_alloc(); }
           break;
         }
         case LUA_TNUMBER: {
           lua_pushvalue(L, idx);
 
           PRIMER_TRY_BAD_ALLOC { result = stringy{lua_tostring(L, -1)}; }
-          PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
+          PRIMER_CATCH_BAD_ALLOC { result = primer::error::bad_alloc(); }
 
           lua_pop(L, 1);
           break;
         }
         default:
-          result = primer::error{"Could not convert to string: ",
+          result = primer::error{"__tostring metamethod did not produce a string: ",
                                  primer::describe_lua_value(L, idx)};
       }
     }

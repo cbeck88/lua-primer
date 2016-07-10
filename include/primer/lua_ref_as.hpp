@@ -64,7 +64,7 @@ struct read<lua_ref> {
 
 template <typename T>
 expected<T> lua_ref::as() const noexcept {
-  expected<T> result{primer::error{"Can't lock VM"}};
+  expected<T> result{primer::error::cant_lock_vm()};
   // ^ hoping for small string optimization here
   if (lua_State * L = this->push()) {
     result = primer::read<T>(L, -1);

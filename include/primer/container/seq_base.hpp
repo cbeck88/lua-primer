@@ -83,13 +83,13 @@ struct read_seq_helper {
       int n = lua_rawlen(L, idx);
 
       PRIMER_TRY_BAD_ALLOC { reserve_helper<T>::reserve(*result, n); }
-      PRIMER_CATCH_BAD_ALLOC { result = primer::error(bad_alloc_tag{}); }
+      PRIMER_CATCH_BAD_ALLOC { result = primer::error::bad_alloc(); }
 
       for (int i = 0; (i < n) && result; ++i) {
         lua_rawgeti(L, idx, i + 1);
         if (auto object = traits::read<value_type>::from_stack(L, -1)) {
           PRIMER_TRY_BAD_ALLOC { result->emplace_back(std::move(*object)); }
-          PRIMER_CATCH_BAD_ALLOC { result = primer::error(bad_alloc_tag{}); }
+          PRIMER_CATCH_BAD_ALLOC { result = primer::error::bad_alloc(); }
         } else {
           result = std::move(object.err());
           result.err().prepend_error_line("In index [", i + 1, "],");
@@ -97,8 +97,8 @@ struct read_seq_helper {
         lua_pop(L, 1);
       }
     } else {
-      result = primer::error("Expected: table, found ",
-                             primer::describe_lua_value(L, idx));
+      result = primer::error::unexpected_value("table",
+                             describe_lua_value(L, idx));
     }
 
     return result;
@@ -122,8 +122,8 @@ struct read_fixed_seq_helper {
 
     idx = lua_absindex(L, idx);
     if (!lua_istable(L, idx)) {
-      result = primer::error("Expected: table, found ",
-                             primer::describe_lua_value(L, idx));
+      result = primer::error::unexpected_value("table",
+                             describe_lua_value(L, idx));
     }
 
     int n = static_cast<int>(result->size());

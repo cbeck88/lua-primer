@@ -19,11 +19,9 @@
 
 */
 
-/*` Primer generally translates lua errors into `primer::error` when it performs
-   an
-    operation which fails, and will translate `primer::error` into a lua error
-   when
-    adapting callbacks.
+/*` Primer generally translates lua errors into `primer::error` when it
+   performs an operation which fails, and will translate `primer::error` into
+   a lua error when adapting callbacks.
 
 */
 
@@ -40,39 +38,135 @@ PRIMER_ASSERT_FILESCOPE;
 #include <utility>
 
 //->
-namespace primer {
 
-//` `primer::error` is used to handle all errors in primer. Since it uses
-//` `std::string` internally, it needs some extra support
-//` for propagating `std::bad_alloc` signals successfully.
-// Tag used to indicate a bad_alloc error
-struct bad_alloc_tag {};
 
 //<-
 // clang-format off
 //->
 
-//` The main class has some helpful constructors so that you can more easily
+//` The constructor can be used to easily
 //` format error messages.
-//` For instance, the expression
+//` For instance,
 //= primer::error("Bad doggie, '", dog_name_str, "'! You get ", biscuit_num, "biscuits!")
-//` produces a `primer::error` object with error string equal to the result of
+//` produces a `primer::error` object with error string equal to
 //= "Bad doggie, '" + dog_name_str + "'! You get " + std::to_string(biscuit_num) + " biscuits!"
 //`
-//` Main class definition:
+//` Synopsis:
 
 //<-
 // clang-format on
 //->
+namespace primer {
 
 class error {
-  std::string msg_;
-
-  /*<< This function sets the message for the `bad_alloc` state. >>*/
-  //= void set_bad_alloc_state() noexcept;
-
   //<-
-  void set_bad_alloc_state() noexcept {
+  std::string msg_;
+  void set_bad_alloc_state() noexcept;
+  //->
+public:
+  // Defaulted special member functions
+  error() = default;
+  error(const error &) = default;
+  error(error &&) = default;
+  error & operator=(const error &) = default;
+  error & operator=(error &&) = default;
+  ~error() = default;
+
+  // General constructor
+  // Takes a sequence of strings, string literals, or numbers
+  // and concatenates them to form the message.
+  template <typename... Args>
+  explicit error(Args &&... args) noexcept;
+
+  // Help to give context to errors
+  /*<< This method takes a sequence of
+      strings and concatenates them on their own line to the front of the error
+      message. >>*/
+  template <typename... Args>
+  error & prepend_error_line(Args &&... args) noexcept;
+
+  //
+  // Preformatted errors
+  //
+
+  // Used to indicate an out-of-memory error like `std::bad_alloc`
+  static error bad_alloc() noexcept;
+
+  // "Integer overflow occured: X"
+  template <typename T>
+  static error integer_overflow(const T & t) noexcept;
+
+  // "Insufficient stack space: needed n"
+  static error insufficient_stack_space(int n) noexcept;
+
+  // "Expected foo, found 'bar'"
+  template <typename T>
+  static error unexpected_value(const char * expected, T && found) noexcept;
+
+  // "Can't lock VM".
+  /*<< Used with coroutines / bound_functions that are called but the VM could
+       not be accessed. >>*/
+  static error cant_lock_vm() noexcept;
+
+  // "Expired coroutine"
+  /*<< Used with coroutines that are called while in an empty state >>*/
+  static error expired_coroutine() noexcept;
+
+
+  // Accessor
+  const std::string & str() const noexcept;
+};
+
+//]
+
+inline error error::bad_alloc() noexcept {
+  error result;
+  result.set_bad_alloc_state();
+  return result;
+}
+
+template <typename T>
+inline error error::integer_overflow(const T & t) noexcept {
+  return error("Integer overflow occurred: ", t);
+}
+
+template <typename T>
+inline error error::unexpected_value(const char * expected, T && t) noexcept {
+  return error("Expected ", expected, " found: '", std::forward<T>(t), "'");
+}
+
+inline error error::insufficient_stack_space(int n) noexcept {
+  return error("Insufficient stack space: needed ", n);
+}
+
+inline error error::expired_coroutine() noexcept {
+  return error("Expired coroutine");
+}
+
+inline error error::cant_lock_vm() noexcept {
+  return error("Can't lock VM");
+}
+
+template <typename... Args>
+inline error::error(Args &&... args) noexcept {
+  PRIMER_TRY_BAD_ALLOC {
+    msg_ = primer::detail::str_cat(std::forward<Args>(args)...);
+  }
+  PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
+}
+
+template <typename... Args>
+inline error & error::prepend_error_line(Args &&... args) noexcept {
+  PRIMER_TRY_BAD_ALLOC {
+    msg_ = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_;
+  }
+  PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
+  return *this;
+}
+
+inline const std::string & error::str() const noexcept { return msg_; }
+
+inline void error::set_bad_alloc_state() noexcept {
     PRIMER_TRY_BAD_ALLOC { msg_ = "bad_alloc"; }
     PRIMER_CATCH_BAD_ALLOC {
       // no small string optimization ?! O_o
@@ -85,49 +179,6 @@ class error {
       }
     }
   }
-  //->
-public:
-  // Defaulted special member functions
-  error() = default;
-  error(const error &) = default;
-  error(error &&) = default;
-  error & operator=(const error &) = default;
-  error & operator=(error &&) = default;
-  ~error() = default;
-
-  // Bad alloc constructor
-  /*<< Used to initialize the object in the `std::bad_alloc` state >>*/
-  explicit error(bad_alloc_tag) noexcept { this->set_bad_alloc_state(); }
-
-  // Primary constructor
-  /*<< This constructor takes a sequence of strings, string literals, or numbers
-      and concatenates them to form the message. >>*/
-  template <typename... Args>
-  explicit error(Args &&... args) noexcept {
-    PRIMER_TRY_BAD_ALLOC {
-      msg_ = primer::detail::str_cat(std::forward<Args>(args)...);
-    }
-    PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
-  }
-
-  // Help to give context to errors
-  /*<< This method takes a sequence of
-      strings and concatenates them on their own line to the front of the error
-      message. >>*/
-  template <typename... Args>
-  error & prepend_error_line(Args &&... args) noexcept {
-    PRIMER_TRY_BAD_ALLOC {
-      msg_ = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_;
-    }
-    PRIMER_CATCH_BAD_ALLOC { this->set_bad_alloc_state(); }
-    return *this;
-  }
-
-  // Accessor
-  const std::string & str() const noexcept { return msg_; }
-};
-
-//]
 
 //[ primer_error_extra_notes
 

@@ -27,8 +27,7 @@ namespace detail {
 
 expected<void> check_stack_push_n(lua_State * L, int n) {
   if (n && !lua_checkstack(L, n)) {
-    return primer::error{"Insufficient stack space: needed ", n,
-                         "  lua MAXSTACK = ", LUAI_MAXSTACK};
+    return primer::error::insufficient_stack_space(n);
   }
   return {};
 }

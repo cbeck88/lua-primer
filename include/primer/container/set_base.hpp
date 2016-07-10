@@ -68,7 +68,8 @@ struct set_read_helper {
 
   static expected<M> from_stack(lua_State * L, int index) {
     if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {
-      return primer::error("Not a table");
+      return primer::error::unexpected_value("table",
+                             describe_lua_value(L, index));
     }
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
@@ -86,7 +87,7 @@ struct set_read_helper {
           PRIMER_TRY_BAD_ALLOC { result.emplace(std::move(*key)); }
           PRIMER_CATCH_BAD_ALLOC {
             lua_pop(L, 3);
-            return primer::error(bad_alloc_tag{});
+            return primer::error::bad_alloc();
           }
         }
         lua_pop(L, 2);

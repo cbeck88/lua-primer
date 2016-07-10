@@ -89,6 +89,7 @@ struct push<foo> {
 
 } // end namespace traits
 } // end namespace primer
+``
 
 if e.g. four additional stack spaces are needed to complete the push operation.
 

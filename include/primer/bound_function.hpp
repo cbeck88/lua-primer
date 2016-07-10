@@ -59,7 +59,7 @@ class bound_function {
   // Calls the call_impl in a protected context. This is no fail.
   template <typename return_type, typename... Args>
   expected<return_type> protected_call(Args &&... args) const noexcept {
-    expected<return_type> result{primer::error{"Can't lock VM"}};
+    expected<return_type> result{primer::error::cant_lock_vm()};
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
         auto ok = mem_pcall(L, &call_impl<expected<return_type>, Args...>,
@@ -87,7 +87,7 @@ class bound_function {
   template <typename return_type>
   expected<return_type> protected_call2(const lua_ref_seq & inputs) const
     noexcept {
-    expected<return_type> result{primer::error{"Can't lock VM"}};
+    expected<return_type> result{primer::error::cant_lock_vm()};
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_n(L, 1 + inputs.size())) {
         auto ok = primer::mem_pcall(L, &call_impl2<expected<return_type>>,
@@ -217,8 +217,8 @@ struct read<primer::bound_function> {
       auto ok = mem_pcall<1>(L, &impl, L, result);
       if (!ok) { result = ok.err(); }
     } else {
-      result = primer::error{"Expected function, found ",
-                             primer::describe_lua_value(L, idx)};
+      result = primer::error::unexpected_value("function",
+                             describe_lua_value(L, idx));
     }
 
     return result;

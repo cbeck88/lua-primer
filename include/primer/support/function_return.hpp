@@ -45,7 +45,7 @@ struct return_helper<lua_ref_seq> {
       result = return_type{default_construct_in_place_tag{}};
       primer::pop_n(L, lua_gettop(L) - start_idx + 1, *result);
     }
-    PRIMER_CATCH_BAD_ALLOC { result = primer::error{bad_alloc_tag{}}; }
+    PRIMER_CATCH_BAD_ALLOC { result = primer::error::bad_alloc(); }
   }
 
   static constexpr int nrets = LUA_MULTRET;
