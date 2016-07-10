@@ -4,7 +4,7 @@ Primer contains a handy utility called `cpp_pcall` which can be used to execute
 any C++ call with any arguments inside of a lua protected context.
 
 This is essentially an extension of the `cpcall` idiom described on the lua
-mailing lists, except using template metaprogramming.
+mailing lists, except using C++ generic programming techniques.
 
 For reference, see [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus this description and example] of `lua_cpcall` usage.
 
@@ -39,7 +39,7 @@ For reference, see [@http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCpluspl
 
 In summary, the idea is to create a local `struct` that will hold pointers to
 the call parameters, then do something with them in a lua callback, then, push
-that callback and a pointer to the structure to pcall.
+that callback and a pointer to the structure to `pcall`.
 
 `cpp_pcall` accomplishes the same but without the boiler-plate.
 In addition, `cpp_pcall` can work not only with a function pointer, but any
@@ -79,7 +79,7 @@ implement all of its forwarding facing functions.
   }
 ``
 
-In this code, the lambda contains code that could potentially cause a lua
+In this code, the lambda contains calls that could potentially cause a lua
 memory failure, when pushing objects and also popping return values off of the
 stack. `mem_pcall` allows us to catch all such errors, and when `PRIMER_NO_MEMORY_FAILURE`
 is defined, the `mem_pcall` and the lambda are inlined, producing a direct call

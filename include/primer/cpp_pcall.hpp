@@ -66,7 +66,7 @@ namespace detail {
 
 template <typename T>
 int lambda_upvalue_dispatch(lua_State * L) {
-  T * t = static_cast<T*>(lua_touserdata(L, lua_upvalueindex(1)));
+  T * t = static_cast<T *>(lua_touserdata(L, lua_upvalueindex(1)));
   (*t)();
   return lua_gettop(L);
 }
@@ -77,7 +77,7 @@ template <int narg, typename F, typename... Args>
 expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   expected<void> result;
 
-  auto lambda = [&](){ (std::forward<F>(f))(std::forward<Args>(args)...); };
+  auto lambda = [&]() { (std::forward<F>(f))(std::forward<Args>(args)...); };
   lua_pushlightuserdata(L, static_cast<void *>(&lambda));
   lua_pushcclosure(L, &detail::lambda_upvalue_dispatch<decltype(lambda)>, 1);
 
@@ -86,9 +86,7 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   int code; // pcall_helper installs a custom error handler
   std::tie(code, std::ignore) = detail::pcall_helper(L, narg, LUA_MULTRET);
 
-  if (code != LUA_OK)  {
-    result = detail::pop_error(L, code);
-  }
+  if (code != LUA_OK) { result = detail::pop_error(L, code); }
   return result;
 }
 //]
