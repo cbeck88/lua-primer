@@ -134,7 +134,7 @@ One aspect of lua that you may easily miss on your first pass through the manual
 is [@http://www.lua.org/manual/5.3/manual.html#4.2 the note about stack overflow].
 
 The lua stack is dynamically sized. When a lua state is created, it is
-relatively small. It can grow to a quite large size (thousands of elements).
+relatively small. It can grow to a quite large size (many thousands of elements).
 
 Some of the more complex lua calls, like `lua_pcall`, will manage the checking
 of stack bounds and ensure that they have enough space.
@@ -143,12 +143,14 @@ Most of the primitive lua calls, for efficiency, do not do any such bounds
 checking.
 
 The function `lua_checkstack(lua_State *, int)` ensures that the stack has
-a given amount of extra spaces, and enlarges it if needed.
+a given amount of extra spaces, and enlarges it if needed. It is similar to
+`std::vector::reserve`, except that the input refers to *additional* spaces
+from the current top of the stack.
 (`lua_checkstack` can conceivably fail, if lua runs out of memory.)
 
-['lua leaves it up to you to manage this] -- if you don't manage it, simple
-programs will work (because of a small built-in minimum space) but large
-programs will give undefined behavior.
+['lua leaves it up to you to manage this] -- if you don't do it, simple
+programs will work (because of a small built-in minimum stack size) but large
+programs may give undefined behavior.
 
 [h4 In Primer]
 
