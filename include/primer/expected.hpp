@@ -169,7 +169,7 @@ public:
   expected<U> convert() const &;
 
   template <typename U>
-  expected<U> convert() &&;
+  expected<U> convert()&&;
 };
 //]
 

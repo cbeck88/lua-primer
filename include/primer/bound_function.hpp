@@ -51,10 +51,10 @@ class bound_function {
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
         auto ok = mem_pcall(L, [&]() {
-                               ref_.push(L);
-                               primer::push_each(L, std::forward<Args>(args)...);
-                               detail::fcn_call(result, L, sizeof...(args));
-                            });
+          ref_.push(L);
+          primer::push_each(L, std::forward<Args>(args)...);
+          detail::fcn_call(result, L, sizeof...(args));
+        });
 
         if (!ok) { result = std::move(ok.err()); }
       } else {
@@ -72,10 +72,10 @@ class bound_function {
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_n(L, 1 + inputs.size())) {
         auto ok = primer::mem_pcall(L, [this, &result, L, &inputs]() {
-                                         ref_.push(L);
-                                         inputs.push_each(L);
-                                         detail::fcn_call(result, L, inputs.size());
-                                      });
+          ref_.push(L);
+          inputs.push_each(L);
+          detail::fcn_call(result, L, inputs.size());
+        });
         if (!ok) { result = std::move(ok.err()); }
       } else {
         result = std::move(stack_check.err());

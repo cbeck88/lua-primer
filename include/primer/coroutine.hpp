@@ -71,11 +71,10 @@ class coroutine {
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
         if (auto check = detail::check_stack_push_each<Args...>(thread_stack_)) {
-          auto ok =
-            primer::mem_pcall(L, [&]() {
-                   primer::push_each(thread_stack_, std::forward<Args>(args)...);
-                   detail::resume_call(result, thread_stack_, sizeof...(Args));
-                });
+          auto ok = primer::mem_pcall(L, [&]() {
+            primer::push_each(thread_stack_, std::forward<Args>(args)...);
+            detail::resume_call(result, thread_stack_, sizeof...(Args));
+          });
 
           if (!ok) { result = std::move(ok.err()); }
 
@@ -101,9 +100,9 @@ class coroutine {
       if (lua_State * L = ref_.lock()) {
         if (auto c = detail::check_stack_push_n(thread_stack_, inputs.size())) {
           auto ok = primer::mem_pcall(L, [&]() {
-                      inputs.push_each(thread_stack_);
-                      detail::resume_call(result, thread_stack_, inputs.size());
-                   });
+            inputs.push_each(thread_stack_);
+            detail::resume_call(result, thread_stack_, inputs.size());
+          });
 
           if (!ok) { result = ok.err(); }
         } else {

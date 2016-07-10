@@ -52,7 +52,9 @@ struct read<const char *> {
 template <>
 struct read<std::string> {
   static expected<std::string> from_stack(lua_State * L, int idx) {
-    PRIMER_TRY_BAD_ALLOC { return read<const char *>::from_stack(L, idx).convert<std::string>(); }
+    PRIMER_TRY_BAD_ALLOC {
+      return read<const char *>::from_stack(L, idx).convert<std::string>();
+    }
     PRIMER_CATCH_BAD_ALLOC { return primer::error::bad_alloc(); }
   }
   static constexpr int stack_space_needed{0};
@@ -114,8 +116,7 @@ template <typename T>
 struct unsigned_read_helper {
   using unsigned_t = typename std::make_unsigned<T>::type;
 
-  static expected<unsigned_t> from_stack(lua_State * L,
-                                                                   int idx) {
+  static expected<unsigned_t> from_stack(lua_State * L, int idx) {
     auto maybe = read<T>::from_stack(L, idx);
 
     if (maybe && *maybe < 0) {

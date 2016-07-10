@@ -46,7 +46,7 @@ struct read<lua_ref> {
 
     if (!lua_isnoneornil(L, idx)) {
       lua_pushvalue(L, idx);
-      auto ok = mem_pcall<1>(L, [L, &result](){ result = lua_ref{L}; });
+      auto ok = mem_pcall<1>(L, [L, &result]() { result = lua_ref{L}; });
       if (!ok) { result = ok.err(); }
     }
 
