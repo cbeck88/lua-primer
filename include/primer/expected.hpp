@@ -162,21 +162,14 @@ public:
   expected(const primer::error & e);
   expected(primer::error && e) noexcept;
 
-  // Conversions from other `expected` types
-
-  // When `U` is convertible to `T`, we allow converting `expected<U>`
-  // to `expected<T>`.
+  // Conversions to other `expected` types
+  // This allows you to explicitly convert to expected<U> as long as U is
+  // constructible from T, without unpacking and repacking the expected.
   template <typename U>
-  expected(const expected<U> & u);
-
-  template <typename U>
-  expected(expected<U> && u);
+  expected<U> convert() const &;
 
   template <typename U>
-  expected & operator=(const expected<U> & u);
-
-  template <typename U>
-  expected & operator=(expected<U> && e);
+  expected<U> convert() &&;
 };
 //]
 
@@ -271,29 +264,22 @@ expected<T> & expected<T>::operator=(expected && e) noexcept {
 
 template <typename T>
 template <typename U>
-expected<T>::expected(const expected<U> & u) {
-  this->init_from_const_ref(u);
+expected<U> expected<T>::convert() const & {
+  if (*this) {
+    return U(**this);
+  } else {
+    return this->err();
+  }
 }
 
 template <typename T>
 template <typename U>
-expected<T>::expected(expected<U> && u) {
-  this->init_from_rvalue_ref(std::move(u));
-}
-
-template <typename T>
-template <typename U>
-expected<T> & expected<T>::operator=(const expected<U> & u) {
-  expected temp{u};
-  *this = std::move(temp);
-  return *this;
-}
-
-template <typename T>
-template <typename U>
-expected<T> & expected<T>::operator=(expected<U> && e) {
-  this->move_assign(std::move(e));
-  return *this;
+expected<U> expected<T>::convert() && {
+  if (*this) {
+    return U(std::move(**this));
+  } else {
+    return std::move(this->err());
+  }
 }
 
 // Converting from T

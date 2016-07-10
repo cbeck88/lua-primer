@@ -52,7 +52,7 @@ struct read<const char *> {
 template <>
 struct read<std::string> {
   static expected<std::string> from_stack(lua_State * L, int idx) {
-    PRIMER_TRY_BAD_ALLOC { return read<const char *>::from_stack(L, idx); }
+    PRIMER_TRY_BAD_ALLOC { return read<const char *>::from_stack(L, idx).convert<std::string>(); }
     PRIMER_CATCH_BAD_ALLOC { return primer::error::bad_alloc(); }
   }
   static constexpr maybe_int stack_space_needed{0};
@@ -112,7 +112,9 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
 // When reading unsigned, must do 0 check
 template <typename T>
 struct unsigned_read_helper {
-  static expected<typename std::make_unsigned<T>::type> from_stack(lua_State * L,
+  using unsigned_t = typename std::make_unsigned<T>::type;
+
+  static expected<unsigned_t> from_stack(lua_State * L,
                                                                    int idx) {
     auto maybe = read<T>::from_stack(L, idx);
 
@@ -120,8 +122,7 @@ struct unsigned_read_helper {
       maybe = primer::error::unexpected_value("nonnegative integer", *maybe);
     }
 
-    // implicit conversion to expected<unsigned T> here, in expected ctor
-    return maybe;
+    return maybe.template convert<unsigned_t>();
   }
   static constexpr maybe_int stack_space_needed{0};
 };
