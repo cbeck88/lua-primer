@@ -1147,17 +1147,13 @@ void test_cpp_pcall_returns() {
   TEST_EQ(2, lua_tointeger(L, 1));
   TEST_EQ(3, lua_tointeger(L, 2));
 
-  primer::mem_pcall<3>(L, [&]() {
-    lua_pop(L, 2);
-  });
+  primer::mem_pcall<3>(L, [&]() { lua_pop(L, 2); });
 
   TEST_EQ(2, lua_gettop(L));
   TEST_EQ(2, lua_tointeger(L, 1));
   TEST_EQ(3, lua_tointeger(L, 2));
 
-  primer::mem_pcall<2>(L, [&]() {
-    lua_pop(L, 2);
-  });
+  primer::mem_pcall<2>(L, [&]() { lua_pop(L, 2); });
 
   TEST_EQ(0, lua_gettop(L));
 }
