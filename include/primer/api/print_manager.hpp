@@ -45,19 +45,19 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-//[ primer_interpreter_context
+//[ primer_interpreter_context_concept
 //` The `interpreter_context` concept consists of three methods:
 //`
 //= void new_text(const std::string &);
 //= void error_text(const std::string &);
 //= void clear_input();
 //`
-//` `new_text` is called to report a line of print output.
-//` `error_text` is called to report an error message.
-//` `clear_input` is called when the user's input has been accepted. When
-//`  creating a gui dialog, you can use this function as a cue to clear the
-//` editbox that the user was using to enter the input. Then if they made a mistake,
-//` they don't have to retype their whole command.
+//` * `new_text` is called to report a line of print output.
+//` * `error_text` is called to report an error message.
+//` * `clear_input` is called when the user's input has been accepted. When
+//`   creating a gui dialog, you can use this function as a cue to clear the
+//`   editbox that the user was using to enter the input. Then if they made a mistake,
+//`   they don't have to retype their whole command.
 //]
 
 namespace detail {

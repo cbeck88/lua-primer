@@ -1,0 +1,29 @@
+[section API Print Manager]
+
+When using the "sandboxed" libraries, any functions that allow lua to communicate
+with some global state outside of the lua VM are removed. This includes `dofile`
+and `loadfile`, it includes accessing the C standard `rand` function, and it
+includes `print` even. Usually, when you use the sandboxed base library, you'll
+want to install a new `print` right away that directs input to where you would
+like it.
+
+The `api::print_manager` class is a relatively powerful API feature that can
+handle that and some related tasks.
+
+[primer_print_manager_overview]
+
+Besides redirecting output and providing a special method for handling user
+text input, the `print_manager` behavior can be further customized by providing
+custom implementations of `print` and `_pretty_print`. Any function which takes
+a `lua_State *` and produces a `std::string` could be used to replace the default
+formatting.
+
+[h4 Synopsis]
+
+[primer_print_manager_synopsis]
+
+[h4 Interpreter Context]
+
+[primer_interpreter_context_concept]
+
+[endsect]
