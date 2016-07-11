@@ -14,7 +14,7 @@ All of these may be done by downloading a recent copy of boost, and building thi
 
 To assist you: My `user-config.jam` looks like this right now:
 
-``
+```
 using gcc : : g++ ;
 using boostbook
   : /home/chris/boostbook/docbook-xsl-1.75.2
@@ -26,7 +26,7 @@ using fop : /home/chris/boostbook/fop-0.94/fop : : /usr/bin/java ;
 using quickbook
   : /home/chris/bin/quickbook
   ;
-``
+```
 
 Once you have built the html, you need to copy some images and css from the
 boost distribution in order to actually see it rendered nicely in your browser.
