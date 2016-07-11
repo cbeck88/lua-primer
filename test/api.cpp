@@ -1,11 +1,4 @@
-#include <primer/api/base.hpp>
-#include <primer/api/callbacks.hpp>
-#include <primer/api/libraries.hpp>
-#include <primer/api/print_manager.hpp>
-#include <primer/api/userdatas.hpp>
-#include <primer/api/persistent_value.hpp>
-#include <primer/api/mini_require.hpp>
-// #include <primer/detail/make_array.hpp>
+#include <primer/api.hpp>
 #include <primer/primer.hpp>
 #include <primer/std/vector.hpp>
 

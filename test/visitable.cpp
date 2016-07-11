@@ -1,8 +1,6 @@
+#include <primer/api.hpp>
 #include <primer/primer.hpp>
 #include <primer/visit_struct.hpp>
-
-#include <primer/api/callbacks.hpp>
-#include <primer/api/callback_registrar.hpp>
 
 #include "test_harness/test_harness.hpp"
 #include <iostream>
