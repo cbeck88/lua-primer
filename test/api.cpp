@@ -3,6 +3,7 @@
 #include <primer/api/libraries.hpp>
 #include <primer/api/userdatas.hpp>
 #include <primer/api/persistent_value.hpp>
+#include <primer/api/mini_require.hpp>
 // #include <primer/detail/make_array.hpp>
 #include <primer/primer.hpp>
 #include <primer/std/vector.hpp>
@@ -473,6 +474,48 @@ void test_api_persistent_value() {
   }
 }
 
+struct test_api_five : primer::api::base<test_api_five> {
+  lua_raii L_;
+
+  API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
+
+  USE_LUA_CALLBACK(require, "this is the require function", &primer::api::mini_require);
+
+  API_FEATURE(primer::api::callbacks, cb_);
+
+  test_api_five()
+   : L_()
+   , cb_(this)
+  {
+    this->initialize_api(L_);
+  }
+};
+
+void test_sandboxed_libs() {
+  test_api_five a;
+
+  lua_State * L = a.L_;
+
+  const char * script =
+   "t = { 4, 5 }                           \n"
+   "x, y = table.unpack(t)                 \n"
+   "assert(x == 4)                         \n"
+   "assert(y == 5)                         \n"
+   "local tablib = require \'table\'       \n"
+   "assert(tablib == table)                \n"
+   "assert(math.sin)                       \n"
+   "assert(not math.random)                \n";
+
+  if (LUA_OK != luaL_loadstring(L, script)) {
+    std::cerr << lua_tostring(L, -1);
+    TEST(false, "failed to compile script");
+  }
+  if (LUA_OK != lua_pcall(L, 0, 0, 0)) {
+    std::cerr << lua_tostring(L, -1);
+    TEST(false, "failed to run script");
+  }
+}
+
 int main() {
   conf::log_conf();
 
@@ -483,6 +526,7 @@ int main() {
     {"api help", &test_api_help},
     {"api userdata", &test_api_userdata},
     {"api persistent value", &test_api_persistent_value},
+    {"api sandboxed libs", &test_sandboxed_libs},
   };
   int num_fails = tests.run();
   std::cout << "\n";

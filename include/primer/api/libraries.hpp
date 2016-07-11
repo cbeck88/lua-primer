@@ -40,6 +40,7 @@ CORE_LIB_DEFN(io);
 CORE_LIB_DEFN(os);
 CORE_LIB_DEFN(debug);
 CORE_LIB_DEFN(coroutine);
+CORE_LIB_DEFN(package);
 
 #undef CORE_LIB_DEFN
 
@@ -86,6 +87,9 @@ struct lua_math_lib_sandboxed {
     lua_setfield(L, -2, "random");
     return 1;
   }
+
+  static constexpr lua_CFunction func = &get_clean_math;
+
 };
 
 /***
