@@ -22,8 +22,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 //[ primer_print_manager_overview
 //` The `print_manager` class is an API feature which creates "print" and
-//"pretty_print" functions
-//` which can be used by scripts.
+//` "pretty_print" functions which can be used by scripts.
 //`
 //` This feature also makes it so that the output can be easily redirected, to
 //` e.g. a diagnostic shell or gui dialog
@@ -36,11 +35,14 @@ PRIMER_ASSERT_FILESCOPE;
 //` interpreter context can be detached using "pop_interpreter_context".
 //`
 //` The method "handle_user_input" takes a string and considers it as user
-//` input from an interactive shell or dialog. This is handled using an
+//` input from an interactive shell or dialog.
+//`
+//` This is handled using an
 //` "experimental compilation" approach. First, we assume that the command is
 //` a lua value, and we transform it to `_pretty_print(input)`, and check if
-//that
-//` is syntactically well-formed. If so we execute it. If it is not well-formed,
+//` that is syntactically well-formed. If so, we execute it.
+//`
+//` If it is not well-formed,
 //` then we try simply loading `input` -- maybe it is just a statement. If so,
 //` we execute it, if not we report a syntax error to the user.
 //]
