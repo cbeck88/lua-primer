@@ -19,10 +19,12 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 namespace api {
 
+//[ lua_base_lib
 struct lua_base_lib {
   static constexpr const char * name = "";
   static constexpr lua_CFunction func = &luaopen_base;
 };
+//]
 
 #define CORE_LIB_DEFN(STR)                                                     \
   struct lua_##STR##_lib {                                                     \
@@ -40,6 +42,51 @@ CORE_LIB_DEFN(debug);
 CORE_LIB_DEFN(coroutine);
 
 #undef CORE_LIB_DEFN
+
+//
+// The previous definitions all open the standard libraries normally.
+// If you want "sandboxed" versions which don't allow the lua VM to access
+// any external resources, load these versions.
+// You can add your own "print" function back which redirects output as
+// desired, and "require" and so on.
+// (See api::print_manager and api::vfs for possible solutions.)
+//
+
+//[ lua_base_lib_sandboxed
+struct lua_base_lib_sandboxed {
+  static constexpr const char * name = "";
+
+  static int get_clean_base(lua_State * L) {
+    luaopen_base(L);
+    lua_pushnil(L);
+    lua_setfield(L, -2, "print");
+
+    lua_pushnil(L);
+    lua_setfield(L, -2, "loadfile");
+
+    lua_pushnil(L);
+    lua_setfield(L, -2, "dofile");
+    return 1;
+  }
+
+  static constexpr lua_CFunction func = &get_clean_base;
+};
+//]
+
+struct lua_math_lib_sandboxed {
+  static constexpr const char * name = "math";
+
+  static int get_clean_math(lua_State * L) {
+    luaopen_math(L);
+
+    lua_pushnil(L);
+    lua_setfield(L, -2, "randomseed");
+
+    lua_pushnil(L);
+    lua_setfield(L, -2, "random");
+    return 1;
+  }
+};
 
 /***
  * An API feature object which registers a number of libraries
@@ -93,7 +140,7 @@ public:
 };
 
 using basic_libraries =
-  libraries<lua_base_lib, lua_table_lib, lua_math_lib, lua_string_lib>;
+  libraries<lua_base_lib_sandboxed, lua_table_lib, lua_math_lib, lua_string_lib, lua_coroutine_lib>;
 
 using all_core_libraries = libraries<lua_base_lib,
                                      lua_table_lib,
@@ -103,6 +150,9 @@ using all_core_libraries = libraries<lua_base_lib,
                                      lua_io_lib,
                                      lua_os_lib,
                                      lua_debug_lib>;
+
+using sandboxed_basic_libraries =
+  libraries<lua_base_lib_sandboxed, lua_table_lib, lua_math_lib_sandboxed, lua_string_lib, lua_coroutine_lib>;
 
 
 } // end namespace api

@@ -21,18 +21,59 @@ Example:
 
 ``
 
-Each library will be loaded when `initialize_api` is called. The functions of
-each library will be installed in the permanent objects table, so that they
-can survive when we persist / unpersist.
+An individual library is a `struct` with `static` class members `const char * name` and `luaCFunction func`.
+For instance,
 
-There are also two typedefs which shorten the list of libraries:
+[lua_base_lib]
+
+There are corresponding definitions in primer for the following:
 
 ``
-API_FEATURE(primer::api::basic_libraries, libs_); // Only base, table, string and math
+primer::api::lua_base_lib
+primer::api::lua_table_lib
+primer::api::lua_string_lib
+primer::api::lua_math_lib
+primer::api::lua_coroutine_lib
+primer::api::lua_debug_lib
+primer::api::lua_io_lib
+primer::api::lua_os_lib
+``
+
+There are also some "sandboxed" versions of some of these libs to help in
+situations where you want a tightly encapsulated lua vm.
+
+[lua_base_lib_sandboxed]
+
+
+Besides this there are
+
+``
+primer::api::lua_math_lib_sandboxed
+``
+
+You can easily make your own sandboxing decisions of course.
+
+[h3 Feature behavior]
+
+The `libraries` feature does the following:
+
+When `initialize_api` is called,
+* Each library will be loaded into the `_LOADED` registry table as usual with lua,
+* The functions of each library will be installed in the permanent objects table, so that they
+can survive when we persist / unpersist.
+
+There are also three typedefs which shorten the list of libraries:
+
+``
+API_FEATURE(primer::api::basic_libraries, libs_); // Only base, table, string, math, and coroutine
 ``
 
 ``
 API_FEATURE(primer::api::all_core_libraries, libs_); // All standard libraries:  at time of writing, basic, table, string, math, io, os, debug, coroutine
+``
+
+``
+API_FEATURE(primer::api::sanbdoxed_basic_libraries, libs_); // Same as basic, but with sandboxed versions of base lib and math lib.
 ``
 
 [endsect]
