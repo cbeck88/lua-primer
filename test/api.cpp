@@ -629,7 +629,13 @@ void test_vfs() {
    "assert(type(bar) == 'nil')                                            \n"
    "local bar = require 'bar'                                             \n"
    "assert(5 == bar.baz())                                                \n"
-   "assert(not pcall(require, 'baz'))                                     \n";
+   "assert(not pcall(require, 'baz'))                                     \n"
+   "                                                                      \n"
+   "assert(bar == require 'bar')                                          \n"
+   "assert(bar ~= dofile 'bar')                                           \n"
+   "                                                                      \n"
+   "assert(type(loadfile 'bar') == 'function')                            \n"
+   "assert(type(dofile 'bar') == 'table')                                 \n";
 
   TEST_EQ(LUA_OK, luaL_loadstring(L, script));
   TEST_EQ(LUA_OK, lua_pcall(L, 0, 0, 0));
