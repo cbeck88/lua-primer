@@ -604,7 +604,9 @@ struct test_api : primer::api::base<test_api> {
   test_api()
     : L_()
     , vfs_(&files_)
-    , files_{{{"foo", "return {}"}, {"bar", "local function baz() return 5 end; return { baz = baz }"}}}
+    , files_{{{"foo", "return {}"},
+              {"bar",
+               "local function baz() return 5 end; return { baz = baz }"}}}
   {
     this->initialize_api(L_);
   }
@@ -624,18 +626,18 @@ void test_vfs() {
   lua_State * L = a.L_;
 
   const char * script =
-   "local foo = require 'foo'                                             \n"
-   "assert(type(foo) == 'table')                                          \n"
-   "assert(type(bar) == 'nil')                                            \n"
-   "local bar = require 'bar'                                             \n"
-   "assert(5 == bar.baz())                                                \n"
-   "assert(not pcall(require, 'baz'))                                     \n"
-   "                                                                      \n"
-   "assert(bar == require 'bar')                                          \n"
-   "assert(bar ~= dofile 'bar')                                           \n"
-   "                                                                      \n"
-   "assert(type(loadfile 'bar') == 'function')                            \n"
-   "assert(type(dofile 'bar') == 'table')                                 \n";
+    "local foo = require 'foo'                                             \n"
+    "assert(type(foo) == 'table')                                          \n"
+    "assert(type(bar) == 'nil')                                            \n"
+    "local bar = require 'bar'                                             \n"
+    "assert(5 == bar.baz())                                                \n"
+    "assert(not pcall(require, 'baz'))                                     \n"
+    "                                                                      \n"
+    "assert(bar == require 'bar')                                          \n"
+    "assert(bar ~= dofile 'bar')                                           \n"
+    "                                                                      \n"
+    "assert(type(loadfile 'bar') == 'function')                            \n"
+    "assert(type(dofile 'bar') == 'table')                                 \n";
 
   TEST_EQ(LUA_OK, luaL_loadstring(L, script));
   TEST_EQ(LUA_OK, lua_pcall(L, 0, 0, 0));

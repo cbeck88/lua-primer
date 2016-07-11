@@ -32,13 +32,14 @@ PRIMER_ASSERT_FILESCOPE;
 //` some fashion, you can use the `primer::api::vfs` object to
 //` get implementations of `loadfile`, `dofile`, and `require`
 //` which are tied to your vfs and not the actual OS.
-//` 
+//`
 //` Your class should essentially provide an implementation of `loadfile`, with
 //` the following signature:
 //= expected<void> load(lua_State *, const std::string & path)
 //` Given a pointer to the stack and the path argument from the lua script,
-//` either call `luaL_loadbuffer` to load a chunk onto the stack and return "ok",
-//` or return some sort of error message regarding the path.
+//` either call `luaL_loadbuffer` to load a chunk onto the stack and return
+//` "ok" (default constructed `expected<void>`), or return some sort of error
+//` message regarding the path.
 //`
 //` The vfs can then be constructed from a pointer to an instance of your class.
 //]
@@ -48,98 +49,94 @@ namespace api {
 
 class vfs {
 
-// Delegate to user object
-void * object_;
-expected<void> (*load_method_)(void *, lua_State *, const std::string &);
+  // Delegate to user object
+  void * object_;
+  expected<void> (*load_method_)(void *, lua_State *, const std::string &);
 
-expected<void> load(lua_State * L, const std::string & path) {
-  if (object_) {
-    return load_method_(object_, L, path);
+  expected<void> load(lua_State * L, const std::string & path) {
+    if (object_) { return load_method_(object_, L, path); }
+    return primer::error{"module '", path, "' not found"};
   }
-  return primer::error{"module '", path, "' not found"};
-}
 
 public:
-
-template <typename T>
-explicit vfs(T * t)
-  : object_(static_cast<void *>(t))
-  , load_method_(+[](void * o, lua_State * L, const std::string & str) -> expected<void> {
-    return static_cast<T*>(o)->load(L, str);
-  })
-{}
+  template <typename T>
+  explicit vfs(T * t)
+    : object_(static_cast<void *>(t))
+    , load_method_(
+        +[](void * o, lua_State * L, const std::string & str) -> expected<void> {
+          return static_cast<T *>(o)->load(L, str);
+        })
+  {}
 
 private:
+  // Installing self in registry
+  static int get_reg_key(lua_State * L) {
+    lua_pushcfunction(L, &get_reg_key);
+    return 0;
+  }
 
-// Installing self in registry
-static int get_reg_key(lua_State * L) {
-  lua_pushcfunction(L, &get_reg_key);
-  return 0;
-}
+  void install_this_pointer(lua_State * L) {
+    get_reg_key(L);
+    lua_pushlightuserdata(L, static_cast<void *>(this));
+    lua_settable(L, LUA_REGISTRYINDEX);
+  }
 
-void install_this_pointer(lua_State * L) {
-  get_reg_key(L);
-  lua_pushlightuserdata(L, static_cast<void *>(this));
-  lua_settable(L, LUA_REGISTRYINDEX);
-}
-
-static vfs * recover_this(lua_State * L) {
-  get_reg_key(L);
-  lua_gettable(L, LUA_REGISTRYINDEX);
-  void * ptr = lua_touserdata(L, -1);
-  PRIMER_ASSERT(ptr, "Could not recover this pointer!");
-  lua_pop(L, 1);
-  return static_cast<vfs*>(ptr);  
-}
+  static vfs * recover_this(lua_State * L) {
+    get_reg_key(L);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    void * ptr = lua_touserdata(L, -1);
+    PRIMER_ASSERT(ptr, "Could not recover this pointer!");
+    lua_pop(L, 1);
+    return static_cast<vfs *>(ptr);
+  }
 
 protected:
+  // Implementations
 
-// Implementations
-
-static primer::result intf_loadfile(lua_State * L, std::string path) {
-  if (auto ok = recover_this(L)->load(L, path)) {
-    return 1;
-  } else {
-    return std::move(ok.err());
-  }
-}
-
-static primer::result intf_dofile(lua_State * L, std::string path) {
-  if (auto ok = recover_this(L)->load(L, path)) {
-    int code, idx;
-    std::tie(code, idx) = detail::pcall_helper(L, 0, LUA_MULTRET);
-
-    if (code == LUA_OK) {
-      return lua_gettop(L) - idx + 1;
+  static primer::result intf_loadfile(lua_State * L, std::string path) {
+    if (auto ok = recover_this(L)->load(L, path)) {
+      return 1;
     } else {
-      return primer::detail::pop_error(L, code);
+      return std::move(ok.err());
     }
-  } else {
-    return std::move(ok.err());
   }
-}
 
-static primer::result intf_require(lua_State * L, std::string path) {
-  lua_settop(L, 1); /* _LOADED table will be at index 2 */
-  lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
-  lua_getfield(L, 2, path.c_str()); /* _LOADED[path] */
-  if (lua_toboolean(L, -1)) { return 1; }
-  lua_pop(L, 1);
+  static primer::result intf_dofile(lua_State * L, std::string path) {
+    if (auto ok = recover_this(L)->load(L, path)) {
+      int code, idx;
+      std::tie(code, idx) = detail::pcall_helper(L, 0, LUA_MULTRET);
 
-  if (auto ok = recover_this(L)->load(L, path)) {
-    int code;
-    std::tie(code, std::ignore) = detail::pcall_helper(L, 0, 1);
-    if (code != LUA_OK) { return primer::detail::pop_error(L, code); }
-
-    lua_pushvalue(L, -1); // push an extra copy
-    lua_setfield(L, 2, path.c_str()); // set to _LOADED table
-    return 1;
-  } else {
-    lua_pushboolean(L, true);
-    lua_setfield(L, 2, path.c_str());
-    return std::move(ok.err());
+      if (code == LUA_OK) {
+        return lua_gettop(L) - idx + 1;
+      } else {
+        return primer::detail::pop_error(L, code);
+      }
+    } else {
+      return std::move(ok.err());
+    }
   }
-}
+
+  static primer::result intf_require(lua_State * L, std::string path) {
+    lua_settop(L, 1); /* _LOADED table will be at index 2 */
+    lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
+    lua_getfield(L, 2, path.c_str()); /* _LOADED[path] */
+    if (lua_toboolean(L, -1)) { return 1; }
+    lua_pop(L, 1);
+
+    if (auto ok = recover_this(L)->load(L, path)) {
+      int code;
+      std::tie(code, std::ignore) = detail::pcall_helper(L, 0, 1);
+      if (code != LUA_OK) { return primer::detail::pop_error(L, code); }
+
+      lua_pushvalue(L, -1);             // push an extra copy
+      lua_setfield(L, 2, path.c_str()); // set to _LOADED table
+      return 1;
+    } else {
+      lua_pushboolean(L, true);
+      lua_setfield(L, 2, path.c_str());
+      return std::move(ok.err());
+    }
+  }
 
   // Helper
   static std::array<const luaL_Reg, 3> get_permanent_entries() {
@@ -152,28 +149,26 @@ static primer::result intf_require(lua_State * L, std::string path) {
   }
 
 public:
+  // API Feature
 
-// API Feature
+  static constexpr bool is_serial = false;
 
- static constexpr bool is_serial = false;
+  void on_init(lua_State * L) {
+    this->install_this_pointer(L);
 
-void on_init(lua_State * L) {
-  this->install_this_pointer(L);
-
-  for (const auto & r : vfs::get_permanent_entries()) {
-    lua_pushcfunction(L, r.func);
-    lua_setglobal(L, r.name + 7); // lop off the "primer_" prefix
+    for (const auto & r : vfs::get_permanent_entries()) {
+      lua_pushcfunction(L, r.func);
+      lua_setglobal(L, r.name + 7); // lop off the "primer_" prefix
+    }
   }
-}
 
-void on_persist_table(lua_State * L) {
-  primer::set_funcs_reverse(L, vfs::get_permanent_entries());
-}
+  void on_persist_table(lua_State * L) {
+    primer::set_funcs_reverse(L, vfs::get_permanent_entries());
+  }
 
-void on_unpersist_table(lua_State * L) {
-  primer::set_funcs(L, vfs::get_permanent_entries());
-}
-
+  void on_unpersist_table(lua_State * L) {
+    primer::set_funcs(L, vfs::get_permanent_entries());
+  }
 };
 
 } // end namespace api
