@@ -14,6 +14,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/asserts.hpp>
 #include <primer/support/error_capture.hpp>
 #include <primer/support/scoped_stash_global_value.hpp>
+#include <primer/support/set_funcs.hpp>
 
 #include <array>
 #include <iostream>
@@ -278,6 +279,8 @@ public:
                                        const std::string & user_input);
 
   // API Feature
+
+  static constexpr bool is_serial = false;
 
   void on_init(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);

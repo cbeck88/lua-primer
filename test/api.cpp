@@ -576,6 +576,65 @@ void test_interpreter_contexts() {
   TEST_EQ(c.new_text_calls_[4], "$ foo.bar");
 }
 
+//[ primer_vfs_example
+// Model of vfs provider concept
+struct my_files {
+  std::map<std::string, std::string> files_;
+
+  primer::expected<void> load(lua_State * L, const std::string & path) {
+    auto it = files_.find(path);
+    if (it != files_.end()) {
+      const std::string & chunk = it->second;
+      luaL_loadbuffer(L, chunk.c_str(), chunk.size(), path.c_str());
+      return {};
+    } else {
+      return primer::error("module '", path, "' not found");
+    }
+  }
+};
+
+struct test_api : primer::api::base<test_api> {
+  lua_raii L_;
+
+  API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
+  API_FEATURE(primer::api::vfs, vfs_);
+
+  my_files files_;
+
+  test_api()
+    : L_()
+    , vfs_(&files_)
+    , files_{{{"foo", "return {}"}, {"bar", "local function baz() return 5 end; return { baz = baz }"}}}
+  {
+    this->initialize_api(L_);
+  }
+
+  std::string save() {
+    std::string result;
+    this->persist(L_, result);
+    return result;
+  }
+
+  void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
+};
+
+void test_vfs() {
+  test_api a;
+
+  lua_State * L = a.L_;
+
+  const char * script =
+   "local foo = require 'foo'                                             \n"
+   "assert(type(foo) == 'table')                                          \n"
+   "assert(type(bar) == 'nil')                                            \n"
+   "local bar = require 'bar'                                             \n"
+   "assert(5 == bar.baz())                                                \n"
+   "assert(not pcall(require, 'baz'))                                     \n";
+
+  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  TEST_EQ(LUA_OK, lua_pcall(L, 0, 0, 0));
+}
+//]
 
 int main() {
   conf::log_conf();
@@ -589,6 +648,7 @@ int main() {
     {"api persistent value", &test_api_persistent_value},
     {"api sandboxed libs", &test_sandboxed_libs},
     {"api interpreter context", &test_interpreter_contexts},
+    {"api vfs", &test_vfs},
   };
   int num_fails = tests.run();
   std::cout << "\n";

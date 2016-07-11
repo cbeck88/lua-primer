@@ -26,3 +26,4 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/api/persistent_value.hpp>
 #include <primer/api/print_manager.hpp>
 #include <primer/api/userdatas.hpp>
+#include <primer/api/vfs.hpp>

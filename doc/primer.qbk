@@ -26,6 +26,7 @@
 [import ../include/primer/api/callback_registrar.hpp]
 [import ../include/primer/api/persistable.hpp]
 [import ../include/primer/api/print_manager.hpp]
+[import ../include/primer/api/vfs.hpp]
 [import ../include/primer/boost/optional.hpp]
 [import ../include/primer/container/optional_base.hpp]
 [import ../include/primer/support/metatable.hpp]
