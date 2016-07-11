@@ -60,9 +60,15 @@ template <typename T>
 expected<T> lua_ref::as() const noexcept {
   expected<T> result{primer::error::cant_lock_vm()};
 
-  if (lua_State * L = this->push()) {
-    result = primer::read<T>(L, -1);
-    lua_pop(L, 1);
+  if (lua_State * L = this->lock()) {
+    constexpr int space = 1 + stack_space_for_read<T>();
+    if (lua_checkstack(L, space)) {
+      this->push();
+      result = primer::read<T>(L, -1);
+      lua_pop(L, 1);
+    } else {
+      result = primer::error::insufficient_stack_space(space);
+    }
   }
   return result;
 }
