@@ -159,7 +159,8 @@ likely to happen, including stack corruption of lua VMs.] >>*/
   // Try to interpret the value as a specific C++ type
   /*<< Attempt to cast the lua value to a C++ value, using primer::read
 
-This cannot cause an exception or raise a lua error.
+This cannot cause an exception or raise a lua error. It performs a stack space
+check.
   >>*/
   template <typename T>
   expected<T> as() const noexcept;
