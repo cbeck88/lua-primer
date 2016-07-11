@@ -26,7 +26,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/detail/type_traits.hpp>
 #include <primer/detail/move_assign_noexcept.hpp>
 
-
 #include <visit_struct/visit_struct.hpp>
 
 #include <type_traits>
@@ -52,8 +51,18 @@ struct push_helper {
   }
 };
 
+struct stack_space_push_checker {
+  int needed = 0;
+
+  template <typename T>
+  void operator()(const char *, const T &) {
+    constexpr int s = stack_space_for_push<T>();
+    if (s > needed) { needed = s; }
+  }
+};
+
 struct field_counter {
-  int count;
+  int count = 0;
 
   template <typename T>
   void operator()(const char *, const T &) {
@@ -70,7 +79,15 @@ template <typename T>
 struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
   static void to_stack(lua_State * L, const T & t) {
     {
-      detail::field_counter fc{0};
+      detail::stack_space_push_checker sc{};
+      visit_struct::apply_visitor(sc, t);
+      if (sc.needed > 1 && !lua_checkstack(L, 1 + sc.needed)) {
+        luaL_error(L, "insufficient stack space, needed %d", sc.needed);
+      }
+    }
+
+    {
+      detail::field_counter fc{};
       visit_struct::apply_visitor(fc, t);
       lua_createtable(L, 0, fc.count);
     }
@@ -78,7 +95,7 @@ struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
     detail::push_helper vis{L};
     visit_struct::apply_visitor(vis, t);
   }
-  static constexpr int stack_space_needed = 2; // XXX: Fixme
+  static constexpr int stack_space_needed = 2;
 };
 
 } // end namespace traits
@@ -88,6 +105,16 @@ struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
  */
 
 namespace detail {
+
+struct stack_space_read_checker {
+  int needed = 0;
+
+  template <typename T>
+  void operator()(const char *, const T &) {
+    constexpr int s = stack_space_for_read<T>();
+    if (s > needed) { needed = s; }
+  }
+};
 
 struct read_helper {
   lua_State * L;
@@ -130,21 +157,27 @@ struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
 
     expected<T> result{};
 
-    index = lua_absindex(L, index);
-
-    if (!lua_istable(L, index)) {
-      result =
-        primer::error::unexpected_value("table", describe_lua_value(L, index));
+    detail::stack_space_read_checker sc{};
+    visit_struct::apply_visitor(sc, *result);
+    if (sc.needed > 1 && !lua_checkstack(L, 1 + sc.needed)) {
+      result = primer::error::insufficient_stack_space(sc.needed);
     } else {
-      detail::read_helper vis{L, index};
-      visit_struct::apply_visitor(vis, *result);
+      index = lua_absindex(L, index);
 
-      if (!vis.ok) { result = std::move(vis.ok.err()); }
+      if (!lua_istable(L, index)) {
+        result =
+          primer::error::unexpected_value("table", describe_lua_value(L, index));
+      } else {
+        detail::read_helper vis{L, index};
+        visit_struct::apply_visitor(vis, *result);
+
+        if (!vis.ok) { result = std::move(vis.ok.err()); }
+      }
     }
 
     return result;
   }
-  static constexpr int stack_space_needed = 3; // XXX: Fix me
+  static constexpr int stack_space_needed = 2;
 };
 
 } // end namespace traits
