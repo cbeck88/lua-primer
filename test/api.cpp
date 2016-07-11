@@ -1,6 +1,7 @@
 #include <primer/api/base.hpp>
 #include <primer/api/callbacks.hpp>
 #include <primer/api/libraries.hpp>
+#include <primer/api/print_manager.hpp>
 #include <primer/api/userdatas.hpp>
 #include <primer/api/persistent_value.hpp>
 #include <primer/api/mini_require.hpp>
@@ -518,6 +519,71 @@ void test_sandboxed_libs() {
   }
 }
 
+struct test_api_six : primer::api::base<test_api_six> {
+  lua_raii L_;
+
+  API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
+
+  USE_LUA_CALLBACK(require,
+                   "this is the require function",
+                   &primer::api::mini_require);
+
+  API_FEATURE(primer::api::callbacks, cb_);
+  API_FEATURE(primer::api::print_manager, print_man_);
+
+  test_api_six()
+    : L_()
+    , cb_(this)
+  {
+    this->initialize_api(L_);
+  }
+};
+
+struct interpreter_capture {
+  std::vector<std::string> new_text_calls_;
+  std::vector<std::string> error_text_calls_;
+
+  void new_text(const std::string & str) { new_text_calls_.push_back(str); }
+  void error_text(const std::string & str) { error_text_calls_.push_back(str); }
+  void clear_input() {}
+};
+
+void test_interpreter_contexts() {
+  test_api_six a;
+  lua_State * L = a.L_;
+
+  interpreter_capture c;
+
+  a.print_man_.set_interpreter_context(&c);
+
+  a.print_man_.handle_interpreter_input(L, "5");
+  TEST_EQ(c.new_text_calls_.size(), 2);
+  TEST_EQ(c.error_text_calls_.size(), 0);
+  TEST_EQ(c.new_text_calls_[0], "$ 5");
+  TEST_EQ(c.new_text_calls_[1], "5");
+
+  a.print_man_.handle_interpreter_input(L, "foo");
+  TEST_EQ(c.new_text_calls_.size(), 4);
+  TEST_EQ(c.new_text_calls_[0], "$ 5");
+  TEST_EQ(c.new_text_calls_[1], "5");
+  TEST_EQ(c.new_text_calls_[2], "$ foo");
+  TEST_EQ(c.new_text_calls_[3], "nil");
+
+  TEST_EQ(c.error_text_calls_.size(), 0);
+
+  // a.print_man_.pop_interpreter_context();
+
+  a.print_man_.handle_interpreter_input(L, "foo.bar");
+  TEST_EQ(c.new_text_calls_.size(), 5);
+  TEST_EQ(c.error_text_calls_.size(), 1);
+  TEST_EQ(c.new_text_calls_[0], "$ 5");
+  TEST_EQ(c.new_text_calls_[1], "5");
+  TEST_EQ(c.new_text_calls_[2], "$ foo");
+  TEST_EQ(c.new_text_calls_[3], "nil");
+  TEST_EQ(c.new_text_calls_[4], "$ foo.bar");
+}
+
+
 int main() {
   conf::log_conf();
 
@@ -529,6 +595,7 @@ int main() {
     {"api userdata", &test_api_userdata},
     {"api persistent value", &test_api_persistent_value},
     {"api sandboxed libs", &test_sandboxed_libs},
+    {"api interpreter context", &test_interpreter_contexts},
   };
   int num_fails = tests.run();
   std::cout << "\n";

@@ -30,6 +30,8 @@ inline const char * error_code_to_string(const int err_code) noexcept {
       return "a memory allocation error:";
     case LUA_ERRERR:
       return "an error in the error handler function:";
+    case LUA_ERRGCMM:
+      return "an error in a __gc metamethod";
     case LUA_OK:
       return "this error code means there was no error... please report this:";
     default:
