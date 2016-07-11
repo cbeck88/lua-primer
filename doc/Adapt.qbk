@@ -27,7 +27,7 @@ Given a function pointer of the form,
   primer::result my_func(lua_State * L, std::string foo, bool bar, int baz);
 ``
 
-`adapt` produces a function it to a function ['somewhat] similar to `adapted` below:
+`adapt` produces a function a ['somewhat] similar to `adapted` below:
 
 ``
   primer::result my_func_helper(lua_State * L) {
@@ -76,9 +76,9 @@ the user function is invoked, and its result returned.
 
 `primer::result` is implemented by a simple `return` in the case of a return signal,
 by calling `lua_yield` in case of a yield, and by raising a lua error in case of
-an error. This part is quite trivial -- the only tricky part is making sure that it works
+an error. The only tricky part is making sure that it works
 with no leaks, whether lua is compiled as C or C++. (Technically, the above example
-will create a small leak upon `lua_yield` call. In the actual code we do something differnet.)
+will create a small leak upon `lua_yield` call. In the actual code we do something different.)
 
 [caution When using the `adapt` mechanism, if lua is compiled as C, the user function
       `my_func` must not trigger a lua error directly -- it must return objects of the
