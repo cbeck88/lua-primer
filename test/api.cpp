@@ -479,13 +479,15 @@ struct test_api_five : primer::api::base<test_api_five> {
 
   API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
 
-  USE_LUA_CALLBACK(require, "this is the require function", &primer::api::mini_require);
+  USE_LUA_CALLBACK(require,
+                   "this is the require function",
+                   &primer::api::mini_require);
 
   API_FEATURE(primer::api::callbacks, cb_);
 
   test_api_five()
-   : L_()
-   , cb_(this)
+    : L_()
+    , cb_(this)
   {
     this->initialize_api(L_);
   }
@@ -497,14 +499,14 @@ void test_sandboxed_libs() {
   lua_State * L = a.L_;
 
   const char * script =
-   "t = { 4, 5 }                           \n"
-   "x, y = table.unpack(t)                 \n"
-   "assert(x == 4)                         \n"
-   "assert(y == 5)                         \n"
-   "local tablib = require \'table\'       \n"
-   "assert(tablib == table)                \n"
-   "assert(math.sin)                       \n"
-   "assert(not math.random)                \n";
+    "t = { 4, 5 }                           \n"
+    "x, y = table.unpack(t)                 \n"
+    "assert(x == 4)                         \n"
+    "assert(y == 5)                         \n"
+    "local tablib = require \'table\'       \n"
+    "assert(tablib == table)                \n"
+    "assert(math.sin)                       \n"
+    "assert(not math.random)                \n";
 
   if (LUA_OK != luaL_loadstring(L, script)) {
     std::cerr << lua_tostring(L, -1);

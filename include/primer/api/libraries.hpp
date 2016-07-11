@@ -89,7 +89,6 @@ struct lua_math_lib_sandboxed {
   }
 
   static constexpr lua_CFunction func = &get_clean_math;
-
 };
 
 /***
