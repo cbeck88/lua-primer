@@ -19,5 +19,6 @@ not an error if it could not be read.
 [include StandardContainers.qbk]
 [include HeterogeneousContainers.qbk]
 [include Optionals.qbk]
+[include VisitableStructure.qbk]
 
 [endsect]
