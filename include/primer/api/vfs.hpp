@@ -55,7 +55,7 @@ class vfs {
 
   expected<void> load(lua_State * L, const std::string & path) {
     if (object_) { return load_method_(object_, L, path); }
-    return primer::error{"module '", path, "' not found"};
+    return primer::error::module_not_found(path);
   }
 
 public:

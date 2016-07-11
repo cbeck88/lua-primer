@@ -588,7 +588,7 @@ struct my_files {
       luaL_loadbuffer(L, chunk.c_str(), chunk.size(), path.c_str());
       return {};
     } else {
-      return primer::error("module '", path, "' not found");
+      return primer::error::module_not_found(path);
     }
   }
 };

@@ -199,6 +199,8 @@ public:
   /*<< Used with coroutines that are called while in an empty state >>*/
   static error expired_coroutine() noexcept;
 
+  // "Module 'foo' not found"
+  static error module_not_found(const std::string & path) noexcept;
 
   // Accessor
   const char * what() const noexcept;
@@ -218,6 +220,10 @@ inline error error::unexpected_value(const char * expected, T && t) noexcept {
 
 inline error error::insufficient_stack_space(int n) noexcept {
   return error("Insufficient stack space: needed ", n);
+}
+
+inline error error::module_not_found(const std::string & str) noexcept {
+  return error("module '", str, "' not found");
 }
 
 inline error error::bad_alloc() noexcept {
