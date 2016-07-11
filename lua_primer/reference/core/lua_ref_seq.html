@@ -86,7 +86,19 @@
   <span class="keyword">using</span> <span class="identifier">refs_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;;</span>
   <span class="identifier">refs_t</span> <span class="identifier">refs_</span><span class="special">;</span>
 
-  <span class="comment">// Forward some choice methods from std::vector</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref_seq.c6" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c7"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">bool</span> <span class="identifier">push_each</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="keyword">bool</span> <span class="identifier">result</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+    <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">r</span> <span class="special">:</span> <span class="identifier">refs_</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">bool</span> <span class="identifier">temp</span> <span class="special">=</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">result</span> <span class="special">&amp;&amp;</span> <span class="identifier">temp</span><span class="special">;</span>
+    <span class="special">}</span>
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="comment">//</span>
+  <span class="comment">// Forward MANY methods from std::vector...</span>
+  <span class="comment">//</span>
+
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">size</span><span class="special">();</span> <span class="special">}</span>
 
   <span class="keyword">using</span> <span class="identifier">value_type</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">value_type</span><span class="special">;</span>
@@ -136,14 +148,6 @@
   <span class="identifier">iterator</span> <span class="identifier">insert</span><span class="special">(</span><span class="identifier">const_iterator</span> <span class="identifier">pos</span><span class="special">,</span> <span class="identifier">InputIt</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">InputIt</span> <span class="identifier">last</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">pos</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">);</span>
   <span class="special">}</span>
-  <a class="co" name="lua_primer.reference.core.lua_ref_seq.c6" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c7"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">bool</span> <span class="identifier">push_each</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
-    <span class="keyword">bool</span> <span class="identifier">result</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
-    <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">r</span> <span class="special">:</span> <span class="identifier">refs_</span><span class="special">)</span> <span class="special">{</span>
-      <span class="keyword">bool</span> <span class="identifier">temp</span> <span class="special">=</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
-      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">result</span> <span class="special">&amp;&amp;</span> <span class="identifier">temp</span><span class="special">;</span>
-    <span class="special">}</span>
-    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
-  <span class="special">}</span>
 <span class="special">};</span>
 </pre>
 <div class="calloutlist"><table border="0" summary="Callout list"><tr>
@@ -151,8 +155,10 @@
 <td valign="top" align="left"><p>
               Push all the refs onto the stack in succession. Return of <code class="computeroutput"><span class="keyword">true</span></code> means every push succeeded. You
               can usually ignore the result, it only fails if some of the refs in
-              the ref_seq are actually in an empty state. If not all of the refs
-              are in the same VM as the argument, then you get UB. See <code class="computeroutput"><span class="identifier">lua_ref</span></code>.
+              the <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> are
+              actually in an empty state. If not all of the refs are in the same
+              VM as the argument <code class="computeroutput"><span class="identifier">lua_State</span>
+              <span class="special">*</span></code>, then you get UB. See <code class="computeroutput"><span class="identifier">lua_ref</span></code>.
             </p></td>
 </tr></table></div>
 </div>

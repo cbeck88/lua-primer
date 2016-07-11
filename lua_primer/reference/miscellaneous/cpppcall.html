@@ -6,11 +6,11 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../miscellaneous.html" title="Miscellaneous">
-<link rel="prev" href="stack_space_needed.html" title="Stack Space Needed">
+<link rel="prev" href="std_function.html" title="std::function">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="stack_space_needed.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../miscellaneous.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
+<a accesskey="p" href="std_function.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../miscellaneous.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
@@ -23,7 +23,8 @@
         </p>
 <p>
           This is essentially an extension of the <code class="computeroutput"><span class="identifier">cpcall</span></code>
-          idiom described on the lua mailing lists, except using template metaprogramming.
+          idiom described on the lua mailing lists, except using C++ generic programming
+          techniques.
         </p>
 <p>
           For reference, see <a href="http://lua-users.org/wiki/ErrorHandlingBetweenLuaAndCplusplus" target="_top">this
@@ -63,7 +64,7 @@
           In summary, the idea is to create a local <code class="computeroutput"><span class="keyword">struct</span></code>
           that will hold pointers to the call parameters, then do something with
           them in a lua callback, then, push that callback and a pointer to the structure
-          to pcall.
+          to <code class="computeroutput"><span class="identifier">pcall</span></code>.
         </p>
 <p>
           <code class="computeroutput"><span class="identifier">cpp_pcall</span></code> accomplishes
@@ -166,9 +167,9 @@
 <span class="special">}</span>
 </pre>
 <p>
-          In this code, the lambda contains code that could potentially cause a lua
-          memory failure, when pushing objects and also popping return values off
-          of the stack. <code class="computeroutput"><span class="identifier">mem_pcall</span></code>
+          In this code, the lambda contains calls that could potentially cause a
+          lua memory failure, when pushing objects and also popping return values
+          off of the stack. <code class="computeroutput"><span class="identifier">mem_pcall</span></code>
           allows us to catch all such errors, and when <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>
           is defined, the <code class="computeroutput"><span class="identifier">mem_pcall</span></code>
           and the lambda are inlined, producing a direct call with no overhead.
@@ -186,7 +187,7 @@
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">int</span> <span class="identifier">lambda_upvalue_dispatch</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
-  <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">t</span> <span class="special">=</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">*&gt;(</span><span class="identifier">lua_touserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_upvalueindex</span><span class="special">(</span><span class="number">1</span><span class="special">)));</span>
+  <span class="identifier">T</span> <span class="special">*</span> <span class="identifier">t</span> <span class="special">=</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*&gt;(</span><span class="identifier">lua_touserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_upvalueindex</span><span class="special">(</span><span class="number">1</span><span class="special">)));</span>
   <span class="special">(*</span><span class="identifier">t</span><span class="special">)();</span>
   <span class="keyword">return</span> <span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
 <span class="special">}</span>
@@ -197,7 +198,7 @@
 <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">cpp_pcall</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
   <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
 
-  <span class="keyword">auto</span> <span class="identifier">lambda</span> <span class="special">=</span> <span class="special">[&amp;](){</span> <span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">))(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span> <span class="special">};</span>
+  <span class="keyword">auto</span> <span class="identifier">lambda</span> <span class="special">=</span> <span class="special">[&amp;]()</span> <span class="special">{</span> <span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">))(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span> <span class="special">};</span>
   <span class="identifier">lua_pushlightuserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span> <span class="special">*&gt;(&amp;</span><span class="identifier">lambda</span><span class="special">));</span>
   <span class="identifier">lua_pushcclosure</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">lambda_upvalue_dispatch</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">lambda</span><span class="special">)&gt;,</span> <span class="number">1</span><span class="special">);</span>
 
@@ -206,9 +207,7 @@
   <span class="keyword">int</span> <span class="identifier">code</span><span class="special">;</span> <span class="comment">// pcall_helper installs a custom error handler</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">tie</span><span class="special">(</span><span class="identifier">code</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ignore</span><span class="special">)</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">pcall_helper</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">narg</span><span class="special">,</span> <span class="identifier">LUA_MULTRET</span><span class="special">);</span>
 
-  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">code</span> <span class="special">!=</span> <span class="identifier">LUA_OK</span><span class="special">)</span>  <span class="special">{</span>
-    <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">pop_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">code</span><span class="special">);</span>
-  <span class="special">}</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">code</span> <span class="special">!=</span> <span class="identifier">LUA_OK</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">pop_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">code</span><span class="special">);</span> <span class="special">}</span>
   <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
 <span class="special">}</span>
 </pre>
@@ -223,7 +222,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="stack_space_needed.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../miscellaneous.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
+<a accesskey="p" href="std_function.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../miscellaneous.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
 </div>
 </body>
 </html>

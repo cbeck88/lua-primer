@@ -393,6 +393,9 @@
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
   <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">t</span><span class="special">);</span>
+
+  <span class="comment">// Silence an unused warning</span>
+  <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;(::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">stack_space_needed</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -425,6 +428,7 @@
     <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">v</span><span class="special">.</span><span class="identifier">y</span><span class="special">);</span>
     <span class="identifier">lua_rawseti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
   <span class="special">}</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">stack_space_needed</span> <span class="special">=</span> <span class="number">2</span><span class="special">;</span>
 <span class="special">};</span>
 
 <span class="special">}</span> <span class="comment">// end namespace traits</span>
@@ -444,6 +448,100 @@
 <span class="identifier">lua_insert</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">);</span> <span class="comment">// put script beneath argument when using pcall</span>
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
 </pre>
+<h4>
+<a name="lua_primer.reference.core.push.h2"></a>
+          <span><a name="lua_primer.reference.core.push.stack_space"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.stack_space">Stack
+          Space</a>
+        </h4>
+<p>
+          One aspect of lua that you may easily miss on your first pass through the
+          manual is <a href="http://www.lua.org/manual/5.3/manual.html#4.2" target="_top">the
+          note about stack overflow</a>.
+        </p>
+<p>
+          The lua stack is dynamically sized. When a lua state is created, it is
+          relatively small. It can grow to a quite large size (many thousands of
+          elements).
+        </p>
+<p>
+          Some of the more complex lua calls, like <code class="computeroutput"><span class="identifier">lua_pcall</span></code>,
+          will manage the checking of stack bounds and ensure that they have enough
+          space.
+        </p>
+<p>
+          Most of the primitive lua calls, for efficiency, do not do any such bounds
+          checking.
+        </p>
+<p>
+          The function <code class="computeroutput"><span class="identifier">lua_checkstack</span><span class="special">(</span><span class="identifier">lua_State</span>
+          <span class="special">*,</span> <span class="keyword">int</span><span class="special">)</span></code> ensures that the stack has a given amount
+          of extra spaces, and enlarges it if needed. It is similar to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">::</span><span class="identifier">reserve</span></code>, except that the input refers
+          to <span class="bold"><strong>additional</strong></span> spaces from the current
+          top of the stack. (<code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+          can conceivably fail, if lua runs out of memory.)
+        </p>
+<p>
+          <span class="emphasis"><em>lua leaves it up to you to manage this</em></span> -- if you don't
+          do it, simple programs will work (because of a small built-in minimum stack
+          size) but large programs may give undefined behavior.
+        </p>
+<h5>
+<a name="lua_primer.reference.core.push.h3"></a>
+          <span><a name="lua_primer.reference.core.push.in_primer"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.in_primer">In
+          Primer</a>
+        </h5>
+<p>
+          Most <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> operations are primitive operations
+          and we don't really want to call <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+          for each one. It's more economical to gather such checks into large groups,
+          so that the checks are performed before a large operation.
+        </p>
+<p>
+          So, a custom push specialization has two options -- it can call <code class="computeroutput"><span class="identifier">lua_checkstack</span></code> itself, or it can <span class="emphasis"><em>assume</em></span>
+          that the caller will do it. To tell the caller how much space it needs,
+          it <span class="emphasis"><em>must</em></span> declare the amount using
+        </p>
+<pre class="programlisting"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">stack_space_needed</span> <span class="special">=</span> <span class="special">...</span>
+</pre>
+<p>
+          More complex operations in Primer use this information to calculate at
+          compile-time how much stack space they need. For instance, Primer computes
+          how much space is needed to push <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span></code>
+          based on it knowledge of how much space is needed for <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>,
+          and <code class="computeroutput"><span class="keyword">int</span></code>. When a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> is called, it computes
+          at compile-time how much stack space it needs to push all of the arguments
+          and calls <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+          to make sure it has enough space.
+        </p>
+<p>
+          The space needed for any individual type can be obtained as a <code class="computeroutput"><span class="keyword">constexpr</span></code> using
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">stack_space_for_push</span><span class="special">();</span>
+</pre>
+<p>
+          You can use such functions to get the correct <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+          values into your program without hard-coding them -- invariably such values
+          tend to become inaccurate after a refactor at a later date.
+        </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+            <code class="computeroutput"><span class="identifier">stack_space_needed</span></code> should
+            be at least one, since you are pushing <span class="bold"><strong>something</strong></span>.
+          </p>
+<p>
+            If your type is complex enough that no fixed estimate of the stack space
+            is possible, then you should simply define it to be one, and your implementation
+            <span class="emphasis"><em>must</em></span> call <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+            manually to ensure correct behavior.
+          </p>
+</td></tr>
+</table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

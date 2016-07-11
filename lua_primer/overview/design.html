@@ -33,14 +33,13 @@
       </p>
 <p>
         Primer is also intended to be light-weight in another more important way
-        -- the operation of core components should be transparent and they should
-        be cohesive with the lua C API. Mechanisms like <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>,
-        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>, and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code>,
-        are meant to be readily understandable as a short series of calls to the
-        lua C API following a pattern. Primer is meant to provide tools which supplement
-        the lua C API, not to replace it, and to provide organizational structures
-        that facilitate its use. We aren't trying to "abstract away the lua
-        stack" or anything like that.
+        -- it should be <span class="emphasis"><em>cohesive</em></span> with the lua C API. Mechanisms
+        like <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>,
+        and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code>, are meant to be readily understandable
+        as a short series of calls to the lua C API following a pattern. Primer is
+        meant to provide tools which supplement the lua C API, not to replace it,
+        and to provide organizational structures that facilitate its use. We aren't
+        trying to "abstract away the lua stack" or anything like that here.
       </p>
 <h4>
 <a name="lua_primer.overview.design.h0"></a>

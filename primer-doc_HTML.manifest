@@ -35,5 +35,4 @@ lua_primer/reference/api/api_print.html
 lua_primer/reference/api/api_vfs.html
 lua_primer/reference/miscellaneous.html
 lua_primer/reference/miscellaneous/std_function.html
-lua_primer/reference/miscellaneous/stack_space_needed.html
 lua_primer/reference/miscellaneous/cpppcall.html
