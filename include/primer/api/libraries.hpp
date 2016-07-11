@@ -111,13 +111,14 @@ class libraries {
     luaL_requiref(L, T::name, T::func, 0);   // [target] [lib]
     lua_pushnil(L);                          // [target] [lib] [nil]
     while (lua_next(L, -2)) {                // [target] [lib] [k] [v]
-      if (lua_iscfunction(L, -1)) {          // [target] [lib] [k] [f]
-        lua_pushvalue(L, -2);                // [target] [lib] [k] [f] [k]
-        if (kv_order) { lua_insert(L, -2); } // [target] [lib] [k] [?] [?]
-        lua_settable(L, -5);                 // [target] [lib] [k]
-      } else {                               //
+      if (lua_iscfunction(L, -1) && lua_isstring(L, -2)) {               //
+        const char * k = lua_tostring(L, -2); // [target] [lib] [k] [v]
+        lua_pushfstring(L,"%s_lib_%s", T::name, k); // [target] [lib] [k] [v] [fk]
+        if (kv_order) { lua_insert(L, -2); }   // [target] [lib] [k] [?] [?]
+        lua_settable(L, -5);                   // [target] [lib] [k]
+      } else {                               // [target] [lib] [k] [v]
         lua_pop(L, 1);                       // [target] [lib] [k]
-      }                                      //
+      }                                      // [target] [lib] [k]
     }                                        // [target] [lib]
     lua_pop(L, 1);                           // [target]
   }

@@ -216,7 +216,7 @@ void test_api_base() {
 
     CHECK_STACK(L, 0);
 
-    TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+    TEST_LUA_OK(L, luaL_loadstring(L, script));
 
     auto result = primer::fcn_call_no_ret(L, 0);
     TEST_EXPECTED(result);
@@ -240,7 +240,7 @@ void test_api_base() {
 
     CHECK_STACK(L, 0);
 
-    TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+    TEST_LUA_OK(L, luaL_loadstring(L, script));
 
     auto result = primer::fcn_call_no_ret(L, 0);
     TEST_EXPECTED(result);
@@ -259,7 +259,7 @@ void test_api_help() {
     "assert(help(f) == 'this is the f help')         \n"
     "assert(help(g) == 'this is the g help')         \n";
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  TEST_LUA_OK(L, luaL_loadstring(L, script));
 
   auto result = primer::fcn_call_no_ret(L, 0);
   TEST_EXPECTED(result);
@@ -415,7 +415,7 @@ struct test_api_three : primer::api::base<test_api_three> {
       "assert(type(string1) == 'userdata')  \n"
       "assert(type(string2) == 'userdata')  \n"
       "string3 = string1 .. string2         \n";
-    TEST_EQ(LUA_OK, luaL_loadstring(L_, script));
+    TEST_LUA_OK(L_, luaL_loadstring(L_, script));
     auto result = primer::fcn_call_no_ret(L_, 0);
     TEST_EXPECTED(result);
   }
@@ -425,7 +425,7 @@ struct test_api_three : primer::api::base<test_api_three> {
       "assert(\"_('foo')\" == tostring(string1))                          \n"
       "assert(\"_('bar')\" == tostring(string2))                          \n"
       "assert(\"_('foo') .. _('bar')\" == tostring(string3))              \n";
-    TEST_EQ(LUA_OK, luaL_loadstring(L_, script));
+    TEST_LUA_OK(L_, luaL_loadstring(L_, script));
     auto result = primer::fcn_call_no_ret(L_, 0);
     TEST_EXPECTED(result);
   }
@@ -637,6 +637,7 @@ struct my_files {
     if (it != files_.end()) {
       const std::string & chunk = it->second;
       luaL_loadbuffer(L, chunk.c_str(), chunk.size(), path.c_str());
+
       return {};
     } else {
       return primer::error::module_not_found(path);
@@ -649,6 +650,7 @@ struct test_api : primer::api::base<test_api> {
 
   API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
   API_FEATURE(primer::api::vfs, vfs_);
+  API_FEATURE(primer::api::print_manager, print_man_);
 
   my_files files_;
 
@@ -672,11 +674,15 @@ struct test_api : primer::api::base<test_api> {
 };
 
 void test_vfs() {
-  test_api a;
-
-  lua_State * L = a.L_;
+  std::string buffer;
+  table_summary summary;
 
   const char * script =
+    "assert(type(5) == 'number')                                           \n"
+    "assert(type('foo') == 'string')                                       \n"
+    "assert(type(loadfile 'foo') == 'function')                            \n"
+    "assert(type(dofile 'foo') == 'table')                                 \n"
+    "                                                                      \n"
     "local foo = require 'foo'                                             \n"
     "assert(type(foo) == 'table')                                          \n"
     "assert(type(bar) == 'nil')                                            \n"
@@ -686,12 +692,37 @@ void test_vfs() {
     "                                                                      \n"
     "assert(bar == require 'bar')                                          \n"
     "assert(bar ~= dofile 'bar')                                           \n"
-    "                                                                      \n"
-    "assert(type(loadfile 'bar') == 'function')                            \n"
-    "assert(type(dofile 'bar') == 'table')                                 \n";
+    "                                                                      \n";
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
-  TEST_EQ(LUA_OK, lua_pcall(L, 0, 0, 0));
+  {
+    test_api a;
+
+    lua_State * L = a.L_;
+
+    TEST_LUA_OK(L, luaL_loadstring(L, script));
+    TEST_LUA_OK(L, lua_pcall(L, 0, 0, 0));
+
+    buffer = a.save();
+    summary = get_global_table_summary(L);
+  }
+
+  {
+    test_api a;
+
+    lua_State * L = a.L_;
+
+    TEST_LUA_OK(L, luaL_loadstring(L, script));
+    TEST_LUA_OK(L, lua_pcall(L, 0, 0, 0));
+
+    a.restore(buffer);
+
+    auto summary2 = get_global_table_summary(L);
+    TEST(check_tables_match(summary, summary2), "expected global tables to match!");
+
+    TEST_LUA_OK(L, luaL_loadstring(L, script));
+    TEST_LUA_OK(L, lua_pcall(L, 0, 0, 0));
+
+  }
 }
 //]
 

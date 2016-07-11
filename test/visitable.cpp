@@ -233,10 +233,10 @@ void visitable_function_params_test() {
   lua_pushcfunction(L, f);
   lua_setglobal(L, "f");
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f({ b = true, c = 5.5, a = 7}, {a= "
                                   "9, b = false, c = 2.5})"));
-  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+  TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
 
   CHECK_STACK(L, 1);
   auto maybe_foo = primer::read<test::foo>(L, 1);
@@ -246,49 +246,49 @@ void visitable_function_params_test() {
   TEST_EQ(maybe_foo->c, 8);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f({ b = true, c = 5.5, d = 7}, {a= "
                                   "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f({ b = true, c = 5.5, a = '7'}, {a= "
                                   "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f({ b = true, c = 5.5, a = -15.5}, "
                                   "{a= 9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f({ b = true, c = {}, a = 3}, {a= 9, "
                                   "b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f({ b = 1, c = 5.5, a = 3}, {a= 9, b "
                                   "= false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f{{ b = true, c = {}, a = 3}, {a= 9, "
                                   "b = false, c = 2.5}}"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   "return f({ b = true, c = 5.5, a = 7}, {q = "
                                   "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
@@ -358,7 +358,7 @@ void test_api_callbacks() {
     "assert(0 == f3{plus = 1, minus = 1, times = 0}) \n"
     "assert(4 == f3{plus = 3, minus = 1, times = 2}) \n";
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
+  TEST_LUA_OK(L, luaL_loadstring(L, script));
 
   auto result = primer::fcn_call_no_ret(L, 0);
   TEST_EXPECTED(result);

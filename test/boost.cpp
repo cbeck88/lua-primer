@@ -314,7 +314,7 @@ void test_coroutine() {
   lua_setglobal(L, "yield_helper");
   CHECK_STACK(L, 0);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L,
+  TEST_LUA_OK(L, luaL_loadstring(L,
                                   ""
                                   " local function make_closure()         \n"
                                   "   local counter = 0;                  \n"
@@ -327,7 +327,7 @@ void test_coroutine() {
                                   "   return f;                           \n"
                                   " end                                   \n"
                                   " return make_closure()                 \n"));
-  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+  TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   TEST_EQ(true, lua_isfunction(L, 1));
   primer::bound_function func{L};
@@ -422,8 +422,8 @@ void test_bound_function_mult_ret() {
     "  return (x > y), x - y                    \n"
     "end                                        \n";
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
-  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+  TEST_LUA_OK(L, luaL_loadstring(L, script));
+  TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
 
   primer::bound_function func{L};
   TEST(func, "expected to have bound a function");

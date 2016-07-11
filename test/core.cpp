@@ -262,7 +262,7 @@ void primer_adapt_test_one() {
   lua_pushnumber(L, 5.5f);
   lua_pushstring(L, "asdf");
 
-  TEST_EQ(LUA_OK, lua_pcall(L, 3, 1, 0));
+  TEST_LUA_OK(L, lua_pcall(L, 3, 1, 0));
   CHECK_STACK(L, 1);
   test_top_type(L, LUA_TBOOLEAN, __LINE__);
   TEST_EQ(lua_toboolean(L, 1), true);
@@ -284,7 +284,7 @@ void primer_adapt_test_one() {
   lua_pushnumber(L, -17.5f);
   lua_pushstring(L, "jkl;");
 
-  TEST_EQ(LUA_OK, lua_pcall(L, 3, 1, 0));
+  TEST_LUA_OK(L, lua_pcall(L, 3, 1, 0));
   CHECK_STACK(L, 1);
   TEST_EQ(test_result_one, 7);
   TEST_EQ(test_result_two, -17.5f);
@@ -353,7 +353,7 @@ void primer_adapt_test_two() {
   lua_pushcfunction(L, func);
   lua_setglobal(L, "f");
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "pcall(f()); return true"));
+  TEST_LUA_OK(L, luaL_loadstring(L, "pcall(f()); return true"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
 
   TEST_EQ(lua_type(L, 1), LUA_TSTRING);
@@ -362,8 +362,8 @@ void primer_adapt_test_two() {
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, "pcall(f); return true"));
-  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+  TEST_LUA_OK(L, luaL_loadstring(L, "pcall(f); return true"));
+  TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
 
   CHECK_STACK(L, 1);
   TEST_EQ(lua_type(L, 1), LUA_TBOOLEAN);
@@ -407,7 +407,7 @@ void primer_adapt_test_three() {
     lua_pushinteger(T, 7);
     lua_pushboolean(T, false);
 
-    TEST_EQ(LUA_OK, lua_resume(T, nullptr, 3));
+    TEST_LUA_OK(T, lua_resume(T, nullptr, 3));
     CHECK_STACK(T, 1);
     test_top_type(T, LUA_TSTRING, __LINE__);
     TEST_EQ(std::string{"bar"}, lua_tostring(T, 1));
@@ -425,7 +425,7 @@ void primer_adapt_test_three() {
     lua_pushinteger(T, 7);
     lua_pushboolean(T, false);
 
-    TEST_EQ(LUA_OK, lua_resume(T, nullptr, 3));
+    TEST_LUA_OK(T, lua_resume(T, nullptr, 3));
     CHECK_STACK(T, 1);
     test_top_type(T, LUA_TNUMBER, __LINE__);
     TEST_EQ(3, lua_tointeger(T, 1));
@@ -1039,8 +1039,8 @@ void test_coroutine() {
     "  end                                               \n"
     "end                                                 \n";
 
-  TEST_EQ(LUA_OK, luaL_loadstring(L, script));
-  TEST_EQ(LUA_OK, lua_pcall(L, 0, 1, 0));
+  TEST_LUA_OK(L, luaL_loadstring(L, script));
+  TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
 
   primer::bound_function f{L};
   TEST(f, "expected to find a function");

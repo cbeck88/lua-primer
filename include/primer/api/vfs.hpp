@@ -93,6 +93,7 @@ private:
 protected:
   // Implementations
 
+  
   static primer::result intf_loadfile(lua_State * L, std::string path) {
     if (auto ok = recover_this(L)->load(L, path)) {
       return 1;
@@ -100,7 +101,7 @@ protected:
       return std::move(ok.err());
     }
   }
-
+  
   static primer::result intf_dofile(lua_State * L, std::string path) {
     if (auto ok = recover_this(L)->load(L, path)) {
       int code, idx;
@@ -132,8 +133,6 @@ protected:
       lua_setfield(L, 2, path.c_str()); // set to _LOADED table
       return 1;
     } else {
-      lua_pushboolean(L, true);
-      lua_setfield(L, 2, path.c_str());
       return std::move(ok.err());
     }
   }
