@@ -27,7 +27,7 @@ Given a function pointer of the form,
   primer::result my_func(lua_State * L, std::string foo, bool bar, int baz);
 ``
 
-`adapt` converts it to a function somewhat similar to the following:
+`adapt` produces a function it to a function ['somewhat] similar to `adapted` below:
 
 ``
   primer::result my_func_helper(lua_State * L) {
@@ -51,9 +51,9 @@ Given a function pointer of the form,
         return lua_yield(L, r->n_);
       }
     } else {
-      lua_pushstring(L, r.err().str().c_str());
-      return lua_error(L);
+      lua_pushstring(L, r.err_c_str());
     }
+    return lua_error(L);
   }
 ``
 
@@ -63,7 +63,7 @@ the user function is invoked, and its result returned.
 
 [note An important principle of `adapt` is that, it always gives you the stack as it found
   it from lua. `primer::read` is not supposed to have side-effects for the stack, and
-  adapt is not supposed to clear the stack before your function is called.
+  `adapt` is not supposed to clear the stack before your function is called.
   So, if for some reason you need to access the actual lua values that were the inputs,
   rather than their C++ versions, (as occasionally happens), you can easily do that.
 
@@ -76,10 +76,11 @@ the user function is invoked, and its result returned.
 
 `primer::result` is implemented by a simple `return` in the case of a return signal,
 by calling `lua_yield` in case of a yield, and by raising a lua error in case of
-an error. This part is quite trivial -- the only subtlety in the actual implementation
-involves making sure that it works with no leaks, whether lua is compiled as C or C++.
+an error. This part is quite trivial -- the only tricky part is making sure that it works
+with no leaks, whether lua is compiled as C or C++. (Technically, the above example
+will create a small leak upon `lua_yield` call. In the actual code we do something differnet.)
 
-[caution When using the adapt mechanism, if lua is compiled as C, the user function
+[caution When using the `adapt` mechanism, if lua is compiled as C, the user function
       `my_func` must not trigger a lua error directly -- it must return objects of the
       form `primer::error` instead.
 
@@ -115,7 +116,45 @@ If you would like to implement a custom parameter reading / error handling mecha
 a new return type for such functions, and specializing the `adapt` class template for function pointers with your
 given return type.
 
+Here's an example:
+
+In this code, an exception "raise_lua_error" is defined, and a try-catch block
+is setup for functions which return `my_int`. Otherwise, it just defers to
+the regular adapt mechanism.
+
+``
+  struct my_int { int value; }
+
+  struct raise_lua_error : std::runtime_error {};
+
+  namespace primer {
+
+  template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
+  struct adapt<my_int(*)(lua_State *, Args...), target_func> {
+
+    primer::result adapt_target(lua_State * L, Args && ... args) {
+      try {
+        my_int r = target_func(L, std::forward<Args>(args)...);
+        return r.value;
+      } catch (raise_lua_error & e) {
+        return primer::error{e.what()};
+      }
+    }
+
+    int adapted(lua_State * L) {
+      return (PRIMER_ADAPT(&adapt_target))(L);
+    }
+  }
+``
+
+With this specialization installed, any function passed to `PRIMER_ADAPT` with
+return value `my_int` gets the automatic argument parsing feature, but it now
+can signal lua errors by throwing an exception derived
+from `raise_lua_error` rather than in the default way that Primer does it.
+
 Your functions using the new return type would then be automatically recognized also by `PRIMER_ADAPT_USERDATA`
-and `USE_LUA_CALLBACK` in an `api::base` object.
+and `USE_LUA_CALLBACK` in an `api::base` object, see later in the docs.
+
+Another option for specialization is to use tag-dispatch to select different behaviors.
 
 [endsect]
