@@ -27,16 +27,16 @@ class scoped_stash_global_value {
 
 public:
   explicit scoped_stash_global_value(lua_State * L, const char * key)
-   : L_(L)
-   , key_(key)
+    : L_(L)
+    , key_(key)
   {
-    lua_pushlightuserdata(L_, static_cast<void*>(this));
+    lua_pushlightuserdata(L_, static_cast<void *>(this));
     lua_getglobal(L_, key_);
     lua_settable(L_, LUA_REGISTRYINDEX);
   }
 
   ~scoped_stash_global_value() {
-    lua_pushlightuserdata(L_, static_cast<void*>(this));
+    lua_pushlightuserdata(L_, static_cast<void *>(this));
     lua_gettable(L_, LUA_REGISTRYINDEX);
     lua_setglobal(L_, key_);
   }

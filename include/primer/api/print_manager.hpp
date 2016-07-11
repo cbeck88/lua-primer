@@ -21,7 +21,8 @@ PRIMER_ASSERT_FILESCOPE;
 #include <vector>
 
 //[ primer_print_manager_overview
-//` The `print_manager` class is an API feature which creates "print" and "pretty_print" functions
+//` The `print_manager` class is an API feature which creates "print" and
+//"pretty_print" functions
 //` which can be used by scripts.
 //`
 //` This feature also makes it so that the output can be easily redirected, to
@@ -37,7 +38,8 @@ PRIMER_ASSERT_FILESCOPE;
 //` The method "handle_user_input" takes a string and considers it as user
 //` input from an interactive shell or dialog. This is handled using an
 //` "experimental compilation" approach. First, we assume that the command is
-//` a lua value, and we transform it to `_pretty_print(input)`, and check if that
+//` a lua value, and we transform it to `_pretty_print(input)`, and check if
+//that
 //` is syntactically well-formed. If so we execute it. If it is not well-formed,
 //` then we try simply loading `input` -- maybe it is just a statement. If so,
 //` we execute it, if not we report a syntax error to the user.
@@ -56,8 +58,8 @@ namespace primer {
 //` * `error_text` is called to report an error message.
 //` * `clear_input` is called when the user's input has been accepted. When
 //`   creating a gui dialog, you can use this function as a cue to clear the
-//`   editbox that the user was using to enter the input. Then if they made a mistake,
-//`   they don't have to retype their whole command.
+//`   editbox that the user was using to enter the input. Then if they made
+//`   a mistake, they don't have to retype their whole command.
 //]
 
 namespace detail {
@@ -78,16 +80,18 @@ public:
     this->error_text_call_(object_, str);
   }
 
-  void clear_input() const {
-    this->clear_input_call_(object_);
-  }
+  void clear_input() const { this->clear_input_call_(object_); }
 
   template <typename T>
   explicit interpreter_context_ptr(T * t)
-    : object_(static_cast<void*>(t))
-    , new_text_call_(+[](void * o, const std::string & str) { static_cast<T*>(o)->new_text(str); })
-    , error_text_call_(+[](void * o, const std::string & str) { static_cast<T*>(o)->error_text(str); })
-    , clear_input_call_(+[](void * o) { static_cast<T*>(o)->clear_input(); })
+    : object_(static_cast<void *>(t))
+    , new_text_call_(+[](void * o, const std::string & str) {
+      static_cast<T *>(o)->new_text(str);
+    })
+    , error_text_call_(+[](void * o, const std::string & str) {
+      static_cast<T *>(o)->error_text(str);
+    })
+    , clear_input_call_(+[](void * o) { static_cast<T *>(o)->clear_input(); })
   {}
 };
 
@@ -112,10 +116,14 @@ inline std::string default_pretty_print_format(lua_State * L) {
 
   std::string result = luaL_typename(L, 1);
 
-  // Try luaL_tolstring, if that works it gives a nicer result than luaL_typename
-  primer::cpp_pcall<1>(L, [&](){ result = luaL_tolstring(L, 1, nullptr); lua_pop(L, 1); });
+  // Try luaL_tolstring, if that works it gives a nicer result than
+  // luaL_typename
+  primer::cpp_pcall<1>(L, [&]() {
+    result = luaL_tolstring(L, 1, nullptr);
+    lua_pop(L, 1);
+  });
 
-  return result;  
+  return result;
 }
 
 // Strip a '[', ']' pair, and at most two subsequent ':' symbols from the middle
@@ -154,25 +162,25 @@ namespace api {
 class print_manager {
   std::vector<detail::interpreter_context_ptr> stack_;
 
-  using format_func_t = std::string(*)(lua_State *);
+  using format_func_t = std::string (*)(lua_State *);
 
   // Pointers for custom print / pretty print formatting functions
   format_func_t print_format_ = nullptr;
   format_func_t pretty_print_format_ = nullptr;
 
-//<-
+  //<-
   static constexpr const char * pretty_print_name = "_pretty_print";
 
   // Push a unique object to be our registry key for the "this" void pointer
   static int push_reg_key(lua_State * L) {
-   // Just use pointer to this function as the key
-   lua_pushcfunction(L, &push_reg_key);
-   return 0;
+    // Just use pointer to this function as the key
+    lua_pushcfunction(L, &push_reg_key);
+    return 0;
   }
 
   void install_self_pointer(lua_State * L) {
     push_reg_key(L);
-    lua_pushlightuserdata(L, static_cast<void*>(this));
+    lua_pushlightuserdata(L, static_cast<void *>(this));
     lua_settable(L, LUA_REGISTRYINDEX);
   }
 
@@ -212,19 +220,20 @@ class print_manager {
 
   // Helper
   static std::array<const luaL_Reg, 2> get_permanent_entries() {
-     std::array<const luaL_Reg, 2> funcs = {{
-       luaL_Reg{ "primer_print", &intf_print_impl},
-       luaL_Reg{ "primer_pretty_print", &intf_pretty_print_impl},
-     }};
-     return funcs;
+    std::array<const luaL_Reg, 2> funcs = {{
+      luaL_Reg{"primer_print", &intf_print_impl},
+      luaL_Reg{"primer_pretty_print", &intf_pretty_print_impl},
+    }};
+    return funcs;
   }
 
-//->
+  //->
 public:
-
   // Add or remove interpreter context pointers from the stack
   template <typename T>
-  void set_interpreter_context(T * t) { stack_.emplace_back(t); }
+  void set_interpreter_context(T * t) {
+    stack_.emplace_back(t);
+  }
 
   void pop_interpreter_context() {
     if (stack_.size()) { stack_.pop_back(); }
@@ -233,9 +242,7 @@ public:
   // Set a custom print or pretty-print formatting
   // Function should take a `lua_State *` and return `std::string`.
   // Do whatever you like with the stack. Don't raise errors.
-  void set_custom_print_format_func(format_func_t f) {
-    print_format_ = f;
-  }
+  void set_custom_print_format_func(format_func_t f) { print_format_ = f; }
 
   void set_custom_pretty_print_format_func(format_func_t f) {
     pretty_print_format_ = f;
@@ -260,14 +267,13 @@ public:
   }
 
   void clear_input() const {
-    if (stack_.size()) {
-      stack_.back().clear_input();
-    }
+    if (stack_.size()) { stack_.back().clear_input(); }
   }
 
   // Handle interpreter input
   // Note: Clears the entire stack when it runs.
-  inline void handle_interpreter_input(lua_State * L, const std::string & user_input);
+  inline void handle_interpreter_input(lua_State * L,
+                                       const std::string & user_input);
 
   // API Feature
 
@@ -294,7 +300,8 @@ public:
 } // end namespace api
 //]
 
-inline void api::print_manager::handle_interpreter_input(lua_State * L, const std::string & text) {
+inline void api::print_manager::handle_interpreter_input(
+  lua_State * L, const std::string & text) {
   lua_settop(L, 0);
 
   if (!lua_checkstack(L, 2)) {
