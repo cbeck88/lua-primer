@@ -119,7 +119,6 @@ See `lua_ref`. >>*/
 };
 //]
 
-//[ lua_ref_seq_pop_decl
 /*<< Pop `n` elements from the stack `L` and put them in a lua_ref_seq.
      They are ordered such that calling `push_each(L)` will restore them.
      Throws `std::bad_alloc`. Can cause lua memory alloc failure.
@@ -127,7 +126,9 @@ See `lua_ref`. >>*/
   >>*/
 inline void pop_n(lua_State * L, int n, lua_ref_seq & result);
 
-/*<< Same thing but with different return convention >>*/
+//[ lua_ref_seq_pop_decl
+/*<< Pop `n` elements form the stack.
+     Throws `std::bad_alloc`. Can cause lua memory alloc failure. >>*/
 inline lua_ref_seq pop_n(lua_State * L, int n);
 
 /*<< Pop the entire stack. Throws `std::bad_alloc`. Can cause lua memory alloc
