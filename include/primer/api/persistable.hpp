@@ -41,16 +41,14 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/eris.hpp>
-#include <primer/error_handler.hpp>
 
 #include <primer/api/feature.hpp>
+#include <primer/api/init_caches.hpp>
 #include <primer/detail/rank.hpp>
 #include <primer/detail/typelist.hpp>
 #include <primer/detail/typelist_iterator.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/lua_reader_writer.hpp>
-#include <primer/support/lua_state_ref.hpp>
-#include <primer/support/push_cached.hpp>
 
 namespace primer {
 
@@ -129,12 +127,7 @@ protected:
   void initialize_api(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    // Initialize some cached objects. If these can't be created later in a low
-    // memory situation it will cause problems, so, try to preempt this.
-    lua_state_ref::obtain_weak_ref_to_state(L);
-
-    detail::push_cached<primer::fetch_traceback_function>(L);
-    lua_pop(L, 1);
+    primer::api::init_caches(L);
 
 #ifdef PRIMER_DEBUG
     // Set debugging mode for eris

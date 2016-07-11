@@ -39,7 +39,7 @@ inline std::tuple<int, int> pcall_helper(lua_State * L,
   PRIMER_ASSERT(lua_gettop(L) >= (1 + narg),
                 "Not enough arguments on stack for pcall!");
   PRIMER_ASSERT(lua_isfunction(L, -1 - narg), "Missing function for pcall!");
-  detail::push_cached<fetch_traceback_function>(L);
+  primer::get_error_handler(L);
   lua_insert(L, -2 - narg);
   const int error_handler_index = lua_absindex(L, -2 - narg);
   const int result_code = lua_pcall(L, narg, nret, error_handler_index);
@@ -60,7 +60,7 @@ inline std::tuple<int, int> resume_helper(lua_State * L, int narg) noexcept {
 
   const int result_code = lua_resume(L, nullptr, narg);
   if ((result_code != LUA_OK) && (result_code != LUA_YIELD)) {
-    detail::push_cached<fetch_traceback_function>(L);
+    primer::get_error_handler(L);
     lua_insert(L, -2);
     lua_call(L, 1, 1);
   }
