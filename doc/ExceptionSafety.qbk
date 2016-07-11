@@ -139,10 +139,9 @@ are using `pcall` to call your functions, and then it becomes very difficult to
 reason about what happens next. So we consider that catching user exceptions
 and trying to sneak them across the lua call boundary is not a very robust
 solution, and we don't plan to do something like this in Primer. We think it is
-a better idea to just terminate the program in such cases.
-If you want to create an exception-to-lua-error translation mechanism for use
-with Primer in your program you are welcome to specialize the `adapt` class
-template in order to do it.
+usually a better idea to just terminate the program in such cases. [footnote If you want to create an exception-to-lua-error translation mechanism for use
+with Primer in your program, you are welcome to specialize the `adapt` traits
+in order to do it. See the documentation for `adapt`.]
 
 Instead, we are mainly concerned with avoiding leaks and indeterminate states,
 and preempting exceptions in places where we can't handle them.
