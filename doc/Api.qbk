@@ -1,6 +1,6 @@
 [section:api API]
 
-The API subfolder of `primer` contains all the types which are specific to
+The `primer::api` namesapce contains all the types which are specific to
 constructing API objects.
 
 Informally, an API object is a lua VM together with some features that you have
