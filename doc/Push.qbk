@@ -167,7 +167,9 @@ static constexpr int stack_space_needed = ...
 ``
 
 More complex operations in Primer use this information to calculate at
-compile-time how much stack space they need. For instance, Primer computes
+compile-time how much stack space they need.
+
+For instance, Primer computes
 how much space is needed to push `std::map<std::string, int>` based on it
 knowledge of how much space is needed for `std::string`, and `int`. When a
 `primer::bound_function` is called, it computes at compile-time how much stack
