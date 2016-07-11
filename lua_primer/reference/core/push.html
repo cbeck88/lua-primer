@@ -393,9 +393,6 @@
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
   <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">t</span><span class="special">);</span>
-
-  <span class="comment">// Silence an unused warning</span>
-  <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;(::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">stack_space_needed</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>
@@ -505,8 +502,10 @@
 </pre>
 <p>
           More complex operations in Primer use this information to calculate at
-          compile-time how much stack space they need. For instance, Primer computes
-          how much space is needed to push <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span></code>
+          compile-time how much stack space they need.
+        </p>
+<p>
+          For instance, Primer computes how much space is needed to push <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span></code>
           based on it knowledge of how much space is needed for <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>,
           and <code class="computeroutput"><span class="keyword">int</span></code>. When a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> is called, it computes
           at compile-time how much stack space it needs to push all of the arguments

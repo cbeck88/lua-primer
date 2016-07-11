@@ -253,11 +253,8 @@
         to call your functions, and then it becomes very difficult to reason about
         what happens next. So we consider that catching user exceptions and trying
         to sneak them across the lua call boundary is not a very robust solution,
-        and we don't plan to do something like this in Primer. We think it is a better
-        idea to just terminate the program in such cases. If you want to create an
-        exception-to-lua-error translation mechanism for use with Primer in your
-        program you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code>
-        class template in order to do it.
+        and we don't plan to do something like this in Primer. We think it is usually
+        a better idea to just terminate the program in such cases. <sup>[<a name="lua_primer.overview.exception_safety.f8" href="#ftn.lua_primer.overview.exception_safety.f8" class="footnote">9</a>]</sup>
       </p>
 <p>
         Instead, we are mainly concerned with avoiding leaks and indeterminate states,
@@ -490,6 +487,11 @@
           some static storage, pass on the signal to lua as a lua error, and rethrow
           the exception on the other side, once the error presumably propagates out
           to a <code class="computeroutput"><span class="identifier">pcall</span></code> somewhere.
+        </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f8" href="#lua_primer.overview.exception_safety.f8" class="para">9</a>] </sup>
+          If you want to create an exception-to-lua-error translation mechanism for
+          use with Primer in your program, you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code> traits in order to do it. See the
+          documentation for <code class="computeroutput"><span class="identifier">adapt</span></code>.
         </p></div>
 </div>
 </div>

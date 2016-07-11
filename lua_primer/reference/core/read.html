@@ -377,9 +377,6 @@
 <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">)</span> <span class="special">{</span>
   <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
   <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">);</span>
-
-  <span class="comment">// Silence an unused warning</span>
-  <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;(::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">stack_space_needed</span><span class="special">);</span>
 <span class="special">}</span>
 </pre>
 <p>

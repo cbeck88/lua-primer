@@ -28,31 +28,21 @@
           using a call to <code class="computeroutput"><span class="identifier">pop_stack</span></code>
           or <code class="computeroutput"><span class="identifier">pop_n</span></code>.
         </p>
-<pre class="programlisting"><a class="co" name="lua_primer.reference.core.lua_ref_seq.c0" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">inline</span> <span class="keyword">void</span> <span class="identifier">pop_n</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">n</span><span class="special">,</span> <span class="identifier">lua_ref_seq</span> <span class="special">&amp;</span> <span class="identifier">result</span><span class="special">);</span>
+<pre class="programlisting"><a class="co" name="lua_primer.reference.core.lua_ref_seq.c0" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_n</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">n</span><span class="special">);</span>
 
-<a class="co" name="lua_primer.reference.core.lua_ref_seq.c2" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_n</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">n</span><span class="special">);</span>
-
-<a class="co" name="lua_primer.reference.core.lua_ref_seq.c4" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">);</span>
+<a class="co" name="lua_primer.reference.core.lua_ref_seq.c2" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">);</span>
 </pre>
 <div class="calloutlist"><table border="0" summary="Callout list">
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c1"></a><a href="#lua_primer.reference.core.lua_ref_seq.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
-              Pop <code class="computeroutput"><span class="identifier">n</span></code> elements from
-              the stack <code class="computeroutput"><span class="identifier">L</span></code> and put
-              them in a lua_ref_seq. They are ordered such that calling <code class="computeroutput"><span class="identifier">push_each</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span></code>
-              will restore them. Throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
-              Can cause lua memory alloc failure. First step is clearing the <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>, so, no strong exception-safety.
+              Pop <code class="computeroutput"><span class="identifier">n</span></code> elements form
+              the stack. Throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+              Can cause lua memory alloc failure.
             </p></td>
 </tr>
 <tr>
 <td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c3"></a><a href="#lua_primer.reference.core.lua_ref_seq.c2"><img src="../../../images/callouts/2.png" alt="2" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-              Same thing but with different return convention
-            </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c5"></a><a href="#lua_primer.reference.core.lua_ref_seq.c4"><img src="../../../images/callouts/3.png" alt="3" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
               Pop the entire stack. Throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
               Can cause lua memory alloc failure
@@ -65,15 +55,17 @@
         </p>
 <p>
           Because a <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> represents
-          multiple values and not just one, it can't be used with <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>,
-          as it would break the preconditions.
+          multiple values and not just one, it can't be used with <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>
+          -- <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is required to push exactly one
+          item.
         </p>
 <p>
           However, <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> is
           essentially just a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code>, as you'll see from it's synopsis.
         </p>
 <p>
-          To prevent it from being used as a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code> with push or read, which would cause
+          To prevent it from being used accidentally as a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code> with <code class="computeroutput"><span class="identifier">push</span></code>
+          or <code class="computeroutput"><span class="identifier">read</span></code>, which would cause
           bugs, it is implemented as a <code class="computeroutput"><span class="keyword">struct</span></code>
           containing a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code>
           member, which forwards most of the member functions of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>.
@@ -86,7 +78,7 @@
   <span class="keyword">using</span> <span class="identifier">refs_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;;</span>
   <span class="identifier">refs_t</span> <span class="identifier">refs_</span><span class="special">;</span>
 
-  <a class="co" name="lua_primer.reference.core.lua_ref_seq.c6" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c7"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">bool</span> <span class="identifier">push_each</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+  <a class="co" name="lua_primer.reference.core.lua_ref_seq.c4" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c5"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">bool</span> <span class="identifier">push_each</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
     <span class="keyword">bool</span> <span class="identifier">result</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
     <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">r</span> <span class="special">:</span> <span class="identifier">refs_</span><span class="special">)</span> <span class="special">{</span>
       <span class="keyword">bool</span> <span class="identifier">temp</span> <span class="special">=</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
@@ -151,7 +143,7 @@
 <span class="special">};</span>
 </pre>
 <div class="calloutlist"><table border="0" summary="Callout list"><tr>
-<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c7"></a><a href="#lua_primer.reference.core.lua_ref_seq.c6"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c5"></a><a href="#lua_primer.reference.core.lua_ref_seq.c4"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
 <td valign="top" align="left"><p>
               Push all the refs onto the stack in succession. Return of <code class="computeroutput"><span class="keyword">true</span></code> means every push succeeded. You
               can usually ignore the result, it only fails if some of the refs in
