@@ -62,7 +62,7 @@ template <typename T>
 class persistable {
 
 protected:
-  typedef T root_type;
+  typedef T primer_persistable_type;
 
   // detail, typelist assembly
   static inline detail::TypeList<> GetApiFeatures(primer::detail::Rank<0>);
@@ -70,7 +70,8 @@ protected:
   static constexpr int maxFeatures = 100;
 
 #define GET_API_FEATURES                                                       \
-  decltype(root_type::GetApiFeatures(primer::detail::Rank<maxFeatures>{}))
+  decltype(primer_persistable_type::GetApiFeatures(                            \
+    primer::detail::Rank<maxFeatures>{}))
 
 private:
   // Apply a visitor to the feature_list
@@ -179,9 +180,18 @@ protected:
 #define API_FEATURE(TYPE, NAME)                                                \
   TYPE NAME;                                                                   \
   static constexpr const char * feature_name_##NAME() { return #NAME; }        \
-  using feature_reg_##NAME =                                                   \
-    primer::api::ptr_to_member<root_type, TYPE, &root_type::NAME,              \
-                               &root_type::feature_name_##NAME>;               \
-  static inline primer::detail::Append_t<GET_API_FEATURES, feature_reg_##NAME> \
+  static_assert(primer::api::has_on_init_method<TYPE>::value,                  \
+                "Missing on_init method!");                                    \
+  static_assert(primer::api::has_on_persist_table_method<TYPE>::value,         \
+                "Missing on_persist_table method!");                           \
+  static_assert(primer::api::has_on_unpersist_table_method<TYPE>::value,       \
+                "Missing on_unpersist_table method!");                         \
+  static_assert(primer::api::is_feature<TYPE>::value,                          \
+                "Type does not meet criteria for an API_FEATURE!");            \
+  static inline primer::detail::Append_t<                                      \
+    GET_API_FEATURES,                                                          \
+    primer::api::ptr_to_member<primer_persistable_type, TYPE,                  \
+                               &primer_persistable_type::NAME,                 \
+                               &primer_persistable_type::feature_name_##NAME>> \
     GetApiFeatures(primer::detail::Rank<GET_API_FEATURES::size + 1>);          \
   static_assert(true, "")

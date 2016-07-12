@@ -151,8 +151,6 @@ protected:
 public:
   // API Feature
 
-  static constexpr bool is_serial = false;
-
   void on_init(lua_State * L) {
     this->install_this_pointer(L);
 

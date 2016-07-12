@@ -404,6 +404,14 @@ void test_api_userdata() {
   }
 }
 
+static_assert(!primer::api::is_serial_feature<
+                primer::api::libraries<primer::api::lua_base_lib>>::value,
+              "libraries was recognized as a serial feature!");
+static_assert(!primer::api::is_serial_feature<primer::api::callbacks>::value,
+              "callbacks was recognized as a serial feature!");
+static_assert(
+  primer::api::is_serial_feature<primer::api::persistent_value<std::string>>::value,
+  "persistent value not recognized as a serial feature!");
 
 struct test_api_four : primer::api::base<test_api_four> {
   lua_raii L_;

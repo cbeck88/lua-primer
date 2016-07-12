@@ -34,10 +34,10 @@ uses it internally for certain things. We use a template function called
 
 namespace primer {
 
-template <void(*)(lua_State *)>
+template <void (*)(lua_State *)>
 void push_singleton(lua_State *);
 
-template <int(*)(lua_State *)>
+template <int (*)(lua_State *)>
 void push_singleton(lua_State *);
 
 } // end namespace primer

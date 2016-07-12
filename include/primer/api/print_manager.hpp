@@ -278,9 +278,9 @@ public:
   inline void handle_interpreter_input(lua_State * L,
                                        const std::string & user_input);
 
+  //
   // API Feature
-
-  static constexpr bool is_serial = false;
+  //
 
   void on_init(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);

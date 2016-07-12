@@ -124,8 +124,6 @@ class libraries {
 
 
 public:
-  static constexpr bool is_serial = false;
-
   void on_init(lua_State * L) {
     int dummy[] = {(load_lib_globally<Ts>(L), 0)..., 0};
     static_cast<void>(dummy);

@@ -6,7 +6,10 @@
 #pragma once
 
 /***
- * How to read primitive values from the lua stack
+ * Represents a C++ value that is stored in the target table just prior to
+ * serialization, and restored from the target table upon deserialization.
+ * This is an easy way to create a persistent value outside of the lua state,
+ * provided that the type can be pushed and read.
  */
 
 #include <primer/base.hpp>
@@ -30,12 +33,14 @@ struct persistent_value {
   T & get() & { return value_; }
   T const & get() const & { return value_; }
 
-  // Api Feature
+  //
+  // API Feature
+  //
+
   void on_init(lua_State *) {}
   void on_persist_table(lua_State *) {}
   void on_unpersist_table(lua_State *) {}
 
-  static constexpr bool is_serial = true;
   void on_serialize(lua_State * L) { primer::push(L, value_); }
 
   PRIMER_STATIC_ASSERT(std::is_nothrow_move_constructible<T>::value,

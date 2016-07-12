@@ -59,7 +59,10 @@ public:
     : callbacks(T::callbacks_array(), _owner_ptr)
   {}
 
-  static constexpr bool is_serial = false;
+
+  //
+  // API Feature
+  //
 
   void on_init(lua_State * L) const {
     // Initialize the extraspace to point to the owner

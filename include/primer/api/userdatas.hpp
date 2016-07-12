@@ -24,8 +24,6 @@ namespace api {
 
 template <typename... Ts>
 struct userdatas {
-  static constexpr bool is_serial = false;
-
   void on_init(lua_State * L) {
     int dummy[] = {(primer::init_metatable<Ts>(L), 0)..., 0};
     static_cast<void>(dummy);
