@@ -22,12 +22,10 @@ PRIMER_ASSERT_FILESCOPE;
 #include <type_traits>
 #include <utility>
 
-//[ primer_bad_access
 // This assertion is only active when PRIMER_DEBUG is defined.
 // See <primer/support/asserts.hpp>
 #define PRIMER_BAD_ACCESS(X)                                                   \
   PRIMER_ASSERT((X), "Bad access to primer::expected")
-//]
 
 namespace primer {
 

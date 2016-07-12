@@ -18,22 +18,21 @@ The error is accessed by reference using member function `err()`.
 Both kinds of access are ['unchecked], you get undefined behavior if you use
 `operator *` when there actually is an error.
 
-Example:
+[h4 Example]
 
 [primer_expected_example]
 
-Here's the definition.
+[h4 Synopsis]
 
-[primer_bad_access]
 [primer_expected]
 
-[h3 Specialization: references]
+[h4 Specialization: references]
 
 `primer::expected<T&>` is specialized, since unions cannot contain references.
 
 [primer_expected_ref]
 
-[h3 Specialization: void]
+[h4 Specialization: void]
 
 `primer::expected<void>` is specialized, in order to represent "successful completion of an operation, or an error".
 
