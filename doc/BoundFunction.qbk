@@ -11,7 +11,9 @@ using pcall. Any errors are returned to the caller -- the lua stack is always un
 
 These objects are *safe* -- calling them does not raise exceptions, and they handle
 any lua errors and return them as `primer::error` objects, even if the user
-function errs or the lua VM is destroyed.
+function errs or the lua VM is destroyed. Furthermore, they carry out an
+appropriate call to `lua_checkstack` no matter what parameters they are passed
+for the call.
 
 [note Like `lua_ref`, these objects are not thread-safe.]
 
