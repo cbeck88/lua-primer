@@ -15,12 +15,6 @@
 
 */
 
-/*` It is implemented using a union. Sometimes it refers to a fixed static
-    string, and sometimes it holds a `std::string` which contains the error
-    message.
-
-*/
-
 /*` Primer generally translates lua errors into `primer::error` when it
    performs an operation which fails, and will translate `primer::error` into
    a lua error when adapting callbacks.
