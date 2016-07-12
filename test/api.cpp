@@ -3,6 +3,7 @@
 #include <primer/std/vector.hpp>
 
 #include "test_harness/test_harness.hpp"
+#include "test_harness/g_inspector.hpp"
 #include <iostream>
 #include <string>
 #include <initializer_list>
@@ -108,6 +109,41 @@ void test_persist_simple() {
   }
 }
 
+void test_persist_simple_two() {
+  std::string buffer;
+  table_summary summary;
+
+  {
+    test_api_one a;
+    TEST_EQ(false, a.test_mock_state());
+
+    a.create_mock_state();
+
+    TEST_EQ(true, a.test_mock_state());
+
+    buffer = a.save();
+
+    TEST_EQ(true, a.test_mock_state());
+
+    summary = get_global_table_summary(a.L);
+  }
+
+  {
+    test_api_one a;
+    TEST_EQ(false, a.test_mock_state());
+
+    a.restore(buffer);
+
+    TEST_EQ(true, a.test_mock_state());
+    auto summary2 = get_global_table_summary(a.L);
+
+    bool match = check_tables_match(summary, summary2);
+    TEST_EQ(summary.size(), summary2.size());
+    TEST(match, "global table mismatch!");
+  }
+
+}
+
 struct test_api_two : primer::api::base<test_api_two> {
   lua_raii L_;
 
@@ -158,6 +194,7 @@ struct test_api_two : primer::api::base<test_api_two> {
 
 void test_api_base() {
   std::string buffer;
+  table_summary summary;
 
   const char * script =
     ""
@@ -187,6 +224,7 @@ void test_api_base() {
     CHECK_STACK(L, 0);
 
     buffer = a.save();
+    summary = get_global_table_summary(L);
   }
 
   {
@@ -194,6 +232,11 @@ void test_api_base() {
     a.restore(buffer);
 
     lua_State * L = a.L_;
+
+    {
+      auto summary2 = get_global_table_summary(L);
+      TEST(check_tables_match(summary, summary2), "global table mismatch!");
+    }
 
     CHECK_STACK(L, 0);
 
@@ -658,6 +701,7 @@ int main() {
   std::cout << "Persistence tests:" << std::endl;
   test_harness tests{
     {"persist simple", &test_persist_simple},
+    {"persist simple two", &test_persist_simple_two},
     {"api base", &test_api_base},
     {"api help", &test_api_help},
     {"api userdata", &test_api_userdata},

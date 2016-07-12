@@ -1,4 +1,6 @@
 #include <primer/lua.hpp>
+
+#include <iostream>
 #include <ostream>
 #include <string>
 #include <map>
@@ -17,26 +19,26 @@ struct lua_value {
   }
 
   explicit lua_value(lua_State * L, int index)
-    : lua_type(L, index)
-    , desc(  (lua_pushvalue(L, index), luaL_tolstring(L, -1)))
+    : type(lua_type(L, index))
+    , desc(  (lua_pushvalue(L, index), luaL_tolstring(L, -1, nullptr)))
   {
-    lua_pop(L, 1);
+    lua_pop(L, 2);
   }
 
-  bool matches(const lua_value & o) {
+  bool matches(const lua_value & o) const {
     if (type != o.type) { return false; }
     if (type == LUA_TTABLE || type == LUA_TUSERDATA) { return true; }
     return desc == o.desc;
   }
 };
 
-using std::map<lua_value, lua_value> table_summary;
+using table_summary = std::map<lua_value, lua_value>;
 
 inline table_summary get_global_table_summary(lua_State * L) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   table_summary result;
 
-  lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_GLOBALS_RIDX);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
   int idx = lua_gettop(L);
   lua_pushnil(L);
   while (lua_next(L, idx)) {
@@ -46,7 +48,7 @@ inline table_summary get_global_table_summary(lua_State * L) {
       lua_value val{L, -1};
 
       auto p = result.emplace(std::move(key), std::move(val));
-      PRIMER_ASSERT(p.second);
+      PRIMER_ASSERT(p.second, "Duplicate keys encountered in a table!");
     }
     lua_pop(L, 1);
   }
@@ -68,7 +70,7 @@ inline std::ostream & operator << (std::ostream & ss, const std::pair<lua_value,
 inline std::ostream & operator << (std::ostream & ss, const std::map<lua_value,lua_value> & m) {
   ss << "{\n";
   for (const auto & p : m) {
-    ss << "  " p << std::endl;
+    ss << "  " << p << std::endl;
   }
   ss << "}";
   return ss;
@@ -78,13 +80,15 @@ inline bool check_table_subset(const char * lname, const table_summary & lhs, co
   bool result = true;
   for (const auto & p : lhs) {
     auto it = rhs.find(p.first);
-    if (it != rhs.end() && !p.second.matches(it->second)) {
-      std::cerr << "!!!\n"
-      std::cerr << "    " << lname << ": " << p << std::endl;
-      std::cerr << "    " << rname << ": " << *it << std::endl;
-      result = false;
+    if (it != rhs.end()) {
+      if (!p.second.matches(it->second)) {
+        std::cerr << "!!!\n";
+        std::cerr << "    " << lname << ": " << p << std::endl;
+        std::cerr << "    " << rname << ": " << *it << std::endl;
+        result = false;
+      }
     } else {
-      std::cerr << "!!!\n"
+      std::cerr << "!!!\n";
       std::cerr << "    " << lname << ": " << p << std::endl;
       std::cerr << "    " << rname << ": [" << p.first << "] = nil" << std::endl;
       result = false;
