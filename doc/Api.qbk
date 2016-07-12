@@ -14,6 +14,7 @@ You need to link with lua eris, not just lua, to use these objects.
 [include ApiBase.qbk]
 [include ApiLibrary.qbk]
 [include ApiUserdata.qbk]
+[include ApiPersistentValue.qbk]
 [include ApiFeature.qbk]
 [include ApiCallback.qbk]
 [include ApiPrintManager.qbk]

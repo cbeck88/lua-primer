@@ -1,0 +1,19 @@
+[section API Persistent Value]
+
+`api::persistent_value` is an easy way that you can create a C++ object, not
+part of the global table nor of the registry, which gets serialized and restored
+along with the lua VM.
+
+The value must have a type which is both readable and pushable, and is `nothrow_move_constructible`.
+
+The class template `persistent_value<T>` contains the value and implements the
+API Feature methods.
+
+The contained value can be accessed using `get()` method, or directly as
+`.value` public member.
+
+[h4 Synopsis]
+
+[primer_persistent_value]
+
+[endsect]

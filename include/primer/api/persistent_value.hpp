@@ -23,6 +23,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <type_traits>
 #include <utility>
 
+//[ primer_persistent_value
 namespace primer {
 namespace api {
 
@@ -57,3 +58,4 @@ struct persistent_value {
 
 } // end namespace api
 } // end namespace primer
+//]
