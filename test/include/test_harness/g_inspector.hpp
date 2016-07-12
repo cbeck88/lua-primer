@@ -34,12 +34,12 @@ struct lua_value {
 
 using table_summary = std::map<lua_value, lua_value>;
 
-inline table_summary get_global_table_summary(lua_State * L) {
+inline table_summary get_table_summary(lua_State * L, int idx) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   table_summary result;
 
-  lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
-  int idx = lua_gettop(L);
+  idx = lua_absindex(L, idx);
+
   lua_pushnil(L);
   while (lua_next(L, idx)) {
     {
@@ -52,8 +52,16 @@ inline table_summary get_global_table_summary(lua_State * L) {
     }
     lua_pop(L, 1);
   }
-  lua_pop(L, 1);
+  return result;
+}
 
+inline table_summary get_global_table_summary(lua_State * L) {
+  PRIMER_ASSERT_STACK_NEUTRAL(L);
+  table_summary result;
+
+  lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+  result = get_table_summary(L, lua_gettop(L));
+  lua_pop(L, 1);
   return result;
 }
 
