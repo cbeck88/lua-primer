@@ -5,5 +5,6 @@ Other features:
 [include StdFunction.qbk]
 [include CppPcall.qbk]
 [include ErrorHandler.qbk]
+[include PushSingleton.qbk]
 
 [endsect]

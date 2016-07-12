@@ -31,10 +31,10 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+#include <primer/push_singleton.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/main_thread.hpp>
-#include <primer/support/push_cached.hpp>
 
 #include <nonstd/weak_ref.hpp>
 
@@ -148,7 +148,7 @@ private:
   // Also, get the userdata ptr thereof and return a reference.
   // If the strong ptr does not exist yet, then create it.
   static strong_ptr_type & get_strong_ptr(lua_State * L) {
-    detail::push_cached<&make_strong_ptr>(L);
+    primer::push_singleton<&make_strong_ptr>(L);
     void * result = lua_touserdata(L, -1);
     PRIMER_ASSERT(result, "Failed to obtain strong ptr: got "
                             << describe_lua_value(L, -1));

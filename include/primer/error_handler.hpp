@@ -11,8 +11,8 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/error_handler_fwd.hpp>
 #include <primer/lua.hpp>
+#include <primer/push_singleton.hpp>
 #include <primer/support/asserts.hpp>
-#include <primer/support/push_cached.hpp>
 
 namespace primer {
 namespace detail {
@@ -36,7 +36,7 @@ inline int get_error_handler(lua_State * L) noexcept {
   lua_getfield(L, LUA_REGISTRYINDEX, detail::error_handler_reg_key);
   if (!lua_toboolean(L, -1)) {
     lua_pop(L, 1);
-    detail::push_cached<detail::fetch_traceback_function>(L);
+    primer::push_singleton<detail::fetch_traceback_function>(L);
   }
   return 1;
 }

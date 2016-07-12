@@ -14,7 +14,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
-#include <primer/support/push_cached.hpp>
+#include <primer/push_singleton.hpp>
 
 namespace primer {
 
@@ -32,7 +32,7 @@ inline void set_help_string(lua_State * L,
                             const char * help_str) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-  detail::push_cached<&make_help_table>(L);
+  primer::push_singleton<&make_help_table>(L);
   lua_pushcfunction(L, f);
   if (help_str) {
     lua_pushstring(L, help_str);
@@ -55,7 +55,7 @@ inline void set_help_string(lua_State * L,
 inline const char * get_help_string(lua_State * L, lua_CFunction f) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-  detail::push_cached<&make_help_table>(L);
+  primer::push_singleton<&make_help_table>(L);
   lua_pushcfunction(L, f);
   lua_gettable(L, -2);
   const char * str = lua_tostring(L, -1);

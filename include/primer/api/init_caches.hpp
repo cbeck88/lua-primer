@@ -17,8 +17,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 #include <primer/error_handler.hpp>
+#include <primer/push_singleton.hpp>
 #include <primer/support/lua_state_ref.hpp>
-#include <primer/support/push_cached.hpp>
+
 
 namespace primer {
 namespace api {
@@ -30,7 +31,7 @@ inline void init_caches(lua_State * L) {
   // memory situation it will cause problems, so, try to preempt this.
   lua_state_ref::obtain_weak_ref_to_state(L);
 
-  primer::detail::push_cached<primer::detail::fetch_traceback_function>(L);
+  primer::push_singleton<primer::detail::fetch_traceback_function>(L);
   lua_pop(L, 1);
 }
 

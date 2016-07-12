@@ -21,7 +21,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 #include <primer/support/error_capture.hpp>
 #include <primer/support/function_return_fwd.hpp>
-#include <primer/support/push_cached.hpp>
 #include <tuple>
 #include <utility>
 

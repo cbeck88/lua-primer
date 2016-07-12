@@ -18,8 +18,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/adapt.hpp>
 #include <primer/lua.hpp>
+#include <primer/push_singleton.hpp>
 #include <primer/support/asserts.hpp>
-#include <primer/support/push_cached.hpp>
+
 
 #include <functional>
 #include <new>
@@ -69,7 +70,7 @@ struct std_function_udata {
   static void push_instance(lua_State * L, function_type f) {
     new (lua_newuserdata(L, sizeof(std_function_udata)))
       std_function_udata{std::move(f)};
-    push_cached<&this_type::push_metatable>(L);
+    push_singleton<&this_type::push_metatable>(L);
     lua_setmetatable(L, -2);
     lua_CFunction func =
       &adapt<R (*)(lua_State *, Args...), &this_type::closure_function>::adapted;
