@@ -25,23 +25,27 @@ PRIMER_ASSERT_FILESCOPE;
 #include <utility>
 
 //[ primer_vfs_overview
-//`
-//` VFS helps to create a custom filesystem exposed to lua.
-//`
-//` If you have a class which can resolve lua-style paths to loadable chunks in
-//` some fashion, you can use the `primer::api::vfs` object to
-//` get implementations of `loadfile`, `dofile`, and `require`
-//` which are tied to your vfs and not the actual OS.
-//`
-//` Your class should essentially provide an implementation of `loadfile`, with
-//` the following signature:
+/*`
+`primer::api::vfs` helps to create a custom filesystem exposed to lua.
+
+If you have a class which can resolve lua-style paths to loadable chunks in
+some fashion, you can use the `primer::api::vfs` object to
+get implementations of `loadfile`, `dofile`, and `require`
+which are tied to your vfs and not the actual OS.
+
+Your class should essentially provide an implementation of `loadfile`, with
+the following signature:
+*/
+//= // Concept "VFS Provider"
 //= expected<void> load(lua_State *, const std::string & path)
-//` Given a pointer to the stack and the path argument from the lua script,
-//` either call `luaL_loadbuffer` to load a chunk onto the stack and return
-//` "ok" (default constructed `expected<void>`), or return some sort of error
-//` message regarding the path.
-//`
-//` The vfs can then be constructed from a pointer to an instance of your class.
+/*`
+Given a pointer to the stack and the path argument from the lua script,
+either call `luaL_loadbuffer` to load a chunk onto the stack and return
+"ok" (`expected<void>{}`), or return some sort of error
+message regarding the path.
+
+The vfs can then be constructed from a pointer to an instance of your class.
+*/
 //]
 
 namespace primer {

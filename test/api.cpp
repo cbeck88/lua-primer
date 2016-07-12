@@ -235,7 +235,9 @@ void test_api_base() {
     {
       auto summary2 = get_global_table_summary(L);
       // TEST(check_tables_match(summary, summary2), "global table mismatch!");
-      if (!check_tables_match(summary, summary2)) { std::cerr << "WARN: Global table mismatch!\n"; }
+      if (!check_tables_match(summary, summary2)) {
+        std::cerr << "WARN: Global table mismatch!\n";
+      }
     }
 
     CHECK_STACK(L, 0);
@@ -635,6 +637,7 @@ struct my_files {
   }
 };
 
+// Example api::base object
 struct test_api : primer::api::base<test_api> {
   lua_raii L_;
 
@@ -707,9 +710,11 @@ void test_vfs() {
     a.restore(buffer);
 
     auto summary2 = get_global_table_summary(L);
-    //TEST(check_tables_match(summary, summary2),
+    // TEST(check_tables_match(summary, summary2),
     //     "expected global tables to match!");
-    if (!check_tables_match(summary, summary2)) { std::cerr << "WARN: Global table mismatch!\n"; }
+    if (!check_tables_match(summary, summary2)) {
+      std::cerr << "WARN: Global table mismatch!\n";
+    }
 
     TEST_LUA_OK(L, luaL_loadstring(L, script));
     TEST_LUA_OK(L, lua_pcall(L, 0, 0, 0));
