@@ -315,18 +315,18 @@ void test_coroutine() {
   CHECK_STACK(L, 0);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  ""
-                                  " local function make_closure()         \n"
-                                  "   local counter = 0;                  \n"
-                                  "   local function f(input)             \n"
-                                  "     while true do                     \n"
-                                  "       counter = counter + input;      \n"
-                                  "       input = yield_helper(counter);  \n"
-                                  "     end                               \n"
-                                  "   end                                 \n"
-                                  "   return f;                           \n"
-                                  " end                                   \n"
-                                  " return make_closure()                 \n"));
+                                 ""
+                                 " local function make_closure()         \n"
+                                 "   local counter = 0;                  \n"
+                                 "   local function f(input)             \n"
+                                 "     while true do                     \n"
+                                 "       counter = counter + input;      \n"
+                                 "       input = yield_helper(counter);  \n"
+                                 "     end                               \n"
+                                 "   end                                 \n"
+                                 "   return f;                           \n"
+                                 " end                                   \n"
+                                 " return make_closure()                 \n"));
   TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   TEST_EQ(true, lua_isfunction(L, 1));

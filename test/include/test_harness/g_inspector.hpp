@@ -14,13 +14,13 @@ struct lua_value {
   int type;
   std::string desc;
 
-  bool operator < (const lua_value & o) const {
+  bool operator<(const lua_value & o) const {
     return type < o.type || (type == o.type && desc < o.desc);
   }
 
   explicit lua_value(lua_State * L, int index)
     : type(lua_type(L, index))
-    , desc(  (lua_pushvalue(L, index), luaL_tolstring(L, -1, nullptr)))
+    , desc((lua_pushvalue(L, index), luaL_tolstring(L, -1, nullptr)))
   {
     lua_pop(L, 2);
   }
@@ -57,17 +57,19 @@ inline table_summary get_global_table_summary(lua_State * L) {
   return result;
 }
 
-inline std::ostream & operator << (std::ostream & ss, const lua_value & p) {
+inline std::ostream & operator<<(std::ostream & ss, const lua_value & p) {
   ss << "~" << p.desc << "~";
   return ss;
 }
 
-inline std::ostream & operator << (std::ostream & ss, const std::pair<lua_value,lua_value> & p) {
+inline std::ostream & operator<<(std::ostream & ss,
+                                 const std::pair<lua_value, lua_value> & p) {
   ss << "[" << p.first << "] = " << p.second;
   return ss;
 }
 
-inline std::ostream & operator << (std::ostream & ss, const std::map<lua_value,lua_value> & m) {
+inline std::ostream & operator<<(std::ostream & ss,
+                                 const std::map<lua_value, lua_value> & m) {
   ss << "{\n";
   for (const auto & p : m) {
     ss << "  " << p << std::endl;
@@ -76,7 +78,10 @@ inline std::ostream & operator << (std::ostream & ss, const std::map<lua_value,l
   return ss;
 }
 
-inline bool check_table_subset(const char * lname, const table_summary & lhs, const char * rname, const table_summary & rhs) {
+inline bool check_table_subset(const char * lname,
+                               const table_summary & lhs,
+                               const char * rname,
+                               const table_summary & rhs) {
   bool result = true;
   for (const auto & p : lhs) {
     auto it = rhs.find(p.first);
@@ -97,7 +102,8 @@ inline bool check_table_subset(const char * lname, const table_summary & lhs, co
   return result;
 }
 
-inline bool check_tables_match(const table_summary & lhs, const table_summary & rhs) {
+inline bool check_tables_match(const table_summary & lhs,
+                               const table_summary & rhs) {
   bool b1 = check_table_subset("LHS", lhs, "RHS", rhs);
   bool b2 = check_table_subset("RHS", rhs, "LHS", lhs);
 

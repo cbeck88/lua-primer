@@ -234,8 +234,8 @@ void visitable_function_params_test() {
   lua_setglobal(L, "f");
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f({ b = true, c = 5.5, a = 7}, {a= "
-                                  "9, b = false, c = 2.5})"));
+                                 "return f({ b = true, c = 5.5, a = 7}, {a= "
+                                 "9, b = false, c = 2.5})"));
   TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
 
   CHECK_STACK(L, 1);
@@ -247,50 +247,50 @@ void visitable_function_params_test() {
   lua_pop(L, 1);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f({ b = true, c = 5.5, d = 7}, {a= "
-                                  "9, b = false, c = 2.5})"));
+                                 "return f({ b = true, c = 5.5, d = 7}, {a= "
+                                 "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f({ b = true, c = 5.5, a = '7'}, {a= "
-                                  "9, b = false, c = 2.5})"));
+                                 "return f({ b = true, c = 5.5, a = '7'}, {a= "
+                                 "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f({ b = true, c = 5.5, a = -15.5}, "
-                                  "{a= 9, b = false, c = 2.5})"));
+                                 "return f({ b = true, c = 5.5, a = -15.5}, "
+                                 "{a= 9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f({ b = true, c = {}, a = 3}, {a= 9, "
-                                  "b = false, c = 2.5})"));
+                                 "return f({ b = true, c = {}, a = 3}, {a= 9, "
+                                 "b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f({ b = 1, c = 5.5, a = 3}, {a= 9, b "
-                                  "= false, c = 2.5})"));
+                                 "return f({ b = 1, c = 5.5, a = 3}, {a= 9, b "
+                                 "= false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f{{ b = true, c = {}, a = 3}, {a= 9, "
-                                  "b = false, c = 2.5}}"));
+                                 "return f{{ b = true, c = {}, a = 3}, {a= 9, "
+                                 "b = false, c = 2.5}}"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 
   TEST_LUA_OK(L, luaL_loadstring(L,
-                                  "return f({ b = true, c = 5.5, a = 7}, {q = "
-                                  "9, b = false, c = 2.5})"));
+                                 "return f({ b = true, c = 5.5, a = 7}, {q = "
+                                 "9, b = false, c = 2.5})"));
   TEST_EQ(LUA_ERRRUN, lua_pcall(L, 0, 1, 0));
   CHECK_STACK(L, 1);
   lua_pop(L, 1);

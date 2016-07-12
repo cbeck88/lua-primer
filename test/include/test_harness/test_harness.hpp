@@ -80,13 +80,13 @@ struct test_exception : std::exception {
 #define TEST_LUA_OK(L, C)                                                      \
   do {                                                                         \
     int code__ = C;                                                            \
-    if(code__ != LUA_OK) {                                                     \
+    if (code__ != LUA_OK) {                                                    \
       std::ostringstream ss__;                                                 \
       ss__ << "Lua operation failed: " #C " (line " << __LINE__ << ")\n";      \
       ss__ << primer::detail::pop_error(L, code__).what();                     \
       throw test_exception(ss__.str());                                        \
     }                                                                          \
-  } while(0)
+  } while (0)
 
 /***
  * Test types on the stack

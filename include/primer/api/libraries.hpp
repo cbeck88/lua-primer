@@ -106,21 +106,25 @@ class libraries {
 
   template <typename T, bool kv_order>
   static void load_lib_into_table(lua_State * L) {
-    PRIMER_ASSERT_TABLE(L);                  // [target]
-    PRIMER_ASSERT_STACK_NEUTRAL(L);          // [target]
-    luaL_requiref(L, T::name, T::func, 0);   // [target] [lib]
-    lua_pushnil(L);                          // [target] [lib] [nil]
-    while (lua_next(L, -2)) {                // [target] [lib] [k] [v]
-      if (lua_iscfunction(L, -1) && lua_isstring(L, -2)) {               //
+    constexpr const char * fmt = "%s_lib_%s";
+    // TODO: It would be nice to understand / recollect why `lua_iscfunction`
+    // below is essential. Bugs seem to occur if it is removed.
+
+    PRIMER_ASSERT_TABLE(L);                // [target]
+    PRIMER_ASSERT_STACK_NEUTRAL(L);        // [target]
+    luaL_requiref(L, T::name, T::func, 0); // [target] [lib]
+    lua_pushnil(L);                        // [target] [lib] [nil]
+    while (lua_next(L, -2)) {              // [target] [lib] [k] [v]
+      if (lua_iscfunction(L, -1) && lua_isstring(L, -2)) { //
         const char * k = lua_tostring(L, -2); // [target] [lib] [k] [v]
-        lua_pushfstring(L,"%s_lib_%s", T::name, k); // [target] [lib] [k] [v] [fk]
-        if (kv_order) { lua_insert(L, -2); }   // [target] [lib] [k] [?] [?]
-        lua_settable(L, -5);                   // [target] [lib] [k]
-      } else {                               // [target] [lib] [k] [v]
-        lua_pop(L, 1);                       // [target] [lib] [k]
-      }                                      // [target] [lib] [k]
-    }                                        // [target] [lib]
-    lua_pop(L, 1);                           // [target]
+        lua_pushfstring(L, fmt, T::name, k);  // [target] [lib] [k] [v] [k]
+        if (kv_order) { lua_insert(L, -2); }  // [target] [lib] [k] [?] [?]
+        lua_settable(L, -5);                  // [target] [lib] [k]
+      } else {                                // [target] [lib] [k] [v]
+        lua_pop(L, 1);                        // [target] [lib] [k]
+      }                                       // [target] [lib] [k]
+    }                                         // [target] [lib]
+    lua_pop(L, 1);                            // [target]
   }
 
 

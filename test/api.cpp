@@ -141,7 +141,6 @@ void test_persist_simple_two() {
     TEST_EQ(summary.size(), summary2.size());
     TEST(match, "global table mismatch!");
   }
-
 }
 
 struct test_api_two : primer::api::base<test_api_two> {
@@ -717,11 +716,11 @@ void test_vfs() {
     a.restore(buffer);
 
     auto summary2 = get_global_table_summary(L);
-    TEST(check_tables_match(summary, summary2), "expected global tables to match!");
+    TEST(check_tables_match(summary, summary2),
+         "expected global tables to match!");
 
     TEST_LUA_OK(L, luaL_loadstring(L, script));
     TEST_LUA_OK(L, lua_pcall(L, 0, 0, 0));
-
   }
 }
 //]
