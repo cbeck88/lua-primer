@@ -33,6 +33,8 @@ PRIMER_ASSERT_FILESCOPE;
 #include <string>
 #include <utility>
 
+namespace primer {
+
 //->
 
 
@@ -52,7 +54,6 @@ PRIMER_ASSERT_FILESCOPE;
 //<-
 // clang-format on
 //->
-namespace primer {
 
 class error {
   //<-
@@ -256,9 +257,9 @@ inline error & error::prepend_error_line(Args &&... args) noexcept {
 
 inline const char * error::what() const noexcept { return msg_.c_str(); }
 
-//[ primer_error_extra_notes
-
 } // end namespace primer
+
+//[ primer_error_extra_notes
 
 //` The `prepend_error_line` method can be used to add context to an error
 //` message as it comes up the callstack. For instance,
