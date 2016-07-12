@@ -19,9 +19,11 @@ for the call.
 
 `primer::bound_function` can also be used to create a `primer::coroutine`.
 
+[h4 Synopsis]
+
 [primer_bound_function]
 
-[h2 Read / Push semantics]
+[h4 Read / Push semantics]
 
 Similar to `lua_ref`, these can be pushed onto the stack by `primer::push`.
 

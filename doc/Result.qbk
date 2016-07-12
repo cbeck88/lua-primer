@@ -19,6 +19,8 @@ error is indicated by a `primer::error` object.
 Code to send corresponding signal to lua is in
 `<primer/detail/implement_result.hpp>`
 
+[h4 Synopsis]
+
 [primer_result]
 
 [endsect]

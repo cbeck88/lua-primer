@@ -20,6 +20,8 @@ empty state and needs to be recreated from a `primer::bound_function`.
 Not all uses of coroutines are well-served by the `primer::coroutine` object, this is only good for certain purposes. You may be better
 off using lua thread objects directly in some cases. Note that you can still easily use `lua_ref` and `bound_function` in such cases.
 
+[h4 Synopsis]
+
 [primer_coroutine]
 
 [caution As usual, this object is not thread-safe.]

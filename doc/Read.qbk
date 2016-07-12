@@ -12,7 +12,7 @@ You should always test the result of `primer::read` for safety, and not
 assume that it will succeed in any given case. If the result is in an error state,
 then applying `operator *` will result in undefined behavior.
 
-[h3 Supported Types]
+[h4 Supported Types]
 
 The following core types are supported:
 
@@ -76,7 +76,10 @@ details.
 * `std::unordered_map`
 * `boost::vector`
 
-[h3 Customization]
+Primer also supports the ability to read ['references] to userdata types. (See
+['userdata] section docs. TODO Link)
+
+[h4 Customization]
 
 `primer::read`'s implementation is quite simple -- it delegates work to a ['type trait].
 
@@ -89,7 +92,7 @@ for certain types, or to add new behavior for these custom types.
 [primer_example_vec2i_read_trait]
 [primer_example_vec2i_read_test]
 
-[h3 Stack Space]
+[h4 Stack Space]
 
 Similar to `primer::push`, specializations of `primer::read` must declare how much
 stack space they *assume* that they will have available. If your specialization

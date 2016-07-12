@@ -2,6 +2,8 @@
 
 `primer::push` is a template function used to push a C++ value to a lua Stack.
 
+[h4 Synopsis]
+
 [primer_push]
 
 In the case of primitive values, it is always a direct call to the corresponding
@@ -32,7 +34,7 @@ is equivalent to
 
 [/ primer_push_each]
 
-[h3 Supported Types]
+[h4 Supported Types]
 
 The following core types are supported:
 
@@ -115,7 +117,7 @@ details.
 * `std::unordered_map`
 * `boost::flat_set`
 
-[h3 Customization]
+[h4 Customization]
 
 `primer::push` is defined in terms of a type trait, `primer::traits::push`.
 
@@ -128,7 +130,7 @@ for certain types, or to add new behavior for custom types.
 [primer_example_vec2i_push_trait]
 [primer_example_vec2i_push_test]
 
-[h3 Stack Space]
+[h4 Stack Space]
 
 One aspect of lua that you may easily miss on your first pass through the manual
 is [@http://www.lua.org/manual/5.3/manual.html#4.2 the note about stack overflow].
@@ -152,7 +154,7 @@ from the current top of the stack.
 programs will work (because of a small built-in minimum stack size) but large
 programs may give undefined behavior.
 
-[h4 In Primer]
+[h5 In Primer]
 
 Most `primer::push` operations are primitive operations and we don't really want
 to call `lua_checkstack` for each one. It's more economical to gather such checks
@@ -175,6 +177,8 @@ knowledge of how much space is needed for `std::string`, and `int`. When a
 `primer::bound_function` is called, it computes at compile-time how much stack
 space it needs to push all of the arguments and calls `lua_checkstack` to make
 sure it has enough space.
+
+[h5 Querying the Stack Space Needed]
 
 The space needed for any individual type can be obtained as a `constexpr` using
 
