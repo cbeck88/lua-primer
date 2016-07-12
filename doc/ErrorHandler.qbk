@@ -1,0 +1,12 @@
+[section Error Handler]
+
+By default, primer uses the `debug.traceback` function as the error handler
+when it uses `pcall`. This means that lua errors which primer encounters will
+be nicely formatted for you by the time they are returned as `primer::error`.
+
+If you want to use a customized error handler, there is a simple interface
+that you can use to install one. Primer will then use it everywhere.
+
+[primer_error_handler_synopsis]
+
+[endsect]

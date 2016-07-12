@@ -9,12 +9,12 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/error_handler_fwd.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/push_cached.hpp>
 
 namespace primer {
-
 namespace detail {
 
 // TODO: Would be nice to push our own C traceback function which can be

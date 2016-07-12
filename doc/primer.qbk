@@ -13,6 +13,8 @@
 ]
 
 [import ../include/primer/error.hpp]
+[import ../include/primer/error_handler.hpp]
+[import ../include/primer/error_handler_fwd.hpp]
 [import ../include/primer/expected.hpp]
 [import ../include/primer/push.hpp]
 [import ../include/primer/read.hpp]
@@ -25,6 +27,7 @@
 [import ../include/primer/cpp_pcall.hpp]
 [import ../include/primer/api/callback_registrar.hpp]
 [import ../include/primer/api/persistable.hpp]
+[import ../include/primer/api/persistent_value.hpp]
 [import ../include/primer/api/print_manager.hpp]
 [import ../include/primer/api/vfs.hpp]
 [import ../include/primer/boost/optional.hpp]
