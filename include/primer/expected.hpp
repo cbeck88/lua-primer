@@ -369,16 +369,18 @@ public:
   const char * err_c_str() const noexcept { return this->err().what(); }
   std::string err_str() const { return this->err_c_str(); }
 
-  // Special member functions
+  // Default-construct in the "ok" / `true` state
   expected() noexcept;
+
+  // Special member functions
   expected(const expected &) = default;
   expected(expected &&) noexcept = default;
   expected & operator=(const expected &) = default;
   expected & operator=(expected &&) = default;
 
   // Additional Constructors
-  // Allow implicit conversion from `primer::error`, so we can return those
-  // from functions that return `expected<void>`.
+  // Allow implicit conversion from `primer::error`, so that we can return
+  // `primer::error` from functions that return `expected<void>`.
   expected(const primer::error & e);
   expected(primer::error && e) noexcept;
 };
