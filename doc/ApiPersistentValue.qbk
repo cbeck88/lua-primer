@@ -12,7 +12,7 @@ API Feature methods.
 The contained value can be accessed using `get()` method, or directly as
 `.value` public member.
 
-[h4 Synopsis]
+[h4 Synopsis (actually, complete definition)]
 
 [primer_persistent_value]
 
