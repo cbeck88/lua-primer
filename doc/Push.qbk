@@ -66,16 +66,11 @@ The following core types are supported:
 
       ['If a push operation requires a narrowing conversion of a floating point
       type to `LUA_NUMBER`,
-      a `static_assert` will fail, to prevent overflow.]]
+      a `static_assert` will fail, to prevent the implicit loss of precision.]]
 
 [note When pushing an unsigned integral type which is larger than `LUA_INTEGER`,
-      primer will implicitly narrow it to the unsigned version of `LUA_INTEGER`,
-      then perform a portable conversion from that type to `LUA_INTEGER`.
-
-      This behavior is well-defined by the standard, but for your code to be
-      portable in the sense of giving similar results on different machines where
-      lua may be configured to use 32-bit or 64-bit integers,
-      you must avoid such narrowing conversions.]
+      Primer will implicitly narrow it to the unsigned version of `LUA_INTEGER`,
+      then perform a portable conversion from that type to `LUA_INTEGER`.]
 
 [note If you want your program to be portable no matter how lua is compiled, consider:
 
@@ -86,13 +81,15 @@ The following core types are supported:
         only push these.
 
       If you just want to compile and don't care about overflow, you can do so
-      with expressions like
+      with syntax like
 
       ``
         primer::push(L, static_cast<LUA_INTEGER>(i));
       ``
 
       Or, install custom handling for integer types like `long` and `long long`, see below.
+
+      Or, define `PRIMER_NO_STATIC_ASSERTS`. (But this disables many other safety-checks as well.)
       ]
 
 

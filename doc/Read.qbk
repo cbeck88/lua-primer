@@ -46,10 +46,10 @@ In the above table, "Checks" means that, the checked function must report "true"
       Alternatively, see "customization" below and specialize reading for `int`, `unsigned int`, etc. as you like. ]
 
 [caution In the above table, when a floating point type is read, if the target type is *narrower* than `LUA_NUMBER`, no overflow check is performed,
-      and the conversion is performed using a `static_cast`. This is because in many applications, the possibility of floating point overflow, underflow,
-      or loss of precision is not a significant concern.
+      and the conversion is performed using a `static_cast`. This gives you (the / a) "closest possible" matching float value.
 
-      If this is a concern for you, consider specializing the `read` trait for `float`, `double`, etc., or using `LUA_NUMBER` in your code. ]
+      In most applications this is what you want. If this conversion is a concern for you, consider specializing the `read` trait for `float`,
+      `double`, etc., or using `LUA_NUMBER` in your code for portability. ]
 
 The following extra types are supported, which allow "flexible" reads.
 
