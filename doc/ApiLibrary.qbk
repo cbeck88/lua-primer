@@ -21,7 +21,7 @@ Example:
 
 ``
 
-An individual library is a `struct` with `static` class members `const char * name` and `luaCFunction func`.
+Here, an individual library is a `struct` with `static` class members `const char * name` and `luaCFunction func`.
 For instance,
 
 [lua_base_lib]
@@ -60,7 +60,8 @@ The `libraries` feature does the following:
 When `initialize_api` is called,
 * Each library will be loaded into the `_LOADED` registry table as usual with lua,
 * The functions of each library will be installed in the permanent objects table, so that they
-can survive when we persist / unpersist.
+can survive when we persist / unpersist. The name of the library will be combined in some
+unspecified way with the function's name in order to form the placeholder name.
 
 There are also three typedefs which shorten the list of libraries:
 

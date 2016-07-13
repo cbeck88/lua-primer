@@ -27,6 +27,8 @@
 [import ../include/primer/read.hpp]
 [import ../include/primer/result.hpp]
 [import ../include/primer/api/callback_registrar.hpp]
+[import ../include/primer/api/libraries.hpp]
+[import ../include/primer/api/userdatas.hpp]
 [import ../include/primer/api/persistable.hpp]
 [import ../include/primer/api/persistent_value.hpp]
 [import ../include/primer/api/print_manager.hpp]
