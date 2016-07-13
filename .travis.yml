@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 dist: trusty
 language: cpp
 matrix:
@@ -10,9 +10,13 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
+            - gdb
       env: COMPILER=g++-4.9
     - compiler: clang
-#      env: NO_STATIC_ASSERTS=true
+      addons:
+        apt:
+          packages:
+            - gdb
     - compiler: gcc
       addons:
         apt:
@@ -20,6 +24,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
+            - gdb
       env: COMPILER=g++-5
     - compiler: clang
       addons:
@@ -28,11 +33,10 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
+            - gdb
       env: COMPILER=clang++-3.7
 
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq gdb
 
   - if [[ "${COMPILER}" == "clang++-3.7" ]]; then sudo ./travis/install_clang_3_7.sh; fi
   - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
@@ -56,15 +60,20 @@ install:
   - pwd
   - ls
 
+  - cd test
+  - cp ../travis/write_project_config.sh .
+  - ./write_project_config.sh
+  - cat project-config.jam
+
+  - cd ${TRAVIS_BUILD_DIR}
+  - pwd
+  - ls
+
 script:
   - $CC --version
   - $CXX --version
 
   - cd test
-
-  - cp ../travis/write_project_config.sh .
-  - ./write_project_config.sh
-  - cat project-config.jam
 
 #  - if [[ "${NO_STATIC_ASSERTS}" != "" ]]; then export FLAGS="--toolset=${CC} --no-static-asserts"; else export FLAGS="--toolset=${CC}"; fi
 #  TODO: How can get a more recent standard library on trusty?
@@ -73,85 +82,46 @@ script:
   - export LUA_ROOT=lua-5.3.1
   - echo ${LUA_ROOT}
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS}
+  - ./test.sh ${FLAGS}
   - ./lua-5.3.1-tests.sh
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} --with-lua-32bit
+  - ./test.sh ${FLAGS} --with-lua-32bit
   - ./lua-5.3.1-tests.sh
-
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} release
-
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} release --with-lua-32bit
-
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} --with-lua-as-cpp
-  - ./lua-5.3.1-tests.sh
-
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} --with-lua-as-cpp --with-lua-32bit
-  - ./lua-5.3.1-tests.sh
-
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} release --with-lua-as-cpp
-  - ./lua-5.3.1-tests.sh
-
 
   - export LUA_ROOT=lua-5.3.3
   - echo ${LUA_ROOT}
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS}
+  - ./test.sh ${FLAGS}
   - ./lua-5.3.3-tests.sh
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} --with-lua-32bit
+  - ./test.sh ${FLAGS} --with-lua-32bit
+  - ./lua-5.3.3-tests.sh
+
+  - ./test.sh ${FLAGS} --with-lua-as-cpp
+
+  - ./test.sh ${FLAGS} --with-lua-as-cpp --with-lua-32bit
+
+  - ./test.sh ${FLAGS} release
+
+  - ./test.sh ${FLAGS} release --with-lua-32bit
+
+  - ./test.sh ${FLAGS} release --with-lua-as-cpp
   - ./lua-5.3.3-tests.sh
 
   - export LUA_ROOT=eris-1.1.0-5.3
   - echo ${LUA_ROOT}
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS}
+  - ./test.sh ${FLAGS}
   - ./eris-internal-tests.sh
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} --with-lua-32bit
+  - ./test.sh ${FLAGS} --with-lua-32bit
   - ./eris-internal-tests.sh
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} --with-lua-as-cpp
+  - ./test.sh ${FLAGS} --with-lua-as-cpp
   - ./eris-internal-tests.sh
 
-  - b2 clean
-  - rm -rf bin
-  - rm -rf stage
-  - ./run_tests.sh ${FLAGS} --with-lua-32bit --with-lua-as-cpp
+  - ./test.sh ${FLAGS} --with-lua-32bit --with-lua-as-cpp
   - ./eris-internal-tests.sh
+
+  - ./test.sh ${FLAGS} release --with-lua-32bit --with-lua-as-cpp
+
