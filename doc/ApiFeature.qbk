@@ -4,15 +4,13 @@ An API feature is an object which is responsible to install some feature within
 a lua State, and to provide support when we want to serialize / deserialize the
 state.
 
-A basic API feature object has three important methods:
-
-``
-struct my_feature {
-  void on_initialize(lua_State *);
-  void on_persist_table(lua_State *);
-  void on_unpersist_table(lua_State *);
-};
-``
+```
+  struct my_feature {
+    void on_initialize(lua_State *);
+    void on_persist_table(lua_State *);
+    void on_unpersist_table(lua_State *);
+  };
+```
 
 The `on_initialize` method is called when the API is initialized.
 
@@ -30,15 +28,20 @@ might be something else. For instance if there is a global userdata of some type
 it could be serialized by putting it in the permanent objects table, rather than
 providing a `__persist` metamethod.
 
-[h3 Additional methods]
+[h4 Extension]
 
-A complex feature may not only add objects to lua, it may also have some internal
-state that supports some of the functionalities. In that case, the internal state
-needs to be serialized as well, not just what is visible to scripts via the
-global table.
+Sometimes, the private state of an API feature is important, and you want
+to have an easy way to serialize that state along with the rest of the lua
+state. In this case you can provide the following two additional methods:
 
-To support this, the API feature can declare itself to be "serial", and define
-methods "on_serialize" and "on_deserialize".
+``
+  void on_serialize(lua_State *);
+  void on_deserialize(lua_State *);
+``
+
+These two methods hook into the persistence process in a different way --
+instead of adjusting the permanent objects table, they add a value to the
+['target] table.
 
 When `on_serialize` is called,
 the feature should push one lua value onto the stack which will be associated
@@ -49,21 +52,48 @@ When `on_deserialize` is called, the feature may recover the lua value from the
 stack, which it will find on top. It should use the value to restore its internal
 state, [' then pop the value].
 
-If it defines these methods, the feature should make a declaration 
-`static constexpr bool is_serial = true`. This signals to primer that it produces
-serialization data -- those two calls will be skipped if it doesn't have this.
+[h4 Behavior]
+  
+When `api::base::persist` is called, the permanent objects
+table is constructed by calling `on_persist_table` for each API feature, and
+the target table is constructed using `_G`, ['and each of the values provided by
+an API feature which has an `on_serialize` method].
+
+When `api::base::unpersist` is called, the reverse-permanent objects table
+is constructed first using `on_unpersist_table`, and then the target table
+is reconstructed from the given string. Then, each API feature with an
+`on_deserialize` method is ['passed back the object which it pushed] onto the
+stack, in order to restore its internal state. And the reproduced image of
+`_G` replaces the current value of `_G`.
+
+
+[h4 Declaration]
+
+In order to actually hook into the methods of an `api::base` object, the feature
+object needs to be a member variable of the `api::base`, and needs to be declared
+using the `API_FEATURE` macro.
+
+TODO EXAMPLE
+
+[h4 Other]
+
+To assert that a type declares the proper member functions to be an API feature,
+you can use a `static_assert` like this:
 
 ``
-struct my_second_feature {
-  void on_initialize(lua_State *);
-  void on_persist_table(lua_State *);
-  void on_unpersist_table(lua_State *);
-  void on_serialize(lua_State *);
-  void on_deserialize(lua_State *);
-
-  static constexpr bool is_serial = true;
-};
+  static_assert(primer::api::is_feature<T>::value, "T does not match the API_FEATURE concept!");
 ``
+
+To assert that it further is a "serial feature" containing the `on_serialize`
+and `on_deserialize` methods, you can use the `is_serial_feature trait`:
+
+``
+  static_assert(primer::api::is_serial_feature<T>::value, "T does not match the serial feature concept!");
+``
+
+If a type is recognized as a feature but not a serial feature, because it has only one of
+`on_serialize` and `on_deserialize`, it will just be silently used as an API feature, so
+for debugging purposes the above assertion is sometimes useful.
 
 
 [endsect]

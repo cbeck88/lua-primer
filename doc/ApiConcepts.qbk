@@ -1,0 +1,159 @@
+[section Concepts]
+
+Everything in the `api` namespace is organized around the goal of creating
+lua VMs which not only have features which may be implemented in C++, but also
+which we can ['serialize and deserialize] seamlessly.
+
+The way that we do this is using *lua-eris*. The `api::base` object provides
+an interface to use eris in a controlled way.
+
+[h4 Eris]
+
+When eris serializes a lua value, it produces a string description of it, from
+which an equivalent object can be constructed in another VM. This object can
+be essentially arbitrarily complicated, self-referential, containing complex
+closure functions and coroutines and so on.
+
+Usually when you serialize a lua state, you just want to serialize the `_G`
+table, which represents the global environment visible to the user scripts.
+
+Eris can serialize any object described purely in the lua language just fine.
+But for some objects, like external C function pointers, or userdata
+representing C++ objects, it needs some help.
+
+[h5 Permanent Objects]
+
+The organizing idea is eris is the ['permanent objects] table. When eris
+serializes a value, it does so ['relative] to a fixed table, which maps such
+"unserializable" entities like function pointers to some placeholder names for
+them.
+
+Then, when deserializing, you must provide the "inverse" of the permanent
+objects table, which maps those placeholder names back to the appropriate
+function pointers (potentially now on a different machine) and so on.
+
+[h5 Userdata]
+
+Userdata is handled in a slightly different way -- by creating a special
+metamethod called `persist`. See [@https://github.com/fnuecke/eris#special-persistence eris' documentation] on the subject.
+
+In C++, it's very common to have nontrivially copyable types as userdata.
+In that case, the "literal persistence" is not an option, and the third option
+is the most useful. What it means is that, for each userdata type, there should
+be some C++ function adapted for lua which can act as a "constructor". It doesn't
+need to be globally exposed to the user, but it needs to appear in the permanent
+objects table. Then, for any given state of an object, it needs to be possible
+to create a series of arguments for that constructor which will produce an
+instance of the object in that state. The `__persist` metamethod is supposed to
+create those arguments for a given object, form a closure over these using the
+constructor function (use the call `lua_pushcclosure`), and return that to lua.
+
+Then, when eris encounters your userdata type, it calls the `__persist` method,
+which produces the closure object. It then tries to persist the closure object
+in place of your userdata -- because the constructor is in the permanent objects
+table, this succeeds, as long as all the upvalues that you closed over 
+are also serializable.
+
+[h4 Primer]
+
+Primer's interface over eris is organizes as follows.
+
+[h5 Api Base]
+
+An `api::base` is a C++ object associated to a single lua State. Normally,
+  you should make it manage the lifetime of that lua State, but how you do that
+  is up to you. It's job is to manage
+  the installation of C++ features of various kinds within the lua State, and
+  also the serialization / restoration of those features.
+
+`api::base` is a class template that your custom API object will derive from.
+It provides you with three methods:
+
+```
+  void initialize_api(lua_State *);
+  void persist(lua_State *, std::string & buffer);
+  void unpersist(lua_State *, const std::string & buffer);
+```
+
+How it carries out these methods depends on what ['api features] you register
+with the `api::base`.
+
+An instance of a class deriving from `api::base` is called an ['API object].
+
+[h5 Api Feature]
+
+An `API Feature` is a C++ object which represents a single feature or service
+that could be provided to a lua state. It tells
+Primer how to install the feature and provide for its serialization.
+
+An object matching the API feature concept has the following three methods:
+
+```
+  struct my_feature {
+    void on_initialize(lua_State *);
+    void on_persist_table(lua_State *);
+    void on_unpersist_table(lua_State *);
+  };
+```
+
+For example, a feature that represents a custom lua library should install
+the library into the lua state when `on_initialize` is called.
+
+When `on_persist_table` is called, it should add each function pointer and
+a name for it, using the function pointer as a key, to the given table
+(assumed to be on top of the stack).
+
+When `on_unpersist_tale` is called, it should do the same, but in reverse,
+putting the name as the key.
+
+A different feature might use these methods in a totally different way.
+
+For instance, suppose your api requires having a single unique userdata object
+which is globally visible to scripts and serves some important purpose.
+
+The
+`on_initialize` method might install this object, and also store a hidden
+reference to it in the lua registry so that you can find it again.
+
+The
+`on_persist_table` method might fetch the reference from the registry and
+map that object to some name `"my_awesome_object"`. Then in the unpersist
+table, you can map `"my_awesome_object"` back to the new instance of that
+object in a recreated VM.
+
+An API feature is a *data member* of the API object. This allows it
+to have private variables, nontrivial initialization, links to other objects
+in your C++ program, and for any methods that it install in the lua state to
+have potentially have additional useful side-effects in your program.
+
+[h6 Examples]
+
+Examples of functionalities that Primer has built-in API Features for include
+
+* Standard Lua Libraries
+* Userdata types
+* Virtual filesystem (for `loadfile`, `dofile`, `require`)
+* Print redirect / Interpreter Dialog interaction
+* Persistent C++ values
+
+However, anything matching the concept can be used -- the methods are
+just hooks that you can use into the serialization process in an organized,
+object-oriented manner.
+
+[h5 Api Callbacks]
+
+An API Callback is a *member function* of an API object.
+
+API Callbacks are a
+convenient way to make functions that appear as "global" free
+functions in lua, but whose implementation in C++ has lots of useful things
+in scope.
+
+They enjoy dispatch to the API object using the "lua_extraspace" method, which
+is the fastest one. And they are adapted using `PRIMER_ADAPT` so that they
+can easily take complex function parameters.
+
+API Callbacks are declared / registered simultaneously using a macro. See
+the documentation on API callbacks for more detail.
+
+[endsect]
