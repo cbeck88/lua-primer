@@ -45,7 +45,7 @@ When using the raw lua C api to write callbacks, idiomatic C++ is not safe if
 
 Fortunately, many lua C api calls don't raise lua errors, except in the case of
 a lua memory allocation failure. [footnote See [@http://www.lua.org/manual/5.3/manual.html#4.8 4.8] in the lua manual.
-The notation `[-o, +p, x]` is there explained: [: '-' means the function never raises any error; 'm' means the function may raise out-of-memory errors and errors running a `__gc` metamethod].
+The notation `[-o, +p, x]` is there explained: `-` means the function never raises any error; `m` means the function may raise out-of-memory errors and errors running a `__gc` metamethod.
 For purposes of this discussion, we are going to ignore "errors running a `__gc` metamethod". See also [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual. ]
 
 Most programs that use lua are not concerned with the possibility of a memory allocation failure,
