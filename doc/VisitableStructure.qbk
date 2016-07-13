@@ -6,32 +6,76 @@ It provides some macros that allow you to define an arbitrary C++ struct as a
 "visitable structure". This means that you can apply any generic function object
 to the pairs formed of its field names and values in sequential order.
 
-Usually, you will declare all the members as visitable when you do this, but
+Usually, you will declare all the members as "visitable" when you do this, but
 you don't have to.
 
 See [@https://github.com/cbeck88/visit_struct visit_struct docs] for more info.
 
-[h3 Primer]
+[h4 In Primer]
 
-It is integrated with Primer in that Primer has a specialization of push and
-read for such types, which you can load by including `<primer/visit_struct.hpp`.
+This library is integrated with Primer:
 
-When a visitable structure is `pushed`:
+Primer has a specialization of `push` and
+`read` for any visitable structure, which you can get via
+
+``
+  #include <primer/visit_struct.hpp>
+``
+
+Basically, the struct definition becomes a schema for a table layout.
+
+When a visitable structure is ['pushed]:
 
 * Primer creates a table
 * Primer pushes each visitable member using `primer::push` and sets it to be a 
-  field of the table at index corresponding to the member name.
+  field of the table corresponding to the member name.
 
-When a visitable structure is `read`:
+When a visitable structure is ['read]:
 
-* Primer checks that it is reading from a table on th lua stack.
+* Primer checks that it is reading from a table.
 * Primer attempts to default construct the structure.
 * Primer reads from corresponding field names of the table, using `primer::read`
   to try to obtain appropriate C++ values. These are move-assigned into the members
   of the structure. If all visitable fields are read, the structure is returned,
   if not, an error is reported.
 
-[h3 Hana and Fusion]
+[h4 Example]
+
+The use of this can be seen with an example.
+
+Here we are demonstrating a form of "named parameters" in a callback function.
+The argument to a function is expected to be a single lua table. A visitable
+structure is used so that the arguments are automatically parsed into a struct.
+Note that we are using `boost::optional` as some of the structure members, so
+that those entries don't have to appear in the table.
+
+[*lua:]
+[/ lua]
+
+``
+  h{ name = 'Charlie', id = 44 }
+``
+
+[*C++:]
+[c++]
+
+``
+  struct h_arguments {
+    std::string name;
+    int id;
+    boost::optional<int> group;
+    boost::optional<std::string> task;
+  };
+
+  VISITABLE_STRUCT(h_arguments, name, id, group, task);
+
+  primer::result h(lua_State * L, h_arguments args) {
+    auto it = database.find(args.id);
+    ...
+  }
+``
+
+[h4 Hana and Fusion]
 
 Note that, because `visit_struct` has compatibility headers for `boost::hana`
 and `boost::fusion`, any "fusion adapted structure" or `hana::struct` may be
