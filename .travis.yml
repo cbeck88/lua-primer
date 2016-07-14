@@ -93,12 +93,11 @@ script:
   - echo ${LUA_ROOT}
 
   - ./test.sh ${FLAGS}
-  - ./lua-5.3.3-tests.sh
 
   - ./test.sh ${FLAGS} --with-lua-32bit
-  - ./lua-5.3.3-tests.sh
 
-  - ./test.sh ${FLAGS} --with-lua-as-cpp -d+2
+  - ./test.sh ${FLAGS} --with-lua-as-cpp
+  - ./lua-5.3.3-tests.sh
 
   - ./test.sh ${FLAGS} --with-lua-as-cpp --with-lua-32bit
 
@@ -106,10 +105,16 @@ script:
 
   - ./test.sh ${FLAGS} release --with-lua-32bit
 
-  - ./test.sh ${FLAGS} release --with-lua-as-cpp -d+2
+  - ./test.sh ${FLAGS} release --with-lua-as-cpp
   - ./lua-5.3.3-tests.sh
 
   - export LUA_ROOT=eris-1.1.0-5.3
+  - echo ${LUA_ROOT}
+
+  - ./test.sh ${FLAGS}
+
+
+  - export LUA_ROOT=eris-master-lua5.3
   - echo ${LUA_ROOT}
 
   - ./test.sh ${FLAGS}
