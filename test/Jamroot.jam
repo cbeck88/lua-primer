@@ -51,7 +51,7 @@ if [ GLOB $(LUA_PATH)/ : eris.h ] {
 
 import modules ;
 
-LUA_PRIVATE_FLAGS = <link>static <cxxflags>"-fpermissive" ;
+LUA_PRIVATE_FLAGS = <link>static <cxxflags>"-fpermissive -w" ;
 LUA_SHARED_FLAGS = <include>$(LUA_PATH)/ ;
 
 PRIMER_FLAGS = ;
