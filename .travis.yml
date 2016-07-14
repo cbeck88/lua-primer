@@ -112,23 +112,34 @@ script:
   - echo ${LUA_ROOT}
 
   - ./test.sh ${FLAGS}
-
-
-  - export LUA_ROOT=eris-master-lua5.3
-  - echo ${LUA_ROOT}
-
-  - ./test.sh ${FLAGS}
   - ./eris-internal-tests.sh
 
-  - ./test.sh ${FLAGS} --with-lua-32bit
-# TODO: Figure out what is wrong :(
-  - ./eris-internal-tests.sh || true
+  - ./test.sh ${FLAGS} --with-lua32bit
+  - ./eris-internal-tests.sh
 
   - ./test.sh ${FLAGS} --with-lua-as-cpp
   - ./eris-internal-tests.sh
 
   - ./test.sh ${FLAGS} --with-lua-32bit --with-lua-as-cpp
-  - ./eris-internal-tests.sh || true
 
-  - ./test.sh ${FLAGS} release --with-lua-32bit --with-lua-as-cpp
+  - ./test.sh ${FLAGS} release --with-lua-as-cpp --with-lua32bit
+  - ./test.sh ${FLAGS} release
+
+  - export LUA_ROOT=eris-master-lua5.3
+  - echo ${LUA_ROOT}
+
+  - ./test.sh ${FLAGS}
+#  - ./eris-internal-tests.sh
+
+  - ./test.sh ${FLAGS} --with-lua-32bit
+# TODO: Figure out what is wrong :(
+#  - ./eris-internal-tests.sh || true
+
+#  - ./test.sh ${FLAGS} --with-lua-as-cpp
+#  - ./eris-internal-tests.sh
+
+#  - ./test.sh ${FLAGS} --with-lua-32bit --with-lua-as-cpp
+#  - ./eris-internal-tests.sh || true
+
+#  - ./test.sh ${FLAGS} release --with-lua-32bit --with-lua-as-cpp
 
