@@ -1,4 +1,4 @@
-project : default-build <optimization>off debug <cxxflags>"-std=c++11 -Wall -Werror -Wextra -pedantic" ;
+project : default-build <optimization>off debug <cxxflags>"-std=c++11" ;
 # project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
 
 INSTALL_LOC = <location>stage/ ;
@@ -91,16 +91,18 @@ install install-lua-bin : lua : <location>stage/ ;
 
 ### Build primer
 
-exe core : core.cpp lualib primer test_harness : ;
-exe visitable : visitable.cpp lualib primer test_harness : ;
-exe std : std.cpp lualib primer test_harness : ;
-exe noexcept : noexcept.cpp lualib primer test_harness : <define>PRIMER_NO_EXCEPTIONS <cxxflags>"-fno-exceptions -fno-rtti" ;
+STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
+
+exe core : core.cpp lualib primer test_harness : $(STRICT) ;
+exe visitable : visitable.cpp lualib primer test_harness : $(STRICT) ;
+exe std : std.cpp lualib primer test_harness : $(STRICT) ;
+exe noexcept : noexcept.cpp lualib primer test_harness : <define>PRIMER_NO_EXCEPTIONS <cxxflags>"-fno-exceptions -fno-rtti" $(STRICT) ;
 
 install install-bin : core visitable std noexcept : $(INSTALL_LOC) ;
 
 # Persistence tests...
 if $(HAVE_ERIS) {
-  exe api : api.cpp lualib primer test_harness : ;
+  exe api : api.cpp lualib primer test_harness : $(STRICT) ;
 
   install install-api-bin : api : $(INSTALL_LOC) ;
 
@@ -121,7 +123,7 @@ if $(BOOST_INCLUDE_DIR) {
 
   alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
-  exe boost : boost.cpp lualib primer test_harness boost_headers : ;
+  exe boost : boost.cpp lualib primer test_harness boost_headers : $(STRICT) ;
 
   install install-boost-bin : boost : $(INSTALL_LOC) ;
 }
