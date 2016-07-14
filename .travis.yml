@@ -128,7 +128,7 @@ script:
   - ./eris-internal-tests.sh
 
   - ./test.sh ${FLAGS} --with-lua-32bit --with-lua-as-cpp
-  - ./eris-internal-tests.sh
+  - ./eris-internal-tests.sh || true
 
   - ./test.sh ${FLAGS} release --with-lua-32bit --with-lua-as-cpp
 
