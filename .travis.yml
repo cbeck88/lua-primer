@@ -1,4 +1,5 @@
-sudo: false
+sudo: required
+# sudo is required by the clang_3_7 install script
 dist: trusty
 language: cpp
 matrix:
