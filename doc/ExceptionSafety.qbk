@@ -60,7 +60,7 @@ and are perfectly happy with a `lua_panic` and program termination in such scena
 When they use the lua C API, these projects will tend to be more fast-and-loose, not
 creating protected contexts to catch such errors and so on.
 
-On the other hand, some programs are concerned with those also, and we've decided that 
+On the other hand, some programs are concerned with ['memory allocation failure] also, and we've decided that 
 Primer should be engineered in a way that it can properly respond to such failures.
 
 [h3 Goals]
@@ -76,7 +76,7 @@ will not occur, and use this assumption to *skip handling of such errors* in ord
 
 The rationale here is that lua is typically configured to use the same allocator as the rest of your program -- it's not that
 likely that lua is out of memory but the standard allocator is not, and there are few projects where the difference matters. [footnote
-Actually you can work around dependence on the standard allocator by specializing `push` and `read` for standard types `std::string`, `std::vector`, etc.with custom allocators. ]
+Actually you can work around dependence on the standard allocator by specializing `push` and `read` for standard types `std::string`, `std::vector`, etc. with custom allocators. ]
 
 We feel that this method of ['subtracting] selected checks in order to go faster
 ultimately leads to a more reliable and maintainable technology, than if we had
@@ -84,10 +84,10 @@ simply written Primer with no handling for potential memory allocation failures 
 
 [note
 This symbol is ['automatically defined] if lua is compiled as C. This decision allows Primer to be written in mostly idiomatic C++ code,
-because it means we can assume that lua memory allocation failures won't lead to `longjmp`. ]
+because it means that we can assume that lua memory allocation failures won't lead to `longjmp`. ]
 
 [caution
-If memory allocation failures *do* occur when this symbol is defined, ['undefined behavior will result], and in practice, most likely lua panic / program termination. ]
+If memory allocation failures *do* occur when this symbol is defined, ['undefined behavior will result].]
 
 When lua is compiled as C++, and the symbol is not defined (the default), Primer will handle all such errors internally using `try / catch` and `lua_pcall`, without leaks
 or undefined behavior. Generally it will signal errors along normal channels to user code or to lua scripts in such cases.
