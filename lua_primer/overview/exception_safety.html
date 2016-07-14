@@ -452,13 +452,12 @@
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f3" href="#lua_primer.overview.exception_safety.f3" class="para">4</a>] </sup>
           See <a href="http://www.lua.org/manual/5.3/manual.html#4.8" target="_top">4.8</a>
-          in the lua manual. The notation <code class="computeroutput"><span class="special">[-</span><span class="identifier">o</span><span class="special">,</span> <span class="special">+</span><span class="identifier">p</span><span class="special">,</span> <span class="identifier">x</span><span class="special">]</span></code> is there explained: [: '-' means the function
-          never raises any error; 'm' means the function may raise out-of-memory
-          errors and errors running a <code class="computeroutput"><span class="identifier">__gc</span></code>
-          metamethod]. For purposes of this discussion, we are going to ignore "errors
-          running a <code class="computeroutput"><span class="identifier">__gc</span></code> metamethod".
-          See also <a href="https://www.lua.org/pil/24.3.html" target="_top">here</a> and
-          <a href="https://www.lua.org/pil/24.3.1.html" target="_top">here</a> in the manual.
+          in the lua manual. The notation <code class="computeroutput"><span class="special">[-</span><span class="identifier">o</span><span class="special">,</span> <span class="special">+</span><span class="identifier">p</span><span class="special">,</span> <span class="identifier">x</span><span class="special">]</span></code> is there explained: <code class="computeroutput"><span class="special">-</span></code>
+          means the function never raises any error; <code class="computeroutput"><span class="identifier">m</span></code>
+          means the function may raise out-of-memory errors and errors running a
+          <code class="computeroutput"><span class="identifier">__gc</span></code> metamethod. For purposes
+          of this discussion, we are going to ignore "errors running a <code class="computeroutput"><span class="identifier">__gc</span></code> metamethod". See also <a href="https://www.lua.org/pil/24.3.html" target="_top">here</a> and <a href="https://www.lua.org/pil/24.3.1.html" target="_top">here</a>
+          in the manual.
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f4" href="#lua_primer.overview.exception_safety.f4" class="para">5</a>] </sup>
           Actually you can work around dependence on the standard allocator by specializing

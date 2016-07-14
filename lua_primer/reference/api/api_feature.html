@@ -6,24 +6,26 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../api.html" title="API">
-<link rel="prev" href="api_userdata.html" title="API Userdata">
-<link rel="next" href="api_callback.html" title="API Callback">
+<link rel="prev" href="concepts.html" title="Concepts">
+<link rel="next" href="api_library.html" title="API Library">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="api_userdata.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_callback.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="concepts.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_library.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="lua_primer.reference.api.api_feature"></a><a class="link" href="api_feature.html" title="API Feature">API Feature</a>
 </h4></div></div></div>
 <p>
-          An API feature is an object which is responsible to install some feature
-          within a lua State, and to provide support when we want to serialize /
-          deserialize the state.
+          A class which matches the "API Feature" concept represents some
+          functionality that we could expose to a lua VM, while also retaining the
+          ability to serialize the VM. An instance of the class is able to install
+          the feature for Primer on request, and also to provide support when we
+          want to serialize / deserialize the state.
         </p>
 <p>
-          A basic API feature object has three important methods:
+          An object matching the API feature concept has the following three methods:
         </p>
 <pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_feature</span> <span class="special">{</span>
   <span class="keyword">void</span> <span class="identifier">on_initialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
@@ -55,20 +57,22 @@
           table, rather than providing a <code class="computeroutput"><span class="identifier">__persist</span></code>
           metamethod.
         </p>
-<h4>
+<h5>
 <a name="lua_primer.reference.api.api_feature.h0"></a>
-          <span><a name="lua_primer.reference.api.api_feature.additional_methods"></a></span><a class="link" href="api_feature.html#lua_primer.reference.api.api_feature.additional_methods">Additional
-          methods</a>
-        </h4>
+          <span><a name="lua_primer.reference.api.api_feature.extension"></a></span><a class="link" href="api_feature.html#lua_primer.reference.api.api_feature.extension">Extension</a>
+        </h5>
 <p>
-          A complex feature may not only add objects to lua, it may also have some
-          internal state that supports some of the functionalities. In that case,
-          the internal state needs to be serialized as well, not just what is visible
-          to scripts via the global table.
+          Sometimes, the private state of an API feature is important, and you want
+          to have an easy way to serialize that state along with the rest of the
+          lua state. In this case you can provide the following two additional methods:
         </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">on_serialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+<span class="keyword">void</span> <span class="identifier">on_deserialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+</pre>
 <p>
-          To support this, the API feature can declare itself to be "serial",
-          and define methods "on_serialize" and "on_deserialize".
+          These two methods hook into the persistence process in a different way
+          -- instead of adjusting the permanent objects table, they add a value to
+          the <span class="emphasis"><em>target</em></span> table.
         </p>
 <p>
           When <code class="computeroutput"><span class="identifier">on_serialize</span></code> is called,
@@ -82,23 +86,144 @@
           will find on top. It should use the value to restore its internal state,
           <span class="emphasis"><em>then pop the value</em></span>.
         </p>
+<h5>
+<a name="lua_primer.reference.api.api_feature.h1"></a>
+          <span><a name="lua_primer.reference.api.api_feature.behavior"></a></span><a class="link" href="api_feature.html#lua_primer.reference.api.api_feature.behavior">Behavior</a>
+        </h5>
 <p>
-          If it defines these methods, the feature should make a declaration <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">constexpr</span>
-          <span class="keyword">bool</span> <span class="identifier">is_serial</span>
-          <span class="special">=</span> <span class="keyword">true</span></code>.
-          This signals to primer that it produces serialization data -- those two
-          calls will be skipped if it doesn't have this.
+          When <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">::</span><span class="identifier">persist</span></code> is called, the permanent objects
+          table is constructed by calling <code class="computeroutput"><span class="identifier">on_persist_table</span></code>
+          for each API feature, and the target table is constructed using <code class="computeroutput"><span class="identifier">_G</span></code>, <span class="emphasis"><em>and each of the values
+          provided by an API feature which has an <code class="computeroutput"><span class="identifier">on_serialize</span></code>
+          method</em></span>.
         </p>
-<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_second_feature</span> <span class="special">{</span>
-  <span class="keyword">void</span> <span class="identifier">on_initialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
-  <span class="keyword">void</span> <span class="identifier">on_persist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
-  <span class="keyword">void</span> <span class="identifier">on_unpersist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
-  <span class="keyword">void</span> <span class="identifier">on_serialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
-  <span class="keyword">void</span> <span class="identifier">on_deserialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+<p>
+          When <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">::</span><span class="identifier">unpersist</span></code> is called, the reverse-permanent
+          objects table is constructed first using <code class="computeroutput"><span class="identifier">on_unpersist_table</span></code>,
+          and then the target table is reconstructed from the given string. Then,
+          each API feature with an <code class="computeroutput"><span class="identifier">on_deserialize</span></code>
+          method is <span class="emphasis"><em>passed back the object which it pushed</em></span> onto
+          the stack, in order to restore its internal state. And the reproduced image
+          of <code class="computeroutput"><span class="identifier">_G</span></code> replaces the current
+          value of <code class="computeroutput"><span class="identifier">_G</span></code>.
+        </p>
+<h5>
+<a name="lua_primer.reference.api.api_feature.h2"></a>
+          <span><a name="lua_primer.reference.api.api_feature.examples"></a></span><a class="link" href="api_feature.html#lua_primer.reference.api.api_feature.examples">Examples</a>
+        </h5>
+<p>
+          For example, a feature that represents a custom lua library should install
+          the library into the lua state when <code class="computeroutput"><span class="identifier">on_initialize</span></code>
+          is called.
+        </p>
+<p>
+          When <code class="computeroutput"><span class="identifier">on_persist_table</span></code> is
+          called, it should add each function pointer and a name for it, using the
+          function pointer as a key, to the given table (assumed to be on top of
+          the stack).
+        </p>
+<p>
+          When <code class="computeroutput"><span class="identifier">on_unpersist_table</span></code>
+          is called, it should do the same, but in reverse, putting the name as the
+          key.
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_functions</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">,</span> <span class="number">3</span><span class="special">&gt;</span> <span class="identifier">get_funcs</span><span class="special">()</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="special">{{</span><span class="string">"foo"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">foo</span><span class="special">},</span> <span class="special">{</span><span class="string">"bar"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">bar</span><span class="special">},</span> <span class="special">{</span><span class="string">"baz"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">baz</span><span class="special">}};</span>
+  <span class="special">}</span>
 
-  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">is_serial</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+  <span class="keyword">void</span> <span class="identifier">on_init</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">LUA_REGISTRYINDEX</span><span class="special">,</span> <span class="identifier">LUA_RIDX_GLOBALS</span><span class="special">);</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_funcs</span><span class="special">());</span>
+    <span class="comment">// ^ similar to luaL_setfuncs</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">on_persist_table</span><span class="special">(</span><span class="identifier">lua_STate</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_reverse</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_funcs</span><span class="special">());</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">on_unpersist_table</span><span class="special">(</span><span class="identifier">lua_STate</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_funcs</span><span class="special">());</span>
+  <span class="special">}</span>
 <span class="special">};</span>
 </pre>
+<p>
+          A different feature might use these methods in a totally different way.
+        </p>
+<p>
+          For instance, suppose your api requires having a single unique userdata
+          object which is globally visible to scripts and serves some important purpose.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">on_initialize</span></code> method
+          might install this object, and also store a hidden reference to it in the
+          lua registry so that you can find it again.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">on_persist_table</span></code> method
+          might fetch the reference from the registry and map that object to some
+          name <code class="computeroutput"><span class="string">"my_awesome_object"</span></code>.
+          Then in the unpersist table, you can map <code class="computeroutput"><span class="string">"my_awesome_object"</span></code>
+          back to the new instance of that object in a recreated VM.
+        </p>
+<p>
+          An API feature is a <span class="bold"><strong>data member</strong></span> of the
+          API object. This allows it to have private variables, nontrivial initialization,
+          links to other objects in your C++ program, and for any methods that it
+          install in the lua state to have potentially have additional useful side-effects
+          in your program.
+        </p>
+<p>
+          Examples of functionalities that Primer has built-in API Features for include
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              Standard Lua Libraries
+            </li>
+<li class="listitem">
+              Userdata types
+            </li>
+<li class="listitem">
+              Virtual filesystem (for <code class="computeroutput"><span class="identifier">loadfile</span></code>,
+              <code class="computeroutput"><span class="identifier">dofile</span></code>, <code class="computeroutput"><span class="identifier">require</span></code>)
+            </li>
+<li class="listitem">
+              Print redirect / Interpreter Dialog interaction
+            </li>
+<li class="listitem">
+              Persistent C++ values
+            </li>
+</ul></div>
+<p>
+          However, anything matching the concept can be used -- the methods are just
+          hooks that you can use into the serialization process in an organized,
+          object-oriented manner.
+        </p>
+<h5>
+<a name="lua_primer.reference.api.api_feature.h3"></a>
+          <span><a name="lua_primer.reference.api.api_feature.other"></a></span><a class="link" href="api_feature.html#lua_primer.reference.api.api_feature.other">Other</a>
+        </h5>
+<p>
+          To assert that a type declares the proper member functions to be an API
+          feature, you can use a <code class="computeroutput"><span class="keyword">static_assert</span></code>
+          like this:
+        </p>
+<pre class="programlisting"><span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">is_feature</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">"T does not match the API_FEATURE concept!"</span><span class="special">);</span>
+</pre>
+<p>
+          To assert that it further is a "serial feature" containing the
+          <code class="computeroutput"><span class="identifier">on_serialize</span></code> and <code class="computeroutput"><span class="identifier">on_deserialize</span></code> methods, you can use the
+          <code class="computeroutput"><span class="identifier">is_serial_feature</span> <span class="identifier">trait</span></code>:
+        </p>
+<pre class="programlisting"><span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">is_serial_feature</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">"T does not match the serial feature concept!"</span><span class="special">);</span>
+</pre>
+<p>
+          If a type is recognized as a feature but not a serial feature, because
+          it has only one of <code class="computeroutput"><span class="identifier">on_serialize</span></code>
+          and <code class="computeroutput"><span class="identifier">on_deserialize</span></code>, it
+          will just be silently used as an API feature, so for debugging purposes
+          the above assertion is sometimes useful.
+        </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
@@ -110,7 +235,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="api_userdata.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_callback.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="concepts.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_library.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

@@ -57,83 +57,13 @@
           lua thread objects directly in some cases. Note that you can still easily
           use <code class="computeroutput"><span class="identifier">lua_ref</span></code> and <code class="computeroutput"><span class="identifier">bound_function</span></code> in such cases.
         </p>
-<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">coroutine</span> <span class="special">{</span>
-
-  <span class="identifier">lua_ref</span> <span class="identifier">ref_</span><span class="special">;</span>
-  <span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">thread_stack_</span><span class="special">;</span>
-
-<span class="keyword">public</span><span class="special">:</span>
-  <span class="comment">// Special member functions</span>
-  <span class="identifier">coroutine</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">:</span> <span class="identifier">ref_</span><span class="special">(),</span> <span class="identifier">thread_stack_</span><span class="special">(</span><span class="keyword">nullptr</span><span class="special">)</span> <span class="special">{}</span>
-
-  <span class="identifier">coroutine</span><span class="special">(</span><span class="identifier">coroutine</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
-  <span class="identifier">coroutine</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">coroutine</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
-  <span class="special">~</span><span class="identifier">coroutine</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
-
-  <span class="comment">// Noncopyable, delete these.</span>
-  <span class="identifier">coroutine</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">coroutine</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-  <span class="identifier">coroutine</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">coroutine</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
-
-  <span class="comment">// Construct from bound_function</span>
-  <a class="co" name="lua_primer.reference.core.coroutine.c0" href="coroutine.html#lua_primer.reference.core.coroutine.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">explicit</span> <span class="identifier">coroutine</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">bound_function</span> <span class="special">&amp;</span> <span class="identifier">bf</span><span class="special">);</span>
-
-  <a class="co" name="lua_primer.reference.core.coroutine.c2" href="coroutine.html#lua_primer.reference.core.coroutine.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">thread_stack_</span> <span class="special">&amp;&amp;</span> <span class="identifier">ref_</span><span class="special">;</span> <span class="special">}</span>
-
-  <a class="co" name="lua_primer.reference.core.coroutine.c4" href="coroutine.html#lua_primer.reference.core.coroutine.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-  <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">coroutine</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-  <span class="comment">// Call the coroutine.</span>
-  <span class="comment">//</span>
-  <span class="comment">// Use `call_no_ret`, `call_one_ret`, or `call` to select</span>
-  <span class="comment">// how many return values you expect, any extras are discarded.</span>
-  <span class="comment">//</span>
-  <span class="comment">// If called with a sequence of C++ values, they will become the function</span>
-  <span class="comment">// call arguments, using primer::push.</span>
-  <span class="comment">//</span>
-  <span class="comment">// If a lua_ref_seq is passed, then its members will be pushed in succession.</span>
-  <span class="comment">//</span>
-  <span class="comment">// These functions catch any lua errors and do not throw exceptions.</span>
-
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-
-  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
-<span class="special">};</span>
-</pre>
-<div class="calloutlist"><table border="0" summary="Callout list">
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.coroutine.c1"></a><a href="#lua_primer.reference.core.coroutine.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-              Note: Can cause lua memory allocation failure
-            </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.coroutine.c3"></a><a href="#lua_primer.reference.core.coroutine.c2"><img src="../../../images/callouts/2.png" alt="2" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-              Check if the coroutine is valid to call
-            </p></td>
-</tr>
-<tr>
-<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.coroutine.c5"></a><a href="#lua_primer.reference.core.coroutine.c4"><img src="../../../images/callouts/3.png" alt="3" border="0"></a> </p></td>
-<td valign="top" align="left"><p>
-              Reset to the empty state
-            </p></td>
-</tr>
-</table></div>
+<h5>
+<a name="lua_primer.reference.core.coroutine.h0"></a>
+          <span><a name="lua_primer.reference.core.coroutine.synopsis"></a></span><a class="link" href="coroutine.html#lua_primer.reference.core.coroutine.synopsis">Synopsis</a>
+        </h5>
+<p>
+          [primer_coroutine]
+        </p>
 <div class="caution"><table border="0" summary="Caution">
 <tr>
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>

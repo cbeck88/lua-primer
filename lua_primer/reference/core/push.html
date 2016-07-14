@@ -21,9 +21,13 @@
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is a template function used to push
           a C++ value to a lua Stack.
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
-</pre>
+<h5>
+<a name="lua_primer.reference.core.push.h0"></a>
+          <span><a name="lua_primer.reference.core.push.synopsis"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.synopsis">Synopsis</a>
+        </h5>
+<p>
+          [primer_push]
+        </p>
 <p>
           In the case of primitive values, it is always a direct call to the corresponding
           <code class="computeroutput"><span class="identifier">lua_pushX</span></code> function.
@@ -57,11 +61,11 @@
 <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">b</span><span class="special">);</span>
 <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">c</span><span class="special">);</span>
 </pre>
-<h4>
-<a name="lua_primer.reference.core.push.h0"></a>
+<h5>
+<a name="lua_primer.reference.core.push.h1"></a>
           <span><a name="lua_primer.reference.core.push.supported_types"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.supported_types">Supported
           Types</a>
-        </h4>
+        </h5>
 <p>
           The following core types are supported:
         </p>
@@ -242,7 +246,7 @@
             <span class="emphasis"><em>If a push operation requires a narrowing conversion of a floating
             point type to <code class="computeroutput"><span class="identifier">LUA_NUMBER</span></code>,
             a <code class="computeroutput"><span class="keyword">static_assert</span></code> will fail,
-            to prevent overflow.</em></span>
+            to prevent the implicit loss of precision.</em></span>
           </p>
 </td></tr>
 </table></div>
@@ -251,19 +255,11 @@
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
 <th align="left">Note</th>
 </tr>
-<tr><td align="left" valign="top">
-<p>
-            When pushing an unsigned integral type which is larger than <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code>, primer will implicitly
+<tr><td align="left" valign="top"><p>
+            When pushing an unsigned integral type which is larger than <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code>, Primer will implicitly
             narrow it to the unsigned version of <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code>,
             then perform a portable conversion from that type to <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code>.
-          </p>
-<p>
-            This behavior is well-defined by the standard, but for your code to be
-            portable in the sense of giving similar results on different machines
-            where lua may be configured to use 32-bit or 64-bit integers, you must
-            avoid such narrowing conversions.
-          </p>
-</td></tr>
+          </p></td></tr>
 </table></div>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -286,7 +282,7 @@
           </p>
 <p>
             If you just want to compile and don't care about overflow, you can do
-            so with expressions like
+            so with syntax like
           </p>
 <pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">LUA_INTEGER</span><span class="special">&gt;(</span><span class="identifier">i</span><span class="special">));</span>
 </pre>
@@ -294,6 +290,10 @@
             Or, install custom handling for integer types like <code class="computeroutput"><span class="keyword">long</span></code>
             and <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">long</span></code>,
             see below.
+          </p>
+<p>
+            Or, define <code class="computeroutput"><span class="identifier">PRIMER_NO_STATIC_ASSERTS</span></code>.
+            (But this disables many other safety-checks as well.)
           </p>
 </td></tr>
 </table></div>
@@ -382,74 +382,29 @@
               <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">flat_set</span></code>
             </li>
 </ul></div>
-<h4>
-<a name="lua_primer.reference.core.push.h1"></a>
+<h5>
+<a name="lua_primer.reference.core.push.h2"></a>
           <span><a name="lua_primer.reference.core.push.customization"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.customization">Customization</a>
-        </h4>
+        </h5>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is defined in terms of a type trait,
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span></code>.
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
-  <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">t</span><span class="special">);</span>
-<span class="special">}</span>
-</pre>
+<p>
+          [primer_push_impl]
+        </p>
 <p>
           The trait can be specialized to override primer's behavior for certain
           types, or to add new behavior for custom types.
         </p>
 <p>
-          For example, suppose we have a simple vector type:
+          [primer_example_vec2i_defn] [primer_example_vec2i_push_trait] [primer_example_vec2i_push_test]
         </p>
-<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">vec2i</span> <span class="special">{</span>
-  <span class="keyword">int</span> <span class="identifier">x</span><span class="special">;</span>
-  <span class="keyword">int</span> <span class="identifier">y</span><span class="special">;</span>
-<span class="special">};</span>
-</pre>
-<p>
-          Primer could be taught to push <code class="computeroutput"><span class="identifier">vec2i</span></code>
-          objects as a table with entries <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">1</span><span class="special">]</span></code>
-          and <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">2</span><span class="special">]</span></code> using
-          the following code:
-        </p>
-<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
-<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
-
-<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
-<span class="keyword">struct</span> <span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;</span> <span class="special">{</span>
-  <span class="keyword">static</span> <span class="keyword">void</span> <span class="identifier">to_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">vec2i</span> <span class="special">&amp;</span> <span class="identifier">v</span><span class="special">)</span> <span class="special">{</span>
-    <span class="identifier">lua_newtable</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
-    <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">v</span><span class="special">.</span><span class="identifier">x</span><span class="special">);</span>
-    <span class="identifier">lua_rawseti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
-    <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">v</span><span class="special">.</span><span class="identifier">y</span><span class="special">);</span>
-    <span class="identifier">lua_rawseti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
-  <span class="special">}</span>
-  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">stack_space_needed</span> <span class="special">=</span> <span class="number">2</span><span class="special">;</span>
-<span class="special">};</span>
-
-<span class="special">}</span> <span class="comment">// end namespace traits</span>
-<span class="special">}</span> <span class="comment">// end namespace primer</span>
-</pre>
-<p>
-          The following code snippet shows how the pushed object looks to lua
-        </p>
-<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">vec2i</span><span class="special">{</span><span class="number">5</span><span class="special">,</span> <span class="number">3</span><span class="special">});</span>
-<span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span>
-                <span class="string">"v = ...                          \n"</span>
-                <span class="string">"assert(type(v) == 'table')       \n"</span>
-                <span class="string">"assert(v[1] == 5)                \n"</span>
-                <span class="string">"assert(v[2] == 3)                \n"</span>
-                <span class="string">"assert(#v == 2)                  \n"</span><span class="special">);</span>
-
-<span class="identifier">lua_insert</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">);</span> <span class="comment">// put script beneath argument when using pcall</span>
-<span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
-</pre>
-<h4>
-<a name="lua_primer.reference.core.push.h2"></a>
+<h5>
+<a name="lua_primer.reference.core.push.h3"></a>
           <span><a name="lua_primer.reference.core.push.stack_space"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.stack_space">Stack
           Space</a>
-        </h4>
+        </h5>
 <p>
           One aspect of lua that you may easily miss on your first pass through the
           manual is <a href="http://www.lua.org/manual/5.3/manual.html#4.2" target="_top">the
@@ -482,11 +437,11 @@
           do it, simple programs will work (because of a small built-in minimum stack
           size) but large programs may give undefined behavior.
         </p>
-<h5>
-<a name="lua_primer.reference.core.push.h3"></a>
+<h6>
+<a name="lua_primer.reference.core.push.h4"></a>
           <span><a name="lua_primer.reference.core.push.in_primer"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.in_primer">In
           Primer</a>
-        </h5>
+        </h6>
 <p>
           Most <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> operations are primitive operations
           and we don't really want to call <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
@@ -512,12 +467,17 @@
           and calls <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
           to make sure it has enough space.
         </p>
+<h6>
+<a name="lua_primer.reference.core.push.h5"></a>
+          <span><a name="lua_primer.reference.core.push.querying_the_stack_space_needed"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.querying_the_stack_space_needed">Querying
+          the Stack Space Needed</a>
+        </h6>
 <p>
           The space needed for any individual type can be obtained as a <code class="computeroutput"><span class="keyword">constexpr</span></code> using
         </p>
-<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">stack_space_for_push</span><span class="special">();</span>
-</pre>
+<p>
+          [primer_stack_space_for_push]
+        </p>
 <p>
           You can use such functions to get the correct <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
           values into your program without hard-coding them -- invariably such values
