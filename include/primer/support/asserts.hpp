@@ -25,7 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #define PRIMER_DEBUG_MSG(X)
 #define PRIMER_FATAL_ERROR(X)
-#define PRIMER_ASSERT(C, X)
+#define PRIMER_ASSERT(C, X) static_asert(noexcept(C) == noexcept(C), "")
 #define PRIMER_ASSERT_STACK_NEUTRAL(L)                                         \
   static_cast<const void>(L);                                                  \
   static_assert(true, "")
