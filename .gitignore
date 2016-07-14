@@ -34,6 +34,3 @@ update_docu.sh
 
 # aspell backup files
 *.bak
-
-# random shell script i use
-/test/test.sh
