@@ -49,6 +49,7 @@ inline table_summary get_table_summary(lua_State * L, int idx) {
 
       auto p = result.emplace(std::move(key), std::move(val));
       PRIMER_ASSERT(p.second, "Duplicate keys encountered in a table!");
+      static_cast<void>(p);
     }
     lua_pop(L, 1);
   }
