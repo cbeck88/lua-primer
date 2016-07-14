@@ -36,26 +36,22 @@ techniques to prevent problems.
 
 When lua is compiled as C, the `setjmp` and `longjmp` functions are used to
 raise lua errors. The behavior is similar, but in this case, destructors of
-any C++ automatic objects are not called. Usually this would lead "only" to a memory
-leak, but technically the standard says that undefined behavior results.
+any C++ automatic objects are not called. This is a bad thing. [footnote Usually this would lead "only" to a memory
+leak, but technically the standard says that undefined behavior results if an object
+with a nontrivial destructor is jumped over. ]
 
-The primary reason to compile lua as C++ rather than as C is to avoid such issues.
-When using the raw lua C api to write callbacks, idiomatic C++ is not safe if
-`longjmp` is called.
+With careful practices, these problems can be largely avoided -- many C++ projects
+use lua compiled as C for one reason or another. [footnote Primer helps with this significantly because when adapting callbacks
+for lua, you signal lua errors and yield calls via a return value rather than
+by calling lua functions which `longjmp` directly. Primer calls the `longjmp`
+itself, after you have returned and your local objects have already been cleaned up.]
 
 Fortunately, many lua C api calls don't raise lua errors, except in the case of
 a lua memory allocation failure. [footnote See [@http://www.lua.org/manual/5.3/manual.html#4.8 4.8] in the lua manual.
 The notation `[-o, +p, x]` is there explained: `-` means the function never raises any error; `m` means the function may raise out-of-memory errors and errors running a `__gc` metamethod.
 For purposes of this discussion, we are going to ignore "errors running a `__gc` metamethod". See also [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual. ]
 
-We assume that most programmers consider a ['memory leak] as a potentially serious
-problem. However, even when compiling lua as C, this issue is not that difficult
-to overcome with certain practices. [footnote Primer helps with this significantly because when adapting callbacks
-for lua, you signal lua errors and yield calls via a return value rather than
-by calling lua functions which `longjmp` directly. Primer calls the `longjmp`
-itself, after you have returned and your local objects have already been cleaned up.]
-
-However, many projects that use lua are not concerned with the possibility of a ['memory allocation failure],
+On one hand, many projects that use lua are not concerned with the possibility of a ['memory allocation failure],
 and are perfectly happy with a `lua_panic` and program termination in such scenarios.
 When they use the lua C API, these projects will tend to be more fast-and-loose, not
 creating protected contexts to catch such errors and so on.
@@ -65,7 +61,7 @@ Primer should be engineered in a way that it can properly respond to such failur
 
 [h3 Goals]
 
-To handle the tradeoff between performance and comprehensive error handling,
+To handle the tradeoff between maximum performance and comprehensive error handling,
 Primer responds to a special preprocessor define `PRIMER_NO_MEMORY_FAILURE`.
 
 When this symbol is defined, Primer will *assume* that memory allocation failures
