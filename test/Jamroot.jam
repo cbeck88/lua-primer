@@ -65,12 +65,8 @@ if "--no-static-asserts" in [ modules.peek : ARGV ] {
 }
 
 if "--with-lua-as-cpp" in [ modules.peek : ARGV ] {
-  LUA_PRIVATE_FLAGS += <cflags>"-x c++" ;
+  LUA_PRIVATE_FLAGS += <cflags>"-x c++ -fpermissive -w" ;
   PRIMER_FLAGS += <define>PRIMER_LUA_AS_CPP ;
-  if $(HAVE_ERIS) {
-    # work around some warnings in eris
-    LUA_PRIVATE_FLAGS += <cflags>"-fpermissive -w" ;
-  }
 }
 
 ### Setup primer target
