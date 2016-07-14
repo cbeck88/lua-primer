@@ -48,15 +48,14 @@ a lua memory allocation failure. [footnote See [@http://www.lua.org/manual/5.3/m
 The notation `[-o, +p, x]` is there explained: `-` means the function never raises any error; `m` means the function may raise out-of-memory errors and errors running a `__gc` metamethod.
 For purposes of this discussion, we are going to ignore "errors running a `__gc` metamethod". See also [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual. ]
 
-Most programs that use lua are not concerned with the possibility of a memory allocation failure,
+We assume that most programmers consider a ['memory leak] as a potentially serious
+problem.
+
+However, many projects that use lua are not concerned with the possibility of a ['memory allocation failure],
 and are perfectly happy with a `lua_panic` and program termination in such scenarios.
 
-However, some programs are concerned with such things and Primer should be able
-to properly handle such errors. Moreover, we feel that it improves the overall reliability
-and maintainability of Primer if it is expected to be able to handle all possible errors,
-at least in some build configurations, and the build configurations which go faster
-by not handling memory allocation errors are created by explicitly disabling handling in
-select cases, rather than never having such handling at all.
+On the other hand, some programs are concerned with those also, and we've decided that 
+Primer should be engineered in a way that it can properly respond to such failures.
 
 [h3 Goals]
 
@@ -73,14 +72,20 @@ The rationale here is that lua is typically configured to use the same allocator
 likely that lua is out of memory but the standard allocator is not, and there are few projects where the difference matters. [footnote
 Actually you can work around dependence on the standard allocator by specializing `push` and `read` for standard types `std::string`, `std::vector`, etc.with custom allocators. ]
 
+We feel that this method of ['subtracting] selected checks in order to go faster
+ultimately leads to a more reliable and maintainable technology, than if we had
+simply written Primer with no handling for potential memory allocation failures whatsoever.
 
+
+[note
 This symbol is ['automatically defined] if lua is compiled as C. This decision allows Primer to be written in mostly idiomatic C++ code,
-because it means we can assume that lua memory allocation failures won't lead to `longjmp`.
+because it means we can assume that lua memory allocation failures won't lead to `longjmp`. ]
 
-If memory allocation failures *do* occur when this symbol is defined, ['undefined behavior will result].
+[caution
+If memory allocation failures *do* occur when this symbol is defined, ['undefined behavior will result]. ]
 
 When lua is compiled as C++, and the symbol is not defined (the default), Primer will handle all such errors internally using `try / catch` and `lua_pcall`, without leaks
-or undefined behavior. Generally it will signal errors along normal channels to the user or to lua scripts in such cases.
+or undefined behavior. Generally it will signal errors along normal channels to user code or to lua scripts in such cases.
 
 [h3 Handling of Errors]
 
