@@ -50,7 +50,7 @@ For purposes of this discussion, we are going to ignore "errors running a `__gc`
 
 We assume that most programmers consider a ['memory leak] as a potentially serious
 problem. However, even when compiling lua as C, this issue is not that difficult
-to overcome. [footnote Primer helps with this significantly because when adapting callbacks
+to overcome with certain practices. [footnote Primer helps with this significantly because when adapting callbacks
 for lua, you signal lua errors and yield calls via a return value rather than
 by calling lua functions which `longjmp` directly. Primer calls the `longjmp`
 itself, after you have returned and your local objects have already been cleaned up.]
