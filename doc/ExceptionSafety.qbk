@@ -36,8 +36,8 @@ techniques to prevent problems.
 
 When lua is compiled as C, the `setjmp` and `longjmp` functions are used to
 raise lua errors. The behavior is similar, but in this case, destructors of
-any C++ automatic objects are not called, and technically the standard says that
-undefined behavior results.
+any C++ automatic objects are not called. Usually this would lead "only" to a memory
+leak, but technically the standard says that undefined behavior results.
 
 The primary reason to compile lua as C++ rather than as C is to avoid such issues.
 When using the raw lua C api to write callbacks, idiomatic C++ is not safe if
@@ -49,18 +49,24 @@ The notation `[-o, +p, x]` is there explained: `-` means the function never rais
 For purposes of this discussion, we are going to ignore "errors running a `__gc` metamethod". See also [@https://www.lua.org/pil/24.3.html here] and [@https://www.lua.org/pil/24.3.1.html here] in the manual. ]
 
 We assume that most programmers consider a ['memory leak] as a potentially serious
-problem.
+problem. However, even when compiling lua as C, this issue is not that difficult
+to overcome. [footnote Primer helps with this significantly because when adapting callbacks
+for lua, you signal lua errors and yield calls via a return value rather than
+by calling lua functions which `longjmp` directly. Primer calls the `longjmp`
+itself, after you have returned and your local objects have already been cleaned up.]
 
 However, many projects that use lua are not concerned with the possibility of a ['memory allocation failure],
 and are perfectly happy with a `lua_panic` and program termination in such scenarios.
+When they use the lua C API, these projects will tend to be more fast-and-loose, not
+creating protected contexts to catch such errors and so on.
 
 On the other hand, some programs are concerned with those also, and we've decided that 
 Primer should be engineered in a way that it can properly respond to such failures.
 
 [h3 Goals]
 
-To handle the tradeoff here, Primer responds to a special preprocessor define
-`PRIMER_NO_MEMORY_FAILURE`.
+To handle the tradeoff between performance and comprehensive error handling,
+Primer responds to a special preprocessor define `PRIMER_NO_MEMORY_FAILURE`.
 
 When this symbol is defined, Primer will *assume* that memory allocation failures
 will not occur, and use this assumption to *skip handling of such errors* in order to run faster. Specifically:
@@ -76,13 +82,12 @@ We feel that this method of ['subtracting] selected checks in order to go faster
 ultimately leads to a more reliable and maintainable technology, than if we had
 simply written Primer with no handling for potential memory allocation failures whatsoever.
 
-
 [note
 This symbol is ['automatically defined] if lua is compiled as C. This decision allows Primer to be written in mostly idiomatic C++ code,
 because it means we can assume that lua memory allocation failures won't lead to `longjmp`. ]
 
 [caution
-If memory allocation failures *do* occur when this symbol is defined, ['undefined behavior will result]. ]
+If memory allocation failures *do* occur when this symbol is defined, ['undefined behavior will result], and in practice, most likely lua panic / program termination. ]
 
 When lua is compiled as C++, and the symbol is not defined (the default), Primer will handle all such errors internally using `try / catch` and `lua_pcall`, without leaks
 or undefined behavior. Generally it will signal errors along normal channels to user code or to lua scripts in such cases.
@@ -143,9 +148,10 @@ can potentially lead to the exception being lost and swallowed if lua scripts
 are using `pcall` to call your functions, and then it becomes very difficult to
 reason about what happens next. So we consider that catching user exceptions
 and trying to sneak them across the lua call boundary is not a very robust
-solution, and we don't plan to do something like this in Primer. We think it is
+solution, and we don't plan to do something like this generically in Primer.
+We think it is
 usually a better idea to just terminate the program in such cases. [footnote If you want to create an exception-to-lua-error translation mechanism for use
-with Primer in your program, you are welcome to specialize the `adapt` traits
+with Primer in your program, you are welcome to specialize the `adapt` trait
 in order to do it. See the documentation for `adapt`.]
 
 Instead, we are mainly concerned with avoiding leaks and indeterminate states,
