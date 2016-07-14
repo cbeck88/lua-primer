@@ -122,7 +122,7 @@ script:
 
   - ./test.sh ${FLAGS} --with-lua-32bit
 # TODO: Figure out what is wrong :(
-  - ./eris-internal-tests.sh || :
+  - ./eris-internal-tests.sh || true
 
   - ./test.sh ${FLAGS} --with-lua-as-cpp
   - ./eris-internal-tests.sh
