@@ -56,18 +56,18 @@ are also serializable.
 
 [h4 Primer]
 
-Primer's interface over eris is organizes as follows.
 
-[h5 Api Base]
+In Primer, the idea is that for each lua State that you plan to serialize, there
+should be an associated ['API Object] with which all of the components of that
+API are registered. The API object manages the processes of initializing the
+API within a State, and later, serializing and deserializing the state.
 
-An `api::base` is a C++ object associated to a single lua State. Normally,
-  you should make it manage the lifetime of that lua State, but how you do that
-  is up to you. It's job is to manage
-  the installation of C++ features of various kinds within the lua State, and
-  also the serialization / restoration of those features.
+An API object should ['derive] from the `primer::api::base` class template.
+This accomplishes two things:
 
-`api::base` is a class template that your custom API object will derive from.
-It provides you with three methods:
+* The `API_CALLBACK` and `API_FEATURE` macros may be used to register different
+  members of the API object as being parts of the API.
+* Three member functions are provided:
 
 ```
   void initialize_api(lua_State *);
@@ -75,85 +75,26 @@ It provides you with three methods:
   void unpersist(lua_State *, const std::string & buffer);
 ```
 
-How it carries out these methods depends on what ['api features] you register
-with the `api::base`.
+What exactly the API object does when these methods are called depends on what
+things get registered. Basically it's going to carry out the `lua-eris`
+serialization pattern in a straightforward way, providing each `API_FEATURE`
+object with simple hooks into that process so that it can participate.
 
-An instance of a class deriving from `api::base` is called an ['API object].
+The assumption here is that there is a single `lua_State *` object associated
+with the API object and you use that lua state each time you call these methods.
+So usually the API object should own / manage the lifetime of the `lua_State*`.
+However, we don't want to force you to do that in any particular way. [footnote
+You could do it manually, using some RAII object, or maybe you are using some other binding
+library. For instance in the lua binding library `sol`, they provide you with
+an RAII object called `sol::state` which they want you to use. You could use lua
+in any manner like that with Primer just fine, provided that you can obtain a
+`lua_State *` from whatever the object is.]
 
-[h5 Api Feature]
+Primer provides you with many useful `API_FEATURE` definitions for things like
+installing standard libraries, registering your userdata types, and customizing
+the VM in various common ways. It's quite easy to customize the system though,
+and make API features that do whatever you want.
 
-An `API Feature` is a C++ object which represents a single feature or service
-that could be provided to a lua state. It tells
-Primer how to install the feature and provide for its serialization.
-
-An object matching the API feature concept has the following three methods:
-
-```
-  struct my_feature {
-    void on_initialize(lua_State *);
-    void on_persist_table(lua_State *);
-    void on_unpersist_table(lua_State *);
-  };
-```
-
-For example, a feature that represents a custom lua library should install
-the library into the lua state when `on_initialize` is called.
-
-When `on_persist_table` is called, it should add each function pointer and
-a name for it, using the function pointer as a key, to the given table
-(assumed to be on top of the stack).
-
-When `on_unpersist_tale` is called, it should do the same, but in reverse,
-putting the name as the key.
-
-A different feature might use these methods in a totally different way.
-
-For instance, suppose your api requires having a single unique userdata object
-which is globally visible to scripts and serves some important purpose.
-
-The
-`on_initialize` method might install this object, and also store a hidden
-reference to it in the lua registry so that you can find it again.
-
-The
-`on_persist_table` method might fetch the reference from the registry and
-map that object to some name `"my_awesome_object"`. Then in the unpersist
-table, you can map `"my_awesome_object"` back to the new instance of that
-object in a recreated VM.
-
-An API feature is a *data member* of the API object. This allows it
-to have private variables, nontrivial initialization, links to other objects
-in your C++ program, and for any methods that it install in the lua state to
-have potentially have additional useful side-effects in your program.
-
-[h6 Examples]
-
-Examples of functionalities that Primer has built-in API Features for include
-
-* Standard Lua Libraries
-* Userdata types
-* Virtual filesystem (for `loadfile`, `dofile`, `require`)
-* Print redirect / Interpreter Dialog interaction
-* Persistent C++ values
-
-However, anything matching the concept can be used -- the methods are
-just hooks that you can use into the serialization process in an organized,
-object-oriented manner.
-
-[h5 Api Callbacks]
-
-An API Callback is a *member function* of an API object.
-
-API Callbacks are a
-convenient way to make functions that appear as "global" free
-functions in lua, but whose implementation in C++ has lots of useful things
-in scope.
-
-They enjoy dispatch to the API object using the "lua_extraspace" method, which
-is the fastest one. And they are adapted using `PRIMER_ADAPT` so that they
-can easily take complex function parameters.
-
-API Callbacks are declared / registered simultaneously using a macro. See
-the documentation on API callbacks for more detail.
+The advantage of doing it this way 
 
 [endsect]

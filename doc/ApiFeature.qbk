@@ -1,8 +1,12 @@
 [section API Feature]
 
-An API feature is an object which is responsible to install some feature within
-a lua State, and to provide support when we want to serialize / deserialize the
+A class which matches the "API Feature" concept represents some functionality
+that we could expose to a lua VM, while also retaining the ability to serialize
+the VM. An instance of the class is able to install the feature for Primer on
+request, and also to provide support when we want to serialize / deserialize the
 state.
+
+An object matching the API feature concept has the following three methods:
 
 ```
   struct my_feature {
@@ -66,14 +70,73 @@ is reconstructed from the given string. Then, each API feature with an
 stack, in order to restore its internal state. And the reproduced image of
 `_G` replaces the current value of `_G`.
 
+[h4 Examples]
 
-[h4 Declaration]
+For example, a feature that represents a custom lua library should install
+the library into the lua state when `on_initialize` is called.
 
-In order to actually hook into the methods of an `api::base` object, the feature
-object needs to be a member variable of the `api::base`, and needs to be declared
-using the `API_FEATURE` macro.
+When `on_persist_table` is called, it should add each function pointer and
+a name for it, using the function pointer as a key, to the given table
+(assumed to be on top of the stack).
 
-TODO EXAMPLE
+When `on_unpersist_table` is called, it should do the same, but in reverse,
+putting the name as the key.
+
+``
+  struct my_functions {
+    static const std::array<luaL_Reg, 3> get_funcs() {
+      return {{"foo", &foo}, {"bar", &bar}, {"baz", &baz}};
+    }
+
+    void on_init(lua_State * L) {
+      lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+      primer::set_funcs(L, get_funcs());
+      // ^ similar to luaL_setfuncs
+    }
+
+    void on_persist_table(lua_STate * L) {
+      primer::set_funcs_reverse(L, get_funcs());
+    }
+
+    void on_unpersist_table(lua_STate * L) {
+      primer::set_funcs(L, get_funcs());
+    }
+  };
+``
+
+A different feature might use these methods in a totally different way.
+
+For instance, suppose your api requires having a single unique userdata object
+which is globally visible to scripts and serves some important purpose.
+
+The
+`on_initialize` method might install this object, and also store a hidden
+reference to it in the lua registry so that you can find it again.
+
+The
+`on_persist_table` method might fetch the reference from the registry and
+map that object to some name `"my_awesome_object"`. Then in the unpersist
+table, you can map `"my_awesome_object"` back to the new instance of that
+object in a recreated VM.
+
+An API feature is a *data member* of the API object. This allows it
+to have private variables, nontrivial initialization, links to other objects
+in your C++ program, and for any methods that it install in the lua state to
+have potentially have additional useful side-effects in your program.
+
+
+Examples of functionalities that Primer has built-in API Features for include
+
+* Standard Lua Libraries
+* Userdata types
+* Virtual filesystem (for `loadfile`, `dofile`, `require`)
+* Print redirect / Interpreter Dialog interaction
+* Persistent C++ values
+
+However, anything matching the concept can be used -- the methods are
+just hooks that you can use into the serialization process in an organized,
+object-oriented manner.
+
 
 [h4 Other]
 

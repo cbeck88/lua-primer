@@ -1,13 +1,17 @@
 [section API Callback]
 
-An "API Callback" is a member function of the api object which is exposed to lua.
-Primer exposes these member functions as global functions in lua, and it obtains
-the pointer to the api object using "extraspace dispatch". This means that,
-a pointer to the api object is stored within the lua extraspace, sometime during
-initialization. The callbacks are all adapted to fetch this pointer when they
-are called.
+An "API Callback" is a *member function* of an API object.
 
-There are two steps to this system
+API Callbacks are a
+convenient way to make functions that appear as "global" free
+functions in lua, but whose implementation in C++ has lots of useful things
+in scope.
+
+They enjoy dispatch to the API object using the "lua_extraspace" method, which
+is the fastest one. And they are adapted using `PRIMER_ADAPT` so that they
+can easily take complex function parameters.
+
+There are two steps to using API Callbacks.
 
 * registering the callbacks in a list as they are declared and defined
 * an API feature which gets the list and the pointer to the API object and installs
@@ -18,6 +22,12 @@ There are two steps to this system
 The API feature that does this is `primer::api::callbacks`.
 
 ``
+struct my_api : primer::api::base<my_api> {
+
+  API_CALLBACK(foo, ("This is the foo help")) (lua_State * L, std::string arg) -> primer::result {
+
+  }
+
   API_FEATURE(primer::api::callbacks, callbacks_);
 
   ...
@@ -26,6 +36,9 @@ The API feature that does this is `primer::api::callbacks`.
    : L_(luaL_newstate())
    , callbacks_(this)
   {}
+
+
+};
 ``
 
 Most of the standard API features that we provide, like `userdatas` and `libraries`,
@@ -33,10 +46,11 @@ don't require special initialization, they can simply be default initialized, i.
 left out of the intializer list in a ctor of the API object.
 
 This is not so of the `callbacks` object. It needs a pointer to the api object,
-`this`. It remembers this pointer, so that it can later put it in the lua extraspace.
+`this`. It remembers this pointer, so that it can later put it in the lua extraspace
+when `initialize_api` is called.
 
 Another thing happens when it is initialized with `this`: It looks at the type of
-the pointer it recieved, and fetches from that type the `callbacks_array()`.
+the pointer it recieved, and fetches from that the `callbacks_array()`.
 This is where it obtains the list of functions that it should manage.
 
 * On initialization, the `extraspace` pointer is set, and all of the callbacks
@@ -44,7 +58,7 @@ This is where it obtains the list of functions that it should manage.
 * When persisting or unpersisting, all of the callbacks are placed in the permanent
   objects table, with slightly adjusted names to avoid a collision with anything else.
 
-[h3 Registration of callbacks]
+[h4 Registration of callbacks]
 
 The actual callbacks array is assembled by the api::base itself, based on declarations
 that it sees in the api object body.
