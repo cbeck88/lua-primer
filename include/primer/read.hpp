@@ -32,7 +32,7 @@ expected<T> read(lua_State * L, int index) {
   return ::primer::traits::read<T>::from_stack(L, index);
   //<-
   // Silence an unused warning
-  // static_cast<void>(::primer::traits::read<>::stack_space_needed);
+  static_cast<void>(::primer::traits::read<T>::stack_space_needed);
   //->
 }
 //]
