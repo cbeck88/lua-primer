@@ -1170,7 +1170,6 @@ void test_cpp_pcall_returns() {
 
   template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
   class adapt<my_int(*)(lua_State *, Args...), target_func> {
-
     static primer::result adapt_target(lua_State * L, Args ... args) {
       try {
         my_int r = target_func(L, std::forward<Args>(args)...);
@@ -1180,6 +1179,7 @@ void test_cpp_pcall_returns() {
       }
     }
 
+  public:
     static int adapted(lua_State * L) {
       return (PRIMER_ADAPT(&adapt_target))(L);
     }
