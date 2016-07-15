@@ -127,35 +127,14 @@ In this code, an exception "raise_lua_error" is defined, and a try-catch block
 is setup for functions which return `my_int`. Otherwise, it just defers to
 the regular adapt mechanism.
 
-``
-  struct my_int { int value; }
-
-  struct raise_lua_error : std::runtime_error {};
-
-  namespace primer {
-
-  template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
-  struct adapt<my_int(*)(lua_State *, Args...), target_func> {
-
-    primer::result adapt_target(lua_State * L, Args && ... args) {
-      try {
-        my_int r = target_func(L, std::forward<Args>(args)...);
-        return r.value;
-      } catch (raise_lua_error & e) {
-        return primer::error{e.what()};
-      }
-    }
-
-    int adapted(lua_State * L) {
-      return (PRIMER_ADAPT(&adapt_target))(L);
-    }
-  }
-``
+[primer_raise_lua_error_decl]
 
 With this specialization installed, any function passed to `PRIMER_ADAPT` with
 return value `my_int` gets the automatic argument parsing feature, but it now
 can signal lua errors by throwing an exception derived
 from `raise_lua_error` rather than in the default way that Primer does it.
+
+[primer_raise_lua_error_test]
 
 Your functions using the new return type would then be automatically recognized also by `PRIMER_ADAPT_USERDATA`
 and `USE_LUA_CALLBACK` in an `api::base` object, see later in the docs.

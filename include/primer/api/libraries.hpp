@@ -148,8 +148,7 @@ public:
 using basic_libraries = libraries<lua_base_lib_sandboxed,
                                   lua_table_lib,
                                   lua_math_lib,
-                                  lua_string_lib,
-                                  lua_coroutine_lib>;
+                                  lua_string_lib>;
 
 using all_core_libraries = libraries<lua_base_lib,
                                      lua_table_lib,

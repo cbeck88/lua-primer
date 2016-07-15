@@ -1158,6 +1158,83 @@ void test_cpp_pcall_returns() {
   TEST_EQ(0, lua_gettop(L));
 }
 
+//[ primer_raise_lua_error_decl
+
+  struct my_int { int value; };
+
+  struct raise_lua_error : std::runtime_error {
+    raise_lua_error(const std::string & str) : std::runtime_error(str) {}
+  };
+
+  namespace primer {
+
+  template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
+  struct adapt<my_int(*)(lua_State *, Args...), target_func> {
+
+    static primer::result adapt_target(lua_State * L, Args ... args) {
+      try {
+        my_int r = target_func(L, std::forward<Args>(args)...);
+        return r.value;
+      } catch (raise_lua_error & e) {
+        return primer::error{e.what()};
+      }
+    }
+
+    static int adapted(lua_State * L) {
+      return (PRIMER_ADAPT(&adapt_target))(L);
+    }
+  };
+
+  } // end namespace primer
+
+//]
+
+//[ primer_raise_lua_error_test
+my_int reverse_palindrome(lua_State * L, std::string p) {
+  auto it = p.begin();
+  auto it2 = p.end() - 1;
+
+  while(it < it2) {
+    if (*it != *it2) { throw raise_lua_error("not a palidrome"); }
+    ++it;
+    --it2;
+  }
+
+  if (it == it2) {
+    std::string s{it, p.end()};
+    s += std::string{p.begin() + 1, it + 1};
+    primer::push(L, s);
+  } else {
+    std::string s{it, p.end()};
+    s += std::string{p.begin(), it};
+    primer::push(L, s);
+  }
+  return {1};
+}
+
+void test_adapt_example() {
+  lua_raii L;
+
+  lua_CFunction f = PRIMER_ADAPT(&reverse_palindrome);
+
+  lua_pushcfunction(L, f);
+  lua_pushstring(L, "amanapanama");
+  TEST_LUA_OK(L, lua_pcall(L, 1, 1, 0));
+  TEST(lua_isstring(L, 1), "expected a string");
+  TEST_EQ(lua_tostring(L, 1), std::string{"panamamanap"});
+
+  lua_pushcfunction(L, f);
+  lua_insert(L, 1);
+  TEST_LUA_OK(L, lua_pcall(L, 1, 1, 0));
+  TEST(lua_isstring(L, 1), "expected a string");
+  TEST_EQ(lua_tostring(L, 1), std::string{"amanapanama"});
+
+  lua_pushcfunction(L, f);
+  lua_pushstring(L, "abfxxxx");
+  TEST(LUA_OK != lua_pcall(L, 1, 1, 0), "expected failure");
+}
+//]
+
 int main() {
   conf::log_conf();
 
@@ -1181,6 +1258,7 @@ int main() {
     {"primer resume", &primer_resume_test},
     {"primer coroutine test", &test_coroutine},
     {"primer cpp_pcall returns test", &test_cpp_pcall_returns},
+    {"adapt example", &test_adapt_example},
   };
   int num_fails = tests.run();
   std::cout << "\n";

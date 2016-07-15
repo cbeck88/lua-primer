@@ -103,4 +103,21 @@ The stack space needed for a given type can be calculated at compile-time using
 
 [primer_stack_space_for_read]
 
+It is important to declare a `stack_space_needed` value for any customization of
+`primer::read`,
+it can protect you from certain obscure problems. For instance, when lua calls
+a C++ function passed by you, the lua API guarantees that there will be at least
+`LUA_MINSTACK` stack positions free for you to work with, by default, 20 in
+current versions. However, if one day your function requires 21 stack spaces to
+read its parameters off of the stack, then you can get have undefined behavior
+when that function is called if there is no call to `lua_checkstack`.
+
+When a C++ function is adapted for lua using `primer::adapt` (see docs there)
+Primer computes at compile-time how much space is needed to read the parameters,
+using the values associated with `primer::read`. It compares this with
+`LUA_MINSTACK`, and insert a single call to `lua_checkstack` if necessary, and
+omits it otherwise. So, you pay the minimum
+possible at runtime for this protection, and usually nothing. But it only
+works if the `stack_space_needed` values are accurate, or at least conservative.
+
 [endsect]
