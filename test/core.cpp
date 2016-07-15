@@ -1169,7 +1169,7 @@ void test_cpp_pcall_returns() {
   namespace primer {
 
   template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
-  struct adapt<my_int(*)(lua_State *, Args...), target_func> {
+  class adapt<my_int(*)(lua_State *, Args...), target_func> {
 
     static primer::result adapt_target(lua_State * L, Args ... args) {
       try {
