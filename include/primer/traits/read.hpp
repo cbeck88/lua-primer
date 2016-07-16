@@ -13,6 +13,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/primer_fwd.hpp>
 #include <primer/lua.hpp>
 
 #include <primer/error.hpp>
@@ -29,10 +30,6 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 namespace traits {
-
-// Primary template
-template <typename T, typename ENABLE = void>
-struct read;
 
 // Primitive types
 template <>

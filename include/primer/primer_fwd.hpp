@@ -12,6 +12,7 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/expected_fwd.hpp>
+#include <primer/traits/userdata.hpp>
 
 namespace primer {
 
@@ -22,4 +23,13 @@ struct lua_ref_seq;
 class lua_state_ref;
 class result;
 
+namespace traits {
+
+template <typename T, typename ENABLE = void>
+struct push;
+
+template <typename T, typename ENABLE = void>
+struct read;
+
+} // end namespace traits
 } // end namespace primer
