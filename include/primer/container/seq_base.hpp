@@ -121,10 +121,7 @@ struct read_fixed_seq_helper {
     expected<T> result{};
 
     idx = lua_absindex(L, idx);
-    if (!lua_istable(L, idx)) {
-      result =
-        primer::arg_error(L, idx, "table");
-    }
+    if (!lua_istable(L, idx)) { result = primer::arg_error(L, idx, "table"); }
 
     int n = static_cast<int>(result->size());
     {

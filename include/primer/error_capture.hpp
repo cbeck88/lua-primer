@@ -63,8 +63,11 @@ inline void push_error(lua_State * L, const primer::error & e) noexcept {
 }
 
 // Create an "unexpected value" error
-inline primer::error arg_error(lua_State * L, int index, const char * expected) noexcept {
-  return primer::error::unexpected_value(expected, primer::describe_lua_value(L, index));
+inline primer::error arg_error(lua_State * L,
+                               int index,
+                               const char * expected) noexcept {
+  return primer::error::unexpected_value(expected,
+                                         primer::describe_lua_value(L, index));
 }
 
 } // end namespace primer
