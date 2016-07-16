@@ -6,7 +6,7 @@
 #pragma once
 
 /***
- * How to push `std::map` to the stack, as a table
+ * How to push `std::map` to the stack, as a table, and read it
  */
 
 #include <primer/base.hpp>

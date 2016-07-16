@@ -266,10 +266,16 @@ std::ostream & operator<<(std::ostream & o, const std::set<T> & s) {
 }
 
 template <typename T, typename U>
+std::ostream & operator<<(std::ostream & o, const std::pair<T, U> & p) {
+  o << "( " << p.first << ", " << p.second << ")";
+  return o;
+}
+
+template <typename T, typename U>
 std::ostream & operator<<(std::ostream & o, const std::map<T, U> & m) {
   o << "{ ";
   for (const auto & p : m) {
-    o << "( " << p.first << ", " << p.second << ") ";
+    o << p << ' ';
   }
   o << "}";
   return o;
@@ -279,7 +285,7 @@ template <typename T, typename U>
 std::ostream & operator<<(std::ostream & o, const std::unordered_map<T, U> & m) {
   o << "{ ";
   for (const auto & p : m) {
-    o << "( " << p.first << ", " << p.second << ") ";
+    o << p << ' ';
   }
   o << "}";
   return o;
@@ -307,6 +313,14 @@ void test_array_round_trip() {
   round_trip_value(L, std::array<float, 3>{{-0.5f, .5f, 6.5f}}, __LINE__);
   round_trip_value(L, std::array<std::string, 4>{{"asdf", "jkl;", "", "wer"}},
                    __LINE__);
+}
+
+void test_pair_round_trip() {
+  lua_raii L;
+  round_trip_value(L, std::pair<std::string, int>("asdf", 5), __LINE__);
+  round_trip_value(L, std::pair<std::string, int>("werf", 523), __LINE__);
+  round_trip_value(L, std::pair<int, float>(9, 5.5f), __LINE__);
+  round_trip_value(L, std::pair<std::string, std::string>("asdf", "jkl;"), __LINE__);
 }
 
 void test_map_round_trip() {
@@ -607,10 +621,11 @@ int main() {
     {"array push", &test_array_push},
     {"map push", &test_map_push},
     {"set push", &test_set_push},
-    {"vector roundtrip", &test_vector_push},
-    {"array roundtrip", &test_array_push},
-    {"map roundtrip", &test_map_push},
-    {"set roundtrip", &test_set_push},
+    {"vector roundtrip", &test_vector_round_trip},
+    {"array roundtrip", &test_array_round_trip},
+    {"pair roundtrip", &test_pair_round_trip},
+    {"map roundtrip", &test_map_round_trip},
+    {"set roundtrip", &test_set_round_trip},
     {"userdata", &test_userdata},
     {"userdata two", &test_userdata_two},
     {"std function", &test_std_function},
