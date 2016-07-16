@@ -1160,32 +1160,32 @@ void test_cpp_pcall_returns() {
 
 //[ primer_raise_lua_error_decl
 
-  struct my_int { int value; };
+struct my_int {
+  int value;
+};
 
-  struct raise_lua_error : std::runtime_error {
-    raise_lua_error(const std::string & str) : std::runtime_error(str) {}
-  };
+struct raise_lua_error : std::runtime_error {
+  raise_lua_error(const std::string & str)
+    : std::runtime_error(str)
+  {}
+};
 
-  namespace primer {
+namespace primer {
 
-  template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
-  class adapt<my_int(*)(lua_State *, Args...), target_func> {
-    static primer::result adapt_target(lua_State * L, Args ... args) {
-      try {
-        my_int r = target_func(L, std::forward<Args>(args)...);
-        return r.value;
-      } catch (raise_lua_error & e) {
-        return primer::error{e.what()};
-      }
-    }
+template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
+class adapt<my_int (*)(lua_State *, Args...), target_func> {
+  static primer::result adapt_target(lua_State * L, Args... args) {
+    try {
+      my_int r = target_func(L, std::forward<Args>(args)...);
+      return r.value;
+    } catch (raise_lua_error & e) { return primer::error{e.what()}; }
+  }
 
-  public:
-    static int adapted(lua_State * L) {
-      return (PRIMER_ADAPT(&adapt_target))(L);
-    }
-  };
+public:
+  static int adapted(lua_State * L) { return (PRIMER_ADAPT(&adapt_target))(L); }
+};
 
-  } // end namespace primer
+} // end namespace primer
 
 //]
 
@@ -1194,7 +1194,7 @@ my_int reverse_palindrome(lua_State * L, std::string p) {
   auto it = p.begin();
   auto it2 = p.end() - 1;
 
-  while(it < it2) {
+  while (it < it2) {
     if (*it != *it2) { throw raise_lua_error("not a palidrome"); }
     ++it;
     --it2;

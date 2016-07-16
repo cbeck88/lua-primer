@@ -42,7 +42,8 @@ struct read<std::pair<T, U>> {
     idx = lua_absindex(L, idx);
 
     if (!lua_istable(L, idx) && !lua_isuserdata(L, idx)) {
-      return primer::error::unexpected_value("table", primer::describe_lua_value(L, idx));
+      return primer::error::unexpected_value("table",
+                                             primer::describe_lua_value(L, idx));
     }
 
     // First

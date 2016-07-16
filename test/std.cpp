@@ -320,7 +320,8 @@ void test_pair_round_trip() {
   round_trip_value(L, std::pair<std::string, int>("asdf", 5), __LINE__);
   round_trip_value(L, std::pair<std::string, int>("werf", 523), __LINE__);
   round_trip_value(L, std::pair<int, float>(9, 5.5f), __LINE__);
-  round_trip_value(L, std::pair<std::string, std::string>("asdf", "jkl;"), __LINE__);
+  round_trip_value(L, std::pair<std::string, std::string>("asdf", "jkl;"),
+                   __LINE__);
 }
 
 void test_map_round_trip() {
