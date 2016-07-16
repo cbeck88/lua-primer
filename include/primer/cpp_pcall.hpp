@@ -86,7 +86,7 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   int code; // pcall_helper installs a custom error handler
   std::tie(code, std::ignore) = detail::pcall_helper(L, narg, LUA_MULTRET);
 
-  if (code != LUA_OK) { result = detail::pop_error(L, code); }
+  if (code != LUA_OK) { result = pop_error(L, code); }
   return result;
 }
 //]

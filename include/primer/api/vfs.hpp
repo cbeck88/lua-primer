@@ -13,8 +13,8 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/adapt.hpp>
 #include <primer/cpp_pcall.hpp>
+#include <primer/error_capture.hpp>
 #include <primer/support/asserts.hpp>
-#include <primer/support/error_capture.hpp>
 #include <primer/support/function.hpp>
 #include <primer/support/set_funcs.hpp>
 
@@ -114,7 +114,7 @@ protected:
       if (code == LUA_OK) {
         return lua_gettop(L) - idx + 1;
       } else {
-        return primer::detail::pop_error(L, code);
+        return primer::pop_error(L, code);
       }
     } else {
       return std::move(ok.err());
@@ -131,7 +131,7 @@ protected:
     if (auto ok = recover_this(L)->load(L, path)) {
       int code;
       std::tie(code, std::ignore) = detail::pcall_helper(L, 0, 1);
-      if (code != LUA_OK) { return primer::detail::pop_error(L, code); }
+      if (code != LUA_OK) { return primer::pop_error(L, code); }
 
       lua_pushvalue(L, -1);             // push an extra copy
       lua_setfield(L, 2, path.c_str()); // set to _LOADED table

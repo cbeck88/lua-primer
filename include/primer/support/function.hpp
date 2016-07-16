@@ -16,10 +16,10 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/error.hpp>
+#include <primer/error_capture.hpp>
 #include <primer/error_handler.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
-#include <primer/support/error_capture.hpp>
 #include <primer/support/function_return_fwd.hpp>
 #include <tuple>
 #include <utility>
@@ -83,7 +83,7 @@ void fcn_call(expected<T> & result, lua_State * L, int narg) {
   std::tie(err_code, results_idx) =
     detail::pcall_helper(L, narg, return_helper<T>::nrets);
   if (err_code != LUA_OK) {
-    result = detail::pop_error(L, err_code);
+    result = primer::pop_error(L, err_code);
   } else {
     return_helper<T>::pop(L, results_idx, result);
   }
@@ -104,7 +104,7 @@ void resume_call(expected<T> & result, lua_State * L, int narg) {
   if (err_code == LUA_OK || err_code == LUA_YIELD) {
     return_helper<T>::pop(L, results_idx, result);
   } else {
-    result = detail::pop_error(L, err_code);
+    result = primer::pop_error(L, err_code);
   }
   lua_settop(L, results_idx - 1);
 }

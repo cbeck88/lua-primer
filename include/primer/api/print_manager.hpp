@@ -10,9 +10,9 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/cpp_pcall.hpp>
+#include <primer/error_capture.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
-#include <primer/support/error_capture.hpp>
 #include <primer/support/scoped_stash_global_value.hpp>
 #include <primer/support/set_funcs.hpp>
 
@@ -217,7 +217,7 @@ class print_manager {
   }
 
   void handle_interpreter_error(lua_State * L, int code) {
-    primer::error e{primer::detail::pop_error(L, code)};
+    primer::error e{primer::pop_error(L, code)};
     this->error_text(detail::strip_line_info(e.what()));
   }
 

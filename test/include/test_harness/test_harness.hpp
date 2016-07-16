@@ -8,10 +8,10 @@
 #include <primer/base.hpp>
 #include <primer/lua.hpp>
 #include <primer/error.hpp>
+#include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
-#include <primer/support/error_capture.hpp>
 
 #include "test_harness/conf.hpp"
 #include "test_harness/lua_raii.hpp"
@@ -83,7 +83,7 @@ struct test_exception : std::exception {
     if (code__ != LUA_OK) {                                                    \
       std::ostringstream ss__;                                                 \
       ss__ << "Lua operation failed: " #C " (line " << __LINE__ << ")\n";      \
-      ss__ << primer::detail::pop_error(L, code__).what();                     \
+      ss__ << primer::pop_error(L, code__).what();                             \
       throw test_exception(ss__.str());                                        \
     }                                                                          \
   } while (0)
@@ -127,7 +127,7 @@ void round_trip_value(lua_State * L, const T & t, int line) {
 primer::expected<void> try_load_script(lua_State * L, const char * script) {
   int code = luaL_loadstring(L, script);
   if (LUA_OK != code) {
-    return primer::detail::pop_error(L, code).prepend_error_line(script);
+    return primer::pop_error(L, code).prepend_error_line(script);
   }
   return {};
 }

@@ -39,6 +39,8 @@ inline const char * error_code_to_string(const int err_code) noexcept {
   }
 }
 
+} // end namespace detail
+
 // Gets an error string from the top of the stack, forms a primer::error.
 // Pops the error string.
 inline primer::error pop_error(lua_State * L, int err_code) noexcept {
@@ -57,5 +59,4 @@ inline void push_error(lua_State * L, const primer::error & e) noexcept {
   lua_pushstring(L, e.what());
 }
 
-} // end namespace detail
 } // end namespace primer

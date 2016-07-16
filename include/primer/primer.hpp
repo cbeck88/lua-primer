@@ -17,6 +17,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/bound_function.hpp>
 #include <primer/coroutine.hpp>
 #include <primer/error.hpp>
+#include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/function.hpp>
 #include <primer/lua.hpp>
@@ -28,5 +29,4 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/read.hpp>
 #include <primer/result.hpp>
 #include <primer/userdata.hpp>
-
-#include <primer/support/userdata_dispatch.hpp>
+#include <primer/userdata_dispatch.hpp>
