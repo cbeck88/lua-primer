@@ -40,9 +40,41 @@
           <span><a name="lua_primer.reference.api.api_persistent_value.synopsis_actually_complete_defin"></a></span><a class="link" href="api_persistent_value.html#lua_primer.reference.api.api_persistent_value.synopsis_actually_complete_defin">Synopsis
           (actually, complete definition)</a>
         </h5>
-<p>
-          [primer_persistent_value]
-        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">api</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">persistent_value</span> <span class="special">{</span>
+  <span class="identifier">T</span> <span class="identifier">value_</span><span class="special">;</span>
+
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">value_</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">T</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">value_</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="comment">//</span>
+  <span class="comment">// API Feature</span>
+  <span class="comment">//</span>
+
+  <span class="keyword">void</span> <span class="identifier">on_init</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*)</span> <span class="special">{}</span>
+  <span class="keyword">void</span> <span class="identifier">on_persist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*)</span> <span class="special">{}</span>
+  <span class="keyword">void</span> <span class="identifier">on_unpersist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*)</span> <span class="special">{}</span>
+
+  <span class="keyword">void</span> <span class="identifier">on_serialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">value_</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="identifier">PRIMER_STATIC_ASSERT</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+                       <span class="string">"persistent value must be nothrow move constructible"</span><span class="special">);</span>
+  <span class="keyword">void</span> <span class="identifier">on_deserialize</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">))</span> <span class="special">{</span>
+      <span class="identifier">value_</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(*</span><span class="identifier">result</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="comment">// XXX TODO</span>
+    <span class="special">}</span>
+    <span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace api</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

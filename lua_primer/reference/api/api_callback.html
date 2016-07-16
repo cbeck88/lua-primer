@@ -125,9 +125,10 @@
           The macro which we saw in examples was simply <code class="computeroutput"><span class="identifier">API_CALLBACK</span></code>.
           That macro is defined as follows:
         </p>
-<p>
-          [primer_api_callback_defn]
-        </p>
+<pre class="programlisting"><span class="preprocessor">#define</span> <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">help</span><span class="special">)</span>                                           <span class="special">\</span>
+  <span class="identifier">USE_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">help</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">owner_type</span><span class="special">::</span><span class="identifier">intf_</span><span class="special">##</span><span class="identifier">name</span><span class="special">);</span>                      <span class="special">\</span>
+  <span class="keyword">auto</span> <span class="identifier">intf_</span><span class="special">##</span><span class="identifier">name</span>
+</pre>
 <p>
           In this definition, <code class="computeroutput"><span class="identifier">owner_type</span></code>
           is a <code class="computeroutput"><span class="keyword">typedef</span></code> created by <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>. The macro simply calls <code class="computeroutput"><span class="identifier">USE_API_CALLBACK</span></code> using a member function

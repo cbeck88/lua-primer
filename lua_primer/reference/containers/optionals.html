@@ -40,9 +40,17 @@
           then primer will push <code class="computeroutput"><span class="identifier">nil</span></code>.
           If it is occupied, then primer pushes the value.
         </p>
-<p>
-          [primer_example_optional_push]
-        </p>
+<pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">x</span><span class="special">;</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">x</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_isnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">));</span>
+
+<span class="identifier">x</span> <span class="special">=</span> <span class="number">7</span><span class="special">;</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">x</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">2</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_isinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">));</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_tointeger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">)</span> <span class="special">==</span> <span class="number">7</span><span class="special">);</span>
+</pre>
 <h5>
 <a name="lua_primer.reference.containers.optionals.h1"></a>
           <span><a name="lua_primer.reference.containers.optionals.reading_optionals"></a></span><a class="link" href="optionals.html#lua_primer.reference.containers.optionals.reading_optionals">Reading
@@ -57,23 +65,77 @@
           "push" are accepted, and anything that isn't nil or acceptable
           as an instance of the value type, is an error.
         </p>
-<p>
-          [primer_example_optional_read]
-        </p>
+<pre class="programlisting"><span class="identifier">lua_pushnumber</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">5.5f</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result1</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result1</span><span class="special">);</span>
+
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;</span> <span class="identifier">my_number</span> <span class="special">=</span> <span class="special">*</span><span class="identifier">result1</span><span class="special">;</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">my_number</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(*</span><span class="identifier">my_number</span> <span class="special">==</span> <span class="number">5.5f</span><span class="special">);</span>
+
+<span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">2</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result2</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result2</span><span class="special">);</span>
+
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;</span> <span class="identifier">my_number2</span> <span class="special">=</span> <span class="special">*</span><span class="identifier">result2</span><span class="special">;</span>
+<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">my_number2</span><span class="special">);</span> <span class="comment">// got an empty state (nil)</span>
+
+<span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"foo"</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">3</span><span class="special">);</span>
+
+<span class="keyword">auto</span> <span class="identifier">result3</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">LUA_NUMBER</span><span class="special">&gt;&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result3</span><span class="special">);</span> <span class="comment">// string is not nil or a number</span>
+</pre>
 <p>
           The main use of course is as function parameters. Given a function taking
           optional parameters like so,
         </p>
-<p>
-          [primer_example_maximum_function_defn]
-        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">maximum</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span>
+                       <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">x</span><span class="special">,</span>
+                       <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">y</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">x</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">y</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">max</span><span class="special">(*</span><span class="identifier">x</span><span class="special">,</span> <span class="special">*</span><span class="identifier">y</span><span class="special">));</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">*</span><span class="identifier">x</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">y</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">*</span><span class="identifier">y</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+  <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
 <p>
           these are the kinds of semantics that primer would give when it is pushed
           to lua:
         </p>
-<p>
-          [primer_example_maximum_function_test]
-        </p>
+<pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">maximum</span><span class="special">));</span>
+<span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"maximum"</span><span class="special">);</span>
+
+<span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span>
+                <span class="string">"local x = 5                              \n"</span>
+                <span class="string">"local y = 7                              \n"</span>
+                <span class="string">"assert(maximum(x, y) == 7)               \n"</span>
+                <span class="string">"assert(maximum(x, nil) == 5)             \n"</span>
+                <span class="string">"assert(maximum(nil, y) == 7)             \n"</span>
+                <span class="string">"assert(not maximum(nil, nil))            \n"</span>
+                <span class="string">"assert(not pcall(maximum, 'foo', 'bar')) \n"</span>
+                <span class="string">"assert(not pcall(maximum, 5, 'bar'))     \n"</span>
+                <span class="string">"assert(not pcall(maximum, 'foo', nil))   \n"</span>
+                <span class="string">"assert(pcall(maximum, 6, -14))           \n"</span>
+                <span class="string">"assert(pcall(maximum, 6))                \n"</span>
+                <span class="string">"assert(maximum(6) == 6)                  \n"</span><span class="special">);</span>
+
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+</pre>
 <h5>
 <a name="lua_primer.reference.containers.optionals.h2"></a>
           <span><a name="lua_primer.reference.containers.optionals.relaxed_semantics"></a></span><a class="link" href="optionals.html#lua_primer.reference.containers.optionals.relaxed_semantics">Relaxed

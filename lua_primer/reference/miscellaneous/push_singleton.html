@@ -18,7 +18,43 @@
         Singleton</a>
 </h4></div></div></div>
 <p>
-          [primer_push_singleton_overview]
+          It is fairly common in the lua API to want to create some private object
+          hidden in the registry to support some feature or hold some implementation
+          detail.
+        </p>
+<p>
+          Often times, people make up string constants to use as the registry key,
+          and create a "lazy construction" function which first checks
+          the registry for a pre-cached value, and otherwise computes it.
+        </p>
+<p>
+          This is essentially the same thing as lua's <code class="computeroutput"><span class="identifier">require</span></code>
+          all over again, but from the C api side now.
+        </p>
+<p>
+          We have a convenient template function which improves on this idiom. Primer
+          uses it internally for certain things. We use a template function called
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_singleton</span></code>:
+        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">void</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*)&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push_singleton</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">int</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*)&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push_singleton</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<p>
+          The idea is, the function which <span class="bold"><strong>creates</strong></span>
+          the value is the template parameter, and the template function ensures
+          the lazy construction aspect.
+        </p>
+<p>
+          To ensure uniqueness of registry keys, the template uses the function pointer
+          <span class="emphasis"><em>corresponding to the producer function itself</em></span> as the
+          registry key.
         </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

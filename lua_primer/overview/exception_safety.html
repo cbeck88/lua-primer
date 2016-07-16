@@ -98,39 +98,36 @@
         When lua is compiled as C, the <code class="computeroutput"><span class="identifier">setjmp</span></code>
         and <code class="computeroutput"><span class="identifier">longjmp</span></code> functions are
         used to raise lua errors. The behavior is similar, but in this case, destructors
-        of any C++ automatic objects are not called, and technically the standard
-        says that undefined behavior results.
+        of any C++ automatic objects are not called. This is a bad thing. <sup>[<a name="lua_primer.overview.exception_safety.f3" href="#ftn.lua_primer.overview.exception_safety.f3" class="footnote">4</a>]</sup>
       </p>
 <p>
-        The primary reason to compile lua as C++ rather than as C is to avoid such
-        issues. When using the raw lua C api to write callbacks, idiomatic C++ is
-        not safe if <code class="computeroutput"><span class="identifier">longjmp</span></code> is called.
+        With careful practices, these problems can be largely avoided -- many C++
+        projects use lua compiled as C for one reason or another. <sup>[<a name="lua_primer.overview.exception_safety.f4" href="#ftn.lua_primer.overview.exception_safety.f4" class="footnote">5</a>]</sup>
       </p>
 <p>
         Fortunately, many lua C api calls don't raise lua errors, except in the case
-        of a lua memory allocation failure. <sup>[<a name="lua_primer.overview.exception_safety.f3" href="#ftn.lua_primer.overview.exception_safety.f3" class="footnote">4</a>]</sup>
+        of a lua memory allocation failure. <sup>[<a name="lua_primer.overview.exception_safety.f5" href="#ftn.lua_primer.overview.exception_safety.f5" class="footnote">6</a>]</sup>
       </p>
 <p>
-        Most programs that use lua are not concerned with the possibility of a memory
-        allocation failure, and are perfectly happy with a <code class="computeroutput"><span class="identifier">lua_panic</span></code>
-        and program termination in such scenarios.
+        On one hand, many projects that use lua are not concerned with the possibility
+        of a <span class="emphasis"><em>memory allocation failure</em></span>, and are perfectly happy
+        with a <code class="computeroutput"><span class="identifier">lua_panic</span></code> and program
+        termination in such scenarios. When they use the lua C API, these projects
+        will tend to be more fast-and-loose, not creating protected contexts to catch
+        such errors and so on.
       </p>
 <p>
-        However, some programs are concerned with such things and Primer should be
-        able to properly handle such errors. Moreover, we feel that it improves the
-        overall reliability and maintainability of Primer if it is expected to be
-        able to handle all possible errors, at least in some build configurations,
-        and the build configurations which go faster by not handling memory allocation
-        errors are created by explicitly disabling handling in select cases, rather
-        than never having such handling at all.
+        On the other hand, some programs are concerned with <span class="emphasis"><em>memory allocation
+        failure</em></span> also, and we've decided that Primer should be engineered
+        in a way that it can properly respond to such failures.
       </p>
 <h4>
 <a name="lua_primer.overview.exception_safety.h1"></a>
         <span><a name="lua_primer.overview.exception_safety.goals"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.goals">Goals</a>
       </h4>
 <p>
-        To handle the tradeoff here, Primer responds to a special preprocessor define
-        <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>.
+        To handle the tradeoff between maximum performance and comprehensive error
+        handling, Primer responds to a special preprocessor define <code class="computeroutput"><span class="identifier">PRIMER_NO_MEMORY_FAILURE</span></code>.
       </p>
 <p>
         When this symbol is defined, Primer will <span class="bold"><strong>assume</strong></span>
@@ -154,25 +151,43 @@
         The rationale here is that lua is typically configured to use the same allocator
         as the rest of your program -- it's not that likely that lua is out of memory
         but the standard allocator is not, and there are few projects where the difference
-        matters. <sup>[<a name="lua_primer.overview.exception_safety.f4" href="#ftn.lua_primer.overview.exception_safety.f4" class="footnote">5</a>]</sup>
+        matters. <sup>[<a name="lua_primer.overview.exception_safety.f6" href="#ftn.lua_primer.overview.exception_safety.f6" class="footnote">7</a>]</sup>
       </p>
 <p>
-        This symbol is <span class="emphasis"><em>automatically defined</em></span> if lua is compiled
-        as C. This decision allows Primer to be written in mostly idiomatic C++ code,
-        because it means we can assume that lua memory allocation failures won't
-        lead to <code class="computeroutput"><span class="identifier">longjmp</span></code>.
+        We feel that this method of <span class="emphasis"><em>subtracting</em></span> selected checks
+        in order to go faster ultimately leads to a more reliable and maintainable
+        technology, than if we had simply written Primer with no handling for potential
+        memory allocation failures whatsoever.
       </p>
-<p>
-        If memory allocation failures <span class="bold"><strong>do</strong></span> occur when
-        this symbol is defined, <span class="emphasis"><em>undefined behavior will result</em></span>.
-      </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          This symbol is <span class="emphasis"><em>automatically defined</em></span> if lua is compiled
+          as C. This decision allows Primer to be written in mostly idiomatic C++
+          code, because it means that we can assume that lua memory allocation failures
+          won't lead to <code class="computeroutput"><span class="identifier">longjmp</span></code>.
+        </p></td></tr>
+</table></div>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          If memory allocation failures <span class="bold"><strong>do</strong></span> occur
+          when this symbol is defined, <span class="emphasis"><em>undefined behavior will result</em></span>.
+        </p></td></tr>
+</table></div>
 <p>
         When lua is compiled as C++, and the symbol is not defined (the default),
         Primer will handle all such errors internally using <code class="computeroutput"><span class="keyword">try</span>
         <span class="special">/</span> <span class="keyword">catch</span></code>
         and <code class="computeroutput"><span class="identifier">lua_pcall</span></code>, without leaks
         or undefined behavior. Generally it will signal errors along normal channels
-        to the user or to lua scripts in such cases.
+        to user code or to lua scripts in such cases.
       </p>
 <h4>
 <a name="lua_primer.overview.exception_safety.h2"></a>
@@ -229,7 +244,7 @@
           </li>
 </ol></div>
 <p>
-        <sup>[<a name="lua_primer.overview.exception_safety.f5" href="#ftn.lua_primer.overview.exception_safety.f5" class="footnote">6</a>]</sup>
+        <sup>[<a name="lua_primer.overview.exception_safety.f7" href="#ftn.lua_primer.overview.exception_safety.f7" class="footnote">8</a>]</sup>
       </p>
 <h5>
 <a name="lua_primer.overview.exception_safety.h3"></a>
@@ -242,7 +257,7 @@
         various schemes without actually throwing them through lua.
       </p>
 <p>
-        <sup>[<a name="lua_primer.overview.exception_safety.f6" href="#ftn.lua_primer.overview.exception_safety.f6" class="footnote">7</a>]</sup> <sup>[<a name="lua_primer.overview.exception_safety.f7" href="#ftn.lua_primer.overview.exception_safety.f7" class="footnote">8</a>]</sup>
+        <sup>[<a name="lua_primer.overview.exception_safety.f8" href="#ftn.lua_primer.overview.exception_safety.f8" class="footnote">9</a>]</sup> <sup>[<a name="lua_primer.overview.exception_safety.f9" href="#ftn.lua_primer.overview.exception_safety.f9" class="footnote">10</a>]</sup>
       </p>
 <p>
         We consider that exceptions should only be used for very serious problems,
@@ -253,8 +268,9 @@
         to call your functions, and then it becomes very difficult to reason about
         what happens next. So we consider that catching user exceptions and trying
         to sneak them across the lua call boundary is not a very robust solution,
-        and we don't plan to do something like this in Primer. We think it is usually
-        a better idea to just terminate the program in such cases. <sup>[<a name="lua_primer.overview.exception_safety.f8" href="#ftn.lua_primer.overview.exception_safety.f8" class="footnote">9</a>]</sup>
+        and we don't plan to do something like this generically in Primer. We think
+        it is usually a better idea to just terminate the program in such cases.
+        <sup>[<a name="lua_primer.overview.exception_safety.f10" href="#ftn.lua_primer.overview.exception_safety.f10" class="footnote">11</a>]</sup>
       </p>
 <p>
         Instead, we are mainly concerned with avoiding leaks and indeterminate states,
@@ -451,6 +467,19 @@
           users wiki</a>
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f3" href="#lua_primer.overview.exception_safety.f3" class="para">4</a>] </sup>
+          Usually this would lead "only" to a memory leak, but technically
+          the standard says that undefined behavior results if an object with a nontrivial
+          destructor is jumped over.
+        </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f4" href="#lua_primer.overview.exception_safety.f4" class="para">5</a>] </sup>
+          Primer helps with this significantly because when adapting callbacks for
+          lua, you signal lua errors and yield calls via a return value rather than
+          by calling lua functions which <code class="computeroutput"><span class="identifier">longjmp</span></code>
+          directly. Primer calls the <code class="computeroutput"><span class="identifier">longjmp</span></code>
+          itself, after you have returned and your local objects have already been
+          cleaned up.
+        </p></div>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f5" href="#lua_primer.overview.exception_safety.f5" class="para">6</a>] </sup>
           See <a href="http://www.lua.org/manual/5.3/manual.html#4.8" target="_top">4.8</a>
           in the lua manual. The notation <code class="computeroutput"><span class="special">[-</span><span class="identifier">o</span><span class="special">,</span> <span class="special">+</span><span class="identifier">p</span><span class="special">,</span> <span class="identifier">x</span><span class="special">]</span></code> is there explained: <code class="computeroutput"><span class="special">-</span></code>
           means the function never raises any error; <code class="computeroutput"><span class="identifier">m</span></code>
@@ -459,12 +488,12 @@
           of this discussion, we are going to ignore "errors running a <code class="computeroutput"><span class="identifier">__gc</span></code> metamethod". See also <a href="https://www.lua.org/pil/24.3.html" target="_top">here</a> and <a href="https://www.lua.org/pil/24.3.1.html" target="_top">here</a>
           in the manual.
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f4" href="#lua_primer.overview.exception_safety.f4" class="para">5</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f6" href="#lua_primer.overview.exception_safety.f6" class="para">7</a>] </sup>
           Actually you can work around dependence on the standard allocator by specializing
           <code class="computeroutput"><span class="identifier">push</span></code> and <code class="computeroutput"><span class="identifier">read</span></code> for standard types <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>, <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>,
-          etc.with custom allocators.
+          etc. with custom allocators.
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f5" href="#lua_primer.overview.exception_safety.f5" class="para">6</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f7" href="#lua_primer.overview.exception_safety.f7" class="para">8</a>] </sup>
           The applicability of <code class="computeroutput"><span class="keyword">static_assert</span></code>
           is unfortunately limited. For some simple things, it is helpful, but for
           callback functions, it is problematic. When lua is compiled as C, then
@@ -474,22 +503,22 @@
           is compiled as C++, lua errors are exceptions, so <code class="computeroutput"><span class="keyword">noexcept</span></code>
           cannot be used.
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f6" href="#lua_primer.overview.exception_safety.f6" class="para">7</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f8" href="#lua_primer.overview.exception_safety.f8" class="para">9</a>] </sup>
           For instance, <code class="computeroutput"><span class="identifier">luabind</span></code> attempts
           to <span class="emphasis"><em>make lua exception-safe</em></span> in a limited sense -- they
           put a wrapper over all functions that you pass to lua through their interface,
           which catches <span class="emphasis"><em>all</em></span> exceptions derived from <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">exception</span></code>, and raises a lua error to
           handle them, passing the <code class="computeroutput"><span class="identifier">e</span><span class="special">.</span><span class="identifier">what</span><span class="special">()</span></code> string to lua as the error message.
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f7" href="#lua_primer.overview.exception_safety.f7" class="para">8</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f9" href="#lua_primer.overview.exception_safety.f9" class="para">10</a>] </sup>
           Another strategy that I've seen is to stash the exception object away in
           some static storage, pass on the signal to lua as a lua error, and rethrow
           the exception on the other side, once the error presumably propagates out
           to a <code class="computeroutput"><span class="identifier">pcall</span></code> somewhere.
         </p></div>
-<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f8" href="#lua_primer.overview.exception_safety.f8" class="para">9</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f10" href="#lua_primer.overview.exception_safety.f10" class="para">11</a>] </sup>
           If you want to create an exception-to-lua-error translation mechanism for
-          use with Primer in your program, you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code> traits in order to do it. See the
+          use with Primer in your program, you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code> trait in order to do it. See the
           documentation for <code class="computeroutput"><span class="identifier">adapt</span></code>.
         </p></div>
 </div>

@@ -28,9 +28,27 @@
           using a call to <code class="computeroutput"><span class="identifier">pop_stack</span></code>
           or <code class="computeroutput"><span class="identifier">pop_n</span></code>.
         </p>
-<p>
-          [lua_ref_seq_pop_decl]
-        </p>
+<pre class="programlisting"><a class="co" name="lua_primer.reference.core.lua_ref_seq.c0" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_n</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">n</span><span class="special">);</span>
+
+<a class="co" name="lua_primer.reference.core.lua_ref_seq.c2" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">inline</span> <span class="identifier">lua_ref_seq</span> <span class="identifier">pop_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">);</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c1"></a><a href="#lua_primer.reference.core.lua_ref_seq.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Pop <code class="computeroutput"><span class="identifier">n</span></code> elements form
+              the stack. Throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+              Can cause lua memory alloc failure.
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c3"></a><a href="#lua_primer.reference.core.lua_ref_seq.c2"><img src="../../../images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Pop the entire stack. Throws <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>.
+              Can cause lua memory alloc failure
+            </p></td>
+</tr>
+</table></div>
 <p>
           They can be restored in the same order using <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>
           member function <code class="computeroutput"><span class="identifier">push_each</span></code>.
@@ -56,9 +74,85 @@
 <a name="lua_primer.reference.core.lua_ref_seq.h0"></a>
           <span><a name="lua_primer.reference.core.lua_ref_seq.synopsis"></a></span><a class="link" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.synopsis">Synopsis</a>
         </h5>
-<p>
-          [lua_ref_seq_synopsis]
-        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_ref_seq</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">refs_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;;</span>
+  <span class="identifier">refs_t</span> <span class="identifier">refs_</span><span class="special">;</span>
+
+  <a class="co" name="lua_primer.reference.core.lua_ref_seq.c4" href="lua_ref_seq.html#lua_primer.reference.core.lua_ref_seq.c5"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">bool</span> <span class="identifier">push_each</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="keyword">bool</span> <span class="identifier">result</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+    <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">r</span> <span class="special">:</span> <span class="identifier">refs_</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">bool</span> <span class="identifier">temp</span> <span class="special">=</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">result</span> <span class="special">&amp;&amp;</span> <span class="identifier">temp</span><span class="special">;</span>
+    <span class="special">}</span>
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="comment">//</span>
+  <span class="comment">// Forward MANY methods from std::vector...</span>
+  <span class="comment">//</span>
+
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">size</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">size</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">using</span> <span class="identifier">value_type</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">value_type</span><span class="special">;</span>
+  <span class="keyword">using</span> <span class="identifier">reference</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">reference</span><span class="special">;</span>
+  <span class="keyword">using</span> <span class="identifier">const_reference</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">const_reference</span><span class="special">;</span>
+
+  <span class="comment">// Index</span>
+  <span class="identifier">reference</span> <span class="keyword">operator</span><span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">[</span><span class="identifier">i</span><span class="special">];</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="keyword">operator</span><span class="special">[](</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">[</span><span class="identifier">i</span><span class="special">];</span> <span class="special">}</span>
+
+  <span class="identifier">reference</span> <span class="identifier">at</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">at</span><span class="special">(</span><span class="identifier">i</span><span class="special">);</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="identifier">at</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">i</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">at</span><span class="special">(</span><span class="identifier">i</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="identifier">reference</span> <span class="identifier">front</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="identifier">front</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">front</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="identifier">reference</span> <span class="identifier">back</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">back</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_reference</span> <span class="identifier">back</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">back</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="comment">// Support iteration</span>
+  <span class="keyword">using</span> <span class="identifier">iterator</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">iterator</span><span class="special">;</span>
+  <span class="keyword">using</span> <span class="identifier">const_iterator</span> <span class="special">=</span> <span class="identifier">refs_t</span><span class="special">::</span><span class="identifier">const_iterator</span><span class="special">;</span>
+
+  <span class="identifier">iterator</span> <span class="identifier">begin</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_iterator</span> <span class="identifier">begin</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="identifier">iterator</span> <span class="identifier">end</span><span class="special">()</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">end</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">const_iterator</span> <span class="identifier">end</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">end</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="comment">// Manipulation</span>
+
+  <span class="keyword">void</span> <span class="identifier">reserve</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">reserve</span><span class="special">(</span><span class="identifier">s</span><span class="special">);</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">clear</span><span class="special">()</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">clear</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">resize</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">resize</span><span class="special">(</span><span class="identifier">s</span><span class="special">);</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">pop_back</span><span class="special">()</span> <span class="special">{</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">pop_back</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="keyword">void</span> <span class="identifier">emplace_back</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">emplace_back</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="keyword">void</span> <span class="identifier">emplace</span><span class="special">(</span><span class="identifier">const_iterator</span> <span class="identifier">pos</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">emplace</span><span class="special">(</span><span class="identifier">pos</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">InputIt</span><span class="special">&gt;</span>
+  <span class="identifier">iterator</span> <span class="identifier">insert</span><span class="special">(</span><span class="identifier">const_iterator</span> <span class="identifier">pos</span><span class="special">,</span> <span class="identifier">InputIt</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">InputIt</span> <span class="identifier">last</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="identifier">refs_</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">pos</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">);</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list"><tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.lua_ref_seq.c5"></a><a href="#lua_primer.reference.core.lua_ref_seq.c4"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Push all the refs onto the stack in succession. Return of <code class="computeroutput"><span class="keyword">true</span></code> means every push succeeded. You
+              can usually ignore the result, it only fails if some of the refs in
+              the <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> are
+              actually in an empty state. If not all of the refs are in the same
+              VM as the argument <code class="computeroutput"><span class="identifier">lua_State</span>
+              <span class="special">*</span></code>, then you get UB. See <code class="computeroutput"><span class="identifier">lua_ref</span></code>.
+            </p></td>
+</tr></table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

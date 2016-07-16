@@ -34,7 +34,23 @@
           API feature that can handle that and some related tasks.
         </p>
 <p>
-          [primer_print_manager_overview]
+          The <code class="computeroutput"><span class="identifier">print_manager</span></code> class
+          is an API feature which creates "print" and "pretty_print"
+          functions which can be used by scripts. This feature also makes it so that
+          the output can be easily redirected, to e.g. a diagnostic shell or gui
+          dialog to help create an interactive interpreter for the debugging user
+          scripts. Print redirecting is achieved using the method "set_interpreter_context"
+          which takes a pointer to an arbitrary object satisfying the "interpreter_context"
+          concept. This pointer is placed on a stack, the interpreter context can
+          be detached using "pop_interpreter_context". The method "handle_user_input"
+          takes a string and considers it as user input from an interactive shell
+          or dialog. This is handled using an "experimental compilation"
+          approach. First, we assume that the command is a lua value, and we transform
+          it to <code class="computeroutput"><span class="identifier">_pretty_print</span><span class="special">(</span><span class="identifier">input</span><span class="special">)</span></code>,
+          and check if that is syntactically well-formed. If so, we execute it. If
+          it is not well-formed, then we try simply loading <code class="computeroutput"><span class="identifier">input</span></code>
+          -- maybe it is just a statement. If so, we execute it, if not we report
+          a syntax error to the user.
         </p>
 <p>
           Besides redirecting output and providing a special method for handling
@@ -49,17 +65,120 @@
 <a name="lua_primer.reference.api.api_print_manager.h0"></a>
           <span><a name="lua_primer.reference.api.api_print_manager.synopsis"></a></span><a class="link" href="api_print_manager.html#lua_primer.reference.api.api_print_manager.synopsis">Synopsis</a>
         </h5>
-<p>
-          [primer_print_manager_synopsis]
-        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">api</span> <span class="special">{</span>
+
+<span class="keyword">class</span> <span class="identifier">print_manager</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">interpreter_context_ptr</span><span class="special">&gt;</span> <span class="identifier">stack_</span><span class="special">;</span>
+
+  <span class="keyword">using</span> <span class="identifier">format_func_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+
+  <span class="comment">// Pointers for custom print / pretty print formatting functions</span>
+  <span class="identifier">format_func_t</span> <span class="identifier">print_format_</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
+  <span class="identifier">format_func_t</span> <span class="identifier">pretty_print_format_</span> <span class="special">=</span> <span class="keyword">nullptr</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Add or remove interpreter context pointers from the stack</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">void</span> <span class="identifier">set_interpreter_context</span><span class="special">(</span><span class="identifier">T</span> <span class="special">*</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">stack_</span><span class="special">.</span><span class="identifier">emplace_back</span><span class="special">(</span><span class="identifier">t</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">pop_interpreter_context</span><span class="special">()</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">stack_</span><span class="special">.</span><span class="identifier">size</span><span class="special">())</span> <span class="special">{</span> <span class="identifier">stack_</span><span class="special">.</span><span class="identifier">pop_back</span><span class="special">();</span> <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="comment">// Set a custom print or pretty-print formatting</span>
+  <span class="comment">// Function should take a `lua_State *` and return `std::string`.</span>
+  <span class="comment">// Do whatever you like with the stack. Don't raise errors.</span>
+  <span class="keyword">void</span> <span class="identifier">set_custom_print_format_func</span><span class="special">(</span><span class="identifier">format_func_t</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">print_format_</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">set_custom_pretty_print_format_func</span><span class="special">(</span><span class="identifier">format_func_t</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">pretty_print_format_</span> <span class="special">=</span> <span class="identifier">f</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="comment">// Interact directly with context on top of stack, or,</span>
+  <span class="comment">// with stdout / stderr if stack is empty</span>
+  <span class="keyword">void</span> <span class="identifier">new_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">stack_</span><span class="special">.</span><span class="identifier">size</span><span class="special">())</span> <span class="special">{</span>
+      <span class="identifier">stack_</span><span class="special">.</span><span class="identifier">back</span><span class="special">().</span><span class="identifier">new_text</span><span class="special">(</span><span class="identifier">str</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">str</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">error_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">stack_</span><span class="special">.</span><span class="identifier">size</span><span class="special">())</span> <span class="special">{</span>
+      <span class="identifier">stack_</span><span class="special">.</span><span class="identifier">back</span><span class="special">().</span><span class="identifier">error_text</span><span class="special">(</span><span class="identifier">str</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">cerr</span> <span class="special">&lt;&lt;</span> <span class="identifier">str</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">clear_input</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">stack_</span><span class="special">.</span><span class="identifier">size</span><span class="special">())</span> <span class="special">{</span> <span class="identifier">stack_</span><span class="special">.</span><span class="identifier">back</span><span class="special">().</span><span class="identifier">clear_input</span><span class="special">();</span> <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="comment">// Handle interpreter input</span>
+  <span class="comment">// Note: Clears the entire stack when it runs.</span>
+  <span class="keyword">inline</span> <span class="keyword">void</span> <span class="identifier">handle_interpreter_input</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span>
+                                       <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">user_input</span><span class="special">);</span>
+
+  <span class="comment">//</span>
+  <span class="comment">// API Feature</span>
+  <span class="comment">//</span>
+
+  <span class="keyword">void</span> <span class="identifier">on_init</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+
+    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">install_self_pointer</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">intf_print_impl</span><span class="special">);</span>
+    <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"print"</span><span class="special">);</span>
+
+    <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">intf_pretty_print_impl</span><span class="special">);</span>
+    <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">pretty_print_name</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">on_persist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_reverse</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_permanent_entries</span><span class="special">());</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">on_unpersist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_permanent_entries</span><span class="special">());</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace api</span>
+</pre>
 <h5>
 <a name="lua_primer.reference.api.api_print_manager.h1"></a>
           <span><a name="lua_primer.reference.api.api_print_manager.interpreter_context"></a></span><a class="link" href="api_print_manager.html#lua_primer.reference.api.api_print_manager.interpreter_context">Interpreter
           Context</a>
         </h5>
 <p>
-          [primer_interpreter_context_concept]
+          The <code class="computeroutput"><span class="identifier">interpreter_context</span></code>
+          concept consists of three methods:
         </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">new_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
+<span class="keyword">void</span> <span class="identifier">error_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
+<span class="keyword">void</span> <span class="identifier">clear_input</span><span class="special">();</span>
+</pre>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">new_text</span></code> is called
+              to report a line of print output.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">error_text</span></code> is called
+              to report an error message.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">clear_input</span></code> is called
+              when the user's input has been accepted. When creating a gui dialog,
+              you can use this function as a cue to clear the editbox that the user
+              was using to enter the input. Then if they made a mistake, they don't
+              have to retype their whole command.
+            </li>
+</ul></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

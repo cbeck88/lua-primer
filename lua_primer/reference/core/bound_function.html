@@ -60,9 +60,66 @@
 <a name="lua_primer.reference.core.bound_function.h0"></a>
           <span><a name="lua_primer.reference.core.bound_function.synopsis"></a></span><a class="link" href="bound_function.html#lua_primer.reference.core.bound_function.synopsis">Synopsis</a>
         </h5>
-<p>
-          [primer_bound_function]
-        </p>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">bound_function</span> <span class="special">{</span>
+  <span class="identifier">lua_ref</span> <span class="identifier">ref_</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Special member functions</span>
+  <span class="identifier">bound_function</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">bound_function</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span><span class="special">(</span><span class="identifier">bound_function</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">bound_function</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">bound_function</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="special">~</span><span class="identifier">bound_function</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+
+  <span class="comment">// Primary constructor: Bind to a function on top of the stack.</span>
+  <span class="comment">// Only capture the top item if it is actually a function.</span>
+  <span class="comment">// Pop the item *whether or not* it is a function.</span>
+  <a class="co" name="lua_primer.reference.core.bound_function.c0" href="bound_function.html#lua_primer.reference.core.bound_function.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">explicit</span> <span class="identifier">bound_function</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">);</span>
+
+  <span class="comment">// Forwarded methods from lua_ref</span>
+  <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">&gt;(</span><span class="identifier">ref_</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">push</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">push</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">bool</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">reset</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">bound_function</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">swap</span><span class="special">(</span><span class="identifier">other</span><span class="special">.</span><span class="identifier">ref_</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="comment">// Call methods</span>
+  <span class="comment">// These methods attempt to lock the state which holds the lua function,</span>
+  <span class="comment">// and perform the call there. They clean up after themselves and leave the</span>
+  <span class="comment">// stack as they found it afterwards.</span>
+  <span class="comment">//</span>
+  <span class="comment">// If passed a lua_ref_seq, its members are the call arguments. If passed</span>
+  <span class="comment">// any other sequence of C++ types, those objects are pushed onto the stack</span>
+  <span class="comment">// and are the call arguments.</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list"><tr>
+<td width="5%" valign="top" align="left"><p><a name="lua_primer.reference.core.bound_function.c1"></a><a href="#lua_primer.reference.core.bound_function.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Note: Can cause lua memory allocation failure from <code class="computeroutput"><span class="identifier">ref_</span></code>
+              ctor.
+            </p></td>
+</tr></table></div>
 <h5>
 <a name="lua_primer.reference.core.bound_function.h1"></a>
           <span><a name="lua_primer.reference.core.bound_function.read_push_semantics"></a></span><a class="link" href="bound_function.html#lua_primer.reference.core.bound_function.read_push_semantics">Read

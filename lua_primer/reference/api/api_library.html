@@ -45,9 +45,11 @@
           and <code class="computeroutput"><span class="identifier">luaCFunction</span> <span class="identifier">func</span></code>.
           For instance,
         </p>
-<p>
-          [lua_base_lib]
-        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_base_lib</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">""</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span> <span class="special">=</span> <span class="special">&amp;</span><span class="identifier">luaopen_base</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
 <p>
           There are corresponding definitions in primer for the following:
         </p>
@@ -64,9 +66,25 @@
           There are also some "sandboxed" versions of some of these libs
           to help in situations where you want a tightly encapsulated lua vm.
         </p>
-<p>
-          [lua_base_lib_sandboxed]
-        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_base_lib_sandboxed</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">""</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">get_clean_base</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">luaopen_base</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"print"</span><span class="special">);</span>
+
+    <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"loadfile"</span><span class="special">);</span>
+
+    <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"dofile"</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span> <span class="special">=</span> <span class="special">&amp;</span><span class="identifier">get_clean_base</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
 <p>
           Besides this there are
         </p>
