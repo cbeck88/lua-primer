@@ -20,5 +20,6 @@ class coroutine;
 class lua_ref;
 struct lua_ref_seq;
 class lua_state_ref;
+class result;
 
 } // end namespace primer
