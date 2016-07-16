@@ -17,6 +17,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/lua.hpp>
 
 #include <primer/error.hpp>
+#include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/userdata.hpp>
 #include <primer/detail/is_userdata.hpp>
@@ -38,8 +39,7 @@ struct read<const char *> {
     if (lua_type(L, idx) == LUA_TSTRING) {
       return lua_tostring(L, idx);
     } else {
-      return primer::error::unexpected_value("string",
-                                             primer::describe_lua_value(L, idx));
+      return primer::arg_error(L, idx, "string");
     }
   }
   static constexpr int stack_space_needed{0};
@@ -62,8 +62,7 @@ struct read<bool> {
     if (lua_isboolean(L, idx)) {
       return static_cast<bool>(lua_toboolean(L, idx));
     } else {
-      return primer::error::unexpected_value("boolean",
-                                             primer::describe_lua_value(L, idx));
+      return primer::arg_error(L, idx, "boolean");
     }
   }
   static constexpr int stack_space_needed{0};
@@ -81,8 +80,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) >= sizeof(LUA_INTEGER)>> {
     if (lua_isinteger(L, idx)) {
       return static_cast<T>(lua_tointeger(L, idx));
     } else {
-      return primer::error::unexpected_value("integer",
-                                             primer::describe_lua_value(L, idx));
+      return primer::arg_error(L, idx, "integer");
     }
   }
   static constexpr int stack_space_needed{0};
@@ -100,8 +98,7 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
       }
       return static_cast<T>(i);
     } else {
-      return primer::error::unexpected_value("integer",
-                                             primer::describe_lua_value(L, idx));
+      return primer::arg_error(L, idx, "integer");
     }
   }
   static constexpr int stack_space_needed{0};
@@ -154,9 +151,7 @@ struct read<T,
     if (lua_isnumber(L, idx)) {
       result = static_cast<T>(lua_tonumber(L, idx));
     } else {
-      result =
-        primer::error::unexpected_value("number",
-                                        primer::describe_lua_value(L, idx));
+      result = primer::arg_error(L, idx, "number");
     }
 
     return result;
@@ -187,8 +182,7 @@ struct read<nil_t> {
     if (lua_isnoneornil(L, idx)) {
       return nil_t{};
     } else
-      return primer::error::unexpected_value("nil",
-                                             primer::describe_lua_value(L, idx));
+      return primer::arg_error(L, idx, "nil");
   }
   static constexpr int stack_space_needed{0};
 };

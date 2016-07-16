@@ -15,6 +15,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
@@ -67,8 +68,7 @@ struct set_read_helper {
 
   static expected<M> from_stack(lua_State * L, int index) {
     if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {
-      return primer::error::unexpected_value("table",
-                                             describe_lua_value(L, index));
+      return primer::arg_error(L, index, "table");
     }
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 

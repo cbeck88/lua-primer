@@ -15,6 +15,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/error_capture.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
@@ -79,7 +80,9 @@ struct read_seq_helper {
     expected<T> result{};
 
     idx = lua_absindex(L, idx);
-    if (lua_istable(L, idx)) {
+    if (!lua_istable(L, idx)) {
+      result = primer::arg_error(L, idx, "table");
+    } else {
       int n = lua_rawlen(L, idx);
 
       PRIMER_TRY_BAD_ALLOC { reserve_helper<T>::reserve(*result, n); }
@@ -96,9 +99,6 @@ struct read_seq_helper {
         }
         lua_pop(L, 1);
       }
-    } else {
-      result =
-        primer::error::unexpected_value("table", describe_lua_value(L, idx));
     }
 
     return result;
@@ -123,7 +123,7 @@ struct read_fixed_seq_helper {
     idx = lua_absindex(L, idx);
     if (!lua_istable(L, idx)) {
       result =
-        primer::error::unexpected_value("table", describe_lua_value(L, idx));
+        primer::arg_error(L, idx, "table");
     }
 
     int n = static_cast<int>(result->size());

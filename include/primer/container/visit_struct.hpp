@@ -18,6 +18,7 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
@@ -165,8 +166,7 @@ struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
       index = lua_absindex(L, index);
 
       if (!lua_istable(L, index)) {
-        result = primer::error::unexpected_value("table",
-                                                 describe_lua_value(L, index));
+        result = primer::arg_error(L, index, "table");
       } else {
         detail::read_helper vis{L, index};
         visit_struct::apply_visitor(vis, *result);

@@ -23,6 +23,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/cpp_pcall.hpp>
 #include <primer/error.hpp>
+#include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/lua_ref.hpp>
@@ -200,8 +201,7 @@ struct read<primer::bound_function> {
       auto ok = mem_pcall<1>(L, [L, &result]() { result = bound_function{L}; });
       if (!ok) { result = ok.err(); }
     } else {
-      result =
-        primer::error::unexpected_value("function", describe_lua_value(L, idx));
+      result = primer::arg_error(L, idx, "function");
     }
 
     return result;

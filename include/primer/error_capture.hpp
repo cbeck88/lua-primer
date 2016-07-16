@@ -16,6 +16,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/error.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
+#include <primer/support/diagnostics.hpp>
 
 namespace primer {
 namespace detail {
@@ -43,6 +44,8 @@ inline const char * error_code_to_string(const int err_code) noexcept {
 
 // Gets an error string from the top of the stack, forms a primer::error.
 // Pops the error string.
+// Note: This is noexcept because primer::error consumes any bad_alloc within
+// ctor and sets itself to bad_alloc state.
 inline primer::error pop_error(lua_State * L, int err_code) noexcept {
   PRIMER_ASSERT(lua_gettop(L), "No error object to pop!");
   primer::error e{lua_isstring(L, -1) ? lua_tostring(L, -1)
@@ -57,6 +60,11 @@ inline primer::error pop_error(lua_State * L, int err_code) noexcept {
 // interface or something.
 inline void push_error(lua_State * L, const primer::error & e) noexcept {
   lua_pushstring(L, e.what());
+}
+
+// Create an "unexpected value" error
+inline primer::error arg_error(lua_State * L, int index, const char * expected) noexcept {
+  return primer::error::unexpected_value(expected, primer::describe_lua_value(L, index));
 }
 
 } // end namespace primer
