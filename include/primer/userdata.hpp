@@ -25,6 +25,7 @@ namespace primer {
 /// return a pointer to it.
 template <typename T>
 T * test_udata(lua_State * L, int idx) {
+  static_assert(detail::is_userdata<T>::value, "not a userdata type");
   return detail::udata_helper<T>::test_udata(L, idx);
 }
 
@@ -32,6 +33,7 @@ T * test_udata(lua_State * L, int idx) {
 template <typename T, typename... Args>
 auto push_udata(lua_State * L, Args &&... args)
   -> enable_if_t<detail::nothrow_newable<T, Args...>::value> {
+  static_assert(detail::is_userdata<T>::value, "not a userdata type");
   new (lua_newuserdata(L, sizeof(T))) T{std::forward<Args>(args)...};
   detail::udata_helper<T>::set_metatable(L);
 }
@@ -40,6 +42,7 @@ auto push_udata(lua_State * L, Args &&... args)
 template <typename T, typename... Args>
 auto push_udata(lua_State * L, Args &&... args)
   -> enable_if_t<!detail::nothrow_newable<T, Args...>::value> {
+  static_assert(detail::is_userdata<T>::value, "not a userdata type");
   void * storage = lua_newuserdata(L, sizeof(T));
 
   PRIMER_TRY {
@@ -55,6 +58,7 @@ auto push_udata(lua_State * L, Args &&... args)
 /// Easy access to udata::name
 template <typename T>
 const char * udata_name() {
+  static_assert(detail::is_userdata<T>::value, "not a userdata type");
   return detail::udata_helper<T>::udata::name;
 }
 
