@@ -25,7 +25,7 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 namespace detail {
 
-expected<void> check_stack_push_n(lua_State * L, int n) {
+inline expected<void> check_stack_push_n(lua_State * L, int n) {
   if (n && !lua_checkstack(L, n)) {
     return primer::error::insufficient_stack_space(n);
   }
