@@ -386,31 +386,30 @@ public:
 };
 //]
 
-expected<void>::operator bool() const noexcept { return no_error_; }
+inline expected<void>::operator bool() const noexcept { return no_error_; }
 
-
-const primer::error & expected<void>::err() const & noexcept {
+inline const primer::error & expected<void>::err() const & noexcept {
   PRIMER_BAD_ACCESS(!no_error_);
   return error_;
 }
 
 
-primer::error && expected<void>::error() && noexcept {
+inline primer::error && expected<void>::error() && noexcept {
   PRIMER_BAD_ACCESS(!no_error_);
   return std::move(error_);
 }
 
 // Ctors
-expected<void>::expected() noexcept : no_error_(true), error_() {}
+inline expected<void>::expected() noexcept : no_error_(true), error_() {}
 
 // Converting from primer::error
-expected<void>::expected(const primer::error & e)
+inline expected<void>::expected(const primer::error & e)
   : no_error_(false)
   , error_(e) //
 {}
 
-expected<void>::expected(primer::error && e) noexcept //
-  : no_error_(false)                                  //
+inline expected<void>::expected(primer::error && e) noexcept //
+  : no_error_(false)                                         //
     ,
     error_(std::move(e)) //
 {}
