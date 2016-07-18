@@ -66,7 +66,7 @@ public:
 
   void on_init(lua_State * L) const {
     // Initialize the extraspace to point to the owner
-    api::set_extraspace_ptr(L, owner_ptr_);
+    detail::access_extraspace_ptr(L) = owner_ptr_;
 
     for (const auto & r : list_) {
       if (r.func) {

@@ -40,32 +40,15 @@ inline void_ptr & access_extraspace_ptr(lua_State * L) {
 namespace api {
 
 /***
- * Access to extraspace pointer.
- * Store and retrieve pointers to a user-defined type T there.
- *
- * The whole premise of this dispatch mechanism is that the pointer is assigned
- * when the callback functions are registered, so that "free functions" in lua
- * can actually be implemented as methods of some infrastructure object in C++.
- * See "api/callbacks" for the safe interface to this.
- */
-template <typename T>
-void set_extraspace_ptr(lua_State * L, T * t) {
-  detail::access_extraspace_ptr(L) = static_cast<void *>(t);
-}
-
-template <typename T>
-T * get_extraspace_ptr(lua_State * L) {
-  return static_cast<T *>(detail::access_extraspace_ptr(L));
-}
-
-/***
  * Dispatcher primary template. Constructs the delegate, falling back to the
  * basic adaptor if possible.
  *
  * Template parameter T represents the extraspace type. It is explicitly
- * specified
- * for safety. You will get a type mismatch if it does not match the base type
- * of the member pointer.
+ * specified for safety. You will get a type mismatch if it does not match the
+ * base type of the member pointer.
+ *
+ * When using this dispatch method, make sure to use a `primer::api::callbacks`
+ * object which will initialize the extraspace pointer to the correct value.
  */
 
 template <typename T, typename F, F f>
@@ -82,8 +65,9 @@ template <typename T,
 struct extraspace_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
 
   static R dispatch_target(lua_State * L, Args... args) {
-    T * object_ptr = get_extraspace_ptr<T>(L);
-    PRIMER_ASSERT(object_ptr, "Extraspace pointer was not initialized!");
+    void * vptr = detail::access_extraspace_ptr(L);
+    PRIMER_ASSERT(vptr, "Extraspace pointer was not initialized!");
+    T * object_ptr = static_cast<T*>(vptr);
     return (object_ptr->*target_func)(L, std::forward<Args>(args)...);
   }
 
