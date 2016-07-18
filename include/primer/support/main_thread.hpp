@@ -18,7 +18,7 @@ PRIMER_ASSERT_FILESCOPE;
 
 namespace primer {
 
-lua_State * main_thread(lua_State * L) {
+inline lua_State * main_thread(lua_State * L) {
   lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_MAINTHREAD);
   lua_State * M = lua_tothread(L, -1);
   lua_pop(L, 1);
