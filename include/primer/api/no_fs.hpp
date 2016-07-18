@@ -11,6 +11,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
+namespace primer {
+namespace api {
+
 // A miniature version of "require" for sandboxed systems that want to use
 // require.
 // Based on `ll_require` from the package lib "loadlib.c".
@@ -18,9 +21,6 @@ PRIMER_ASSERT_FILESCOPE;
 //
 // It only searches `_LOADED` table, and doesn't use FS search or any
 // loaders.
-
-namespace primer {
-namespace api {
 
 inline int mini_require(lua_State * L) {
   const char * name = luaL_checkstring(L, 1);
@@ -32,6 +32,33 @@ inline int mini_require(lua_State * L) {
   lua_pushboolean(L, true);
   return 1;
 }
+
+// A mini library which installs the above require function at global scope.
+// This can be useful in concert with the sandboxed versions of libs.
+
+struct no_fs {
+
+  static constexpr const char * func_name = "require";
+  static constexpr const char * persist_name = "no_fs_lib_require";
+  static constexpr lua_CFunction func = &mini_require;
+
+  // API Feature
+  void on_init(lua_State * L) {
+    lua_pushcfunction(L, func);
+    lua_setglobal(L, func_name);
+  }
+
+  void on_persist_table(lua_State * L) {
+    lua_pushstring(L, persist_name);
+    lua_pushcfunction(L, func);
+    lua_settable(L, -3);
+  }
+
+  void on_unpersist_table(lua_State * L) {
+    lua_pushcfunction(L, func);
+    lua_setfield(L, -2, persist_name);
+  }
+};
 
 } // end namespace api
 } // end namespace primer

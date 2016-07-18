@@ -19,7 +19,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/set_funcs.hpp>
 
 #include <array>
-#include <map>
 #include <string>
 #include <tuple>
 #include <utility>

@@ -12,22 +12,6 @@
  * and handles the process of parsing arguments off of the stack
  * and reporting appropriate error messages.
  *
- * E.G.
- *
- * callback_result my_callback(lua_State *, int i, unsigned int u,
- *                               std::string s, util::maybe<float> f);
- *
- * can be adapted via `PRIMER_ADAPT(&my_callback)` to a
- * proper lua_CFunction and everything just works (TM).
- *
- * primer::adapt uses traits to figure out exactly how each arg
- * is parsed off of the stack.
- *
- * primer::adapt's implementation handles the issues surrounding lua longjmp
- * while there are nontrivial C++ objects on the stack. If one of the
- * arguments cannot be read properly, all previous arguments are
- * destroyed before we longjmp.
- *
  * If your method has a problem, you signal an error by returning Error,
  * not by calling lua_error yourself. PRIMER_ADAPT will signal the lua
  * error after all the dtors have been called.

@@ -21,7 +21,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/api/extraspace_dispatch.hpp>
 #include <primer/api/feature.hpp>
 #include <primer/api/libraries.hpp>
-#include <primer/api/mini_require.hpp>
+#include <primer/api/no_fs.hpp>
 #include <primer/api/persistable.hpp>
 #include <primer/api/persistent_value.hpp>
 #include <primer/api/print_manager.hpp>
