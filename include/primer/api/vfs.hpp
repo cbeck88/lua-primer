@@ -93,6 +93,8 @@ protected:
     lua_pop(L, 1);
 
     if (auto ok = recover_this(L)->load(L, path)) {
+      PRIMER_ASSERT(lua_isfunction(L, -1), "load did not produce a function");
+
       int code;
       std::tie(code, std::ignore) = detail::pcall_helper(L, 0, 1);
       if (code != LUA_OK) { return primer::pop_error(L, code); }
@@ -120,6 +122,8 @@ public:
 
   void on_init(lua_State * L) {
     detail::registry_helper<vfs>::store_self(L, this);
+
+    PRIMER_ASSERT(recover_this(L) == static_cast<T*>(this), "bad self store");
 
     for (const auto & r : vfs::get_permanent_entries()) {
       lua_pushcfunction(L, r.func);
