@@ -16,6 +16,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/error_capture.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/function.hpp>
+#include <primer/support/registry_helper.hpp>
 #include <primer/support/set_funcs.hpp>
 
 #include <array>
@@ -61,6 +62,10 @@ class vfs {
     return primer::error::module_not_found(path);
   }
 
+  static vfs * recover_this(lua_State * L) {
+    return detail::registry_helper<vfs>::obtain_self(L);
+  }
+
 public:
   template <typename T>
   explicit vfs(T * t)
@@ -70,28 +75,6 @@ public:
           return static_cast<T *>(o)->load(L, str);
         })
   {}
-
-private:
-  // Installing self in registry
-  static int get_reg_key(lua_State * L) {
-    lua_pushcfunction(L, &get_reg_key);
-    return 0;
-  }
-
-  void install_this_pointer(lua_State * L) {
-    get_reg_key(L);
-    lua_pushlightuserdata(L, static_cast<void *>(this));
-    lua_settable(L, LUA_REGISTRYINDEX);
-  }
-
-  static vfs * recover_this(lua_State * L) {
-    get_reg_key(L);
-    lua_gettable(L, LUA_REGISTRYINDEX);
-    void * ptr = lua_touserdata(L, -1);
-    PRIMER_ASSERT(ptr, "Could not recover this pointer!");
-    lua_pop(L, 1);
-    return static_cast<vfs *>(ptr);
-  }
 
 protected:
   // Implementations
@@ -154,7 +137,7 @@ public:
   // API Feature
 
   void on_init(lua_State * L) {
-    this->install_this_pointer(L);
+    detail::registry_helper<vfs>::store_self(L, this);
 
     for (const auto & r : vfs::get_permanent_entries()) {
       lua_pushcfunction(L, r.func);

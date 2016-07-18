@@ -13,6 +13,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/error_capture.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
+#include <primer/support/registry_helper.hpp>
 #include <primer/support/scoped_stash_global_value.hpp>
 #include <primer/support/set_funcs.hpp>
 
@@ -175,29 +176,9 @@ class print_manager {
   static constexpr const char * pretty_print_name = "_pretty_print";
 
   // Push a unique object to be our registry key for the "this" void pointer
-  static int push_reg_key(lua_State * L) {
-    // Just use pointer to this function as the key
-    lua_pushcfunction(L, &push_reg_key);
-    return 0;
-  }
-
-  void install_self_pointer(lua_State * L) {
-    push_reg_key(L);
-    lua_pushlightuserdata(L, static_cast<void *>(this));
-    lua_settable(L, LUA_REGISTRYINDEX);
-  }
-
-  static print_manager * obtain_self_pointer(lua_State * L) {
-    push_reg_key(L);
-    lua_gettable(L, LUA_REGISTRYINDEX);
-    void * ptr = lua_touserdata(L, -1);
-    PRIMER_ASSERT(ptr, "Could not find pointer to print manager!");
-    lua_pop(L, 1);
-    return static_cast<print_manager *>(ptr);
-  }
 
   static int intf_print_impl(lua_State * L) {
-    print_manager * man = obtain_self_pointer(L);
+    print_manager * man = detail::registry_helper<print_manager>::obtain_self(L);
     if (man->print_format_) {
       man->new_text(man->print_format_(L));
     } else {
@@ -207,7 +188,7 @@ class print_manager {
   }
 
   static int intf_pretty_print_impl(lua_State * L) {
-    print_manager * man = obtain_self_pointer(L);
+    print_manager * man = detail::registry_helper<print_manager>::obtain_self(L);
     if (man->pretty_print_format_) {
       man->new_text(man->pretty_print_format_(L));
     } else {
@@ -285,7 +266,8 @@ public:
   void on_init(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    this->install_self_pointer(L);
+    detail::registry_helper<print_manager>::store_self(L, this);
+
     lua_pushcfunction(L, &intf_print_impl);
     lua_setglobal(L, "print");
 
