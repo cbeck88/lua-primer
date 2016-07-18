@@ -51,30 +51,12 @@ The vfs can then be constructed from a pointer to an instance of your class.
 namespace primer {
 namespace api {
 
+template <typename T>
 class vfs {
 
-  // Delegate to user object
-  void * object_;
-  expected<void> (*load_method_)(void *, lua_State *, const std::string &);
-
-  expected<void> load(lua_State * L, const std::string & path) {
-    if (object_) { return load_method_(object_, L, path); }
-    return primer::error::module_not_found(path);
+  static T * recover_this(lua_State * L) {
+    return static_cast<T*>(detail::registry_helper<vfs>::obtain_self(L));
   }
-
-  static vfs * recover_this(lua_State * L) {
-    return detail::registry_helper<vfs>::obtain_self(L);
-  }
-
-public:
-  template <typename T>
-  explicit vfs(T * t)
-    : object_(static_cast<void *>(t))
-    , load_method_(
-        +[](void * o, lua_State * L, const std::string & str) -> expected<void> {
-          return static_cast<T *>(o)->load(L, str);
-        })
-  {}
 
 protected:
   // Implementations

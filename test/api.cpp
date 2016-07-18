@@ -621,8 +621,11 @@ void test_interpreter_contexts() {
 
 //[ primer_vfs_example
 // Model of vfs provider concept
-struct my_files {
-  std::map<std::string, std::string> files_;
+struct my_files : primer::api::vfs<my_files> {
+  using map_t = std::map<std::string, std::string>;
+  map_t files_;
+
+  explicit my_files(map_t m) : files_(std::move(m)) {}
 
   primer::expected<void> load(lua_State * L, const std::string & path) {
     auto it = files_.find(path);
@@ -642,15 +645,12 @@ struct test_api : primer::api::base<test_api> {
   lua_raii L_;
 
   API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
-  API_FEATURE(primer::api::vfs, vfs_);
+  API_FEATURE(my_files, vfs_);
   API_FEATURE(primer::api::print_manager, print_man_);
-
-  my_files files_;
 
   test_api()
     : L_()
-    , vfs_(&files_)
-    , files_{{{"foo", "return {}"},
+    , vfs_{{{"foo", "return {}"},
               {"bar",
                "local function baz() return 5 end; return { baz = baz }"}}}
   {
