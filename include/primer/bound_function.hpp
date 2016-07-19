@@ -149,17 +149,26 @@ inline bound_function::bound_function(lua_State * L) //
 
 inline std::string bound_function::debug_string() const {
   std::string result{"empty"};
-  if (lua_State * L = ref_.push()) {
+  if (lua_State * L = ref_.lock()) {
+    int top = lua_gettop(L);
+    ref_.push();
     if (lua_isfunction(L, -1)) {
       result = "function ";
       lua_Debug ar;
       if (lua_getinfo(L, ">nS", &ar)) {
-        result += ar.name ? ar.name : ar.short_src;
+        result = "";
+        if (*ar.namewhat) { result = ar.namewhat + (" " + result); }
+        if (ar.name) { result += ar.name; }
+        result += " [";
+        result += ar.short_src;
+        result += ":";
+        result += std::to_string(ar.linedefined);
+        result += "]";
       } else {
         result += "(unknown)";
       }
     }
-    lua_pop(L, 1);
+    lua_settop(L, top);
   }
 
   return result;
