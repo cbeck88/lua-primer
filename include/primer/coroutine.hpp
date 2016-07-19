@@ -105,6 +105,8 @@ class coroutine {
           });
 
           if (!ok) { result = ok.err(); }
+
+          if (lua_status(thread_stack_) != LUA_YIELD) { this->reset(); }
         } else {
           result = std::move(c.err());
         }

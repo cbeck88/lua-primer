@@ -1127,6 +1127,51 @@ void test_coroutine() {
   TEST(!c, "expected dead coroutine");
 }
 
+// Test coroutine with lua_ref_seq interface
+primer::result yielder(lua_State *) {
+  return primer::yield{0};
+}
+
+primer::result returner(lua_State * L) {
+  lua_pushinteger(L, 7);
+  return 1;
+}
+
+void test_coroutine_two() {
+  lua_raii L;
+
+  lua_pushcfunction(L, PRIMER_ADAPT(&yielder));
+  primer::bound_function f1{L};
+
+  lua_pushcfunction(L, PRIMER_ADAPT(&returner));
+  primer::bound_function f2{L};
+
+  primer::coroutine c1{f1};
+  primer::coroutine c2{f2};
+
+  TEST(c1, "expected valid coroutine");
+  TEST(c2, "expected valid coroutine");
+
+  auto r1 = c1.call();
+  TEST_EXPECTED(r1);
+  TEST_EQ(0, r1->size());
+  TEST(c1, "expected valid coroutine");
+
+  auto r2 = c2.call();
+  TEST_EXPECTED(r2);
+  TEST_EQ(1, r2->size());
+  TEST(!c2, "expected invalid coroutine");
+
+  auto r3 = c1.call(*r2);
+  TEST_EXPECTED(r3);
+  TEST_EQ(1, r3->size());
+  TEST(!c1, "expected invalid coroutine");
+
+  auto i = r3->at(0).as<int>();
+  TEST_EXPECTED(i);
+  TEST_EQ(7, *i);
+}
+
 // This test catches a subtle issue regarding whether or not cpp_pcall
 // messes up the stack when it returns.
 void test_cpp_pcall_returns() {
@@ -1257,6 +1302,7 @@ int main() {
     {"primer call", &primer_call_test},
     {"primer resume", &primer_resume_test},
     {"primer coroutine test", &test_coroutine},
+    {"primer coroutine test 2", &test_coroutine_two},
     {"primer cpp_pcall returns test", &test_cpp_pcall_returns},
     {"adapt example", &test_adapt_example},
   };
