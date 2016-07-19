@@ -165,8 +165,8 @@ struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
     } else {
       index = lua_absindex(L, index);
 
-      if (!lua_istable(L, index)) {
-        result = primer::arg_error(L, index, "table");
+      if (!lua_istable(L, index) && !lua_isuserdata(L, index)) {
+        result = primer::arg_error(L, index, "table or userdata");
       } else {
         detail::read_helper vis{L, index};
         visit_struct::apply_visitor(vis, *result);
