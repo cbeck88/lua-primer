@@ -150,12 +150,14 @@ inline bound_function::bound_function(lua_State * L) //
 inline std::string bound_function::debug_string() const {
   std::string result{"empty"};
   if (lua_State * L = ref_.push()) {
-    result = "function ";
-    lua_Debug ar;
-    if (lua_getinfo(L, ">nS", &ar)) {
-      result += ar.name ? ar.name : ar.short_src;
-    } else {
-      result += "(unknown)";
+    if (lua_isfunction(L, -1)) {
+      result = "function ";
+      lua_Debug ar;
+      if (lua_getinfo(L, ">nS", &ar)) {
+        result += ar.name ? ar.name : ar.short_src;
+      } else {
+        result += "(unknown)";
+      }
     }
     lua_pop(L, 1);
   }

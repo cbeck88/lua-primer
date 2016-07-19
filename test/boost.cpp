@@ -286,23 +286,39 @@ void test_bound_function_binding() {
   CHECK_STACK(L, 0);
   TEST(func, "expected to bind");
 
+  func.debug_string();
+  CHECK_STACK(L, 0);
+
   lua_pushinteger(L, 5);
   func = primer::bound_function{L};
   CHECK_STACK(L, 0);
   TEST(!func, "expected a dead state");
 
+  func.debug_string();
+  CHECK_STACK(L, 0);
+
   func = primer::bound_function{L};
   CHECK_STACK(L, 0);
   TEST(!func, "expected a dead state");
+
+  func.debug_string();
+  CHECK_STACK(L, 0);
 
   lua_pushcfunction(L, f1);
   func = primer::bound_function{L};
   CHECK_STACK(L, 0);
   TEST(func, "expected a good state");
 
+  func.debug_string();
+  CHECK_STACK(L, 0);
+
   func = primer::bound_function{nullptr};
   CHECK_STACK(L, 0);
   TEST(!func, "expected a dead state");
+
+  func.debug_string();
+  CHECK_STACK(L, 0);
+
 }
 
 int yield_helper(lua_State * L) { return lua_yield(L, 1); }
