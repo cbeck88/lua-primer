@@ -34,6 +34,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/function_check_stack.hpp>
 #include <primer/support/function_return.hpp>
 
+#include <string>
 #include <utility>
 
 namespace primer {
@@ -135,6 +136,9 @@ public:
   expected<lua_ref_seq> call(lua_ref_seq &) const noexcept;
   expected<lua_ref_seq> call(lua_ref_seq const &) const noexcept;
   expected<lua_ref_seq> call(lua_ref_seq &&) const noexcept;
+
+  // Get a debug string describing what function is bound
+  std::string debug_string() const;
 };
 //]
 
@@ -143,6 +147,21 @@ inline bound_function::bound_function(lua_State * L) //
                        : nullptr) //
 {}
 
+inline std::string bound_function::debug_string() const {
+  std::string result{"empty"};
+  if (lua_State * L = ref_.push()) {
+    result = "function ";
+    lua_Debug ar;
+    if (lua_getinfo(L, ">nS", &ar)) {
+      result += ar.name ? ar.name : ar.short_src;
+    } else {
+      result += "(unknown)";
+    }
+    lua_pop(L, 1);
+  }
+
+  return result;
+}
 
 /// Same thing now but with a lua_ref_seq
 // Use a macro so that we can get const &, &&, and & qualifiers defined.
