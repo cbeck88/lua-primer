@@ -1128,9 +1128,7 @@ void test_coroutine() {
 }
 
 // Test coroutine with lua_ref_seq interface
-primer::result yielder(lua_State *) {
-  return primer::yield{0};
-}
+primer::result yielder(lua_State *) { return primer::yield{0}; }
 
 primer::result returner(lua_State * L) {
   lua_pushinteger(L, 7);

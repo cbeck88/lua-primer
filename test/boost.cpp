@@ -318,7 +318,6 @@ void test_bound_function_binding() {
 
   func.debug_string();
   CHECK_STACK(L, 0);
-
 }
 
 int yield_helper(lua_State * L) { return lua_yield(L, 1); }

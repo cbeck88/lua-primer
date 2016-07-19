@@ -57,9 +57,9 @@ struct metatable {
 template <typename T>
 struct metatable<T,
                  enable_if_t<noexcept(primer::traits::userdata<T>::metatable(
-                   static_cast<lua_State *>(nullptr))) == 
-noexcept(primer::traits::userdata<T>::metatable(
-                   static_cast<lua_State *>(nullptr)))>> {
+                               static_cast<lua_State *>(nullptr))) ==
+                             noexcept(primer::traits::userdata<T>::metatable(
+                               static_cast<lua_State *>(nullptr)))>> {
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {

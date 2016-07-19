@@ -625,7 +625,9 @@ struct my_files : primer::api::vfs<my_files> {
   using map_t = std::map<std::string, std::string>;
   map_t files_;
 
-  explicit my_files(map_t m) : files_(std::move(m)) {}
+  explicit my_files(map_t m)
+    : files_(std::move(m))
+  {}
 
   primer::expected<void> load(lua_State * L, const std::string & path) {
     auto it = files_.find(path);
@@ -651,8 +653,7 @@ struct test_api : primer::api::base<test_api> {
   test_api()
     : L_()
     , vfs_{{{"foo", "return {}"},
-              {"bar",
-               "local function baz() return 5 end; return { baz = baz }"}}}
+            {"bar", "local function baz() return 5 end; return { baz = baz }"}}}
   {
     this->initialize_api(L_);
   }

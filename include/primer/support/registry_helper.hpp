@@ -25,15 +25,15 @@ namespace detail {
 template <typename T>
 class registry_helper {
 
-static int get_key(lua_State * L) {
-  lua_pushcfunction(L, &get_key);
-  return 0;
-}
+  static int get_key(lua_State * L) {
+    lua_pushcfunction(L, &get_key);
+    return 0;
+  }
 
 public:
   static void store_self(lua_State * L, T * t) {
     get_key(L);
-    lua_pushlightuserdata(L, static_cast<void*>(t));
+    lua_pushlightuserdata(L, static_cast<void *>(t));
     lua_settable(L, LUA_REGISTRYINDEX);
   }
 

@@ -55,7 +55,7 @@ template <typename T>
 class vfs {
 
   static T * recover_this(lua_State * L) {
-    return static_cast<T*>(detail::registry_helper<vfs>::obtain_self(L));
+    return static_cast<T *>(detail::registry_helper<vfs>::obtain_self(L));
   }
 
 protected:
@@ -123,7 +123,7 @@ public:
   void on_init(lua_State * L) {
     detail::registry_helper<vfs>::store_self(L, this);
 
-    PRIMER_ASSERT(recover_this(L) == static_cast<T*>(this), "bad self store");
+    PRIMER_ASSERT(recover_this(L) == static_cast<T *>(this), "bad self store");
 
     for (const auto & r : vfs::get_permanent_entries()) {
       lua_pushcfunction(L, r.func);

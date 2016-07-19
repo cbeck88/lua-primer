@@ -67,7 +67,7 @@ struct extraspace_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
   static R dispatch_target(lua_State * L, Args... args) {
     void * vptr = detail::access_extraspace_ptr(L);
     PRIMER_ASSERT(vptr, "Extraspace pointer was not initialized!");
-    T * object_ptr = static_cast<T*>(vptr);
+    T * object_ptr = static_cast<T *>(vptr);
     return (object_ptr->*target_func)(L, std::forward<Args>(args)...);
   }
 
