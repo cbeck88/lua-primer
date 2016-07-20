@@ -1065,7 +1065,7 @@ test_coroutine() {
     "end                                                 \n";
 
   TEST_LUA_OK(L, luaL_loadstring(L, script));
-  TEST_LUA_OK(L, lua_pcall(L, 0, 1, 0));
+  TEST_LUA_OK(L, primer::protected_call(L, 0, 1));
 
   primer::bound_function f{L};
   TEST(f, "expected to find a function");

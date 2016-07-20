@@ -33,6 +33,19 @@ static constexpr const char * error_handler_reg_key = "primer_error_handler";
 
 } // end namespace detail
 
+//[ primer_error_handler_decl
+
+// Push the current error handler to top of stack. Default is debug.traceback.
+inline int get_error_handler(lua_State * L) noexcept;
+
+// Set a new error handler.
+inline void set_error_handler(lua_State * L) noexcept;
+
+// Simplified version of lua_pcall which handles setting up the error handler.
+inline int protected_call(lua_State * L, int narg, int nret) noexcept;
+
+//]
+
 inline int
 get_error_handler(lua_State * L) noexcept {
   lua_getfield(L, LUA_REGISTRYINDEX, detail::error_handler_reg_key);
@@ -47,5 +60,18 @@ inline void
 set_error_handler(lua_State * L) noexcept {
   lua_setfield(L, LUA_REGISTRYINDEX, detail::error_handler_reg_key);
 }
+
+//[ primer_protected_call_defn
+inline int protected_call(lua_State * L, int narg, int nret) noexcept {
+  primer::get_error_handler(L);
+  lua_insert(L, -2 - narg);
+  int eidx = lua_absindex(L, -2 - narg);
+
+  int result = lua_pcall(L, narg, nret, eidx);
+
+  lua_remove(L, eidx);
+  return result;
+}
+//]
 
 } // end namespace primer
