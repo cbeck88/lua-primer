@@ -38,7 +38,7 @@ static constexpr const char * error_handler_reg_key = "primer_error_handler";
 // Push the current error handler to top of stack. Default is debug.traceback.
 inline int get_error_handler(lua_State * L) noexcept;
 
-// Set a new error handler.
+// Set a new error handler. Expects a function on top of the stack, which is popped.
 inline void set_error_handler(lua_State * L) noexcept;
 
 // Simplified version of lua_pcall which handles setting up the error handler.
