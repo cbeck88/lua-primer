@@ -42,6 +42,12 @@
           call to <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
           no matter what parameters they are passed for the call.
         </p>
+<p>
+          The idea is that you should be able to pass these to other parts of a C++
+          program that don't have anything to do with lua, and use them like generic
+          function objects without having to mentally switch context and think about
+          lua preconditions and such.
+        </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
@@ -111,6 +117,9 @@
   <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
   <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
   <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Get a debug string describing what function is bound</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">debug_string</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
 <span class="special">};</span>
 </pre>
 <div class="calloutlist"><table border="0" summary="Callout list"><tr>

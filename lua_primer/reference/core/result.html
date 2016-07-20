@@ -67,7 +67,6 @@
   <span class="keyword">bool</span> <span class="identifier">is_valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">n_</span> <span class="special">&gt;=</span> <span class="number">0</span><span class="special">;</span> <span class="special">}</span>
 <span class="special">};</span>
 
-
 <span class="comment">// Result object</span>
 <span class="keyword">class</span> <span class="identifier">result</span> <span class="special">{</span>
 
@@ -76,14 +75,11 @@
 <span class="keyword">public</span><span class="special">:</span>
   <span class="comment">// Ctors (implicit for ease of use)</span>
   <span class="identifier">result</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">i</span><span class="special">)</span>
-    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">i</span><span class="special">,</span> <span class="keyword">true</span><span class="special">})</span>
-  <span class="special">{}</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">i</span><span class="special">,</span> <span class="keyword">true</span><span class="special">})</span> <span class="special">{}</span>
   <span class="identifier">result</span><span class="special">(</span><span class="identifier">yield</span> <span class="identifier">y</span><span class="special">)</span>
-    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">y</span><span class="special">.</span><span class="identifier">n_</span><span class="special">,</span> <span class="keyword">false</span><span class="special">})</span>
-  <span class="special">{}</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">y</span><span class="special">.</span><span class="identifier">n_</span><span class="special">,</span> <span class="keyword">false</span><span class="special">})</span> <span class="special">{}</span>
   <span class="identifier">result</span><span class="special">(</span><span class="identifier">error</span> <span class="identifier">e</span><span class="special">)</span>
-    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span>
-  <span class="special">{}</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{}</span>
 
   <span class="comment">// Accessor</span>
   <span class="keyword">const</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">get_payload</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">payload_</span><span class="special">;</span> <span class="special">}</span>

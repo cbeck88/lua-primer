@@ -351,7 +351,8 @@
 <p>
           Here's an example function to illustrate:
         </p>
-<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">ref_test_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span> <span class="identifier">ref</span><span class="special">)</span> <span class="special">{</span>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span>
+<span class="identifier">ref_test_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span> <span class="identifier">ref</span><span class="special">)</span> <span class="special">{</span>
   <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">ref</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"nil"</span><span class="special">);</span>
     <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>

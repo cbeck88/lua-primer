@@ -28,9 +28,32 @@
           If you want to use a customized error handler, there is a simple interface
           that you can use to install one. Primer will then use it everywhere.
         </p>
+<pre class="programlisting"><span class="comment">// Push the current error handler to top of stack. Default is debug.traceback.</span>
+<span class="keyword">inline</span> <span class="keyword">int</span> <span class="identifier">get_error_handler</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+<span class="comment">// Set a new error handler.</span>
+<span class="keyword">inline</span> <span class="keyword">void</span> <span class="identifier">set_error_handler</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+<span class="comment">// Simplified version of lua_pcall which handles setting up the error handler.</span>
+<span class="keyword">inline</span> <span class="keyword">int</span> <span class="identifier">protected_call</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">narg</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">nret</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+</pre>
 <p>
-          [primer_error_handler_synopsis]
+          Primer also provides a convenient wrapper over <code class="computeroutput"><span class="identifier">lua_pcall</span></code>.
+          It is the same, except that it automatically installs primer's current
+          error handler and removes it after the <code class="computeroutput"><span class="identifier">pcall</span></code>,
+          handling some stack arithmetic for you.
         </p>
+<pre class="programlisting"><span class="keyword">inline</span> <span class="keyword">int</span> <span class="identifier">protected_call</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">narg</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">nret</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">get_error_handler</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="identifier">lua_insert</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span> <span class="special">-</span> <span class="identifier">narg</span><span class="special">);</span>
+  <span class="keyword">int</span> <span class="identifier">eidx</span> <span class="special">=</span> <span class="identifier">lua_absindex</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span> <span class="special">-</span> <span class="identifier">narg</span><span class="special">);</span>
+
+  <span class="keyword">int</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">narg</span><span class="special">,</span> <span class="identifier">nret</span><span class="special">,</span> <span class="identifier">eidx</span><span class="special">);</span>
+
+  <span class="identifier">lua_remove</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">eidx</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

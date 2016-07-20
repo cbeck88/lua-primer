@@ -218,29 +218,28 @@
           a try-catch block is setup for functions which return <code class="computeroutput"><span class="identifier">my_int</span></code>.
           Otherwise, it just defers to the regular adapt mechanism.
         </p>
-<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_int</span> <span class="special">{</span> <span class="keyword">int</span> <span class="identifier">value</span><span class="special">;</span> <span class="special">};</span>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_int</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
 
 <span class="keyword">struct</span> <span class="identifier">raise_lua_error</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span> <span class="special">{</span>
-  <span class="identifier">raise_lua_error</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">)</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="identifier">str</span><span class="special">)</span> <span class="special">{}</span>
+  <span class="identifier">raise_lua_error</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="identifier">str</span><span class="special">)</span> <span class="special">{}</span>
 <span class="special">};</span>
 
 <span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">,</span> <span class="identifier">my_int</span> <span class="special">(*</span><span class="identifier">target_func</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">Args</span><span class="special">...)&gt;</span>
-<span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">&lt;</span><span class="identifier">my_int</span><span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">Args</span><span class="special">...),</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
-  <span class="keyword">static</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">adapt_target</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">...</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+<span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">&lt;</span><span class="identifier">my_int</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">Args</span><span class="special">...),</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">adapt_target</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">try</span> <span class="special">{</span>
       <span class="identifier">my_int</span> <span class="identifier">r</span> <span class="special">=</span> <span class="identifier">target_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
       <span class="keyword">return</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">value</span><span class="special">;</span>
-    <span class="special">}</span> <span class="keyword">catch</span> <span class="special">(</span><span class="identifier">raise_lua_error</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
-      <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="identifier">e</span><span class="special">.</span><span class="identifier">what</span><span class="special">()};</span>
-    <span class="special">}</span>
+    <span class="special">}</span> <span class="keyword">catch</span> <span class="special">(</span><span class="identifier">raise_lua_error</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="identifier">e</span><span class="special">.</span><span class="identifier">what</span><span class="special">()};</span> <span class="special">}</span>
   <span class="special">}</span>
 
 <span class="keyword">public</span><span class="special">:</span>
-  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
-    <span class="keyword">return</span> <span class="special">(</span><span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">adapt_target</span><span class="special">))(</span><span class="identifier">L</span><span class="special">);</span>
-  <span class="special">}</span>
+  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">(</span><span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">adapt_target</span><span class="special">))(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
 <span class="special">};</span>
 
 <span class="special">}</span> <span class="comment">// end namespace primer</span>
@@ -251,11 +250,12 @@
           from <code class="computeroutput"><span class="identifier">raise_lua_error</span></code> rather
           than in the default way that Primer does it.
         </p>
-<pre class="programlisting"><span class="identifier">my_int</span> <span class="identifier">reverse_palindrome</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">p</span><span class="special">)</span> <span class="special">{</span>
+<pre class="programlisting"><span class="identifier">my_int</span>
+<span class="identifier">reverse_palindrome</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">p</span><span class="special">)</span> <span class="special">{</span>
   <span class="keyword">auto</span> <span class="identifier">it</span> <span class="special">=</span> <span class="identifier">p</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span>
   <span class="keyword">auto</span> <span class="identifier">it2</span> <span class="special">=</span> <span class="identifier">p</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">-</span> <span class="number">1</span><span class="special">;</span>
 
-  <span class="keyword">while</span><span class="special">(</span><span class="identifier">it</span> <span class="special">&lt;</span> <span class="identifier">it2</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">while</span> <span class="special">(</span><span class="identifier">it</span> <span class="special">&lt;</span> <span class="identifier">it2</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">if</span> <span class="special">(*</span><span class="identifier">it</span> <span class="special">!=</span> <span class="special">*</span><span class="identifier">it2</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">throw</span> <span class="identifier">raise_lua_error</span><span class="special">(</span><span class="string">"not a palidrome"</span><span class="special">);</span> <span class="special">}</span>
     <span class="special">++</span><span class="identifier">it</span><span class="special">;</span>
     <span class="special">--</span><span class="identifier">it2</span><span class="special">;</span>
@@ -273,7 +273,8 @@
   <span class="keyword">return</span> <span class="special">{</span><span class="number">1</span><span class="special">};</span>
 <span class="special">}</span>
 
-<span class="keyword">void</span> <span class="identifier">test_adapt_example</span><span class="special">()</span> <span class="special">{</span>
+<span class="keyword">void</span>
+<span class="identifier">test_adapt_example</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">lua_raii</span> <span class="identifier">L</span><span class="special">;</span>
 
   <span class="identifier">lua_CFunction</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">reverse_palindrome</span><span class="special">);</span>

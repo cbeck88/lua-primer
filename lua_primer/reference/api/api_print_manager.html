@@ -130,7 +130,8 @@
   <span class="keyword">void</span> <span class="identifier">on_init</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
 
-    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">install_self_pointer</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">detail</span><span class="special">::</span><span class="identifier">registry_helper</span><span class="special">&lt;</span><span class="identifier">print_manager</span><span class="special">&gt;::</span><span class="identifier">store_self</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">this</span><span class="special">);</span>
+
     <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">intf_print_impl</span><span class="special">);</span>
     <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"print"</span><span class="special">);</span>
 

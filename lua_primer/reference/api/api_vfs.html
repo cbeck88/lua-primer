@@ -47,8 +47,12 @@
           Here's a usage example:
         </p>
 <pre class="programlisting"><span class="comment">// Model of vfs provider concept</span>
-<span class="keyword">struct</span> <span class="identifier">my_files</span> <span class="special">{</span>
-  <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">files_</span><span class="special">;</span>
+<span class="keyword">struct</span> <span class="identifier">my_files</span> <span class="special">:</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span><span class="special">&lt;</span><span class="identifier">my_files</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">map_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;;</span>
+  <span class="identifier">map_t</span> <span class="identifier">files_</span><span class="special">;</span>
+
+  <span class="keyword">explicit</span> <span class="identifier">my_files</span><span class="special">(</span><span class="identifier">map_t</span> <span class="identifier">m</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">files_</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">m</span><span class="special">))</span> <span class="special">{}</span>
 
   <span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">load</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">path</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">auto</span> <span class="identifier">it</span> <span class="special">=</span> <span class="identifier">files_</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">path</span><span class="special">);</span>
@@ -68,18 +72,14 @@
   <span class="identifier">lua_raii</span> <span class="identifier">L_</span><span class="special">;</span>
 
   <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">sandboxed_basic_libraries</span><span class="special">,</span> <span class="identifier">libs_</span><span class="special">);</span>
-  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span><span class="special">,</span> <span class="identifier">vfs_</span><span class="special">);</span>
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">my_files</span><span class="special">,</span> <span class="identifier">vfs_</span><span class="special">);</span>
   <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">print_manager</span><span class="special">,</span> <span class="identifier">print_man_</span><span class="special">);</span>
-
-  <span class="identifier">my_files</span> <span class="identifier">files_</span><span class="special">;</span>
 
   <span class="identifier">test_api</span><span class="special">()</span>
     <span class="special">:</span> <span class="identifier">L_</span><span class="special">()</span>
-    <span class="special">,</span> <span class="identifier">vfs_</span><span class="special">(&amp;</span><span class="identifier">files_</span><span class="special">)</span>
-    <span class="special">,</span> <span class="identifier">files_</span><span class="special">{{{</span><span class="string">"foo"</span><span class="special">,</span> <span class="string">"return {}"</span><span class="special">},</span>
-              <span class="special">{</span><span class="string">"bar"</span><span class="special">,</span>
-               <span class="string">"local function baz() return 5 end; return { baz = baz }"</span><span class="special">}}}</span>
-  <span class="special">{</span>
+    <span class="special">,</span> <span class="identifier">vfs_</span><span class="special">{</span>
+        <span class="special">{{</span><span class="string">"foo"</span><span class="special">,</span> <span class="string">"return {}"</span><span class="special">},</span>
+         <span class="special">{</span><span class="string">"bar"</span><span class="special">,</span> <span class="string">"local function baz() return 5 end; return { baz = baz }"</span><span class="special">}}}</span> <span class="special">{</span>
     <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">initialize_api</span><span class="special">(</span><span class="identifier">L_</span><span class="special">);</span>
   <span class="special">}</span>
 
@@ -92,7 +92,8 @@
   <span class="keyword">void</span> <span class="identifier">restore</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buffer</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">unpersist</span><span class="special">(</span><span class="identifier">L_</span><span class="special">,</span> <span class="identifier">buffer</span><span class="special">);</span> <span class="special">}</span>
 <span class="special">};</span>
 
-<span class="keyword">void</span> <span class="identifier">test_vfs</span><span class="special">()</span> <span class="special">{</span>
+<span class="keyword">void</span>
+<span class="identifier">test_vfs</span><span class="special">()</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">buffer</span><span class="special">;</span>
   <span class="identifier">table_summary</span> <span class="identifier">summary</span><span class="special">;</span>
 
@@ -111,7 +112,8 @@
     <span class="string">"                                                                      \n"</span>
     <span class="string">"assert(bar == require 'bar')                                          \n"</span>
     <span class="string">"assert(bar ~= dofile 'bar')                                           \n"</span>
-    <span class="string">"                                                                      \n"</span><span class="special">;</span>
+    <span class="string">"                                                                      "</span>
+    <span class="string">"\n"</span><span class="special">;</span>
 
   <span class="special">{</span>
     <span class="identifier">test_api</span> <span class="identifier">a</span><span class="special">;</span>

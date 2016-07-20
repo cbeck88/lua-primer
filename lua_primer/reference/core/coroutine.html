@@ -68,7 +68,9 @@
 
 <span class="keyword">public</span><span class="special">:</span>
   <span class="comment">// Special member functions</span>
-  <span class="identifier">coroutine</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">:</span> <span class="identifier">ref_</span><span class="special">(),</span> <span class="identifier">thread_stack_</span><span class="special">(</span><span class="keyword">nullptr</span><span class="special">)</span> <span class="special">{}</span>
+  <span class="identifier">coroutine</span><span class="special">()</span> <span class="keyword">noexcept</span>
+    <span class="special">:</span> <span class="identifier">ref_</span><span class="special">()</span>
+    <span class="special">,</span> <span class="identifier">thread_stack_</span><span class="special">(</span><span class="keyword">nullptr</span><span class="special">)</span> <span class="special">{}</span>
 
   <span class="identifier">coroutine</span><span class="special">(</span><span class="identifier">coroutine</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
   <span class="identifier">coroutine</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">coroutine</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
