@@ -21,11 +21,11 @@ namespace primer {
 namespace traits {
 
 template <typename T, std::size_t N>
-struct push<std::array<T, N>> : detail::push_seq_helper<std::array<T, N>> {};
+struct push<std::array<T, N>> : container::push_seq_helper<std::array<T, N>> {};
 
 template <typename T, std::size_t N>
 struct read<std::array<T, N>>
-  : detail::read_fixed_seq_helper<std::array<T, N>> {};
+  : container::read_fixed_seq_helper<std::array<T, N>> {};
 
 } // end namespace traits
 

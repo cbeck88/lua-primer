@@ -17,17 +17,15 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/container/seq_base.hpp>
 
 namespace primer {
-
 namespace traits {
 
 template <typename T>
 struct push<boost::container::vector<T>>
-  : detail::push_seq_helper<boost::container::vector<T>> {};
+  : container::push_seq_helper<boost::container::vector<T>> {};
 
 template <typename T>
 struct read<boost::container::vector<T>>
-  : detail::read_seq_helper<boost::container::vector<T>> {};
+  : container::read_seq_helper<boost::container::vector<T>> {};
 
 } // end namespace traits
-
 } // end namespace primer

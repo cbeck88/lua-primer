@@ -27,8 +27,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <utility>
 
 namespace primer {
-
-namespace detail {
+namespace container {
 
 template <typename M>
 struct map_push_helper {
@@ -111,6 +110,5 @@ struct map_read_helper {
                         traits::read<first_t>::stack_space_needed)};
 };
 
-} // end namespace detail
-
+} // end namespace container
 } // end namespace primer

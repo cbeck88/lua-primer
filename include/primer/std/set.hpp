@@ -21,10 +21,10 @@ namespace primer {
 namespace traits {
 
 template <typename T>
-struct push<std::set<T>> : detail::set_push_helper<std::set<T>> {};
+struct push<std::set<T>> : container::set_push_helper<std::set<T>> {};
 
 template <typename T>
-struct read<std::set<T>> : detail::set_read_helper<std::set<T>> {};
+struct read<std::set<T>> : container::set_read_helper<std::set<T>> {};
 
 } // end namespace traits
 

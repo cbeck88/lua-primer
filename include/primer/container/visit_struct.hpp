@@ -143,7 +143,7 @@ struct read_helper {
   }
 };
 
-} // end namespace detail
+} // end namespace container
 
 namespace traits {
 

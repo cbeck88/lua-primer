@@ -29,7 +29,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <utility>
 
 namespace primer {
-namespace detail {
+namespace container {
 
 template <typename T>
 struct push_seq_helper {
@@ -149,5 +149,5 @@ struct read_fixed_seq_helper {
     1 + traits::read<value_type>::stack_space_needed};
 };
 
-} // end namespace detail
+} // end namespace container
 } // end namespace primer

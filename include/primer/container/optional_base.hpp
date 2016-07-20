@@ -69,7 +69,7 @@ struct optional_access {
 } // end namespace traits
 //]
 
-namespace detail {
+namespace container {
 
 /***
  * How to push an optional
@@ -156,6 +156,5 @@ struct optional_relaxed_read : traits::optional_access<T> {
     traits::read<clean_val_t>::stack_space_needed};
 };
 
-} // end namespace detail
-
+} // end namespace container
 } // end namespace primer

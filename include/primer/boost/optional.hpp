@@ -22,11 +22,12 @@ namespace primer {
 namespace traits {
 
 template <typename T>
-struct push<boost::optional<T>> : detail::optional_push<boost::optional<T>> {};
+struct push<boost::optional<T>> //
+  : container::optional_push<boost::optional<T>> {};
 
 template <typename T>
 struct read<boost::optional<T>>
-  : detail::optional_strict_read<boost::optional<T>> {};
+  : container::optional_strict_read<boost::optional<T>> {};
 
 } // end namespace traits
 } // end namespace primer
