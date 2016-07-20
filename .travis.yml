@@ -34,12 +34,13 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
+            - clang++-3.7
             - gdb
       env: COMPILER=clang++-3.7
 
 before_install:
 
-  - if [[ "${COMPILER}" == "clang++-3.7" ]]; then sudo ./travis/install_clang_3_7.sh; fi
+  # - if [[ "${COMPILER}" == "clang++-3.7" ]]; then sudo ./travis/install_clang_3_7.sh; fi
   - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
 
 install:
