@@ -1091,10 +1091,10 @@ test_coroutine() {
   CHECK_STACK(L, 0);
   TEST_EXPECTED(result);
   TEST_EQ(result->size(), 2);
-  TEST_EXPECTED((*result)[0].as<int>());
-  TEST_EXPECTED((*result)[1].as<int>());
-  TEST_EQ(*(*result)[0].as<int>(), 8);
-  TEST_EQ(*(*result)[1].as<int>(), -2);
+  TEST_EXPECTED(result->at(0).as<int>());
+  TEST_EXPECTED(result->at(1).as<int>());
+  TEST_EQ(*result->at(0).as<int>(), 8);
+  TEST_EQ(*result->at(1).as<int>(), -2);
   CHECK_STACK(L, 0);
 
   a = std::move(*result);
@@ -1105,10 +1105,10 @@ test_coroutine() {
   CHECK_STACK(L, 0);
   TEST_EXPECTED(result);
   TEST_EQ(result->size(), 2);
-  TEST_EXPECTED((*result)[0].as<int>());
-  TEST_EXPECTED((*result)[1].as<int>());
-  TEST_EQ(*(*result)[0].as<int>(), 6);
-  TEST_EQ(*(*result)[1].as<int>(), 10);
+  TEST_EXPECTED(result->at(0).as<int>());
+  TEST_EXPECTED(result->at(1).as<int>());
+  TEST_EQ(*result->at(0).as<int>(), 6);
+  TEST_EQ(*result->at(1).as<int>(), 10);
   CHECK_STACK(L, 0);
 
   a = std::move(*result);
@@ -1119,10 +1119,10 @@ test_coroutine() {
   CHECK_STACK(L, 0);
   TEST_EXPECTED(result);
   TEST_EQ(result->size(), 2);
-  TEST_EXPECTED((*result)[0].as<int>());
-  TEST_EXPECTED((*result)[1].as<int>());
-  TEST_EQ(*(*result)[0].as<int>(), 16);
-  TEST_EQ(*(*result)[1].as<int>(), -4);
+  TEST_EXPECTED(result->at(0).as<int>());
+  TEST_EXPECTED(result->at(1).as<int>());
+  TEST_EQ(*result->at(0).as<int>(), 16);
+  TEST_EQ(*result->at(1).as<int>(), -4);
   CHECK_STACK(L, 0);
 
   a = std::move(*result);
@@ -1133,10 +1133,10 @@ test_coroutine() {
   CHECK_STACK(L, 0);
   TEST_EXPECTED(result);
   TEST_EQ(result->size(), 2);
-  TEST_EXPECTED((*result)[0].as<int>());
-  TEST_EXPECTED((*result)[1].as<int>());
-  TEST_EQ(*(*result)[0].as<int>(), 12);
-  TEST_EQ(*(*result)[1].as<int>(), 20);
+  TEST_EXPECTED(result->at(0).as<int>());
+  TEST_EXPECTED(result->at(1).as<int>());
+  TEST_EQ(*result->at(0).as<int>(), 12);
+  TEST_EQ(*result->at(1).as<int>(), 20);
   CHECK_STACK(L, 0);
 
   a = std::move(*result);
