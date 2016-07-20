@@ -22,7 +22,8 @@ namespace api {
 // It only searches `_LOADED` table, and doesn't use FS search or any
 // loaders.
 
-inline int mini_require(lua_State * L) {
+inline int
+mini_require(lua_State * L) {
   const char * name = luaL_checkstring(L, 1);
   lua_settop(L, 1); /* _LOADED table will be at index 2 */
   lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");

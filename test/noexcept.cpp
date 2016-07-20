@@ -10,7 +10,8 @@
 
 using primer::expected;
 
-expected<std::string> foo(expected<int> e) {
+expected<std::string>
+foo(expected<int> e) {
   if (e) {
     if (*e >= 7) {
       return std::string{"woof!"};
@@ -22,7 +23,8 @@ expected<std::string> foo(expected<int> e) {
   }
 }
 
-void test_foo() {
+void
+test_foo() {
   auto result = foo(6);
   assert(!result);
 
@@ -35,8 +37,8 @@ void test_foo() {
   assert(result3.err_str() == "404");
 }
 
-
-void test_bar() {
+void
+test_bar() {
   lua_raii L;
 
   primer::push(L, 17);
@@ -53,7 +55,8 @@ void test_bar() {
   assert("woof!" == *result3);
 }
 
-int main() {
+int
+main() {
   conf::log_conf();
   std::cout << "Noexcept tests:" << std::endl;
 

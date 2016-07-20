@@ -21,15 +21,17 @@ namespace primer {
 namespace api {
 
 // The help database table does not need to be anything special.
-inline void make_help_table(lua_State * L) { lua_newtable(L); }
+inline void
+make_help_table(lua_State * L) {
+  lua_newtable(L);
+}
 
 /***
  * set_help_string: Registers a help string for a function in the help database
  * for this lua state.
  */
-inline void set_help_string(lua_State * L,
-                            lua_CFunction f,
-                            const char * help_str) {
+inline void
+set_help_string(lua_State * L, lua_CFunction f, const char * help_str) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
 
   primer::push_singleton<&make_help_table>(L);
@@ -52,7 +54,8 @@ inline void set_help_string(lua_State * L,
  * or the lua_State is collected.
  */
 
-inline const char * get_help_string(lua_State * L, lua_CFunction f) {
+inline const char *
+get_help_string(lua_State * L, lua_CFunction f) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
 
   primer::push_singleton<&make_help_table>(L);
@@ -70,7 +73,8 @@ inline const char * get_help_string(lua_State * L, lua_CFunction f) {
  *                 A generic implementation using get_help_string.
  */
 
-inline int intf_help_impl(lua_State * L) {
+inline int
+intf_help_impl(lua_State * L) {
   if (lua_iscfunction(L, 1)) {
     if (const char * result = get_help_string(L, lua_tocfunction(L, 1))) {
       lua_pushstring(L, result);

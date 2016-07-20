@@ -18,14 +18,14 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/detail/move_assign_noexcept.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/detail/type_traits.hpp>
-#include <primer/detail/move_assign_noexcept.hpp>
 
 #include <visit_struct/visit_struct.hpp>
 
@@ -72,7 +72,6 @@ struct field_counter {
 };
 
 } // end namespace detail
-
 
 namespace traits {
 
@@ -125,8 +124,7 @@ struct read_helper {
   explicit read_helper(lua_State * _L, int _idx)
     : L(_L)
     , index(_idx)
-    , ok{}
-  {}
+    , ok{} {}
 
   template <typename T>
   void operator()(const char * name, T & value) noexcept {

@@ -32,9 +32,8 @@ namespace detail {
 // Calls pcall with traceback error handler, removes error handler.
 // Error is left on top of the stack.
 // Returns the error code, and the stack index at which the return values start.
-inline std::tuple<int, int> pcall_helper(lua_State * L,
-                                         int narg,
-                                         int nret) noexcept {
+inline std::tuple<int, int>
+pcall_helper(lua_State * L, int narg, int nret) noexcept {
   PRIMER_ASSERT(lua_gettop(L) >= (1 + narg),
                 "Not enough arguments on stack for pcall!");
   PRIMER_ASSERT(lua_isfunction(L, -1 - narg), "Missing function for pcall!");
@@ -51,7 +50,8 @@ inline std::tuple<int, int> pcall_helper(lua_State * L,
 // Calls lua_resume. If an error occurs, calls the traceback error handler,
 // removes error handler. Error is left on top of the stack.
 // Returns the error code, and the stack index at which the return values start.
-inline std::tuple<int, int> resume_helper(lua_State * L, int narg) noexcept {
+inline std::tuple<int, int>
+resume_helper(lua_State * L, int narg) noexcept {
   PRIMER_ASSERT(lua_gettop(L) >= (narg),
                 "Not enough arguments on stack for resume!");
 
@@ -76,7 +76,8 @@ inline std::tuple<int, int> resume_helper(lua_State * L, int narg) noexcept {
  * Note: This function should not have nontrivial objects on the stack.
  */
 template <typename T>
-void fcn_call(expected<T> & result, lua_State * L, int narg) {
+void
+fcn_call(expected<T> & result, lua_State * L, int narg) {
   int err_code;
   int results_idx;
 
@@ -96,7 +97,8 @@ void fcn_call(expected<T> & result, lua_State * L, int narg) {
  * Generic scheme for resuming a coroutine
  */
 template <typename T>
-void resume_call(expected<T> & result, lua_State * L, int narg) {
+void
+resume_call(expected<T> & result, lua_State * L, int narg) {
   int err_code;
   int results_idx;
 

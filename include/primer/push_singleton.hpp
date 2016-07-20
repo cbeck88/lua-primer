@@ -60,16 +60,17 @@ namespace primer {
 namespace detail {
 
 template <void (*producer_func)(lua_State * L)>
-int wrapped_as_cfunc(lua_State * L) {
+int
+wrapped_as_cfunc(lua_State * L) {
   producer_func(L);
   return 0;
 }
 
 } // end namespace detail
 
-
 template <int (*producer_func)(lua_State * L)>
-void push_singleton(lua_State * L) {
+void
+push_singleton(lua_State * L) {
   constexpr lua_CFunction registry_key = producer_func;
   // Note that even if the function is inline and defined in a header, C++
   // guarantees that it has a unique address.
@@ -91,7 +92,8 @@ void push_singleton(lua_State * L) {
 }
 
 template <void (*producer_func)(lua_State * L)>
-void push_singleton(lua_State * L) {
+void
+push_singleton(lua_State * L) {
   push_singleton<detail::wrapped_as_cfunc<producer_func>>(L);
 }
 

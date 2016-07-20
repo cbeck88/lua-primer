@@ -51,5 +51,4 @@ struct return_expected<expected<T>> {
 template <typename T>
 using return_expected_t = typename return_expected<T>::type;
 
-
 } // end namespace primer

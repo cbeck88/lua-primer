@@ -188,10 +188,11 @@ protected:
                 "Missing on_unpersist_table method!");                         \
   static_assert(primer::api::is_feature<TYPE>::value,                          \
                 "Type does not meet criteria for an API_FEATURE!");            \
-  static inline primer::detail::Append_t<                                      \
-    GET_API_FEATURES,                                                          \
-    primer::api::ptr_to_member<primer_persistable_type, TYPE,                  \
-                               &primer_persistable_type::NAME,                 \
-                               &primer_persistable_type::feature_name_##NAME>> \
-    GetApiFeatures(primer::detail::Rank<GET_API_FEATURES::size + 1>);          \
+  static inline primer::detail::                                               \
+    Append_t<GET_API_FEATURES,                                                 \
+             primer::api::                                                     \
+               ptr_to_member<primer_persistable_type, TYPE,                    \
+                             &primer_persistable_type::NAME,                   \
+                             &primer_persistable_type::feature_name_##NAME>>   \
+      GetApiFeatures(primer::detail::Rank<GET_API_FEATURES::size + 1>);        \
   static_assert(true, "")

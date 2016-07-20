@@ -15,8 +15,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/lua.hpp>
 #include <primer/adapt.hpp>
+#include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/userdata.hpp>
 
@@ -43,9 +43,7 @@ struct userdata_dispatcher : public adapt<F, f> {};
  *  R (lua_State *, T &, Args...)
  */
 
-template <typename T,
-          typename R,
-          typename... Args,
+template <typename T, typename R, typename... Args,
           R (T::*target_func)(lua_State *, Args...)>
 struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
 

@@ -21,6 +21,7 @@ README_DRAFT.md
 # clang-format
 clang-format.sh
 .clang-format
+.clang-format.old
 
 # find_and_replace
 find_and_replace.sh

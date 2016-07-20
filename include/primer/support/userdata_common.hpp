@@ -26,7 +26,8 @@ namespace primer {
 namespace detail {
 
 template <typename T>
-int common_gc_impl(lua_State * L) noexcept {
+int
+common_gc_impl(lua_State * L) noexcept {
   PRIMER_STATIC_ASSERT(std::is_nothrow_destructible<T>::value,
                        "userdata type must be no-throw destructible, or you "
                        "must write a custom __gc which handles the exception");

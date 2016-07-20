@@ -1,8 +1,8 @@
 #include <primer/primer.hpp>
 #include <primer/visit_struct.hpp>
 
-#include <primer/api/callbacks.hpp>
 #include <primer/api/callback_registrar.hpp>
+#include <primer/api/callbacks.hpp>
 
 #include "test_harness/test_harness.hpp"
 #include <iostream>
@@ -28,8 +28,8 @@ struct bar {
 
 VISITABLE_STRUCT(test::foo, a, b, c);
 
-
-void visitable_push_test() {
+void
+visitable_push_test() {
 
   lua_raii L;
 
@@ -126,7 +126,8 @@ void visitable_push_test() {
   }
 }
 
-void visitable_read_test() {
+void
+visitable_read_test() {
   lua_raii L;
 
   lua_newtable(L);
@@ -147,7 +148,8 @@ void visitable_read_test() {
   TEST_EQ(result->c, 8.5f);
 }
 
-void visitable_round_trip() {
+void
+visitable_round_trip() {
   lua_raii L;
 
   test::foo f{true, 5, 9};
@@ -196,7 +198,6 @@ void visitable_round_trip() {
     lua_pop(L, 1);
   }
 
-
   test::bar h{"wasd", f, f};
   h.f.a -= 77;
   h.f.b = true;
@@ -219,13 +220,15 @@ void visitable_round_trip() {
   }
 }
 
-primer::result test_func_one(lua_State * L, test::foo f, test::foo g) {
+primer::result
+test_func_one(lua_State * L, test::foo f, test::foo g) {
   test::foo result{f.b != g.b, f.a - g.a, f.c + g.c};
   primer::push(L, result);
   return 1;
 }
 
-void visitable_function_params_test() {
+void
+visitable_function_params_test() {
   lua_raii L;
 
   lua_CFunction f = PRIMER_ADAPT(&test_func_one);
@@ -304,17 +307,18 @@ struct test_api : public primer::callback_registrar<test_api> {
   test_api()
     : L_()
     , internal_state_(0)
-    , cb_man_(this)
-  {
+    , cb_man_(this) {
     cb_man_.on_init(L_);
   }
 
-  NEW_LUA_CALLBACK(f1, "test function one")(lua_State *, int i) -> primer::result {
+  NEW_LUA_CALLBACK(f1, "test function one")
+  (lua_State *, int i)->primer::result {
     internal_state_ += i;
     return 0;
   }
 
-  NEW_LUA_CALLBACK(f2, "test function two")(lua_State * L, int i, int j) -> primer::result {
+  NEW_LUA_CALLBACK(f2, "test function two")
+  (lua_State * L, int i, int j)->primer::result {
     internal_state_ -= i;
     internal_state_ *= j;
     lua_pushinteger(L, internal_state_);
@@ -329,7 +333,8 @@ struct test_api : public primer::callback_registrar<test_api> {
     END_VISITABLES;
   };
 
-  NEW_LUA_CALLBACK(f3, "test function three")(lua_State * L, f3_arg arg) -> primer::result {
+  NEW_LUA_CALLBACK(f3, "test function three")
+  (lua_State * L, f3_arg arg)->primer::result {
     internal_state_ += arg.plus;
     internal_state_ -= arg.minus;
     internal_state_ *= arg.times;
@@ -338,7 +343,8 @@ struct test_api : public primer::callback_registrar<test_api> {
   }
 };
 
-void test_api_callbacks() {
+void
+test_api_callbacks() {
   test_api a;
 
   lua_State * L = a.L_;
@@ -368,7 +374,8 @@ void test_api_callbacks() {
   TEST_EQ(4, a.internal_state_);
 }
 
-int main() {
+int
+main() {
   conf::log_conf();
 
   std::cout << "Visitable structure tests:" << std::endl;

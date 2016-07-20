@@ -27,7 +27,8 @@ void push(lua_State * L, const T & t);
 
 //[ primer_push_impl
 template <typename T>
-void push(lua_State * L, const T & t) {
+void
+push(lua_State * L, const T & t) {
   ::primer::traits::push<T>::to_stack(L, t);
   //<-
   // Silence an unused warning
@@ -39,7 +40,8 @@ void push(lua_State * L, const T & t) {
 //[ primer_push_each
 // Variadic push: Push a sequence of objects onto the stack.
 template <typename... Args>
-void push_each(lua_State * L, Args &&... args) {
+void
+push_each(lua_State * L, Args &&... args) {
   int dummy[] = {(::primer::push(L, std::forward<Args>(args)), 0)..., 0};
   static_cast<void>(dummy);
   //<-
@@ -55,14 +57,15 @@ constexpr int stack_space_for_push();
 //]
 
 template <typename T>
-constexpr int stack_space_for_push() {
+constexpr int
+stack_space_for_push() {
   return ::primer::traits::push<T>::stack_space_needed;
 }
 
-
 //[ primer_stack_space_for_push_each
 template <typename... Args>
-constexpr int stack_space_for_push_each() {
+constexpr int
+stack_space_for_push_each() {
   return primer::detail::stack_push_each_helper<Args...>::value();
 }
 //]

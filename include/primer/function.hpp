@@ -25,7 +25,8 @@ namespace primer {
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns: Either a reference to the value, or an error message. In either case
 // the results are cleared from the stack.
-inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) {
+inline expected<lua_ref>
+fcn_call_one_ret(lua_State * L, int narg) {
   expected<lua_ref> result;
   detail::fcn_call(result, L, narg);
   return result;
@@ -35,7 +36,8 @@ inline expected<lua_ref> fcn_call_one_ret(lua_State * L, int narg) {
 // Returns either a reference to the value, or an error message. In either case
 // the results are cleared from the stack.
 // This one is noexcept because it does not create any lua_ref's.
-inline expected<void> fcn_call_no_ret(lua_State * L, int narg) noexcept {
+inline expected<void>
+fcn_call_no_ret(lua_State * L, int narg) noexcept {
   expected<void> result;
   detail::fcn_call(result, L, narg);
   return result;
@@ -44,12 +46,12 @@ inline expected<void> fcn_call_no_ret(lua_State * L, int narg) noexcept {
 // Expects: Function, followed by narg arguments, on top of the stack.
 // Returns all of the functions' results or an error message. In either case
 // the results are cleared from the stack.
-inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) {
+inline expected<lua_ref_seq>
+fcn_call(lua_State * L, int narg) {
   expected<lua_ref_seq> result;
   detail::fcn_call(result, L, narg);
   return result;
 }
-
 
 // Expects a thread stack, satisfying the preconditions to call `lua_resume(L,
 // nullptr, narg)`.
@@ -65,7 +67,8 @@ inline expected<lua_ref_seq> fcn_call(lua_State * L, int narg) {
 // popped from the stack, after running an error handler over it.
 // The expected<lua_ref> is first return value.
 // Use `lua_status` to figure out if it was return or yield.
-inline expected<lua_ref> resume_one_ret(lua_State * L, int narg) {
+inline expected<lua_ref>
+resume_one_ret(lua_State * L, int narg) {
   expected<lua_ref> result;
   detail::resume_call(result, L, narg);
   return result;
@@ -86,7 +89,8 @@ inline expected<lua_ref> resume_one_ret(lua_State * L, int narg) {
 // The expected<void> is (potentially) the error message.
 // Use `lua_status` to figure out if it was return or yield.
 // This one is noexcept because it does not create any lua_ref's.
-inline expected<void> resume_no_ret(lua_State * L, int narg) noexcept {
+inline expected<void>
+resume_no_ret(lua_State * L, int narg) noexcept {
   expected<void> result;
   detail::resume_call(result, L, narg);
   return result;
@@ -106,7 +110,8 @@ inline expected<void> resume_no_ret(lua_State * L, int narg) noexcept {
 // after running an error handler over it.
 // The expected<lua_ref_seq> is return sequence.
 // Use `lua_status` to figure out if it was return or yield.
-inline expected<lua_ref_seq> resume(lua_State * L, int narg) {
+inline expected<lua_ref_seq>
+resume(lua_State * L, int narg) {
   expected<lua_ref_seq> result;
   detail::resume_call(result, L, narg);
   return result;

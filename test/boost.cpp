@@ -1,20 +1,21 @@
-#include <primer/primer.hpp>
 #include <primer/boost.hpp>
+#include <primer/primer.hpp>
 
 #include "test_harness/test_harness.hpp"
 #include <cassert>
 #include <iostream>
-#include <string>
 #include <set>
+#include <string>
 #include <vector>
 
-#include <boost/version.hpp>
 #include <boost/optional/optional.hpp>
+#include <boost/version.hpp>
 
 /***
  * Test boost::optional
  */
-void test_optional_push() {
+void
+test_optional_push() {
   lua_raii L;
 
   boost::optional<int> b;
@@ -29,7 +30,8 @@ void test_optional_push() {
   TEST_EQ(lua_tonumber(L, 2), *b);
 }
 
-void test_optional_read() {
+void
+test_optional_read() {
   lua_raii L;
 
   {
@@ -64,9 +66,8 @@ void test_optional_read() {
 }
 
 //[ primer_example_maximum_function_defn
-primer::result maximum(lua_State * L,
-                       boost::optional<int> x,
-                       boost::optional<int> y) {
+primer::result
+maximum(lua_State * L, boost::optional<int> x, boost::optional<int> y) {
   if (x) {
     if (y) {
       lua_pushinteger(L, std::max(*x, *y));
@@ -84,7 +85,8 @@ primer::result maximum(lua_State * L,
 }
 //]
 
-void test_optional_example() {
+void
+test_optional_example() {
   lua_raii L;
 
   luaL_requiref(L, "", &luaopen_base, 1);
@@ -163,8 +165,8 @@ namespace boost {
 namespace container {
 
 template <typename T>
-std::ostream & operator<<(std::ostream & o,
-                          const boost::container::vector<T> & s) {
+std::ostream &
+operator<<(std::ostream & o, const boost::container::vector<T> & s) {
   o << "{ ";
   for (const auto & i : s) {
     o << i << ", ";
@@ -182,7 +184,8 @@ namespace {
 template <typename U>
 using T = boost::container::vector<U>;
 
-void test_vector_round_trip() {
+void
+test_vector_round_trip() {
   lua_raii L;
 
   round_trip_value(L, T<int>{}, __LINE__);
@@ -207,17 +210,16 @@ void test_vector_round_trip() {
  * Test optional adapted, bound function, coroutine
  */
 
-primer::result test_func(lua_State * L,
-                         int i,
-                         int j,
-                         boost::optional<std::string> k,
-                         boost::optional<std::string> l) {
+primer::result
+test_func(lua_State * L, int i, int j, boost::optional<std::string> k,
+          boost::optional<std::string> l) {
   if (k && l && (*k != *l)) { return primer::error("Expected equal strings"); }
   lua_pushboolean(L, (i == j));
   return 1;
 }
 
-void test_bound_function() {
+void
+test_bound_function() {
   lua_raii L;
 
   lua_CFunction f1 = PRIMER_ADAPT(&test_func);
@@ -276,7 +278,8 @@ void test_bound_function() {
   }
 }
 
-void test_bound_function_binding() {
+void
+test_bound_function_binding() {
   lua_raii L;
 
   lua_CFunction f1 = PRIMER_ADAPT(&test_func);
@@ -320,9 +323,13 @@ void test_bound_function_binding() {
   CHECK_STACK(L, 0);
 }
 
-int yield_helper(lua_State * L) { return lua_yield(L, 1); }
+int
+yield_helper(lua_State * L) {
+  return lua_yield(L, 1);
+}
 
-void test_coroutine() {
+void
+test_coroutine() {
   lua_raii L;
 
   lua_pushcfunction(L, PRIMER_ADAPT(&yield_helper));
@@ -383,7 +390,8 @@ void test_coroutine() {
 }
 
 //[ primer_example_ref_read_func
-primer::result ref_test_func(lua_State * L, primer::lua_ref ref) {
+primer::result
+ref_test_func(lua_State * L, primer::lua_ref ref) {
   if (!ref) {
     lua_pushstring(L, "nil");
     return 1;
@@ -401,7 +409,8 @@ primer::result ref_test_func(lua_State * L, primer::lua_ref ref) {
 }
 //]
 
-void test_ref_read() {
+void
+test_ref_read() {
   lua_raii L;
 
   luaL_requiref(L, "", luaopen_base, 1);
@@ -428,7 +437,8 @@ void test_ref_read() {
   static_cast<void>(script);
 }
 
-void test_bound_function_mult_ret() {
+void
+test_bound_function_mult_ret() {
   lua_raii L;
 
   const char * script =
@@ -463,7 +473,8 @@ void test_bound_function_mult_ret() {
   }
 }
 
-int main() {
+int
+main() {
   conf::log_conf();
   std::cout << "Boost:\n";
   std::cout << "  BOOST_LIB_VERSION        = " << BOOST_LIB_VERSION << "\n";

@@ -20,7 +20,8 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 
 /// Generate an error message string describing a value at a given position.
-inline const char * describe_lua_value(lua_State * L, int idx) {
+inline const char *
+describe_lua_value(lua_State * L, int idx) {
   return lua_typename(L, lua_type(L, idx));
 }
 

@@ -14,9 +14,9 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/traits/read.hpp>
 #include <primer/expected.hpp>
 #include <primer/support/asserts.hpp>
+#include <primer/traits/read.hpp>
 
 namespace primer {
 
@@ -27,7 +27,8 @@ expected<T> read(lua_State * L, int index);
 
 //[ primer_read_impl
 template <typename T>
-expected<T> read(lua_State * L, int index) {
+expected<T>
+read(lua_State * L, int index) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   return ::primer::traits::read<T>::from_stack(L, index);
   //<-
@@ -43,7 +44,8 @@ constexpr int stack_space_for_read();
 //]
 
 template <typename T>
-constexpr int stack_space_for_read() {
+constexpr int
+stack_space_for_read() {
   return ::primer::traits::read<T>::stack_space_needed;
 }
 

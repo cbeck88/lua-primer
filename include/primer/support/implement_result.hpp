@@ -28,16 +28,16 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/error_capture.hpp>
 #include <primer/lua.hpp>
 #include <primer/result.hpp>
-#include <primer/error_capture.hpp>
 
 namespace primer {
 
 namespace detail {
 
-inline primer::return_or_yield implement_result_step_one(lua_State * L,
-                                                         primer::result r) {
+inline primer::return_or_yield
+implement_result_step_one(lua_State * L, primer::result r) {
   auto & p = r.get_payload();
   if (p) {
     return std::move(*p);
@@ -50,7 +50,8 @@ inline primer::return_or_yield implement_result_step_one(lua_State * L,
   }
 }
 
-inline int implement_result_step_two(lua_State * L, primer::return_or_yield r) {
+inline int
+implement_result_step_two(lua_State * L, primer::return_or_yield r) {
   if (r.is_valid()) {
     if (r.is_return_) {
       return r.n_;

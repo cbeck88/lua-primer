@@ -71,7 +71,8 @@ static constexpr bool primer_no_mem_fail =
 #endif
   ;
 
-static inline void log_conf() {
+static inline void
+log_conf() {
   std::cout << LUA_RELEASE << std::endl;
   std::cout << "  LUA_32BITS               = " << lua_32bits << "\n";
   std::cout << "  LUA_USE_C89              = " << lua_usec89 << "\n";

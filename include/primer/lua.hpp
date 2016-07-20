@@ -16,15 +16,15 @@ PRIMER_ASSERT_FILESCOPE;
 #ifndef PRIMER_LUA_AS_CPP
 
 extern "C" {
-#include <lua.h>
 #include <lauxlib.h>
+#include <lua.h>
 #include <lualib.h>
 }
 
 #else
 
-#include <lua.h>
 #include <lauxlib.h>
+#include <lua.h>
 #include <lualib.h>
 
 #endif

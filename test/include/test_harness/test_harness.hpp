@@ -6,10 +6,10 @@
 #pragma once
 
 #include <primer/base.hpp>
-#include <primer/lua.hpp>
 #include <primer/error.hpp>
 #include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
+#include <primer/lua.hpp>
 #include <primer/push.hpp>
 #include <primer/read.hpp>
 
@@ -34,8 +34,7 @@ struct test_exception : std::exception {
   std::string message_;
 
   explicit test_exception(const std::string & m)
-    : message_(m)
-  {}
+    : message_(m) {}
 
   virtual const char * what() const throw() override {
     return message_.c_str();
@@ -92,7 +91,8 @@ struct test_exception : std::exception {
  * Test types on the stack
  */
 
-inline void test_type(lua_State * L, int idx, int expected, int line) {
+inline void
+test_type(lua_State * L, int idx, int expected, int line) {
   if (lua_type(L, idx) != expected) {
     TEST(false, "Expected '" << lua_typename(L, expected) << "', found '"
                              << lua_typename(L, lua_type(L, idx))
@@ -100,7 +100,8 @@ inline void test_type(lua_State * L, int idx, int expected, int line) {
   }
 }
 
-inline void test_top_type(lua_State * L, int expected, int line) {
+inline void
+test_top_type(lua_State * L, int expected, int line) {
   test_type(L, -1, expected, line);
 }
 
@@ -109,13 +110,14 @@ inline void test_top_type(lua_State * L, int expected, int line) {
  */
 
 template <typename T>
-void round_trip_value(lua_State * L, const T & t, int line) {
+void
+round_trip_value(lua_State * L, const T & t, int line) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
 
   primer::push(L, t);
   auto r = primer::read<T>(L, -1);
-  TEST(r, "Failed to recover when roundtripping a value. line: " +
-            std::to_string(line));
+  TEST(r, "Failed to recover when roundtripping a value. line: "
+            + std::to_string(line));
   TEST_EQ(t, *r);
   lua_pop(L, 1);
 }
@@ -124,7 +126,8 @@ void round_trip_value(lua_State * L, const T & t, int line) {
  * Load a script, and if it cannot be loaded, throw an error.
  */
 
-primer::expected<void> try_load_script(lua_State * L, const char * script) {
+primer::expected<void>
+try_load_script(lua_State * L, const char * script) {
   int code = luaL_loadstring(L, script);
   if (LUA_OK != code) {
     return primer::pop_error(L, code).prepend_error_line(script);
@@ -140,8 +143,7 @@ struct test_harness {
   std::vector<test_record> tests_;
 
   explicit test_harness(std::initializer_list<test_record> list)
-    : tests_(list)
-  {}
+    : tests_(list) {}
 
   int run() const {
     int num_fails = 0;

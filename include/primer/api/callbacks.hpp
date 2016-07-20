@@ -29,8 +29,8 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 
-#include <primer/api/help.hpp>
 #include <primer/api/callback_registrar.hpp>
+#include <primer/api/help.hpp>
 
 #include <primer/detail/span.hpp>
 #include <primer/support/set_funcs.hpp>
@@ -49,16 +49,13 @@ public:
   constexpr explicit callbacks(const detail::span<const luaW_Reg> & _l,
                                T * _owner_ptr)
     : list_(_l)
-    , owner_ptr_(static_cast<void *>(_owner_ptr))
-  {}
+    , owner_ptr_(static_cast<void *>(_owner_ptr)) {}
 
   // This is the ctor you should usually use, when using this
   // with an api_base object
   template <typename T>
   constexpr explicit callbacks(T * _owner_ptr)
-    : callbacks(T::callbacks_array(), _owner_ptr)
-  {}
-
+    : callbacks(T::callbacks_array(), _owner_ptr) {}
 
   //
   // API Feature

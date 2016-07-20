@@ -67,7 +67,8 @@ public:
 /***
  * Implementation for a "free" function, using `primer::result` return type.
  */
-template <typename... Args, primer::result (*target_func)(lua_State * L, Args...)>
+template <typename... Args,
+          primer::result (*target_func)(lua_State * L, Args...)>
 class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
 
   /***
@@ -93,7 +94,8 @@ class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
     // When we don't use exceptions, we can't use "unwrap".
     // This version simulates manually the short-circuiting logic.
     template <typename T>
-    static expected<T> read_helper(lua_State * L, int index, expected<void> & ok) {
+    static expected<T> read_helper(lua_State * L, int index,
+                                   expected<void> & ok) {
       expected<T> result{primer::error{}};
       // Empty error is okay, this only is returned if we are short circuiting
       // This allows NRVO to take place.
@@ -110,8 +112,7 @@ class adapt<primer::result (*)(lua_State * L, Args...), target_func> {
 
     // Before calling the target_func, we need to check the "global" channel
     // for an error. Then, unpack all the `expected` into the function call.
-    static primer::result call_helper(lua_State * L,
-                                      expected<void> & ok,
+    static primer::result call_helper(lua_State * L, expected<void> & ok,
                                       expected<Args>... args) {
       if (!ok) { return std::move(ok.err()); }
       return target_func(L, (*std::move(args))...);
@@ -126,7 +127,8 @@ public:
     // If we don't have enough, then signal an error
     // We are guaranteed at least LUA_MINSTACK by the implementation whenever
     // this function is called by lua.
-    constexpr int estimate = detail::max_int(0, stack_space_for_read<Args>()...);
+    constexpr int estimate =
+      detail::max_int(0, stack_space_for_read<Args>()...);
     if (estimate > LUA_MINSTACK) {
       if (!lua_checkstack(L, estimate)) {
         return luaL_error(L, "not enough stack space, needed %d", estimate);

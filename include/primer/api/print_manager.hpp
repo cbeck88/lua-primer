@@ -95,12 +95,13 @@ public:
     , error_text_call_(+[](void * o, const std::string & str) {
       static_cast<T *>(o)->error_text(str);
     })
-    , clear_input_call_(+[](void * o) { static_cast<T *>(o)->clear_input(); })
-  {}
+    , clear_input_call_(+[](void * o) { static_cast<T *>(o)->clear_input(); }) {
+  }
 };
 
 // Default print and pretty print implementations
-inline std::string default_print_format(lua_State * L) {
+inline std::string
+default_print_format(lua_State * L) {
   std::string buffer;
   int nargs = lua_gettop(L);
   for (int i = 1; i <= nargs; ++i) {
@@ -114,7 +115,8 @@ inline std::string default_print_format(lua_State * L) {
   return buffer;
 }
 
-inline std::string default_pretty_print_format(lua_State * L) {
+inline std::string
+default_pretty_print_format(lua_State * L) {
   if (!lua_gettop(L)) { return ""; }
   lua_settop(L, 1);
 
@@ -132,7 +134,8 @@ inline std::string default_pretty_print_format(lua_State * L) {
 
 // Strip a '[', ']' pair, and at most two subsequent ':' symbols from the middle
 // of string
-inline std::string strip_line_info(const std::string & e) {
+inline std::string
+strip_line_info(const std::string & e) {
   typedef std::string::const_iterator str_it;
 
   for (str_it it = e.begin(); it != e.end(); ++it) {
@@ -159,7 +162,6 @@ inline std::string strip_line_info(const std::string & e) {
 
 } // end namespace detail
 
-
 //[ primer_print_manager_synopsis
 namespace api {
 
@@ -178,7 +180,8 @@ class print_manager {
   // Push a unique object to be our registry key for the "this" void pointer
 
   static int intf_print_impl(lua_State * L) {
-    print_manager * man = detail::registry_helper<print_manager>::obtain_self(L);
+    print_manager * man =
+      detail::registry_helper<print_manager>::obtain_self(L);
     if (man->print_format_) {
       man->new_text(man->print_format_(L));
     } else {
@@ -188,7 +191,8 @@ class print_manager {
   }
 
   static int intf_pretty_print_impl(lua_State * L) {
-    print_manager * man = detail::registry_helper<print_manager>::obtain_self(L);
+    print_manager * man =
+      detail::registry_helper<print_manager>::obtain_self(L);
     if (man->pretty_print_format_) {
       man->new_text(man->pretty_print_format_(L));
     } else {
@@ -287,8 +291,9 @@ public:
 } // end namespace api
 //]
 
-inline void api::print_manager::handle_interpreter_input(
-  lua_State * L, const std::string & text) {
+inline void
+api::print_manager::handle_interpreter_input(lua_State * L,
+                                             const std::string & text) {
   lua_settop(L, 0);
 
   if (!lua_checkstack(L, 2)) {

@@ -13,8 +13,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/traits/userdata.hpp>
 #include <primer/detail/type_traits.hpp>
+#include <primer/traits/userdata.hpp>
 
 #include <type_traits>
 #include <utility>
@@ -29,10 +29,11 @@ template <typename T, typename ENABLE = void>
 struct is_userdata : std::false_type {};
 
 template <typename T>
-struct is_userdata<
-  T,
-  enable_if_t<std::is_same<decltype(primer::traits::userdata<T>::name),
-                           decltype(primer::traits::userdata<T>::name)>::value>>
+struct is_userdata<T, enable_if_t<std::is_same<decltype(primer::traits::
+                                                          userdata<T>::name),
+                                               decltype(
+                                                 primer::traits::userdata<T>::
+                                                   name)>::value>>
   : std::true_type {};
 
 } // end namespace traits

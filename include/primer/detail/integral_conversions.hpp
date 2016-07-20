@@ -14,15 +14,16 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/support/asserts.hpp>
 #include <limits>
+#include <primer/support/asserts.hpp>
 #include <type_traits>
 
 namespace primer {
 namespace detail {
 
 template <typename T>
-T unsigned_to_signed(typename std::make_unsigned<T>::type x) {
+T
+unsigned_to_signed(typename std::make_unsigned<T>::type x) {
   using U = decltype(x);
 
   constexpr T max = std::numeric_limits<T>::max();

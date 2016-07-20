@@ -33,7 +33,6 @@ struct push<std::pair<T, U>> {
   static constexpr int stack_space_needed = 2;
 };
 
-
 template <typename T, typename U>
 struct read<std::pair<T, U>> {
   static expected<std::pair<T, U>> from_stack(lua_State * L, int idx) {

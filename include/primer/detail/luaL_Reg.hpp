@@ -16,8 +16,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/detail/type_traits.hpp>
 #include <primer/detail/span.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <type_traits>
 #include <utility>
 
@@ -31,22 +31,23 @@ namespace detail {
  */
 template <typename T>
 struct has_L_Reg_name
-  : std::is_same<remove_cv_t<remove_reference_t<decltype(std::declval<T>().name)>>,
-                 const char *> {};
+  : std::
+      is_same<remove_cv_t<remove_reference_t<decltype(std::declval<T>().name)>>,
+              const char *> {};
 
 template <typename T>
 struct has_L_Reg_func
-  : std::is_same<remove_cv_t<remove_reference_t<decltype(std::declval<T>().func)>>,
-                 lua_CFunction> {};
+  : std::
+      is_same<remove_cv_t<remove_reference_t<decltype(std::declval<T>().func)>>,
+              lua_CFunction> {};
 
 // Test if a type satisfies L_Reg concept
 template <typename T, typename ENABLE = void>
 struct is_L_Reg_class : std::false_type {};
 
 template <typename T>
-struct is_L_Reg_class<
-  T,
-  enable_if_t<has_L_Reg_name<T>::value && has_L_Reg_func<T>::value>>
+struct is_L_Reg_class<T, enable_if_t<has_L_Reg_name<T>::value
+                                     && has_L_Reg_func<T>::value>>
   : std::true_type {};
 
 // Protect this first guy from non-class types, which seem to cause SFINAE
@@ -88,11 +89,11 @@ struct is_L_Reg_sequence {
 // If it has a "begin" and "end" that look like an L_Reg iterator, then I guess
 // it's a container
 template <typename T>
-struct is_L_Reg_sequence<
-  T,
-  enable_if_t<
-    is_L_Reg<remove_reference_t<decltype(*std::declval<T>().begin())>>::value &&
-    is_L_Reg<remove_reference_t<decltype(*std::declval<T>().end())>>::value>> {
+struct is_L_Reg_sequence<T,
+                         enable_if_t<is_L_Reg<remove_reference_t<decltype(
+                                       *std::declval<T>().begin())>>::value
+                                     && is_L_Reg<remove_reference_t<decltype(
+                                          *std::declval<T>().end())>>::value>> {
   static constexpr bool value = true;
   static constexpr T adapt(T t) { return t; }
 };
@@ -115,7 +116,7 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   // then skip the null terminator check. All code that uses these arrays is
   // required to put a null check for each name and skip null entries anyways.
   template <std::size_t N>
-  static constexpr span_t adapt(T(&arr)[N]) {
+  static constexpr span_t adapt(T (&arr)[N]) {
     return span_t{arr, arr + N};
   }
 };

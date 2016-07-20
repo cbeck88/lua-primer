@@ -184,8 +184,7 @@ inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
 #endif
 
 inline lua_ref::lua_ref(const lua_ref & other)
-  : lua_ref()
-{
+  : lua_ref() {
   if (lua_State * L = other.lock()) {
     if (!lua_checkstack(L, 1)) { PRIMER_COPY_CTOR_FAIL; }
     if (!other.push(L)) { PRIMER_COPY_CTOR_FAIL; }
@@ -200,32 +199,38 @@ inline lua_ref::lua_ref(const lua_ref & other)
 
 inline lua_ref::~lua_ref() noexcept { this->release(); }
 
-inline lua_ref & lua_ref::operator=(const lua_ref & other) {
+inline lua_ref &
+lua_ref::operator=(const lua_ref & other) {
   lua_ref temp{other};
   *this = std::move(temp);
   return *this;
 }
 
-inline lua_ref & lua_ref::operator=(lua_ref && other) noexcept {
+inline lua_ref &
+lua_ref::operator=(lua_ref && other) noexcept {
   this->release();
   this->move(other);
   return *this;
 }
 
-inline void lua_ref::reset() noexcept { this->release(); }
+inline void
+lua_ref::reset() noexcept {
+  this->release();
+}
 
-inline void lua_ref::swap(lua_ref & other) noexcept {
+inline void
+lua_ref::swap(lua_ref & other) noexcept {
   sref_.swap(other.sref_);
   std::swap(iref_, other.iref_);
 }
 
-
-inline lua_State * lua_ref::lock() const noexcept {
+inline lua_State *
+lua_ref::lock() const noexcept {
   return this->check_engaged();
 }
 
-
-inline lua_State * lua_ref::push() const noexcept {
+inline lua_State *
+lua_ref::push() const noexcept {
   if (lua_State * L = this->check_engaged()) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, iref_);
     return L;
@@ -233,8 +238,8 @@ inline lua_State * lua_ref::push() const noexcept {
   return nullptr;
 }
 
-
-inline bool lua_ref::push(lua_State * T) const noexcept {
+inline bool
+lua_ref::push(lua_State * T) const noexcept {
   if (lua_State * L = this->check_engaged()) {
 #ifdef PRIMER_DEBUG
     // This causes a lua_assert failure if states are unrelated
@@ -251,12 +256,13 @@ inline bool lua_ref::push(lua_State * T) const noexcept {
   }
 }
 
-
 inline lua_ref::operator bool() const noexcept {
   return static_cast<bool>(this->check_engaged());
 }
 
-
-inline void swap(lua_ref & one, lua_ref & other) noexcept { one.swap(other); }
+inline void
+swap(lua_ref & one, lua_ref & other) noexcept {
+  one.swap(other);
+}
 
 } // end namespace primer

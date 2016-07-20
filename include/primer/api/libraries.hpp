@@ -127,7 +127,6 @@ class libraries {
     lua_pop(L, 1);                            // [target]
   }
 
-
 public:
   void on_init(lua_State * L) {
     int dummy[] = {(load_lib_globally<Ts>(L), 0)..., 0};
@@ -145,24 +144,16 @@ public:
   }
 };
 
-using basic_libraries =
-  libraries<lua_base_lib_sandboxed, lua_table_lib, lua_math_lib, lua_string_lib>;
+using basic_libraries = libraries<lua_base_lib_sandboxed, lua_table_lib,
+                                  lua_math_lib, lua_string_lib>;
 
-using all_core_libraries = libraries<lua_base_lib,
-                                     lua_table_lib,
-                                     lua_math_lib,
-                                     lua_string_lib,
-                                     lua_coroutine_lib,
-                                     lua_io_lib,
-                                     lua_os_lib,
-                                     lua_debug_lib>;
+using all_core_libraries =
+  libraries<lua_base_lib, lua_table_lib, lua_math_lib, lua_string_lib,
+            lua_coroutine_lib, lua_io_lib, lua_os_lib, lua_debug_lib>;
 
-using sandboxed_basic_libraries = libraries<lua_base_lib_sandboxed,
-                                            lua_table_lib,
-                                            lua_math_lib_sandboxed,
-                                            lua_string_lib,
-                                            lua_coroutine_lib>;
-
+using sandboxed_basic_libraries =
+  libraries<lua_base_lib_sandboxed, lua_table_lib, lua_math_lib_sandboxed,
+            lua_string_lib, lua_coroutine_lib>;
 
 } // end namespace api
 } // end namespace primer

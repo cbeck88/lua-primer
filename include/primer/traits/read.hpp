@@ -13,17 +13,17 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/primer_fwd.hpp>
 #include <primer/lua.hpp>
+#include <primer/primer_fwd.hpp>
 
+#include <primer/detail/is_userdata.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/error.hpp>
 #include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
-#include <primer/userdata.hpp>
-#include <primer/detail/is_userdata.hpp>
-#include <primer/detail/type_traits.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/types.hpp>
+#include <primer/userdata.hpp>
 
 #include <limits>
 #include <string>
@@ -92,8 +92,8 @@ struct signed_read_helper<T, enable_if_t<sizeof(T) < sizeof(LUA_INTEGER)>> {
   static expected<T> from_stack(lua_State * L, int idx) {
     if (lua_isinteger(L, idx)) {
       LUA_INTEGER i = lua_tointeger(L, idx);
-      if (i > std::numeric_limits<T>::max() ||
-          i < std::numeric_limits<T>::min()) {
+      if (i > std::numeric_limits<T>::max()
+          || i < std::numeric_limits<T>::min()) {
         return primer::error::integer_overflow(i);
       }
       return static_cast<T>(i);
@@ -126,25 +126,22 @@ struct unsigned_read_helper {
 // of full-specializations,
 // so that the user is free to supply full specializations.
 template <typename T>
-struct read<T,
-            enable_if_t<std::is_same<T, int>::value ||  //
-                        std::is_same<T, long>::value || //
-                        std::is_same<T, long long>::value>>
+struct read<T, enable_if_t<std::is_same<T, int>::value ||  //
+                           std::is_same<T, long>::value || //
+                           std::is_same<T, long long>::value>>
   : signed_read_helper<T> {};
 
 template <typename T>
-struct read<T,
-            enable_if_t<std::is_same<T, unsigned int>::value ||  //
-                        std::is_same<T, unsigned long>::value || //
-                        std::is_same<T, unsigned long long>::value>>
+struct read<T, enable_if_t<std::is_same<T, unsigned int>::value ||  //
+                           std::is_same<T, unsigned long>::value || //
+                           std::is_same<T, unsigned long long>::value>>
   : unsigned_read_helper<typename std::make_signed<T>::type> {};
 
 // Floating point types
 template <typename T>
-struct read<T,
-            enable_if_t<std::is_same<T, float>::value ||  //
-                        std::is_same<T, double>::value || //
-                        std::is_same<T, long double>::value>> {
+struct read<T, enable_if_t<std::is_same<T, float>::value ||  //
+                           std::is_same<T, double>::value || //
+                           std::is_same<T, long double>::value>> {
   static expected<T> from_stack(lua_State * L, int idx) {
     expected<T> result;
 
@@ -158,7 +155,6 @@ struct read<T,
   }
   static constexpr int stack_space_needed{0};
 };
-
 
 // Userdata
 template <typename T>

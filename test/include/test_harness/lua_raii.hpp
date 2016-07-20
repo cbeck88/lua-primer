@@ -14,8 +14,7 @@ struct lua_raii {
   lua_State * const L_;
 
   lua_raii()
-    : L_(luaL_newstate())
-  {
+    : L_(luaL_newstate()) {
     // std::cerr << "opened state: L = " << L_ << std::endl;
     luaL_checkversion(L_);
   }

@@ -18,8 +18,8 @@
 #include <primer/api/extraspace_dispatch.hpp>
 
 #include <primer/detail/rank.hpp>
-#include <primer/detail/typelist.hpp>
 #include <primer/detail/span.hpp>
+#include <primer/detail/typelist.hpp>
 
 #include <array>
 
@@ -40,7 +40,8 @@ struct luaW_Reg {
  * luaW_RegType:
  * A compile-time version of luaW_Reg
  */
-template <const char * (*name)(), const char * (*help)(), lua_CFunction (*func)()>
+template <const char * (*name)(), const char * (*help)(),
+          lua_CFunction (*func)()>
 struct luaW_RegType {
   static constexpr luaW_Reg get() { return {name(), func(), help()}; }
 };
@@ -111,13 +112,13 @@ public:
   static constexpr lua_CFunction lua_get_fcn_ptr_##name() {                    \
     return PRIMER_ADAPT_EXTRASPACE(owner_type, fcn);                           \
   }                                                                            \
-  static inline primer::detail::Append_t<                                      \
-    GET_CALLBACKS, primer::luaW_RegType<&owner_type::lua_callback_name_##name, \
-                                        &owner_type::lua_callback_help_##name, \
-                                        &owner_type::lua_get_fcn_ptr_##name>>  \
-    GetCallbacks(primer::detail::Rank<GET_CALLBACKS::size + 1>);               \
+  static inline primer::detail::                                               \
+    Append_t<GET_CALLBACKS,                                                    \
+             primer::luaW_RegType<&owner_type::lua_callback_name_##name,       \
+                                  &owner_type::lua_callback_help_##name,       \
+                                  &owner_type::lua_get_fcn_ptr_##name>>        \
+      GetCallbacks(primer::detail::Rank<GET_CALLBACKS::size + 1>);             \
   static_assert(true, "")
-
 
 /***
  * Declare & define inline a new lua callback. Uses trailing return.

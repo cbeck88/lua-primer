@@ -15,16 +15,16 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/lua.hpp>
 #include <primer/error_handler.hpp>
+#include <primer/lua.hpp>
 #include <primer/push_singleton.hpp>
 #include <primer/support/lua_state_ref.hpp>
-
 
 namespace primer {
 namespace api {
 
-inline void init_caches(lua_State * L) {
+inline void
+init_caches(lua_State * L) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
 
   // Initialize some cached objects. If these can't be created later in a low

@@ -60,10 +60,10 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/detail/type_traits.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
-#include <primer/detail/type_traits.hpp>
 
 #include <type_traits>
 
@@ -76,30 +76,29 @@ template <typename T, typename ENABLE = void>
 struct has_on_init_method : std::false_type {};
 
 template <typename T>
-struct has_on_init_method<T,
-                          decltype(static_cast<T *>(nullptr)->on_init(
-                                     static_cast<lua_State *>(nullptr)),
-                                   void())> : std::true_type {};
+struct has_on_init_method<T, decltype(static_cast<T *>(nullptr)->on_init(
+                                        static_cast<lua_State *>(nullptr)),
+                                      void())> : std::true_type {};
 
 template <typename T, typename ENABLE = void>
 struct has_on_persist_table_method : std::false_type {};
 
 template <typename T>
-struct has_on_persist_table_method<
-  T,
-  decltype(static_cast<T *>(nullptr)
-             ->on_persist_table(static_cast<lua_State *>(nullptr)),
-           void())> : std::true_type {};
+struct has_on_persist_table_method<T, decltype(
+                                        static_cast<T *>(nullptr)
+                                          ->on_persist_table(
+                                            static_cast<lua_State *>(nullptr)),
+                                        void())> : std::true_type {};
 
 template <typename T, typename ENABLE = void>
 struct has_on_unpersist_table_method : std::false_type {};
 
 template <typename T>
-struct has_on_unpersist_table_method<
-  T,
-  decltype(static_cast<T *>(nullptr)
-             ->on_unpersist_table(static_cast<lua_State *>(nullptr)),
-           void())> : std::true_type {};
+struct has_on_unpersist_table_method<T, decltype(static_cast<T *>(nullptr)
+                                                   ->on_unpersist_table(
+                                                     static_cast<lua_State *>(
+                                                       nullptr)),
+                                                 void())> : std::true_type {};
 
 // Trait which validates that a type is an API feature
 
@@ -107,33 +106,31 @@ template <typename T, typename ENABLE = void>
 struct is_feature : std::false_type {};
 
 template <typename T>
-struct is_feature<T,
-                  decltype(static_cast<T *>(nullptr)
-                             ->on_init(static_cast<lua_State *>(nullptr)),
-                           static_cast<T *>(nullptr)->on_persist_table(
-                             static_cast<lua_State *>(nullptr)),
-                           static_cast<T *>(nullptr)->on_unpersist_table(
-                             static_cast<lua_State *>(nullptr)),
-                           void())> : std::true_type {};
+struct is_feature<T, decltype(static_cast<T *>(nullptr)->on_init(
+                                static_cast<lua_State *>(nullptr)),
+                              static_cast<T *>(nullptr)->on_persist_table(
+                                static_cast<lua_State *>(nullptr)),
+                              static_cast<T *>(nullptr)->on_unpersist_table(
+                                static_cast<lua_State *>(nullptr)),
+                              void())> : std::true_type {};
 
 // Trait which validates that a type is a serial feature
 template <typename T, typename ENABLE = void>
 struct is_serial_feature : std::false_type {};
 
 template <typename T>
-struct is_serial_feature<
-  T,
-  decltype(static_cast<T *>(nullptr)->on_init(static_cast<lua_State *>(nullptr)),
-           static_cast<T *>(nullptr)
-             ->on_persist_table(static_cast<lua_State *>(nullptr)),
-           static_cast<T *>(nullptr)
-             ->on_unpersist_table(static_cast<lua_State *>(nullptr)),
-           static_cast<T *>(nullptr)
-             ->on_serialize(static_cast<lua_State *>(nullptr)),
-           static_cast<T *>(nullptr)
-             ->on_deserialize(static_cast<lua_State *>(nullptr)),
-           void())> : std::true_type {};
-
+struct is_serial_feature<T,
+                         decltype(static_cast<T *>(nullptr)->on_init(
+                                    static_cast<lua_State *>(nullptr)),
+                                  static_cast<T *>(nullptr)->on_persist_table(
+                                    static_cast<lua_State *>(nullptr)),
+                                  static_cast<T *>(nullptr)->on_unpersist_table(
+                                    static_cast<lua_State *>(nullptr)),
+                                  static_cast<T *>(nullptr)->on_serialize(
+                                    static_cast<lua_State *>(nullptr)),
+                                  static_cast<T *>(nullptr)->on_deserialize(
+                                    static_cast<lua_State *>(nullptr)),
+                                  void())> : std::true_type {};
 
 // Ptr to member type, for use in type lists
 
@@ -184,7 +181,8 @@ struct on_serialize_visitor {
   lua_State * L;
 
   template <typename H, typename T>
-  enable_if_t<is_serial_feature<typename H::target_type>::value> visit_type(T & t) {
+  enable_if_t<is_serial_feature<typename H::target_type>::value> visit_type(
+    T & t) {
     PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     H::get_target(t).on_serialize(L);
@@ -192,8 +190,8 @@ struct on_serialize_visitor {
   }
 
   template <typename H, typename T>
-  enable_if_t<is_feature<typename H::target_type>::value &&
-              !is_serial_feature<typename H::target_type>::value>
+  enable_if_t<is_feature<typename H::target_type>::value
+              && !is_serial_feature<typename H::target_type>::value>
   visit_type(T &) {}
 };
 
@@ -201,7 +199,8 @@ struct on_deserialize_visitor {
   lua_State * L;
 
   template <typename H, typename T>
-  enable_if_t<is_serial_feature<typename H::target_type>::value> visit_type(T & t) {
+  enable_if_t<is_serial_feature<typename H::target_type>::value> visit_type(
+    T & t) {
     PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
     lua_getfield(L, -1, H::get_name());
@@ -209,8 +208,8 @@ struct on_deserialize_visitor {
   }
 
   template <typename H, typename T>
-  enable_if_t<is_feature<typename H::target_type>::value &&
-              !is_serial_feature<typename H::target_type>::value>
+  enable_if_t<is_feature<typename H::target_type>::value
+              && !is_serial_feature<typename H::target_type>::value>
   visit_type(T &) {}
 };
 

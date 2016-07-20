@@ -22,7 +22,8 @@ namespace primer {
 
 // Fetches or initializes the metatable, leaves it on the stack.
 template <typename T>
-void push_metatable(lua_State * L) {
+void
+push_metatable(lua_State * L) {
   if (luaL_newmetatable(L, primer::traits::userdata<T>::name)) {
     primer::detail::metatable<T>::populate(L);
   }
@@ -30,7 +31,8 @@ void push_metatable(lua_State * L) {
 
 // Calls the above, but pops result from the stack
 template <typename T>
-void init_metatable(lua_State * L) {
+void
+init_metatable(lua_State * L) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   primer::push_metatable<T>(L);
   lua_pop(L, 1);
@@ -39,7 +41,8 @@ void init_metatable(lua_State * L) {
 // Sanity check: Validate that primer can see the metatable of your userdata
 // type
 template <typename T>
-constexpr bool has_metatable() {
+constexpr bool
+has_metatable() {
   return primer::detail::metatable<T>::value;
 }
 

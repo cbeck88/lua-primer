@@ -57,7 +57,8 @@ struct read<lua_ref> {
 } // end namespace traits
 
 template <typename T>
-expected<T> lua_ref::as() const noexcept {
+expected<T>
+lua_ref::as() const noexcept {
   expected<T> result{primer::error::cant_lock_vm()};
 
   if (lua_State * L = this->lock()) {

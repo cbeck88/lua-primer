@@ -79,7 +79,6 @@ public:
   // Check validity
   explicit operator bool() const noexcept { return this->lock(); }
 
-
   // Obtain a weak ref to the given lua state.
   // This works by installing a strong ref at a special registry key.
   // If the strong ref is not found, it is lazily created.
@@ -137,7 +136,8 @@ private:
   static int strong_ptr_gc(lua_State * L) {
     PRIMER_ASSERT(lua_isuserdata(L, 1),
                   "strong_ptr_gc called with argument that is not userdata");
-    strong_ptr_type * ptr = static_cast<strong_ptr_type *>(lua_touserdata(L, 1));
+    strong_ptr_type * ptr =
+      static_cast<strong_ptr_type *>(lua_touserdata(L, 1));
     ptr->~strong_ptr_type();
     lua_pushnil(L);
     lua_setmetatable(L, -2);
@@ -156,17 +156,20 @@ private:
   }
 };
 
-inline void swap(lua_state_ref & one, lua_state_ref & other) noexcept {
+inline void
+swap(lua_state_ref & one, lua_state_ref & other) noexcept {
   one.swap(other);
 }
 
 // Forward facing interface
 
-inline lua_state_ref obtain_state_ref(lua_State * L) noexcept {
+inline lua_state_ref
+obtain_state_ref(lua_State * L) noexcept {
   return lua_state_ref::obtain_weak_ref_to_state(L);
 }
 
-inline void close_state_refs(lua_State * L) noexcept {
+inline void
+close_state_refs(lua_State * L) noexcept {
   lua_state_ref::close_weak_refs_to_state(L);
 }
 

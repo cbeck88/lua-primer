@@ -9,7 +9,8 @@ namespace {
 //[ primer_expected_example
 using primer::expected;
 
-expected<std::string> foo(expected<int> e) {
+expected<std::string>
+foo(expected<int> e) {
   if (e) {
     if (*e >= 7) {
       return std::string{"woof!"};
@@ -21,7 +22,8 @@ expected<std::string> foo(expected<int> e) {
   }
 }
 
-void test_primer_expected() {
+void
+test_primer_expected() {
   auto result = foo(6);
   assert(!result);
 
@@ -40,7 +42,8 @@ void test_primer_expected() {
 } // end anonymous namespace
 
 template <typename T>
-void test_push_type(lua_State * L, T t, int expected, int line) {
+void
+test_push_type(lua_State * L, T t, int expected, int line) {
   CHECK_STACK(L, 0);
   primer::push(L, t);
   CHECK_STACK(L, 1);
@@ -48,7 +51,8 @@ void test_push_type(lua_State * L, T t, int expected, int line) {
   lua_pop(L, 1);
 }
 
-void push_type_simple() {
+void
+push_type_simple() {
   lua_raii L;
 
   test_push_type<int>(L, 1, LUA_TNUMBER, __LINE__);
@@ -63,7 +67,8 @@ void push_type_simple() {
   test_push_type<bool>(L, false, LUA_TBOOLEAN, __LINE__);
 }
 
-void test_truthy(lua_State * L, bool expected, int line) {
+void
+test_truthy(lua_State * L, bool expected, int line) {
   CHECK_STACK(L, 1);
   auto result = primer::read<primer::truthy>(L, 1);
   TEST_EXPECTED(result);
@@ -72,7 +77,8 @@ void test_truthy(lua_State * L, bool expected, int line) {
   lua_pop(L, 1);
 }
 
-void test_read_truthy() {
+void
+test_read_truthy() {
   lua_raii L;
 
   {
@@ -96,7 +102,8 @@ void test_read_truthy() {
   }
 }
 
-void test_stringy(lua_State * L, std::string expected, int line) {
+void
+test_stringy(lua_State * L, std::string expected, int line) {
   CHECK_STACK(L, 1);
   auto result = primer::read<primer::stringy>(L, 1);
   TEST_EXPECTED(result);
@@ -105,7 +112,8 @@ void test_stringy(lua_State * L, std::string expected, int line) {
   lua_pop(L, 1);
 }
 
-void test_not_stringy(lua_State * L, int line) {
+void
+test_not_stringy(lua_State * L, int line) {
   CHECK_STACK(L, 1);
   auto result = primer::read<primer::stringy>(L, 1);
   TEST(!result, "Expected failure, found '" << result->value
@@ -113,12 +121,14 @@ void test_not_stringy(lua_State * L, int line) {
   lua_pop(L, 1);
 }
 
-int dummy_to_string_method(lua_State * L) {
+int
+dummy_to_string_method(lua_State * L) {
   lua_pushstring(L, "asdf");
   return 1;
 }
 
-void test_read_stringy() {
+void
+test_read_stringy() {
   lua_raii L;
 
   {
@@ -155,7 +165,8 @@ void test_read_stringy() {
 }
 
 template <typename T>
-void test_roundtrip_value(lua_State * L, T t, int line) {
+void
+test_roundtrip_value(lua_State * L, T t, int line) {
   CHECK_STACK(L, 0);
 
   primer::push(L, t);
@@ -172,7 +183,8 @@ void test_roundtrip_value(lua_State * L, T t, int line) {
   lua_pop(L, 1);
 }
 
-void roundtrip_simple() {
+void
+roundtrip_simple() {
   lua_raii L;
 
   test_roundtrip_value<int>(L, 1, __LINE__);
@@ -201,7 +213,8 @@ void roundtrip_simple() {
 }
 
 template <typename U, typename T>
-void test_type_safety(lua_State * L, T t, int line) {
+void
+test_type_safety(lua_State * L, T t, int line) {
   CHECK_STACK(L, 0);
 
   primer::push(L, t);
@@ -211,16 +224,16 @@ void test_type_safety(lua_State * L, T t, int line) {
   auto r = primer::read<U>(L, 1);
 
   if (r) {
-    throw test_exception{
-      "Unexpected conversion was permitted by primer: line " +
-      std::to_string(line)};
+    throw test_exception{"Unexpected conversion was permitted by primer: line "
+                         + std::to_string(line)};
   }
 
   CHECK_STACK(L, 1);
   lua_pop(L, 1);
 }
 
-void typesafe_simple() {
+void
+typesafe_simple() {
   lua_raii L;
 
   test_type_safety<std::string>(L, int{1}, __LINE__);
@@ -243,7 +256,8 @@ int test_result_one;
 float test_result_two;
 std::string test_result_three;
 
-primer::result test_func_one(lua_State * L, int i, float d, std::string s) {
+primer::result
+test_func_one(lua_State * L, int i, float d, std::string s) {
   test_result_one = i;
   test_result_two = d;
   test_result_three = s;
@@ -252,7 +266,8 @@ primer::result test_func_one(lua_State * L, int i, float d, std::string s) {
 }
 } // end anonymous namespace
 
-void primer_adapt_test_one() {
+void
+primer_adapt_test_one() {
   lua_raii L;
 
   lua_CFunction func = PRIMER_ADAPT(&test_func_one);
@@ -333,10 +348,14 @@ void primer_adapt_test_one() {
 
 namespace {
 
-primer::result test_func_two(lua_State *) { return primer::error("foo"); }
+primer::result
+test_func_two(lua_State *) {
+  return primer::error("foo");
+}
 }
 
-void primer_adapt_test_two() {
+void
+primer_adapt_test_two() {
   lua_raii L;
 
   lua_CFunction func = PRIMER_ADAPT(&test_func_two);
@@ -372,7 +391,8 @@ void primer_adapt_test_two() {
 
 namespace {
 
-primer::result test_func_three(lua_State * L, int i, int j, bool b) {
+primer::result
+test_func_three(lua_State * L, int i, int j, bool b) {
   if (i != 5) {
     primer::push(L, i);
     return 1;
@@ -394,7 +414,8 @@ primer::result test_func_three(lua_State * L, int i, int j, bool b) {
 
 } // end anonymous namespace
 
-void primer_adapt_test_three() {
+void
+primer_adapt_test_three() {
   lua_raii L;
 
   lua_CFunction func = PRIMER_ADAPT(&test_func_three);
@@ -485,7 +506,8 @@ void primer_adapt_test_three() {
 #define WEAK_REF_TEST(X)                                                       \
   TEST(X, "Unexpected value for lua_state_ref. line: " << __LINE__)
 
-void lua_state_ref_validity() {
+void
+lua_state_ref_validity() {
   using primer::lua_state_ref;
 
   lua_state_ref r;
@@ -574,7 +596,8 @@ void lua_state_ref_validity() {
   WEAK_REF_TEST(!t);
 }
 
-void primer_ref_test() {
+void
+primer_ref_test() {
   lua_raii L;
 
   {
@@ -669,7 +692,6 @@ void primer_ref_test() {
   TEST_EQ(std::string{"asdf"}, lua_tostring(L, -1));
   lua_pop(L, 1);
 
-
   // Close all refs
   primer::close_state_refs(L);
   TEST(!foo, "Expected all refs to be closed now!");
@@ -677,7 +699,8 @@ void primer_ref_test() {
   TEST(!baz, "Expected all refs to be closed now!");
 }
 
-void primer_ref_examples() {
+void
+primer_ref_examples() {
   //[ primer_example_ref
   lua_State * L = luaL_newstate();
 
@@ -711,13 +734,15 @@ void primer_ref_examples() {
   //]
 }
 
-primer::result test_func_four(lua_State * L, int i, int j) {
+primer::result
+test_func_four(lua_State * L, int i, int j) {
   lua_pushinteger(L, i + j);
   lua_pushinteger(L, i - j);
   return 2;
 }
 
-void primer_call_test() {
+void
+primer_call_test() {
   lua_raii L;
 
   lua_CFunction f1 = PRIMER_ADAPT(&test_func_one);
@@ -787,7 +812,8 @@ void primer_call_test() {
   CHECK_STACK(L, 0);
 }
 
-void primer_resume_test() {
+void
+primer_resume_test() {
   lua_raii L;
 
   using primer::expected;
@@ -903,8 +929,8 @@ struct push<vec2i> {
 
 //]
 
-
-void test_vec2i_push() {
+void
+test_vec2i_push() {
   lua_raii L;
 
   luaL_requiref(L, "", &luaopen_base, 1);
@@ -924,7 +950,6 @@ void test_vec2i_push() {
   assert(LUA_OK == lua_pcall(L, 1, 0, 0));
   //]
 }
-
 
 //[ primer_example_vec2i_read_trait
 //`Primer could be taught to read `vec2i` objects, represented in lua
@@ -999,8 +1024,8 @@ context to errors reported by subsidiary operations.
 */
 //]
 
-
-void test_vec2i_read() {
+void
+test_vec2i_read() {
   lua_raii L;
 
   //[ primer_example_vec2i_read_test
@@ -1017,8 +1042,8 @@ void test_vec2i_read() {
   //]
 }
 
-
-void test_coroutine() {
+void
+test_coroutine() {
   lua_raii L;
 
   luaL_requiref(L, "", luaopen_base, 1);
@@ -1128,14 +1153,19 @@ void test_coroutine() {
 }
 
 // Test coroutine with lua_ref_seq interface
-primer::result yielder(lua_State *) { return primer::yield{0}; }
+primer::result
+yielder(lua_State *) {
+  return primer::yield{0};
+}
 
-primer::result returner(lua_State * L) {
+primer::result
+returner(lua_State * L) {
   lua_pushinteger(L, 7);
   return 1;
 }
 
-void test_coroutine_two() {
+void
+test_coroutine_two() {
   lua_raii L;
 
   lua_pushcfunction(L, PRIMER_ADAPT(&yielder));
@@ -1172,7 +1202,8 @@ void test_coroutine_two() {
 
 // This test catches a subtle issue regarding whether or not cpp_pcall
 // messes up the stack when it returns.
-void test_cpp_pcall_returns() {
+void
+test_cpp_pcall_returns() {
   lua_raii L;
 
   lua_pushinteger(L, 2);
@@ -1209,8 +1240,7 @@ struct my_int {
 
 struct raise_lua_error : std::runtime_error {
   raise_lua_error(const std::string & str)
-    : std::runtime_error(str)
-  {}
+    : std::runtime_error(str) {}
 };
 
 namespace primer {
@@ -1233,7 +1263,8 @@ public:
 //]
 
 //[ primer_raise_lua_error_test
-my_int reverse_palindrome(lua_State * L, std::string p) {
+my_int
+reverse_palindrome(lua_State * L, std::string p) {
   auto it = p.begin();
   auto it2 = p.end() - 1;
 
@@ -1255,7 +1286,8 @@ my_int reverse_palindrome(lua_State * L, std::string p) {
   return {1};
 }
 
-void test_adapt_example() {
+void
+test_adapt_example() {
   lua_raii L;
 
   lua_CFunction f = PRIMER_ADAPT(&reverse_palindrome);
@@ -1278,7 +1310,8 @@ void test_adapt_example() {
 }
 //]
 
-int main() {
+int
+main() {
   conf::log_conf();
 
   std::cout << "Core tests:" << std::endl;

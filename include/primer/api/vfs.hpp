@@ -61,7 +61,6 @@ class vfs {
 protected:
   // Implementations
 
-
   static primer::result intf_loadfile(lua_State * L, std::string path) {
     if (auto ok = recover_this(L)->load(L, path)) {
       return 1;

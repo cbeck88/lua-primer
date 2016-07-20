@@ -30,29 +30,24 @@ class span {
 public:
   constexpr span()
     : begin_(nullptr)
-    , end_(nullptr)
-  {}
+    , end_(nullptr) {}
 
   explicit constexpr span(T * b, T * e)
     : begin_(b)
-    , end_(e)
-  {}
+    , end_(e) {}
   explicit constexpr span(T * b, std::size_t n)
     : begin_(b)
-    , end_(b + n)
-  {}
+    , end_(b + n) {}
 
   template <std::size_t N>
-  constexpr span(T(&a)[N])
+  constexpr span(T (&a)[N])
     : begin_(a)
-    , end_(begin_ + N)
-  {}
+    , end_(begin_ + N) {}
 
   template <std::size_t N>
   constexpr span(std::array<T, N> & a)
     : begin_(a.data())
-    , end_(a.data() + a.size())
-  {}
+    , end_(a.data() + a.size()) {}
 
   // Accessors
 

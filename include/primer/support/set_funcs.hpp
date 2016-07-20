@@ -27,7 +27,8 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 
 template <typename T>
-void set_funcs(lua_State * L, T && seq) {
+void
+set_funcs(lua_State * L, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
@@ -40,7 +41,8 @@ void set_funcs(lua_State * L, T && seq) {
 }
 
 template <typename T>
-void set_funcs_reverse(lua_State * L, T && seq) {
+void
+set_funcs_reverse(lua_State * L, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 

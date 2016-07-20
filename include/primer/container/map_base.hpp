@@ -15,14 +15,14 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/detail/max_int.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/error_capture.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/detail/max_int.hpp>
-#include <primer/detail/type_traits.hpp>
 
 #include <utility>
 

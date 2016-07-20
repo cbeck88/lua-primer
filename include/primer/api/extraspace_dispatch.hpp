@@ -14,8 +14,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/lua.hpp>
 #include <primer/adapt.hpp>
+#include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 
 namespace primer {
@@ -32,7 +32,8 @@ namespace primer {
 namespace detail {
 using void_ptr = void *;
 
-inline void_ptr & access_extraspace_ptr(lua_State * L) {
+inline void_ptr &
+access_extraspace_ptr(lua_State * L) {
   return *static_cast<void_ptr *>(lua_getextraspace(L));
 }
 } // end namespace detail
@@ -58,9 +59,7 @@ struct extraspace_dispatcher : public adapt<F, f> {};
  * Specialize for a member function
  */
 
-template <typename T,
-          typename R,
-          typename... Args,
+template <typename T, typename R, typename... Args,
           R (T::*target_func)(lua_State *, Args...)>
 struct extraspace_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
 

@@ -37,7 +37,6 @@ namespace primer {
 
 //->
 
-
 //<-
 // clang-format off
 //->
@@ -69,7 +68,6 @@ class error {
 
     using string_t = std::string;
 
-
     string_t str_;
     state state_;
 
@@ -80,12 +78,10 @@ class error {
       str_ = std::move(t);
     }
 
-
   public:
     impl()
       : str_()
-      , state_(state::uninitialized)
-    {}
+      , state_(state::uninitialized) {}
     impl(impl && other) = default;
     impl(const impl & other) = default;
     impl & operator=(impl && other) = default;
@@ -104,10 +100,13 @@ class error {
     };
 
     template <typename T, typename = decltype(T::value)>
-    explicit impl(T) noexcept : str_(), state_(T::value) {}
+    explicit impl(T) noexcept
+      : str_()
+      , state_(T::value) {}
 
     // Construct from string
-    explicit impl(std::string s) noexcept : impl() {
+    explicit impl(std::string s) noexcept
+      : impl() {
       this->initialize_string(std::move(s));
     }
 
@@ -141,8 +140,7 @@ class error {
   impl msg_;
 
   explicit error(impl m)
-    : msg_(std::move(m))
-  {}
+    : msg_(std::move(m)) {}
 
   //->
 public:
@@ -204,32 +202,39 @@ public:
 //]
 
 template <typename T>
-inline error error::integer_overflow(const T & t) noexcept {
+inline error
+error::integer_overflow(const T & t) noexcept {
   return error("Integer overflow occurred: ", t);
 }
 
 template <typename T>
-inline error error::unexpected_value(const char * expected, T && t) noexcept {
+inline error
+error::unexpected_value(const char * expected, T && t) noexcept {
   return error("Expected ", expected, " found: '", std::forward<T>(t), "'");
 }
 
-inline error error::insufficient_stack_space(int n) noexcept {
+inline error
+error::insufficient_stack_space(int n) noexcept {
   return error("Insufficient stack space: needed ", n);
 }
 
-inline error error::module_not_found(const std::string & str) noexcept {
+inline error
+error::module_not_found(const std::string & str) noexcept {
   return error("module '", str, "' not found");
 }
 
-inline error error::bad_alloc() noexcept {
+inline error
+error::bad_alloc() noexcept {
   return error{impl{impl::bad_alloc_tag{}}};
 }
 
-inline error error::expired_coroutine() noexcept {
+inline error
+error::expired_coroutine() noexcept {
   return error{impl{impl::invalid_coroutine_tag{}}};
 }
 
-inline error error::cant_lock_vm() noexcept {
+inline error
+error::cant_lock_vm() noexcept {
   return error{impl{impl::cant_lock_vm_tag{}}};
 }
 
@@ -242,7 +247,8 @@ inline error::error(Args &&... args) noexcept {
 }
 
 template <typename... Args>
-inline error & error::prepend_error_line(Args &&... args) noexcept {
+inline error &
+error::prepend_error_line(Args &&... args) noexcept {
   PRIMER_TRY_BAD_ALLOC {
     msg_.str() =
       primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_.str();
@@ -255,7 +261,10 @@ inline error & error::prepend_error_line(Args &&... args) noexcept {
   return *this;
 }
 
-inline const char * error::what() const noexcept { return msg_.c_str(); }
+inline const char *
+error::what() const noexcept {
+  return msg_.c_str();
+}
 
 } // end namespace primer
 

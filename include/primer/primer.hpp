@@ -31,7 +31,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/userdata.hpp>
 #include <primer/userdata_dispatch.hpp>
 
-#include <primer/container/optional_base.hpp>
 #include <primer/container/map_base.hpp>
+#include <primer/container/optional_base.hpp>
 #include <primer/container/seq_base.hpp>
 #include <primer/container/set_base.hpp>

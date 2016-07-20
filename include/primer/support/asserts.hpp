@@ -37,9 +37,9 @@ PRIMER_ASSERT_FILESCOPE;
 
 #else // PRIMER_DEBUG
 
-#include <primer/lua.hpp>
 #include <cstdlib>
 #include <iostream>
+#include <primer/lua.hpp>
 #include <sstream>
 #include <string>
 
@@ -47,7 +47,8 @@ namespace primer {
 
 // Assertions
 
-inline void fatal_error(const std::string & message) {
+inline void
+fatal_error(const std::string & message) {
   std::cerr << message << std::endl;
   std::abort();
 }
@@ -59,7 +60,6 @@ inline void fatal_error(const std::string & message) {
     ::primer::fatal_error(ss.str());                                           \
   } while (0)
 
-
 #define PRIMER_ASSERT(C, X)                                                    \
   do {                                                                         \
     if (!(C)) {                                                                \
@@ -68,7 +68,6 @@ inline void fatal_error(const std::string & message) {
       ::primer::fatal_error(ss.str());                                         \
     }                                                                          \
   } while (0)
-
 
 // Help to catch lua stack discipline problems
 
@@ -79,12 +78,12 @@ class stack_neutrality_assertion {
   int top_;
 
 public:
-  explicit stack_neutrality_assertion(lua_State * L, const char * file, int line)
+  explicit stack_neutrality_assertion(lua_State * L, const char * file,
+                                      int line)
     : L_(L)
     , file_(file)
     , line_(line)
-    , top_(lua_gettop(L))
-  {}
+    , top_(lua_gettop(L)) {}
 
   ~stack_neutrality_assertion() {
     int end = lua_gettop(L_);
@@ -107,9 +106,11 @@ public:
               << std::endl;                                                    \
   } while (0)
 
-inline void assert_table(lua_State * L, const char * fname) {
+inline void
+assert_table(lua_State * L, const char * fname) {
   auto t = lua_type(L, -1);
-  PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA || t == LUA_TLIGHTUSERDATA,
+  PRIMER_ASSERT(t == LUA_TTABLE || t == LUA_TUSERDATA
+                  || t == LUA_TLIGHTUSERDATA,
                 "In " << fname << ", no table or table-like thing was found!");
 }
 

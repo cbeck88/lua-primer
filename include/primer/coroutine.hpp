@@ -61,7 +61,6 @@ class coroutine {
 
   //<-
 
-
   // Takes one of the structures `detail::return_none`, `detail::return_one`,
   // `detail::return_many` as first parameter
   template <typename return_type, typename... Args>
@@ -70,7 +69,8 @@ class coroutine {
 
     if (thread_stack_) {
       if (lua_State * L = ref_.lock()) {
-        if (auto check = detail::check_stack_push_each<Args...>(thread_stack_)) {
+        if (auto check =
+              detail::check_stack_push_each<Args...>(thread_stack_)) {
           auto ok = primer::mem_pcall(L, [&]() {
             primer::push_each(thread_stack_, std::forward<Args>(args)...);
             detail::resume_call(result, thread_stack_, sizeof...(Args));
@@ -90,7 +90,6 @@ class coroutine {
 
     return result;
   }
-
 
   // Another version, using `lua_ref_seq` as input instead of a parameter pack.
   template <typename return_type>
@@ -118,11 +117,12 @@ class coroutine {
     return result;
   }
 
-
   //->
 public:
   // Special member functions
-  coroutine() noexcept : ref_(), thread_stack_(nullptr) {}
+  coroutine() noexcept
+    : ref_()
+    , thread_stack_(nullptr) {}
 
   coroutine(coroutine &&) noexcept = default;
   coroutine & operator=(coroutine &&) noexcept = default;
@@ -188,17 +188,20 @@ inline coroutine::coroutine(const bound_function & bf) //
   }
 }
 
-inline void coroutine::reset() noexcept {
+inline void
+coroutine::reset() noexcept {
   ref_.reset();
   thread_stack_ = nullptr;
 }
 
-inline void coroutine::swap(coroutine & other) noexcept {
+inline void
+coroutine::swap(coroutine & other) noexcept {
   ref_.swap(other.ref_);
   std::swap(thread_stack_, other.thread_stack_);
 }
 
-inline void swap(coroutine & one, coroutine & other) noexcept {
+inline void
+swap(coroutine & one, coroutine & other) noexcept {
   one.swap(other);
 }
 
@@ -233,6 +236,5 @@ CALL_DEFINITIONS(call, lua_ref_seq)
 #undef CALL_REF_SEQ_HELPER
 #undef CALL_DEFINITIONS
 //->
-
 
 } // end namespace primer

@@ -14,8 +14,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/detail/type_traits.hpp>
 #include <new>
+#include <primer/detail/type_traits.hpp>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -24,7 +24,8 @@ namespace primer {
 namespace detail {
 
 template <typename T>
-auto move_assign_noexcept(T & dest, T && src) noexcept
+auto
+move_assign_noexcept(T & dest, T && src) noexcept
   -> enable_if_t<std::is_nothrow_move_assignable<T>::value> {
   dest = std::move(src);
 }
@@ -36,23 +37,25 @@ template <typename T, typename ENABLE = void>
 struct is_nothrow_swappable : std::false_type {};
 
 template <typename T>
-struct is_nothrow_swappable<T,
-                            enable_if_t<noexcept(swap(*static_cast<T *>(nullptr),
-                                                      *static_cast<T *>(nullptr)))>>
+struct is_nothrow_swappable<T, enable_if_t<noexcept(
+                                 swap(*static_cast<T *>(nullptr),
+                                      *static_cast<T *>(nullptr)))>>
   : std::true_type {};
 
 template <typename T>
-auto move_assign_noexcept(T & dest, T && src) noexcept
-  -> enable_if_t<!std::is_nothrow_move_assignable<T>::value &&
-                 is_nothrow_swappable<T>::value> {
+auto
+move_assign_noexcept(T & dest, T && src) noexcept
+  -> enable_if_t<!std::is_nothrow_move_assignable<T>::value
+                 && is_nothrow_swappable<T>::value> {
   swap(dest, src);
 }
 
 template <typename T>
-auto move_assign_noexcept(T & dest, T && src) noexcept
-  -> enable_if_t<!std::is_nothrow_move_assignable<T>::value &&
-                 !is_nothrow_swappable<T>::value &&
-                 std::is_nothrow_move_constructible<T>::value> {
+auto
+move_assign_noexcept(T & dest, T && src) noexcept
+  -> enable_if_t<!std::is_nothrow_move_assignable<T>::value
+                 && !is_nothrow_swappable<T>::value
+                 && std::is_nothrow_move_constructible<T>::value> {
   dest.~T();
   new (&dest) T(std::move(src));
 }

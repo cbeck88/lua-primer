@@ -136,7 +136,8 @@ failure >>*/
 inline lua_ref_seq pop_stack(lua_State * L);
 //]
 
-inline void pop_n(lua_State * L, int n, lua_ref_seq & result) {
+inline void
+pop_n(lua_State * L, int n, lua_ref_seq & result) {
   result.clear();
 
   {
@@ -152,12 +153,16 @@ inline void pop_n(lua_State * L, int n, lua_ref_seq & result) {
   }
 }
 
-inline lua_ref_seq pop_n(lua_State * L, int n) {
+inline lua_ref_seq
+pop_n(lua_State * L, int n) {
   lua_ref_seq result;
   pop_n(L, n, result);
   return result;
 }
 
-inline lua_ref_seq pop_stack(lua_State * L) { return pop_n(L, lua_gettop(L)); }
+inline lua_ref_seq
+pop_stack(lua_State * L) {
+  return pop_n(L, lua_gettop(L));
+}
 
 } // end namespace primer

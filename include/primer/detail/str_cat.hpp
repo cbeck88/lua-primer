@@ -38,18 +38,23 @@ struct str_cat_helper<const char *> {
 };
 
 template <typename T>
-struct str_cat_helper<T, typename std::enable_if<std::is_integral<T>::value>::type> {
+struct str_cat_helper<T, typename std::enable_if<std::is_integral<T>::value>::
+                           type> {
   static std::string to_string(T t) { return std::to_string(t); }
 };
 
 // Template function
-inline std::string str_cat() { return {}; }
+inline std::string
+str_cat() {
+  return {};
+}
 
 template <typename T, typename... Args>
-std::string str_cat(T && t, Args &&... args) {
+std::string
+str_cat(T && t, Args &&... args) {
   using helper_t = str_cat_helper<remove_reference_t<remove_cv_t<decay_t<T>>>>;
-  return helper_t::to_string(std::forward<T>(t)) +
-         str_cat(std::forward<Args>(args)...);
+  return helper_t::to_string(std::forward<T>(t))
+         + str_cat(std::forward<Args>(args)...);
 }
 
 } // end namespace detail

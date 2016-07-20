@@ -24,10 +24,10 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/expected.hpp>
-#include <primer/lua.hpp>
 #include <primer/detail/count.hpp>
 #include <primer/detail/type_traits.hpp>
+#include <primer/expected.hpp>
+#include <primer/lua.hpp>
 #include <primer/support/function.hpp>
 
 #include <tuple>
@@ -65,7 +65,8 @@ namespace primer {
 namespace detail {
 
 template <typename T>
-int lambda_upvalue_dispatch(lua_State * L) {
+int
+lambda_upvalue_dispatch(lua_State * L) {
   T * t = static_cast<T *>(lua_touserdata(L, lua_upvalueindex(1)));
   (*t)();
   return lua_gettop(L);
@@ -74,7 +75,8 @@ int lambda_upvalue_dispatch(lua_State * L) {
 } // end namespace detail
 
 template <int narg, typename F, typename... Args>
-expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
+expected<void>
+cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
   expected<void> result;
 
   auto lambda = [&]() { (std::forward<F>(f))(std::forward<Args>(args)...); };
@@ -107,7 +109,8 @@ expected<void> cpp_pcall(lua_State * L, F && f, Args &&... args) noexcept {
 //` directly.
 
 template <int narg = 0, typename F, typename... Args>
-expected<void> mem_pcall(lua_State * L, F && f, Args &&... args) noexcept {
+expected<void>
+mem_pcall(lua_State * L, F && f, Args &&... args) noexcept {
 #ifdef PRIMER_NO_MEMORY_FAILURE
   static_cast<void>(L);
   std::forward<F>(f)(std::forward<Args>(args)...);

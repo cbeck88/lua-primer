@@ -32,7 +32,6 @@ struct return_or_yield {
   bool is_valid() const { return n_ >= 0; }
 };
 
-
 // Result object
 class result {
 
@@ -41,14 +40,11 @@ class result {
 public:
   // Ctors (implicit for ease of use)
   result(int i)
-    : payload_(return_or_yield{i, true})
-  {}
+    : payload_(return_or_yield{i, true}) {}
   result(yield y)
-    : payload_(return_or_yield{y.n_, false})
-  {}
+    : payload_(return_or_yield{y.n_, false}) {}
   result(error e)
-    : payload_(e)
-  {}
+    : payload_(e) {}
 
   // Accessor
   const expected<return_or_yield> & get_payload() const & { return payload_; }

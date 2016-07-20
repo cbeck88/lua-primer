@@ -13,8 +13,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/container/map_base.hpp>
 #include <map>
+#include <primer/container/map_base.hpp>
 
 namespace primer {
 

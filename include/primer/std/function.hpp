@@ -21,7 +21,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/push_singleton.hpp>
 #include <primer/support/asserts.hpp>
 
-
 #include <functional>
 #include <new>
 #include <utility>
@@ -72,8 +71,8 @@ struct std_function_udata {
       std_function_udata{std::move(f)};
     push_singleton<&this_type::push_metatable>(L);
     lua_setmetatable(L, -2);
-    lua_CFunction func =
-      &adapt<R (*)(lua_State *, Args...), &this_type::closure_function>::adapted;
+    lua_CFunction func = &adapt<R (*)(lua_State *, Args...),
+                                &this_type::closure_function>::adapted;
     lua_pushcclosure(L, func, 1);
   }
 };
@@ -81,7 +80,8 @@ struct std_function_udata {
 } // end namespace detail
 
 template <typename R, typename... Args>
-void push_std_function(lua_State * L, std::function<R(lua_State *, Args...)> f) {
+void
+push_std_function(lua_State * L, std::function<R(lua_State *, Args...)> f) {
   using helper = detail::std_function_udata<R, Args...>;
   helper::push_instance(L, std::move(f));
 }

@@ -15,14 +15,14 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/detail/max_int.hpp>
+#include <primer/detail/move_assign_noexcept.hpp>
+#include <primer/detail/type_traits.hpp>
 #include <primer/error_capture.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/detail/max_int.hpp>
-#include <primer/detail/move_assign_noexcept.hpp>
-#include <primer/detail/type_traits.hpp>
 
 #include <string>
 #include <type_traits>
@@ -67,10 +67,11 @@ struct read_seq_helper {
   };
 
   template <typename U>
-  struct reserve_helper<
-    U,
-    enable_if_t<std::is_same<decltype(std::declval<U>().reserve(0)),
-                             decltype(std::declval<U>().reserve(0))>::value>> {
+  struct reserve_helper<U, enable_if_t<std::is_same<decltype(std::declval<U>()
+                                                               .reserve(0)),
+                                                    decltype(
+                                                      std::declval<U>().reserve(
+                                                        0))>::value>> {
     static void reserve(U & u, int n) { u.reserve(n); }
   };
 

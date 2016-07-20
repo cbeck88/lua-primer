@@ -2,11 +2,11 @@
 #include <primer/primer.hpp>
 #include <primer/std/vector.hpp>
 
-#include "test_harness/test_harness.hpp"
 #include "test_harness/g_inspector.hpp"
+#include "test_harness/test_harness.hpp"
+#include <initializer_list>
 #include <iostream>
 #include <string>
-#include <initializer_list>
 
 struct test_api_one : primer::api::persistable<test_api_one> {
   lua_raii L;
@@ -62,8 +62,8 @@ struct test_api_one : primer::api::persistable<test_api_one> {
   }
 };
 
-
-void test_persist_simple() {
+void
+test_persist_simple() {
   std::string buffer;
 
   {
@@ -109,7 +109,8 @@ void test_persist_simple() {
   }
 }
 
-void test_persist_simple_two() {
+void
+test_persist_simple_two() {
   std::string buffer;
   table_summary summary;
 
@@ -149,7 +150,8 @@ struct test_api_two : primer::api::base<test_api_two> {
   API_FEATURE(primer::api::libraries<primer::api::lua_base_lib>, libs_);
   API_FEATURE(primer::api::callbacks, cb_man_);
 
-  NEW_LUA_CALLBACK(f, "this is the f help")(lua_State * L, int i, int j) -> primer::result {
+  NEW_LUA_CALLBACK(f, "this is the f help")
+  (lua_State * L, int i, int j)->primer::result {
     if (i < j) {
       lua_pushinteger(L, -1);
     } else if (i > j) {
@@ -160,7 +162,8 @@ struct test_api_two : primer::api::base<test_api_two> {
     return 1;
   }
 
-  NEW_LUA_CALLBACK(g, "this is the g help")(lua_State * L, std::string i, std::string j) -> primer::result {
+  NEW_LUA_CALLBACK(g, "this is the g help")
+  (lua_State * L, std::string i, std::string j)->primer::result {
     if (i < j) {
       lua_pushinteger(L, -1);
     } else if (i > j) {
@@ -171,14 +174,12 @@ struct test_api_two : primer::api::base<test_api_two> {
     return 1;
   }
 
-  USE_LUA_CALLBACK(help,
-                   "get help for a built-in function",
+  USE_LUA_CALLBACK(help, "get help for a built-in function",
                    &primer::api::intf_help_impl);
 
   test_api_two()
     : L_()
-    , cb_man_(this)
-  {
+    , cb_man_(this) {
     this->initialize_api(L_);
   }
 
@@ -191,7 +192,8 @@ struct test_api_two : primer::api::base<test_api_two> {
   void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
 };
 
-void test_api_base() {
+void
+test_api_base() {
   std::string buffer;
   table_summary summary;
 
@@ -206,7 +208,6 @@ void test_api_base() {
     "assert(g('asdf', 'jkl;') == -1)                 \n"
     "assert(pcall(g, 'asdf', 'afsd'))                \n"
     "assert(not pcall(g, 'asdf', 'asdf'))            \n";
-
 
   {
     test_api_two a;
@@ -249,7 +250,8 @@ void test_api_base() {
   }
 }
 
-void test_api_help() {
+void
+test_api_help() {
   test_api_two a;
 
   lua_State * L = a.L_;
@@ -278,8 +280,7 @@ struct tstring {
   tstring(tstring &&) = default;
 
   explicit tstring(std::vector<std::string> s)
-    : strs(std::move(s))
-  {}
+    : strs(std::move(s)) {}
 
   // Methods
   std::string to_string() {
@@ -344,10 +345,11 @@ static_assert(primer::detail::is_L_Reg_sequence<const luaL_Reg * (*)()>::value,
 
 static_assert(primer::detail::is_L_Reg_sequence<std::vector<::luaL_Reg>>::value,
               "");
-static_assert(primer::detail::is_L_Reg_sequence<std::vector<::luaL_Reg> &>::value,
-              "");
 static_assert(
-  primer::detail::is_L_Reg_sequence<const std::vector<::luaL_Reg> &>::value, "");
+  primer::detail::is_L_Reg_sequence<std::vector<::luaL_Reg> &>::value, "");
+static_assert(
+  primer::detail::is_L_Reg_sequence<const std::vector<::luaL_Reg> &>::value,
+  "");
 
 namespace primer {
 namespace traits {
@@ -356,13 +358,10 @@ template <>
 struct userdata<tstring> {
   static constexpr const char * const name = "tstring";
   static const std::vector<luaL_Reg> & metatable() {
-    static const std::vector<luaL_Reg>
-      metatable_array{{"__concat",
-                       PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
-                      {"__persist",
-                       PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
-                      {"__tostring",
-                       PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}};
+    static const std::vector<luaL_Reg> metatable_array{
+      {"__concat", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_concat)},
+      {"__persist", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_persist)},
+      {"__tostring", PRIMER_ADAPT_USERDATA(tstring, &tstring::intf_to_string)}};
     return metatable_array;
   }
   static const luaL_Reg * permanents() {
@@ -392,8 +391,7 @@ struct test_api_three : primer::api::base<test_api_three> {
 
   test_api_three()
     : L_()
-    , cb_man_(this)
-  {
+    , cb_man_(this) {
     this->initialize_api(L_);
   }
 
@@ -429,7 +427,8 @@ struct test_api_three : primer::api::base<test_api_three> {
   }
 };
 
-void test_api_userdata() {
+void
+test_api_userdata() {
   std::string buffer;
 
   {
@@ -445,13 +444,15 @@ void test_api_userdata() {
   }
 }
 
-static_assert(!primer::api::is_serial_feature<
-                primer::api::libraries<primer::api::lua_base_lib>>::value,
-              "libraries was recognized as a serial feature!");
+static_assert(
+  !primer::api::
+    is_serial_feature<primer::api::libraries<primer::api::lua_base_lib>>::value,
+  "libraries was recognized as a serial feature!");
 static_assert(!primer::api::is_serial_feature<primer::api::callbacks>::value,
               "callbacks was recognized as a serial feature!");
 static_assert(
-  primer::api::is_serial_feature<primer::api::persistent_value<std::string>>::value,
+  primer::api::is_serial_feature<primer::api::persistent_value<std::string>>::
+    value,
   "persistent value not recognized as a serial feature!");
 
 struct test_api_four : primer::api::base<test_api_four> {
@@ -461,8 +462,7 @@ struct test_api_four : primer::api::base<test_api_four> {
 
   test_api_four()
     : L_()
-    , my_string_()
-  {
+    , my_string_() {
     this->initialize_api(L_);
   }
 
@@ -478,7 +478,8 @@ struct test_api_four : primer::api::base<test_api_four> {
   const std::string & get_my_string() const { return my_string_.get(); }
 };
 
-void test_api_persistent_value() {
+void
+test_api_persistent_value() {
   std::string buffer;
   std::string buffer2;
 
@@ -522,21 +523,20 @@ struct test_api_five : primer::api::base<test_api_five> {
 
   API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
 
-  USE_LUA_CALLBACK(require,
-                   "this is the require function",
+  USE_LUA_CALLBACK(require, "this is the require function",
                    &primer::api::mini_require);
 
   API_FEATURE(primer::api::callbacks, cb_);
 
   test_api_five()
     : L_()
-    , cb_(this)
-  {
+    , cb_(this) {
     this->initialize_api(L_);
   }
 };
 
-void test_sandboxed_libs() {
+void
+test_sandboxed_libs() {
   test_api_five a;
 
   lua_State * L = a.L_;
@@ -560,8 +560,7 @@ struct test_api_six : primer::api::base<test_api_six> {
 
   API_FEATURE(primer::api::sandboxed_basic_libraries, libs_);
 
-  USE_LUA_CALLBACK(require,
-                   "this is the require function",
+  USE_LUA_CALLBACK(require, "this is the require function",
                    &primer::api::mini_require);
 
   API_FEATURE(primer::api::callbacks, cb_);
@@ -569,8 +568,7 @@ struct test_api_six : primer::api::base<test_api_six> {
 
   test_api_six()
     : L_()
-    , cb_(this)
-  {
+    , cb_(this) {
     this->initialize_api(L_);
   }
 };
@@ -584,7 +582,8 @@ struct interpreter_capture {
   void clear_input() {}
 };
 
-void test_interpreter_contexts() {
+void
+test_interpreter_contexts() {
   test_api_six a;
   lua_State * L = a.L_;
 
@@ -626,8 +625,7 @@ struct my_files : primer::api::vfs<my_files> {
   map_t files_;
 
   explicit my_files(map_t m)
-    : files_(std::move(m))
-  {}
+    : files_(std::move(m)) {}
 
   primer::expected<void> load(lua_State * L, const std::string & path) {
     auto it = files_.find(path);
@@ -652,9 +650,9 @@ struct test_api : primer::api::base<test_api> {
 
   test_api()
     : L_()
-    , vfs_{{{"foo", "return {}"},
-            {"bar", "local function baz() return 5 end; return { baz = baz }"}}}
-  {
+    , vfs_{
+        {{"foo", "return {}"},
+         {"bar", "local function baz() return 5 end; return { baz = baz }"}}} {
     this->initialize_api(L_);
   }
 
@@ -667,7 +665,8 @@ struct test_api : primer::api::base<test_api> {
   void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
 };
 
-void test_vfs() {
+void
+test_vfs() {
   std::string buffer;
   table_summary summary;
 
@@ -686,7 +685,8 @@ void test_vfs() {
     "                                                                      \n"
     "assert(bar == require 'bar')                                          \n"
     "assert(bar ~= dofile 'bar')                                           \n"
-    "                                                                      \n";
+    "                                                                      "
+    "\n";
 
   {
     test_api a;
@@ -723,7 +723,8 @@ void test_vfs() {
 }
 //]
 
-int main() {
+int
+main() {
   conf::log_conf();
 
   std::cout << "Persistence tests:" << std::endl;

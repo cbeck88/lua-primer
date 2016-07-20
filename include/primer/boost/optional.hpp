@@ -15,8 +15,8 @@
 PRIMER_ASSERT_FILESCOPE;
 
 //[ primer_example_boost_optional_decl
-#include <primer/container/optional_base.hpp>
 #include <boost/optional/optional.hpp>
+#include <primer/container/optional_base.hpp>
 
 namespace primer {
 namespace traits {

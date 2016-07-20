@@ -85,7 +85,6 @@ class bound_function {
     return result;
   }
 
-
   //->
 public:
   // Special member functions
@@ -147,7 +146,8 @@ inline bound_function::bound_function(lua_State * L) //
                        : nullptr) //
 {}
 
-inline std::string bound_function::debug_string() const {
+inline std::string
+bound_function::debug_string() const {
   std::string result{"empty"};
   if (lua_State * L = ref_.lock()) {
     int top = lua_gettop(L);
@@ -182,7 +182,6 @@ inline std::string bound_function::debug_string() const {
     return this->protected_call<T>(std::forward<Args>(args)...);               \
   }
 
-
 #define CALL_REF_SEQ_HELPER(N, T, Q)                                           \
   inline expected<T> bound_function::N(lua_ref_seq Q inputs) const noexcept {  \
     return this->protected_call2<T>(inputs);                                   \
@@ -204,8 +203,8 @@ CALL_DEFINITIONS(call, lua_ref_seq)
 #undef CALL_REF_SEQ_HELPER
 #undef CALL_DEFINITIONS
 
-
-inline void swap(bound_function & one, bound_function & other) noexcept {
+inline void
+swap(bound_function & one, bound_function & other) noexcept {
   one.swap(other);
 }
 

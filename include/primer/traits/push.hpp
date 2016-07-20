@@ -18,8 +18,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/primer_fwd.hpp>
 #include <primer/lua.hpp>
+#include <primer/primer_fwd.hpp>
 
 #include <primer/detail/integral_conversions.hpp>
 
@@ -52,7 +52,7 @@ struct push<std::string> {
 // Manually decay string literals...
 template <std::size_t n>
 struct push<char[n]> {
-  static void to_stack(lua_State * L, const char(&str)[n]) {
+  static void to_stack(lua_State * L, const char (&str)[n]) {
     push<const char *>::to_stack(L, str);
   }
   static constexpr int stack_space_needed{1};
@@ -67,10 +67,9 @@ struct push<bool> {
 
 // Signed types
 template <typename T>
-struct push<T,
-            enable_if_t<std::is_same<T, int>::value ||  //
-                        std::is_same<T, long>::value || //
-                        std::is_same<T, long long>::value>> {
+struct push<T, enable_if_t<std::is_same<T, int>::value ||  //
+                           std::is_same<T, long>::value || //
+                           std::is_same<T, long long>::value>> {
   PRIMER_STATIC_ASSERT(
     sizeof(T) <= sizeof(LUA_INTEGER),
     "Cannot push this type to lua, integer overflow could occur! "
@@ -81,10 +80,9 @@ struct push<T,
 
 // Unsigned types
 template <typename T>
-struct push<T,
-            enable_if_t<std::is_same<T, unsigned int>::value ||  //
-                        std::is_same<T, unsigned long>::value || //
-                        std::is_same<T, unsigned long long>::value>> {
+struct push<T, enable_if_t<std::is_same<T, unsigned int>::value ||  //
+                           std::is_same<T, unsigned long>::value || //
+                           std::is_same<T, unsigned long long>::value>> {
   static void to_stack(lua_State * L, T t) {
     // Pad or truncate to the size of LUA_INTEGER
     using unsigned_lua_int_t = std::make_unsigned<LUA_INTEGER>::type;
@@ -99,10 +97,9 @@ struct push<T,
 
 // Floating point types
 template <typename T>
-struct push<T,
-            enable_if_t<std::is_same<T, float>::value ||  //
-                        std::is_same<T, double>::value || //
-                        std::is_same<T, long double>::value>> {
+struct push<T, enable_if_t<std::is_same<T, float>::value ||  //
+                           std::is_same<T, double>::value || //
+                           std::is_same<T, long double>::value>> {
   PRIMER_STATIC_ASSERT(
     sizeof(T) <= sizeof(LUA_NUMBER),
     "Cannot push this type to lua, floating point overflow could "

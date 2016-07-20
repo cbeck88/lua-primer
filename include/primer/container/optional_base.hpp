@@ -13,15 +13,15 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
+#include <primer/detail/type_traits.hpp>
 #include <primer/expected.hpp>
 #include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/traits/push.hpp>
 #include <primer/traits/read.hpp>
-#include <primer/detail/type_traits.hpp>
 
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 namespace primer {
 
@@ -57,7 +57,6 @@ struct optional_access {
   // PRIMER_STATIC_ASSERT(noexcept(T{std::declval<value_type>()}),
   //                      "optional must be nothrow constructible from r-value
   //                      reference to value type");
-
 
   static const value_type * as_ptr(const T & t) noexcept {
     return t ? &*t : nullptr;

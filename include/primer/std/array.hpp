@@ -13,8 +13,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/container/seq_base.hpp>
 #include <array>
+#include <primer/container/seq_base.hpp>
 
 namespace primer {
 
