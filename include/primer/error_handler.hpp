@@ -38,7 +38,7 @@ static constexpr const char * error_handler_reg_key = "primer_error_handler";
 // Push the current error handler to top of stack. Default is debug.traceback.
 inline int get_error_handler(lua_State * L) noexcept;
 
-// Set a new error handler. Expects a function on top of the stack, which is popped.
+// Set a new error handler. Pops one object from top of stack.
 inline void set_error_handler(lua_State * L) noexcept;
 
 // Simplified version of lua_pcall which handles setting up the error handler.
@@ -62,7 +62,8 @@ set_error_handler(lua_State * L) noexcept {
 }
 
 //[ primer_protected_call_defn
-inline int protected_call(lua_State * L, int narg, int nret) noexcept {
+inline int
+protected_call(lua_State * L, int narg, int nret) noexcept {
   primer::get_error_handler(L);
   lua_insert(L, -2 - narg);
   int eidx = lua_absindex(L, -2 - narg);
