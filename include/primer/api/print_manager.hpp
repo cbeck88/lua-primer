@@ -205,10 +205,10 @@ class print_manager {
   }
 
   // Helper
-  static std::array<const luaL_Reg, 2> get_permanent_entries() {
+  static std::array<const luaL_Reg, 2> get_funcs() {
     std::array<const luaL_Reg, 2> funcs = {{
-      luaL_Reg{"primer_print", &intf_print_impl},
-      luaL_Reg{"primer_pretty_print", &intf_pretty_print_impl},
+      luaL_Reg{"print", &intf_print_impl},
+      luaL_Reg{pretty_print_name, &intf_pretty_print_impl},
     }};
     return funcs;
   }
@@ -270,19 +270,17 @@ public:
 
     registry_helper<print_manager>::store_self(L, this);
 
-    lua_pushcfunction(L, &intf_print_impl);
-    lua_setglobal(L, "print");
-
-    lua_pushcfunction(L, &intf_pretty_print_impl);
-    lua_setglobal(L, pretty_print_name);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+    primer::set_funcs(L, get_funcs());
+    lua_pop(L, 1);
   }
 
   void on_persist_table(lua_State * L) {
-    primer::set_funcs_reverse(L, get_permanent_entries());
+    primer::set_funcs_prefix_reverse(L, "print_manager__" , get_funcs());
   }
 
   void on_unpersist_table(lua_State * L) {
-    primer::set_funcs(L, get_permanent_entries());
+    primer::set_funcs_prefix(L, "print_manager__" , get_funcs());
   }
 };
 

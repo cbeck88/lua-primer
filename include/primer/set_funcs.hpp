@@ -77,7 +77,7 @@ set_funcs_prefix(lua_State * L, const std::string & prefix, T && seq) {
 
 template <typename T>
 void
-set_funcs_perfix_reverse(lua_State * L, const std::string & prefix, T && seq) {
+set_funcs_prefix_reverse(lua_State * L, const std::string & prefix, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 

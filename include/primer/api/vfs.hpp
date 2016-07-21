@@ -107,11 +107,11 @@ protected:
   }
 
   // Helper
-  static std::array<const luaL_Reg, 3> get_permanent_entries() {
+  static std::array<const luaL_Reg, 3> get_funcs() {
     std::array<const luaL_Reg, 3> funcs = {{
-      luaL_Reg{"primer_loadfile", PRIMER_ADAPT(&intf_loadfile)},
-      luaL_Reg{"primer_dofile", PRIMER_ADAPT(&intf_dofile)},
-      luaL_Reg{"primer_require", PRIMER_ADAPT(&intf_require)},
+      luaL_Reg{"loadfile", PRIMER_ADAPT(&intf_loadfile)},
+      luaL_Reg{"dofile", PRIMER_ADAPT(&intf_dofile)},
+      luaL_Reg{"require", PRIMER_ADAPT(&intf_require)},
     }};
     return funcs;
   }
@@ -124,18 +124,17 @@ public:
 
     PRIMER_ASSERT(recover_this(L) == static_cast<T *>(this), "bad self store");
 
-    for (const auto & r : vfs::get_permanent_entries()) {
-      lua_pushcfunction(L, r.func);
-      lua_setglobal(L, r.name + 7); // lop off the "primer_" prefix
-    }
+    lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+    primer::set_funcs(L, vfs::get_funcs());
+    lua_pop(L, 1);
   }
 
   void on_persist_table(lua_State * L) {
-    primer::set_funcs_reverse(L, vfs::get_permanent_entries());
+    primer::set_funcs_prefix_reverse(L, "vfs_funcs_", vfs::get_funcs());
   }
 
   void on_unpersist_table(lua_State * L) {
-    primer::set_funcs(L, vfs::get_permanent_entries());
+    primer::set_funcs_prefix(L, "vfs_funcs_", vfs::get_funcs());
   }
 };
 
