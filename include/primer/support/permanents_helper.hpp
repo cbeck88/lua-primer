@@ -15,15 +15,12 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/lua.hpp>
-
 #include <primer/detail/luaL_Reg.hpp>
 #include <primer/detail/type_traits.hpp>
-
+#include <primer/lua.hpp>
+#include <primer/set_funcs.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
-#include <primer/support/set_funcs.hpp>
-
 #include <primer/traits/userdata.hpp>
 
 namespace primer {

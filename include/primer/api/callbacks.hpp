@@ -28,12 +28,12 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+#include <primer/set_funcs.hpp>
 
 #include <primer/api/callback_registrar.hpp>
 #include <primer/api/help.hpp>
 
 #include <primer/detail/span.hpp>
-#include <primer/support/set_funcs.hpp>
 
 namespace primer {
 

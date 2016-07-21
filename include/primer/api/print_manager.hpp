@@ -13,9 +13,9 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/error_capture.hpp>
 #include <primer/lua.hpp>
 #include <primer/registry_helper.hpp>
+#include <primer/set_funcs.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/scoped_stash_global_value.hpp>
-#include <primer/support/set_funcs.hpp>
 
 #include <array>
 #include <iostream>

@@ -30,6 +30,7 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/read.hpp>
 #include <primer/registry_helper.hpp>
 #include <primer/result.hpp>
+#include <primer/set_funcs.hpp>
 #include <primer/userdata.hpp>
 #include <primer/userdata_dispatch.hpp>
 

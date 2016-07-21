@@ -15,9 +15,9 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/cpp_pcall.hpp>
 #include <primer/error_capture.hpp>
 #include <primer/registry_helper.hpp>
+#include <primer/set_funcs.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/function.hpp>
-#include <primer/support/set_funcs.hpp>
 
 #include <array>
 #include <string>
