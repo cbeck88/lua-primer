@@ -276,11 +276,11 @@ public:
   }
 
   void on_persist_table(lua_State * L) {
-    primer::set_funcs_prefix_reverse(L, "print_manager__" , get_funcs());
+    primer::set_funcs_prefix_reverse(L, "print_manager__", get_funcs());
   }
 
   void on_unpersist_table(lua_State * L) {
-    primer::set_funcs_prefix(L, "print_manager__" , get_funcs());
+    primer::set_funcs_prefix(L, "print_manager__", get_funcs());
   }
 };
 
