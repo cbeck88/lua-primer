@@ -20,7 +20,6 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/support/asserts.hpp>
 
 namespace primer {
-namespace detail {
 
 template <typename T>
 class registry_helper {
@@ -47,5 +46,4 @@ public:
   }
 };
 
-} // end namespace detail
 } // end namespace primer

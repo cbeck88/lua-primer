@@ -12,8 +12,8 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/cpp_pcall.hpp>
 #include <primer/error_capture.hpp>
 #include <primer/lua.hpp>
+#include <primer/registry_helper.hpp>
 #include <primer/support/asserts.hpp>
-#include <primer/support/registry_helper.hpp>
 #include <primer/support/scoped_stash_global_value.hpp>
 #include <primer/support/set_funcs.hpp>
 
@@ -180,8 +180,7 @@ class print_manager {
   // Push a unique object to be our registry key for the "this" void pointer
 
   static int intf_print_impl(lua_State * L) {
-    print_manager * man =
-      detail::registry_helper<print_manager>::obtain_self(L);
+    print_manager * man = registry_helper<print_manager>::obtain_self(L);
     if (man->print_format_) {
       man->new_text(man->print_format_(L));
     } else {
@@ -191,8 +190,7 @@ class print_manager {
   }
 
   static int intf_pretty_print_impl(lua_State * L) {
-    print_manager * man =
-      detail::registry_helper<print_manager>::obtain_self(L);
+    print_manager * man = registry_helper<print_manager>::obtain_self(L);
     if (man->pretty_print_format_) {
       man->new_text(man->pretty_print_format_(L));
     } else {
@@ -270,7 +268,7 @@ public:
   void on_init(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    detail::registry_helper<print_manager>::store_self(L, this);
+    registry_helper<print_manager>::store_self(L, this);
 
     lua_pushcfunction(L, &intf_print_impl);
     lua_setglobal(L, "print");

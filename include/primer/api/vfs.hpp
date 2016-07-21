@@ -14,9 +14,9 @@ PRIMER_ASSERT_FILESCOPE;
 #include <primer/adapt.hpp>
 #include <primer/cpp_pcall.hpp>
 #include <primer/error_capture.hpp>
+#include <primer/registry_helper.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/function.hpp>
-#include <primer/support/registry_helper.hpp>
 #include <primer/support/set_funcs.hpp>
 
 #include <array>
@@ -55,7 +55,7 @@ template <typename T>
 class vfs {
 
   static T * recover_this(lua_State * L) {
-    return static_cast<T *>(detail::registry_helper<vfs>::obtain_self(L));
+    return static_cast<T *>(registry_helper<vfs>::obtain_self(L));
   }
 
 protected:
@@ -120,7 +120,7 @@ public:
   // API Feature
 
   void on_init(lua_State * L) {
-    detail::registry_helper<vfs>::store_self(L, this);
+    registry_helper<vfs>::store_self(L, this);
 
     PRIMER_ASSERT(recover_this(L) == static_cast<T *>(this), "bad self store");
 
