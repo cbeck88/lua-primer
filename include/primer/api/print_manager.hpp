@@ -261,6 +261,20 @@ public:
   inline void handle_interpreter_input(lua_State * L,
                                        const std::string & user_input);
 
+  // Convenience function over the above.
+  // Recover the print_manager from a lua_State * pointer, then setup an
+  // arbitrary interpreter context, run a command, and pop the context.
+  //
+  // Note: There must be a print manager attached to the lua_State * or an
+  // assertion will fail.
+  template <typename T>
+  static void interpreter_input(lua_State * L, T & t, const std::string & s) { 
+    print_manager * man = registry_helper<print_manager>::obtain_self(L);
+    man->set_interpreter_context(&t);
+    man->handle_interpreter_input(L, s);
+    man->pop_interpreter_context();
+  }
+
   //
   // API Feature
   //
