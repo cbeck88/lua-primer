@@ -8,8 +8,8 @@
 // clang-format off
 
 #define PRIMER_VERSION_MAJOR    "0"
-#define PRIMER_VERSION_MINOR    "1"
-#define PRIMER_VERSION_NUM      001
+#define PRIMER_VERSION_MINOR    "2"
+#define PRIMER_VERSION_NUM      000
 #define PRIMER_VERSION_RELEASE  "0"
 
 #define PRIMER_VERSION          "Lua Primer " PRIMER_VERSION_MAJOR "." PRIMER_VERSION_MINOR
