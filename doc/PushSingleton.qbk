@@ -1,5 +1,36 @@
-[section Push Singleton]
+[section Singletons]
+
+Sometimes, when implementing an API, it's very convenient to create an object
+which is a "singleton" with respect to the lua State, and to be able to easily
+refer to this object. Usually you want to do this by creating a unique key
+for this object inside the lua registry.
+
+When the object is a lua value, primer provides a very simple way to do this
+using `primer::push_singleton`. When the object is a C++ object external to lua,
+you can use `primer::registry_helper`.
+
+[h4 Lua value]
 
 [primer_push_singleton_overview]
+
+[h4 C++ value]
+
+It sometimes happens that we have
+an object which we know will outlive lua, and we would like to store a pointer
+to it in the registry and recover it easily. Especially, this happens when
+the object is an API object.
+
+We can store and retrieve such objects in the following way:
+
+``
+  void primer::registry_helper<T>::store_self(L, T *);
+  T * primer::registry_helper<T>::obtain_self(L);
+``
+
+Clearly, this only works if this is the unique object of this type which will be
+registered.
+
+Note that `obtain_self` has UB if no object of this type was previously stored.
+If `PRIMER_DEBUG` is defined, then it will cause an assertion failure.
 
 [endsect]
