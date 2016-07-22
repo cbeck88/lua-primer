@@ -31,7 +31,7 @@ namespace primer {
 
 //[ primer_expected
 // Define primary class template
-template <typename T>
+template <typename T, typename E>
 class expected {
   union {
     T ham_;
@@ -41,6 +41,11 @@ class expected {
 
   PRIMER_STATIC_ASSERT(
     std::is_nothrow_move_constructible<T>::value,
+    "This class can only be used with types that are no-throw "
+    "move constructible and destructible.");
+
+  PRIMER_STATIC_ASSERT(
+    std::is_nothrow_move_constructible<E>::value,
     "This class can only be used with types that are no-throw "
     "move constructible and destructible.");
 
@@ -55,9 +60,9 @@ public:
   T * operator->() & noexcept;
   const T * operator->() const & noexcept;
 
-  primer::error & err() & noexcept;
-  primer::error && err() && noexcept;
-  const primer::error & err() const & noexcept;
+  E & err() & noexcept;
+  E && err() && noexcept;
+  const E & err() const & noexcept;
 
   // Succinct access to error string
   const char * err_c_str() const noexcept { return this->err().what(); }
@@ -91,43 +96,43 @@ private:
 
   // Helpers for special member functions: Init from (potentially) another kind
   // of expected.
-  template <typename E>
-  void init_from_const_ref(const E & e) {
-    if (e) {
-      this->init_ham(*e);
+  template <typename X>
+  void init_from_const_ref(const X & x) {
+    if (x) {
+      this->init_ham(*x);
     } else {
-      this->init_spam(e.err());
+      this->init_spam(x.err());
     }
   }
 
-  template <typename E>
-  void init_from_rvalue_ref(E && e) {
-    if (e) {
-      this->init_ham(std::move(*e));
+  template <typename X>
+  void init_from_rvalue_ref(X && x) {
+    if (x) {
+      this->init_ham(std::move(*x));
     } else {
-      this->init_spam(std::move(e.err()));
+      this->init_spam(std::move(x.err()));
     }
   }
 
   // Does the actual work. First check if we can avoid deinitializing,
   // and use move assignment operator of T or primer::error.
   // If not then deinitialize and reinitialize.
-  template <typename E>
-  void move_assign(E && e) {
+  template <typename X>
+  void move_assign(X && x) {
     if (this->have_ham_) {
-      if (e) {
-        ham_ = std::move(*e);
+      if (x) {
+        ham_ = std::move(*x);
         return;
       }
     } else {
-      if (!e) {
-        spam_ = std::move(e.err());
+      if (!x) {
+        spam_ = std::move(x.err());
         return;
       }
     }
 
     this->deinitialize();
-    this->init_from_rvalue_ref(std::move(e));
+    this->init_from_rvalue_ref(std::move(x));
   }
 
 public:
@@ -137,11 +142,11 @@ public:
   // expected<T> is only default constructible if T is, and it throws if T does
   expected();
 
-  expected(expected && e) noexcept;
-  expected & operator=(expected && e) noexcept;
+  expected(expected &&) noexcept;
+  expected & operator=(expected &&) noexcept;
 
-  expected(const expected & e);
-  expected & operator=(const expected & e);
+  expected(const expected &);
+  expected & operator=(const expected &);
 
   ~expected() noexcept;
 
@@ -149,122 +154,122 @@ public:
   expected(const T & t);
   expected(T && t) noexcept;
 
-  // Conversion from `primer::error`.
-  // This is to make it so that we can simply return `primer::error` from
+  // Conversion from `E`.
+  // This is to make it so that we can simply return `E` from
   // functions that return `expected<T>`.
-  expected(const primer::error & e);
-  expected(primer::error && e) noexcept;
+  expected(const E & e);
+  expected(E && e) noexcept;
 
   // Conversions to other `expected` types
   // This allows you to explicitly convert to expected<U> as long as U is
-  // constructible from T, without unpacking and repacking the expected.
-  template <typename U>
-  expected<U> convert() const &;
+  // constructible from T. This unpacks and repacks the expected.
+  template <typename U, typename EU = E>
+  expected<U, EU> convert() const &;
 
-  template <typename U>
-  expected<U> convert() &&;
+  template <typename U, typename EU = E>
+  expected<U, EU> convert() &&;
 };
 //]
 
 // Implementation details, outside doc synopsis
 
 // Accessors
-template <typename T>
-  T & expected<T>::operator*() & noexcept {
+template <typename T, typename E>
+  T & expected<T, E>::operator*() & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return ham_;
 }
 
-template <typename T>
-T const & expected<T>::operator*() const & noexcept {
+template <typename T, typename E>
+T const & expected<T, E>::operator*() const & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return ham_;
 }
 
-template <typename T>
-  T && expected<T>::operator*() && noexcept {
+template <typename T, typename E>
+  T && expected<T, E>::operator*() && noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return std::move(ham_);
 }
 
-template <typename T>
-  T * expected<T>::operator->()
+template <typename T, typename E>
+  T * expected<T, E>::operator->()
   & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return &ham_;
 }
 
-template <typename T>
-const T * expected<T>::operator->() const & noexcept {
+template <typename T, typename E>
+const T * expected<T, E>::operator->() const & noexcept {
   PRIMER_BAD_ACCESS(have_ham_);
   return &ham_;
 }
 
-template <typename T>
-  primer::error &
-  expected<T>::err()
+template <typename T, typename E>
+  E &
+  expected<T, E>::err()
   & noexcept {
   PRIMER_BAD_ACCESS(!have_ham_);
   return spam_;
 }
 
-template <typename T>
-primer::error const &
-expected<T>::err() const & noexcept {
+template <typename T, typename E>
+E const &
+expected<T, E>::err() const & noexcept {
   PRIMER_BAD_ACCESS(!have_ham_);
   return spam_;
 }
 
-template <typename T>
-  primer::error &&
-  expected<T>::err()
+template <typename T, typename E>
+  E &&
+  expected<T, E>::err()
   && noexcept {
   PRIMER_BAD_ACCESS(!have_ham_);
   return std::move(spam_);
 }
 
 // Special member functions
-template <typename T>
-expected<T>::expected() {
+template <typename T, typename E>
+expected<T, E>::expected() {
   this->init_ham();
 }
 
-template <typename T>
-expected<T>::~expected() noexcept {
+template <typename T, typename E>
+expected<T, E>::~expected() noexcept {
   this->deinitialize();
 }
 
-template <typename T>
-expected<T>::expected(const expected & e) {
+template <typename T, typename E>
+expected<T, E>::expected(const expected & e) {
   this->init_from_const_ref(e);
 }
 
-template <typename T>
-expected<T>::expected(expected && e) noexcept {
+template <typename T, typename E>
+expected<T, E>::expected(expected && e) noexcept {
   this->init_from_rvalue_ref(std::move(e));
 }
 
-template <typename T>
-expected<T> &
-expected<T>::operator=(const expected & e) {
+template <typename T, typename E>
+expected<T, E> &
+expected<T, E>::operator=(const expected & e) {
   expected temp{e};
   *this = std::move(temp);
   return *this;
 }
 
-template <typename T>
-expected<T> &
-expected<T>::operator=(expected && e) noexcept {
+template <typename T, typename E>
+expected<T, E> &
+expected<T, E>::operator=(expected && e) noexcept {
   this->move_assign(std::move(e));
   return *this;
 }
 
 // Converting from other expected
 
-template <typename T>
-template <typename U>
-expected<U>
-expected<T>::convert() const & {
+template <typename T, typename ET>
+template <typename U, typename EU>
+expected<U, EU>
+expected<T, ET>::convert() const & {
   if (*this) {
     return U(**this);
   } else {
@@ -272,45 +277,45 @@ expected<T>::convert() const & {
   }
 }
 
-template <typename T>
-template <typename U>
-expected<U>
-expected<T>::convert() && {
+template <typename T, typename ET>
+template <typename U, typename EU>
+expected<U, EU>
+expected<T, ET>::convert() && {
   if (*this) {
     return U(std::move(**this));
   } else {
-    return std::move(this->err());
+    return EU(std::move(this->err()));
   }
 }
 
 // Converting from T
-template <typename T>
-expected<T>::expected(const T & t) {
+template <typename T, typename E>
+expected<T, E>::expected(const T & t) {
   this->init_ham(t);
 }
 
-template <typename T>
-expected<T>::expected(T && t) noexcept {
+template <typename T, typename E>
+expected<T, E>::expected(T && t) noexcept {
   this->init_ham(std::move(t));
 }
 
-// Converting from primer::error
-template <typename T>
-expected<T>::expected(const primer::error & e) {
+// Converting from E
+template <typename T, typename E>
+expected<T, E>::expected(const E & e) {
   this->init_spam(e);
 }
 
-template <typename T>
-expected<T>::expected(primer::error && e) noexcept {
+template <typename T, typename E>
+expected<T, E>::expected(E && e) noexcept {
   this->init_spam(std::move(e));
 }
 
 //[ primer_expected_ref
 //` `expected<T&>` is implemented as a special interface over `expected<T*>`.
 // Define `T&` specialization
-template <typename T>
-class expected<T &> {
-  expected<T *> internal_;
+template <typename T, typename E>
+class expected<T &, E> {
+  expected<T *, E> internal_;
 
 public:
   // Accessors
@@ -325,9 +330,9 @@ public:
   T * operator->() & { return *internal_; }
   T * operator->() const & { return *internal_; }
 
-  primer::error & err() & { return internal_.err(); }
-  const primer::error & err() const & { return internal_.err(); }
-  primer::error && err() && { return std::move(internal_.err()); }
+  E & err() & { return internal_.err(); }
+  const E & err() const & { return internal_.err(); }
+  E && err() && { return std::move(internal_.err()); }
 
   const char * err_c_str() const noexcept { return this->err().what(); }
   std::string err_str() const { return this->err_c_str(); }
@@ -347,10 +352,10 @@ public:
     : internal_(&t)        //
   {}
 
-  expected(const primer::error & e)
+  expected(const E & e)
     : internal_(e) {}
 
-  expected(primer::error && e) noexcept //
+  expected(E && e) noexcept //
     : internal_(std::move(e))           //
   {}
 };
@@ -358,17 +363,17 @@ public:
 
 //[ primer_expected_void
 // define void specialization
-template <>
-class expected<void> {
+template <typename E>
+class expected<void, E> {
   bool no_error_;
-  primer::error error_;
+  E error_;
 
 public:
   // Accessors
   explicit operator bool() const noexcept;
 
-  const primer::error & err() const & noexcept;
-  primer::error && error() && noexcept;
+  const E & err() const & noexcept;
+  E && error() && noexcept;
 
   const char * err_c_str() const noexcept { return this->err().what(); }
   std::string err_str() const { return this->err_c_str(); }
@@ -383,40 +388,46 @@ public:
   expected & operator=(expected &&) = default;
 
   // Additional Constructors
-  // Allow implicit conversion from `primer::error`, so that we can return
-  // `primer::error` from functions that return `expected<void>`.
-  expected(const primer::error & e);
-  expected(primer::error && e) noexcept;
+  // Allow implicit conversion from `E`, so that we can return
+  // `E` from functions that return `expected<void>`.
+  expected(const E & e);
+  expected(E && e) noexcept;
 };
 //]
 
-inline expected<void>::operator bool() const noexcept { return no_error_; }
+template <typename E>
+expected<void, E>::operator bool() const noexcept { return no_error_; }
 
-inline const primer::error &
-expected<void>::err() const & noexcept {
+template <typename E>
+const E &
+expected<void, E>::err() const & noexcept {
   PRIMER_BAD_ACCESS(!no_error_);
   return error_;
 }
 
-inline primer::error &&
-  expected<void>::error()
+template <typename E>
+E &&
+  expected<void, E>::error()
   && noexcept {
   PRIMER_BAD_ACCESS(!no_error_);
   return std::move(error_);
 }
 
 // Ctors
-inline expected<void>::expected() noexcept
+template <typename E>
+expected<void, E>::expected() noexcept
   : no_error_(true)
   , error_() {}
 
-// Converting from primer::error
-inline expected<void>::expected(const primer::error & e)
+// Converting from E
+template <typename E>
+expected<void, E>::expected(const E & e)
   : no_error_(false)
   , error_(e) //
 {}
 
-inline expected<void>::expected(primer::error && e) noexcept //
+template <typename E>
+expected<void, E>::expected(E && e) noexcept //
   : no_error_(false)                                         //
     ,
     error_(std::move(e)) //

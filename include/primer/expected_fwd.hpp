@@ -13,13 +13,13 @@ namespace primer {
 
 class error;
 
-template <typename T>
+template <typename T, typename E = primer::error>
 class expected;
 
-template <typename T>
-class expected<T &>;
+template <typename T, typename E>
+class expected<T &, E>;
 
-template <>
-class expected<void>;
+template <typename E>
+class expected<void, E>;
 
 } // end namespace primer
