@@ -123,6 +123,20 @@
   <span class="keyword">inline</span> <span class="keyword">void</span> <span class="identifier">handle_interpreter_input</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span>
                                        <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">user_input</span><span class="special">);</span>
 
+  <span class="comment">// Convenience function over the above.</span>
+  <span class="comment">// Recover the print_manager from a lua_State * pointer, then setup an</span>
+  <span class="comment">// arbitrary interpreter context, run a command, and pop the context.</span>
+  <span class="comment">//</span>
+  <span class="comment">// Note: There must be a print manager attached to the lua_State * or an</span>
+  <span class="comment">// assertion will fail.</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">static</span> <span class="keyword">void</span> <span class="identifier">interpreter_input</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">print_manager</span> <span class="special">*</span> <span class="identifier">man</span> <span class="special">=</span> <span class="identifier">registry_helper</span><span class="special">&lt;</span><span class="identifier">print_manager</span><span class="special">&gt;::</span><span class="identifier">obtain_self</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">man</span><span class="special">-&gt;</span><span class="identifier">set_interpreter_context</span><span class="special">(&amp;</span><span class="identifier">t</span><span class="special">);</span>
+    <span class="identifier">man</span><span class="special">-&gt;</span><span class="identifier">handle_interpreter_input</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">s</span><span class="special">);</span>
+    <span class="identifier">man</span><span class="special">-&gt;</span><span class="identifier">pop_interpreter_context</span><span class="special">();</span>
+  <span class="special">}</span>
+
   <span class="comment">//</span>
   <span class="comment">// API Feature</span>
   <span class="comment">//</span>
@@ -130,21 +144,19 @@
   <span class="keyword">void</span> <span class="identifier">on_init</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
     <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
 
-    <span class="identifier">detail</span><span class="special">::</span><span class="identifier">registry_helper</span><span class="special">&lt;</span><span class="identifier">print_manager</span><span class="special">&gt;::</span><span class="identifier">store_self</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">this</span><span class="special">);</span>
+    <span class="identifier">registry_helper</span><span class="special">&lt;</span><span class="identifier">print_manager</span><span class="special">&gt;::</span><span class="identifier">store_self</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">this</span><span class="special">);</span>
 
-    <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">intf_print_impl</span><span class="special">);</span>
-    <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"print"</span><span class="special">);</span>
-
-    <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">intf_pretty_print_impl</span><span class="special">);</span>
-    <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">pretty_print_name</span><span class="special">);</span>
+    <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">LUA_REGISTRYINDEX</span><span class="special">,</span> <span class="identifier">LUA_RIDX_GLOBALS</span><span class="special">);</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_funcs</span><span class="special">());</span>
+    <span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
   <span class="special">}</span>
 
   <span class="keyword">void</span> <span class="identifier">on_persist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
-    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_reverse</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_permanent_entries</span><span class="special">());</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_prefix_reverse</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"print_manager__"</span><span class="special">,</span> <span class="identifier">get_funcs</span><span class="special">());</span>
   <span class="special">}</span>
 
   <span class="keyword">void</span> <span class="identifier">on_unpersist_table</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
-    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">get_permanent_entries</span><span class="special">());</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_prefix</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"print_manager__"</span><span class="special">,</span> <span class="identifier">get_funcs</span><span class="special">());</span>
   <span class="special">}</span>
 <span class="special">};</span>
 

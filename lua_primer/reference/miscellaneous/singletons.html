@@ -1,0 +1,111 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Singletons</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../miscellaneous.html" title="Miscellaneous">
+<link rel="prev" href="error_handler.html" title="Error Handler">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="error_handler.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../miscellaneous.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.miscellaneous.singletons"></a><a class="link" href="singletons.html" title="Singletons">Singletons</a>
+</h4></div></div></div>
+<p>
+          Sometimes, when implementing an API, it's very convenient to create an
+          object which is a "singleton" with respect to the lua State,
+          and to be able to easily refer to this object. Usually you want to do this
+          by creating a unique key for this object inside the lua registry.
+        </p>
+<p>
+          When the object is a lua value, primer provides a very simple way to do
+          this using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_singleton</span></code>. When the object is a
+          C++ object external to lua, you can use <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">registry_helper</span></code>.
+        </p>
+<h5>
+<a name="lua_primer.reference.miscellaneous.singletons.h0"></a>
+          <span><a name="lua_primer.reference.miscellaneous.singletons.lua_value"></a></span><a class="link" href="singletons.html#lua_primer.reference.miscellaneous.singletons.lua_value">Lua value</a>
+        </h5>
+<p>
+          It is fairly common in the lua API to want to create some private object
+          hidden in the registry to support some feature or hold some implementation
+          detail.
+        </p>
+<p>
+          Often times, people make up string constants to use as the registry key,
+          and create a "lazy construction" function which first checks
+          the registry for a pre-cached value, and otherwise computes it.
+        </p>
+<p>
+          This is essentially the same thing as lua's <code class="computeroutput"><span class="identifier">require</span></code>
+          all over again, but from the C api side now.
+        </p>
+<p>
+          We have a convenient template function which improves on this idiom. Primer
+          uses it internally for certain things. We use a template function called
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_singleton</span></code>:
+        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">void</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*)&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push_singleton</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">int</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*)&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push_singleton</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<p>
+          The idea is, the function which <span class="bold"><strong>creates</strong></span>
+          the value is the template parameter, and the template function ensures
+          the lazy construction aspect.
+        </p>
+<p>
+          To ensure uniqueness of registry keys, the template uses the function pointer
+          <span class="emphasis"><em>corresponding to the producer function itself</em></span> as the
+          registry key.
+        </p>
+<h5>
+<a name="lua_primer.reference.miscellaneous.singletons.h1"></a>
+          <span><a name="lua_primer.reference.miscellaneous.singletons.c_value"></a></span><a class="link" href="singletons.html#lua_primer.reference.miscellaneous.singletons.c_value">C++ value</a>
+        </h5>
+<p>
+          It sometimes happens that we have an object which we know will outlive
+          lua, and we would like to store a pointer to it in the registry and recover
+          it easily. Especially, this happens when the object is an API object.
+        </p>
+<p>
+          We can store and retrieve such objects in the following way:
+        </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">registry_helper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">store_self</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">T</span> <span class="special">*);</span>
+<span class="identifier">T</span> <span class="special">*</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">registry_helper</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">obtain_self</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+</pre>
+<p>
+          Clearly, this only works if this is the unique object of this type which
+          will be registered.
+        </p>
+<p>
+          Note that <code class="computeroutput"><span class="identifier">obtain_self</span></code> has
+          UB if no object of this type was previously stored. If <code class="computeroutput"><span class="identifier">PRIMER_DEBUG</span></code>
+          is defined, then it will cause an assertion failure.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="error_handler.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../miscellaneous.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a>
+</div>
+</body>
+</html>

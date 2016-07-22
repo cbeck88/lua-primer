@@ -39,4 +39,4 @@ lua_primer/reference/miscellaneous.html
 lua_primer/reference/miscellaneous/std_function.html
 lua_primer/reference/miscellaneous/cpppcall.html
 lua_primer/reference/miscellaneous/error_handler.html
-lua_primer/reference/miscellaneous/push_singleton.html
+lua_primer/reference/miscellaneous/singletons.html

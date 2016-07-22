@@ -262,9 +262,26 @@
           This is useful for writing functions which allow in their parameters certain
           implicit conversions typical of lua.
         </p>
-<p>
-          [primer_support_types]
-        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+
+<span class="comment">// Use this type if you want to push nil onto the stack using primer::push</span>
+<span class="comment">// interface.</span>
+<span class="keyword">struct</span> <span class="identifier">nil_t</span> <span class="special">{};</span>
+
+<span class="comment">// Use this type if you want primer to convert given type to a boolean, even if</span>
+<span class="comment">// it was not originally a boolean</span>
+<span class="keyword">struct</span> <span class="identifier">truthy</span> <span class="special">{</span>
+  <span class="keyword">bool</span> <span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// Use this type if you want primer to convert given type to a string, even if</span>
+<span class="comment">// it was not originally a string</span>
+<span class="keyword">struct</span> <span class="identifier">stringy</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
 <div class="informaltable"><table class="table">
 <colgroup>
 <col>
