@@ -23,13 +23,7 @@ and create a "lazy construction" function which first checks the registry
 for a pre-cached value, and otherwise computes it.
 
 
-This is essentially the same thing as lua's `require` all over again, but
-from the C api side now.
-
-
-We have a convenient template function which improves on this idiom. Primer
-uses it internally for certain things. We use a template function called
-`primer::push_singleton`:
+Primer gives a very terse and convenient way to achieve this:
 */
 
 namespace primer {
@@ -46,11 +40,24 @@ void push_singleton(lua_State *);
 The idea is, the function which *creates* the value is the template
 parameter, and the template function ensures the lazy construction aspect.
 
+The registry key is simply the function pointer ['corresponding to the producer function itself].
 
-To ensure uniqueness of registry keys, the template uses the function
-pointer ['corresponding to the producer function itself] as the registry
-key.
+Here's an example producer function
 */
+
+/*=
+void my_table(lua_State * L) {
+  lua_newtable(L);
+  lua_pushinteger(L, 5);
+  lua_setfield(L, -2, "a");
+  lua_pushinteger(L, 7);
+  lua_setfield(L, -2, "b");
+}
+*/
+//`The function simply pushes a table of some kind onto the stack. Now, the call
+//= primer::push_singleton<&my_table>(L)
+//`will push our table onto the stack, lazily constructing it if necessary.
+
 //]
 
 namespace primer {

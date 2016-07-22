@@ -15,6 +15,7 @@
 [import ../include/primer/adapt.hpp]
 [import ../include/primer/bound_function.hpp]
 [import ../include/primer/coroutine.hpp]
+[import ../include/primer/cpp_pcall.hpp]
 [import ../include/primer/error.hpp]
 [import ../include/primer/error_capture.hpp]
 [import ../include/primer/error_handler.hpp]
@@ -27,7 +28,9 @@
 [import ../include/primer/push.hpp]
 [import ../include/primer/push_singleton.hpp]
 [import ../include/primer/read.hpp]
+[import ../include/primer/registry_helper.hpp]
 [import ../include/primer/result.hpp]
+[import ../include/primer/set_funcs.hpp]
 [import ../include/primer/userdata.hpp]
 [import ../include/primer/support/types.hpp]
 
@@ -45,6 +48,14 @@
 [import ../include/primer/api/print_manager.hpp]
 [import ../include/primer/api/userdatas.hpp]
 [import ../include/primer/api/vfs.hpp]
+
+[import ../include/primer/api.hpp]
+[import ../include/primer/boost.hpp]
+[import ../include/primer/primer.hpp]
+[import ../include/primer/std.hpp]
+[import ../include/primer/visit_struct.hpp]
+[import ../include/primer/weak_ref.hpp]
+
 
 [import ../test/api.cpp]
 [import ../test/boost.cpp]
