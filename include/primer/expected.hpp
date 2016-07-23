@@ -35,7 +35,7 @@ template <typename T, typename E>
 class expected {
   union {
     T ham_;
-    error spam_;
+    E spam_;
   };
   bool have_ham_;
 
@@ -76,7 +76,7 @@ private:
     if (have_ham_) {
       ham_.~T();
     } else {
-      spam_.~error();
+      spam_.~E();
     }
   }
 
@@ -90,7 +90,7 @@ private:
 
   template <typename... As>
   void init_spam(As &&... as) {
-    new (&spam_) error(std::forward<As>(as)...);
+    new (&spam_) E(std::forward<As>(as)...);
     have_ham_ = false;
   }
 
@@ -168,6 +168,58 @@ public:
 
   template <typename U, typename EU = E>
   expected<U, EU> convert() &&;
+
+  // Map function.
+  // This is like monadic bind.
+  // If we have a value, apply this function to it and return the result.
+  // If we have an error, just return the error.
+  // If the function returns an expected type, collapse the
+  // `expected<expected<...>>` return into a single `expected<...>`.
+  template <typename F>
+  auto map(F && f) & -> fold_expected_t<decltype(std::forward<F>(f)(*static_cast<T*>(nullptr))), E> {
+    if (*this) {
+      return std::forward<F>(f)(**this);
+    } else {
+      return this->err();
+    }
+  }
+
+  template <typename F>
+  auto map(F && f) const & -> fold_expected_t<decltype(std::forward<F>(f)(*static_cast<const T*>(nullptr))), E> {
+    if (*this) {
+      return std::forward<F>(f)(**this);
+    } else {
+      return this->err();
+    }
+  }
+
+  template <typename F>
+  auto map(F && f) && -> fold_expected_t<decltype(std::forward<F>(f)(std::declval<T>())), E> {
+    if (*this) {
+      return std::forward<F>(f)(std::move(**this));
+    } else {
+      return std::move(this->err());
+    }
+  }
+
+  // value_or function. Similar to what it does in std::optional.
+  template <typename U>
+  T value_or(U && u) const & {
+    if (*this) {
+      return **this;
+    } else {
+      return std::forward<U>(u);
+    }
+  }
+
+  template <typename U>
+  T value_or(U && u) && {
+    if (*this) {
+      return std::move(**this);
+    } else {
+      return std::forward<U>(u);
+    }
+  }
 };
 //]
 
@@ -358,6 +410,31 @@ public:
   expected(E && e) noexcept //
     : internal_(std::move(e))           //
   {}
+
+  // Map function.
+  // This is like monadic bind.
+  // If we have a value, apply this function to it and return the result.
+  // If we have an error, just return the error.
+  // If the function returns an expected type, collapse the
+  // `expected<expected<...>>` return into a single `expected<...>`.
+  template <typename F>
+  auto map(F && f) const -> fold_expected_t<decltype(std::forward<F>(f)(*static_cast<T*>(nullptr))), E> {
+    if (*this) {
+      return std::forward<F>(f)(**this);
+    } else {
+      return this->err();
+    }
+  }
+
+  // value_or function. Similar to what it does in std::optional.
+  template <typename U>
+  T & value_or(U && u) const {
+    if (*this) {
+      return **this;
+    } else {
+      return static_cast<T&>(std::forward<U>(u));
+    }
+  }
 };
 //]
 
@@ -373,7 +450,7 @@ public:
   explicit operator bool() const noexcept;
 
   const E & err() const & noexcept;
-  E && error() && noexcept;
+  E && err() && noexcept;
 
   const char * err_c_str() const noexcept { return this->err().what(); }
   std::string err_str() const { return this->err_c_str(); }
@@ -407,7 +484,7 @@ expected<void, E>::err() const & noexcept {
 
 template <typename E>
 E &&
-  expected<void, E>::error()
+  expected<void, E>::err()
   && noexcept {
   PRIMER_BAD_ACCESS(!no_error_);
   return std::move(error_);
