@@ -40,7 +40,8 @@ void push_singleton(lua_State *);
 The idea is, the function which *creates* the value is the template
 parameter, and the template function ensures the lazy construction aspect.
 
-The registry key is simply the function pointer ['corresponding to the producer function itself].
+The registry key is simply the function pointer ['corresponding to the producer
+function itself].
 
 Here's an example producer function
 */

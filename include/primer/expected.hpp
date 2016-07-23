@@ -176,7 +176,9 @@ public:
   // If the function returns an expected type, collapse the
   // `expected<expected<...>>` return into a single `expected<...>`.
   template <typename F>
-  auto map(F && f) & -> fold_expected_t<decltype(std::forward<F>(f)(*static_cast<T*>(nullptr))), E> {
+  auto map(F && f) & -> fold_expected_t<decltype(std::forward<F>(f)(
+                                          *static_cast<T *>(nullptr))),
+                                        E> {
     if (*this) {
       return std::forward<F>(f)(**this);
     } else {
@@ -185,7 +187,10 @@ public:
   }
 
   template <typename F>
-  auto map(F && f) const & -> fold_expected_t<decltype(std::forward<F>(f)(*static_cast<const T*>(nullptr))), E> {
+  auto map(F && f)
+    const & -> fold_expected_t<decltype(std::forward<F>(f)(
+                                 *static_cast<const T *>(nullptr))),
+                               E> {
     if (*this) {
       return std::forward<F>(f)(**this);
     } else {
@@ -194,7 +199,10 @@ public:
   }
 
   template <typename F>
-  auto map(F && f) && -> fold_expected_t<decltype(std::forward<F>(f)(std::declval<T>())), E> {
+  auto map(
+    F &&
+      f) && -> fold_expected_t<decltype(std::forward<F>(f)(std::declval<T>())),
+                               E> {
     if (*this) {
       return std::forward<F>(f)(std::move(**this));
     } else {
@@ -369,6 +377,12 @@ template <typename T, typename E>
 class expected<T &, E> {
   expected<T *, E> internal_;
 
+  //<-
+  PRIMER_STATIC_ASSERT(
+    std::is_nothrow_move_constructible<E>::value,
+    "This class can only be used with types that are no-throw "
+    "move constructible and destructible.");
+  //->
 public:
   // Accessors
   explicit operator bool() const noexcept {
@@ -407,8 +421,8 @@ public:
   expected(const E & e)
     : internal_(e) {}
 
-  expected(E && e) noexcept //
-    : internal_(std::move(e))           //
+  expected(E && e) noexcept   //
+    : internal_(std::move(e)) //
   {}
 
   // Map function.
@@ -418,7 +432,9 @@ public:
   // If the function returns an expected type, collapse the
   // `expected<expected<...>>` return into a single `expected<...>`.
   template <typename F>
-  auto map(F && f) const -> fold_expected_t<decltype(std::forward<F>(f)(*static_cast<T*>(nullptr))), E> {
+  auto map(F && f) const
+    -> fold_expected_t<decltype(std::forward<F>(f)(*static_cast<T *>(nullptr))),
+                       E> {
     if (*this) {
       return std::forward<F>(f)(**this);
     } else {
@@ -432,7 +448,7 @@ public:
     if (*this) {
       return **this;
     } else {
-      return static_cast<T&>(std::forward<U>(u));
+      return static_cast<T &>(std::forward<U>(u));
     }
   }
 };
@@ -443,8 +459,39 @@ public:
 template <typename E>
 class expected<void, E> {
   bool no_error_;
-  E error_;
 
+  union {
+    E error_;
+    char dummy_;
+  };
+
+  //<-
+  PRIMER_STATIC_ASSERT(
+    std::is_nothrow_move_constructible<E>::value,
+    "This class can only be used with types that are no-throw "
+    "move constructible and destructible.");
+
+  void deinitialize() {
+    if (!no_error_) {
+      error_.~E();
+      no_error_ = true;
+    }
+  }
+  void move(expected && o) {
+    if (no_error_) {
+      if (!o.no_error_) {
+        new (&error_) E(std::move(o.error_));
+        no_error_ = false;
+      }
+    } else {
+      if (o.no_error_) {
+        this->deinitialize();
+      } else {
+        error_ = std::move(o.error_);
+      }
+    }
+  }
+  //->
 public:
   // Accessors
   explicit operator bool() const noexcept;
@@ -456,13 +503,14 @@ public:
   std::string err_str() const { return this->err_c_str(); }
 
   // Default-construct in the "ok" / `true` state
-  expected() noexcept;
+  constexpr expected() noexcept;
 
   // Special member functions
-  expected(const expected &) = default;
-  expected(expected &&) noexcept = default;
-  expected & operator=(const expected &) = default;
-  expected & operator=(expected &&) = default;
+  expected(const expected &);
+  expected(expected &&) noexcept;
+  expected & operator=(const expected &);
+  expected & operator=(expected &&) noexcept;
+  ~expected() noexcept;
 
   // Additional Constructors
   // Allow implicit conversion from `E`, so that we can return
@@ -473,7 +521,9 @@ public:
 //]
 
 template <typename E>
-expected<void, E>::operator bool() const noexcept { return no_error_; }
+expected<void, E>::operator bool() const noexcept {
+  return no_error_;
+}
 
 template <typename E>
 const E &
@@ -483,7 +533,7 @@ expected<void, E>::err() const & noexcept {
 }
 
 template <typename E>
-E &&
+  E &&
   expected<void, E>::err()
   && noexcept {
   PRIMER_BAD_ACCESS(!no_error_);
@@ -492,9 +542,41 @@ E &&
 
 // Ctors
 template <typename E>
-expected<void, E>::expected() noexcept
+constexpr expected<void, E>::expected() noexcept
   : no_error_(true)
-  , error_() {}
+  , dummy_() {}
+
+template <typename E>
+expected<void, E>::~expected() noexcept {
+  this->deinitialize();
+}
+
+template <typename E>
+expected<void, E>::expected(const expected & o)
+  : no_error_(o.no_error_) {
+  if (!no_error_) { new (&error_) E{o.error_}; }
+}
+
+template <typename E>
+expected<void, E>::expected(expected && o) noexcept
+  : expected() {
+  this->move(std::move(o));
+}
+
+template <typename E>
+expected<void, E> &
+expected<void, E>::operator=(expected && o) noexcept {
+  this->move(std::move(o));
+  return *this;
+}
+
+template <typename E>
+expected<void, E> &
+expected<void, E>::operator=(const expected & o) {
+  expected temp{o};
+  this->move(std::move(temp));
+  return *this;
+}
 
 // Converting from E
 template <typename E>
@@ -505,7 +587,7 @@ expected<void, E>::expected(const E & e)
 
 template <typename E>
 expected<void, E>::expected(E && e) noexcept //
-  : no_error_(false)                                         //
+  : no_error_(false)                         //
     ,
     error_(std::move(e)) //
 {}

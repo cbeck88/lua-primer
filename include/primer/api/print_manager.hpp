@@ -268,7 +268,7 @@ public:
   // Note: There must be a print manager attached to the lua_State * or an
   // assertion will fail.
   template <typename T>
-  static void interpreter_input(lua_State * L, T & t, const std::string & s) { 
+  static void interpreter_input(lua_State * L, T & t, const std::string & s) {
     print_manager * man = registry_helper<print_manager>::obtain_self(L);
     man->set_interpreter_context(&t);
     man->handle_interpreter_input(L, s);

@@ -32,10 +32,10 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
 #include <primer/push_singleton.hpp>
-#include <primer/weak_ref.hpp>
 #include <primer/support/asserts.hpp>
 #include <primer/support/diagnostics.hpp>
 #include <primer/support/main_thread.hpp>
+#include <primer/weak_ref.hpp>
 
 #include <new>
 #include <utility>
