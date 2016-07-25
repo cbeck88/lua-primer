@@ -29,13 +29,19 @@ Features
 
 - Primer is written to the C++11 standard, with substantial documentation and unit tests.
 
-- Primer is tested against **lua 5.3**, but should also work with lua 5.2. We should
-  in general be able to support lua versions that eris supports.
+- Primer is tested against **lua 5.3**, but should also work with lua 5.2.  
+  We should in general be able to support lua versions that eris supports.
 
-- The library consists only of headers. No makefiles, no project files, nothing to link
+- The library consists only of headers.  
+  No makefiles, no project files, nothing to link
   with besides lua.
 
-- Automatic, type-safe binding of lua arguments to C++ function parameters.
+- Zero cost abstraction.  
+  Primer is just a thin collection of templates over the lua C api, and a few additional helper classes.  
+  Primer doesn't make use of C++ virtual functions, exceptions, or RTTI, and we test that it works when compiled with `-fno-exceptions` and `-fno-rtti`.  
+  This ensures that primer can run as fast as possible in as many environments as possible.
+
+- Automatic, type-safe binding of lua arguments to C++ function parameters.  
   This includes built-in support for translating fundamental C++ types and lua types.
 
   Lua:
@@ -50,7 +56,7 @@ Features
     }
   ```
 
-- Primer can also translate fundamental C++ containers like `map`, `set`, and `vector`.
+- Primer can also translate fundamental C++ containers like `map`, `set`, and `vector`.  
 
   Lua:
   ```
