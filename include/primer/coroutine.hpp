@@ -139,6 +139,11 @@ public:
   /*<< Check if the coroutine is valid to call >>*/
   explicit operator bool() const noexcept { return thread_stack_ && ref_; }
 
+  /*<< Obtain pointer to underlying lua state, if still valid to call. >>*/
+  lua_State * lock() const noexcept {
+    return thread_stack_ ? ref_.lock() : nullptr;
+  }
+
   /*<< Reset to the empty state >>*/
   void reset() noexcept;
 

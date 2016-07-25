@@ -104,6 +104,7 @@ public:
   // Forwarded methods from lua_ref
   explicit operator bool() const noexcept { return static_cast<bool>(ref_); }
 
+  lua_State * lock() const noexcept { return ref_.lock(); }
   lua_State * push() const noexcept { return ref_.push(); }
   bool push(lua_State * L) const noexcept { return ref_.push(L); }
   void reset() noexcept { ref_.reset(); }

@@ -183,7 +183,6 @@ class print_manager {
     return man;
   }
 
-
   static int intf_print_impl(lua_State * L) {
     print_manager * man = recover_self(L);
     if (man->print_format_) {

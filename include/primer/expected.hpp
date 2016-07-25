@@ -527,8 +527,9 @@ expected<void, E>::operator bool() const noexcept {
 }
 
 template <typename E>
-E &
-expected<void, E>::err() & noexcept {
+  E &
+  expected<void, E>::err()
+  & noexcept {
   PRIMER_BAD_ACCESS(!no_error_);
   return error_;
 }
