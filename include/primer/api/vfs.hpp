@@ -55,7 +55,7 @@ template <typename T>
 class vfs {
 
   static T * recover_this(lua_State * L) {
-    vfs * ptr = registry_helper<vfs>::obtain_self(L);
+    vfs * ptr = registry_helper<vfs>::obtain(L);
     PRIMER_ASSERT(ptr, "Could not recover self pointer!");
     return static_cast<T *>(ptr);
   }
@@ -122,7 +122,7 @@ public:
   // API Feature
 
   void on_init(lua_State * L) {
-    registry_helper<vfs>::store_self(L, this);
+    registry_helper<vfs>::store(L, this);
 
     PRIMER_ASSERT(recover_this(L) == static_cast<T *>(this), "bad self store");
 

@@ -177,10 +177,15 @@ class print_manager {
   //<-
   static constexpr const char * pretty_print_name = "_pretty_print";
 
-  // Push a unique object to be our registry key for the "this" void pointer
+  static print_manager * recover_self(lua_State * L) {
+    print_manager * man = registry_helper<print_manager>::obtain(L);
+    PRIMER_ASSERT(man, "Could not recover self!");
+    return man;
+  }
+
 
   static int intf_print_impl(lua_State * L) {
-    print_manager * man = registry_helper<print_manager>::obtain_self(L);
+    print_manager * man = recover_self(L);
     if (man->print_format_) {
       man->new_text(man->print_format_(L));
     } else {
@@ -190,7 +195,7 @@ class print_manager {
   }
 
   static int intf_pretty_print_impl(lua_State * L) {
-    print_manager * man = registry_helper<print_manager>::obtain_self(L);
+    print_manager * man = recover_self(L);
     if (man->pretty_print_format_) {
       man->new_text(man->pretty_print_format_(L));
     } else {
@@ -211,12 +216,6 @@ class print_manager {
       luaL_Reg{pretty_print_name, &intf_pretty_print_impl},
     }};
     return funcs;
-  }
-
-  static print_manager * recover_self(lua_State * L) {
-    print_manager * man = registry_helper<print_manager>::obtain_self(L);
-    PRIMER_ASSERT(man, "Could not recover self!");
-    return man;
   }
 
   //->
@@ -275,7 +274,7 @@ public:
   // assertion will fail.
   template <typename T>
   static void interpreter_input(lua_State * L, T & t, const std::string & s) {
-    print_manager * man = registry_helper<print_manager>::obtain_self(L);
+    print_manager * man = recover_self(L);
     man->set_interpreter_context(&t);
     man->handle_interpreter_input(L, s);
     man->pop_interpreter_context();
@@ -288,7 +287,7 @@ public:
   void on_init(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
-    registry_helper<print_manager>::store_self(L, this);
+    registry_helper<print_manager>::store(L, this);
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
     primer::set_funcs(L, get_funcs());

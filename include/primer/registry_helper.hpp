@@ -30,13 +30,13 @@ class registry_helper {
   }
 
 public:
-  static void store_self(lua_State * L, T * t) {
+  static void store(lua_State * L, T * t) {
     get_key(L);
     lua_pushlightuserdata(L, static_cast<void *>(t));
     lua_settable(L, LUA_REGISTRYINDEX);
   }
 
-  static T * obtain_self(lua_State * L) {
+  static T * obtain(lua_State * L) {
     get_key(L);
     lua_gettable(L, LUA_REGISTRYINDEX);
     void * ptr = lua_touserdata(L, -1);
