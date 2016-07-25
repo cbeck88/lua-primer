@@ -40,7 +40,6 @@ public:
     get_key(L);
     lua_gettable(L, LUA_REGISTRYINDEX);
     void * ptr = lua_touserdata(L, -1);
-    PRIMER_ASSERT(ptr, "Could not recover self pointer!");
     lua_pop(L, 1);
     return static_cast<T *>(ptr);
   }

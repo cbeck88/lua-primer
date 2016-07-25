@@ -55,7 +55,9 @@ template <typename T>
 class vfs {
 
   static T * recover_this(lua_State * L) {
-    return static_cast<T *>(registry_helper<vfs>::obtain_self(L));
+    vfs * ptr = registry_helper<vfs>::obtain_self(L);
+    PRIMER_ASSERT(ptr, "Could not recover self pointer!");
+    return static_cast<T *>(ptr);
   }
 
 protected:

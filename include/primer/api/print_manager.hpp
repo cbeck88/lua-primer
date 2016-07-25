@@ -213,6 +213,12 @@ class print_manager {
     return funcs;
   }
 
+  static print_manager * recover_self(lua_State * L) {
+    print_manager * man = registry_helper<print_manager>::obtain_self(L);
+    PRIMER_ASSERT(man, "Could not recover self!");
+    return man;
+  }
+
   //->
 public:
   // Add or remove interpreter context pointers from the stack
