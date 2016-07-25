@@ -496,6 +496,7 @@ public:
   // Accessors
   explicit operator bool() const noexcept;
 
+  E & err() & noexcept;
   const E & err() const & noexcept;
   E && err() && noexcept;
 
@@ -523,6 +524,13 @@ public:
 template <typename E>
 expected<void, E>::operator bool() const noexcept {
   return no_error_;
+}
+
+template <typename E>
+E &
+expected<void, E>::err() & noexcept {
+  PRIMER_BAD_ACCESS(!no_error_);
+  return error_;
 }
 
 template <typename E>
