@@ -66,20 +66,16 @@ install:
   - export BOOST_ROOT=${DEPS_DIR}/boost
 
   - cd ${TRAVIS_BUILD_DIR}
-  - cd test
-  - cp ../travis/write_project_config.sh .
-  - ./write_project_config.sh
-  - cat project-config.jam
-
-  - cd ${TRAVIS_BUILD_DIR}
   - pwd
   - ls
 
 script:
   - $CC --version
   - $CXX --version
-
+  - |-
+    JAM="using ${CC} : : ${CXX} ;"
   - cd test
+  - echo "${JAM}" > project-config.jam
 
 #  - if [[ "${NO_STATIC_ASSERTS}" != "" ]]; then export FLAGS="--toolset=${CC} --no-static-asserts"; else export FLAGS="--toolset=${CC}"; fi
 #  TODO: How can get a more recent standard library on trusty?
