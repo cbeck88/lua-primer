@@ -28,14 +28,21 @@ serializes a value, it does so ['relative] to a fixed table, which maps such
 "unserializable" entities like function pointers to some placeholder names for
 them.
 
-Then, when deserializing, you must provide the "inverse" of the permanent
-objects table, which maps those placeholder names back to the appropriate
-function pointers (potentially now on a different machine) and so on.
+Then, when deserializing, it must be provided with the "inverse" of the
+permanent objects table, which maps those placeholder names back to the
+appropriate function pointers (potentially now on a different machine) and so
+on.
 
 [h5 Userdata]
 
 Userdata is handled in a slightly different way -- by creating a special
-metamethod called `persist`. See [@https://github.com/fnuecke/eris#special-persistence eris' documentation] on the subject.
+metamethod called `__persist`. See [@https://github.com/fnuecke/eris#special-persistence eris' documentation] on the subject.
+
+There are three options:
+
+# Literal persistence. Essentially, we just `memcpy` the object.
+# No persistence. Persisting this object is a runtime error.
+# Persistence using a closure.
 
 In C++, it's very common to have nontrivially copyable types as userdata.
 In that case, the "literal persistence" is not an option, and the third option
@@ -57,17 +64,20 @@ are also serializable.
 [h4 Primer]
 
 
-In Primer, the idea is that for each lua State that you plan to serialize, there
-should be an associated ['API Object] with which all of the components of that
-API are registered. The API object manages the processes of initializing the
-API within a State, and later, serializing and deserializing the state.
+In Primer, basically the idea is to simplify all this by *automating* the construction
+of the permanent objects table.
+
+When you do it the Primer way, for each lua State that you plan to serialize,
+there should be an associated ['API Object] with which all of the components of
+that API are registered. The API object manages the processes of initializing
+the API within a State, and later, serializing and deserializing the state.
 
 An API object should ['derive] from the `primer::api::base` class template.
 This accomplishes two things:
 
 * The `API_CALLBACK` and `API_FEATURE` macros may be used to register different
   members of the API object as being parts of the API.
-* Three member functions are provided:
+* Three member functions are provided by `primer::api::base`:
 
 ```
   void initialize_api(lua_State *);
@@ -88,13 +98,18 @@ You could do it manually, using some RAII object, or maybe you are using some ot
 library. For instance in the lua binding library `sol`, they provide you with
 an RAII object called `sol::state` which they want you to use. You could use lua
 in any manner like that with Primer just fine, provided that you can obtain a
-`lua_State *` from whatever the object is.]
+raw `lua_State *` from whatever the object is.]
+
+Conceptually, the `api::base` is just a place where you register objects and
+functions. The actual class has no data members and no nontrivial initialization
+or destruction, so inheriting from it does not conceptually complicate your
+class. It just gives you some nice methods that you can use as you like.
 
 Primer provides you with many useful `API_FEATURE` definitions for things like
 installing standard libraries, registering your userdata types, and customizing
 the VM in various common ways. It's quite easy to customize the system though,
 and make API features that do whatever you want.
 
-The advantage of doing it this way 
+The advantage of doing it this way TODO
 
 [endsect]
