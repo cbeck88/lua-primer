@@ -35,8 +35,8 @@ test_primer_expected() {
   assert(!result3);
   assert(result3.err().what() == std::string{"404"});
 
-  assert(result3.err_str() == "404");
-  assert(result3.err_c_str() == result3.err().what());
+  assert(result3.err().str() == "404");
+  assert(result3.err().c_str() == result3.err().what());
 }
 //]
 } // end anonymous namespace

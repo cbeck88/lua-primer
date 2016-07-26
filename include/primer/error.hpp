@@ -197,6 +197,8 @@ public:
 
   // Accessor
   const char * what() const noexcept;
+  const char * c_str() const noexcept { return this->what(); }
+  std::string str() const { return this->what(); }
 };
 
 //]

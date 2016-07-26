@@ -64,10 +64,6 @@ public:
   E && err() && noexcept;
   const E & err() const & noexcept;
 
-  // Succinct access to error string
-  const char * err_c_str() const noexcept { return this->err().what(); }
-  std::string err_str() const { return this->err_c_str(); }
-
   //<- Don't put internals in the docu
 private:
   // Internal manipulation: deinitialize, init_ham, init_spam
@@ -400,9 +396,6 @@ public:
   const E & err() const & { return internal_.err(); }
   E && err() && { return std::move(internal_.err()); }
 
-  const char * err_c_str() const noexcept { return this->err().what(); }
-  std::string err_str() const { return this->err_c_str(); }
-
   // Not default constructible
   expected() = delete;
 
@@ -499,9 +492,6 @@ public:
   E & err() & noexcept;
   const E & err() const & noexcept;
   E && err() && noexcept;
-
-  const char * err_c_str() const noexcept { return this->err().what(); }
-  std::string err_str() const { return this->err_c_str(); }
 
   // Default-construct in the "ok" / `true` state
   constexpr expected() noexcept;

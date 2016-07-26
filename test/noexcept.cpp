@@ -34,7 +34,7 @@ test_foo() {
 
   auto result3 = foo(primer::error("404"));
   assert(!result3);
-  assert(result3.err_str() == "404");
+  assert(result3.err().str() == "404");
 }
 
 void

@@ -71,7 +71,7 @@ struct test_exception : std::exception {
     const auto & result__ = C;                                                 \
     if (!result__) {                                                           \
       std::ostringstream ss__;                                                 \
-      ss__ << "An operation failed '" #C "':\n" << result__.err_str();         \
+      ss__ << "An operation failed '" #C "':\n" << result__.err().str();       \
       throw test_exception(ss__.str());                                        \
     }                                                                          \
   } while (0)
