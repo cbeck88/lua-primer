@@ -38,7 +38,7 @@ Features
 - Zero cost abstraction.  
   Primer is just a thin collection of templates over the lua C api, and a few additional helper classes.  
   Primer doesn't make use of C++ virtual functions, exceptions, or RTTI, and we test that it works when compiled with `-fno-exceptions` and `-fno-rtti`.  
-  This ensures that Primer can run as fast as possible in as many environments as possible.
+  This ensures that Primer can run as fast as possible in as many environments as possible, and can be used within the constraints of almost any C++11 project.
 
 - Provides extensive, traits-based customization points.
 
