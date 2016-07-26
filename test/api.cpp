@@ -327,7 +327,7 @@ struct tstring {
       primer::push_udata<tstring>(L, std::move(*strs));
       return 1;
     } else {
-      lua_pushstring(L, strs.err_c_str());
+      lua_pushstring(L, strs.err().c_str());
     }
     return lua_error(L);
   }
