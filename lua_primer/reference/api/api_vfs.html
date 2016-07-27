@@ -92,8 +92,7 @@
   <span class="keyword">void</span> <span class="identifier">restore</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buffer</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">unpersist</span><span class="special">(</span><span class="identifier">L_</span><span class="special">,</span> <span class="identifier">buffer</span><span class="special">);</span> <span class="special">}</span>
 <span class="special">};</span>
 
-<span class="keyword">void</span>
-<span class="identifier">test_vfs</span><span class="special">()</span> <span class="special">{</span>
+<span class="identifier">UNIT_TEST</span><span class="special">(</span><span class="identifier">api_vfs</span><span class="special">)</span> <span class="special">{</span>
   <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">buffer</span><span class="special">;</span>
   <span class="identifier">table_summary</span> <span class="identifier">summary</span><span class="special">;</span>
 

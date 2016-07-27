@@ -92,6 +92,8 @@
 
   <span class="comment">// Accessor</span>
   <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">what</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">c_str</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">what</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">str</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">what</span><span class="special">();</span> <span class="special">}</span>
 <span class="special">};</span>
 </pre>
 <div class="calloutlist"><table border="0" summary="Callout list">

@@ -98,11 +98,11 @@
         When lua is compiled as C, the <code class="computeroutput"><span class="identifier">setjmp</span></code>
         and <code class="computeroutput"><span class="identifier">longjmp</span></code> functions are
         used to raise lua errors. The behavior is similar, but in this case, destructors
-        of any C++ automatic objects are not called. This is a bad thing. <sup>[<a name="lua_primer.overview.exception_safety.f3" href="#ftn.lua_primer.overview.exception_safety.f3" class="footnote">4</a>]</sup>
+        of any C++ automatic objects are <span class="emphasis"><em>not called</em></span>. <sup>[<a name="lua_primer.overview.exception_safety.f3" href="#ftn.lua_primer.overview.exception_safety.f3" class="footnote">4</a>]</sup>
       </p>
 <p>
-        With careful practices, these problems can be largely avoided -- many C++
-        projects use lua compiled as C for one reason or another. <sup>[<a name="lua_primer.overview.exception_safety.f4" href="#ftn.lua_primer.overview.exception_safety.f4" class="footnote">5</a>]</sup>
+        With careful practices, this problem can be largely avoided -- many C++ projects
+        use lua compiled as C for one reason or another. <sup>[<a name="lua_primer.overview.exception_safety.f4" href="#ftn.lua_primer.overview.exception_safety.f4" class="footnote">5</a>]</sup>
       </p>
 <p>
         Fortunately, many lua C api calls don't raise lua errors, except in the case
@@ -155,9 +155,9 @@
       </p>
 <p>
         We feel that this method of <span class="emphasis"><em>subtracting</em></span> selected checks
-        in order to go faster ultimately leads to a more reliable and maintainable
-        technology, than if we had simply written Primer with no handling for potential
-        memory allocation failures whatsoever.
+        in order to go faster leads to a more reliable and maintainable technology,
+        than if we had simply written Primer with no handling for potential memory
+        allocation failures.
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -189,6 +189,40 @@
         or undefined behavior. Generally it will signal errors along normal channels
         to user code or to lua scripts in such cases.
       </p>
+<p>
+        The overhead of running with full protection is, roughly:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Reading a standard string requires a <code class="computeroutput"><span class="keyword">try</span>
+            <span class="special">/</span> <span class="keyword">catch</span></code>.
+          </li>
+<li class="listitem">
+            Reading any standard container requires several <code class="computeroutput"><span class="keyword">try</span>
+            <span class="special">/</span> <span class="keyword">catch</span></code>.
+          </li>
+<li class="listitem">
+            Copying a <code class="computeroutput"><span class="identifier">lua_ref</span></code> requires
+            a <code class="computeroutput"><span class="identifier">pcall</span></code>.
+          </li>
+<li class="listitem">
+            Using <code class="computeroutput"><span class="identifier">lua_ref</span><span class="special">::</span><span class="identifier">as</span></code> requires a <code class="computeroutput"><span class="identifier">pcall</span></code>.
+          </li>
+<li class="listitem">
+            Popping the whole stack into <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>
+            requires a <code class="computeroutput"><span class="identifier">pcall</span></code> and
+            a <code class="computeroutput"><span class="keyword">try</span> <span class="special">/</span>
+            <span class="keyword">catch</span></code>.
+          </li>
+<li class="listitem">
+            Calling a <code class="computeroutput"><span class="identifier">bound_function</span></code>
+            or <code class="computeroutput"><span class="identifier">coroutine</span></code> requires
+            two <code class="computeroutput"><span class="identifier">pcall</span></code> instead of
+            one, plus a <code class="computeroutput"><span class="keyword">try</span> <span class="special">/</span>
+            <span class="keyword">catch</span></code> if multiple return values
+            are requested.
+          </li>
+</ul></div>
 <h4>
 <a name="lua_primer.overview.exception_safety.h2"></a>
         <span><a name="lua_primer.overview.exception_safety.handling_of_errors"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.handling_of_errors">Handling
@@ -201,11 +235,11 @@
       </p>
 <p>
         Internally, Primer handles errors using a class template <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>,
-        which is a discrminated union between a value and an error signal. When an
-        operation was requested by the user and fails, usually we return this <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> type
-        so that they get the error message by return value. When a callback created
-        with primer fails after being called by lua, the error message is passed
-        to lua and an error is raised.
+        which is a union holding either a value or an error signal. When an operation
+        was requested by the user and fails, usually we return this <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> type
+        so that they get the error message. When a callback created with primer fails
+        after being called by lua, the error message is passed to lua and an error
+        is raised.
       </p>
 <p>
         Since we cannot throw exceptions through lua, or handle the user's exceptions,
@@ -266,11 +300,9 @@
         into lua errors can potentially lead to the exception being lost and swallowed
         if lua scripts are using <code class="computeroutput"><span class="identifier">pcall</span></code>
         to call your functions, and then it becomes very difficult to reason about
-        what happens next. So we consider that catching user exceptions and trying
-        to sneak them across the lua call boundary is not a very robust solution,
-        and we don't plan to do something like this generically in Primer. We think
-        it is usually a better idea to just terminate the program in such cases.
-        <sup>[<a name="lua_primer.overview.exception_safety.f10" href="#ftn.lua_primer.overview.exception_safety.f10" class="footnote">11</a>]</sup>
+        what happens next. So we don't plan to do something like this generically
+        in Primer. We think it is a better idea to terminate the program in such
+        cases. <sup>[<a name="lua_primer.overview.exception_safety.f10" href="#ftn.lua_primer.overview.exception_safety.f10" class="footnote">11</a>]</sup>
       </p>
 <p>
         Instead, we are mainly concerned with avoiding leaks and indeterminate states,
@@ -281,177 +313,72 @@
         <span><a name="lua_primer.overview.exception_safety.exception_safety_requirements"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.exception_safety_requirements">Exception
         Safety Requirements</a>
       </h4>
-<p>
-        There are three ways that we will consider here that a user exception can
-        reach Primer:
-      </p>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
-            A function which the user gave to <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>,
-            to push to lua, throws an exception.
+            User specializations of <code class="computeroutput"><span class="identifier">push</span></code>:
+            <div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                  Must not throw C++ exceptions.
+                </li>
+<li class="listitem">
+                  May raise a lua error only in case of lua memory allocation failure.
+                </li>
+</ul></div>
           </li>
 <li class="listitem">
-            A user-defined object or container throws when we are manipulating it,
-            e.g. when it is constructed, moved, or destroyed.
+            User specializations of <code class="computeroutput"><span class="identifier">read</span></code>:
+            <div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                  Must not throw C++ exceptions.
+                </li>
+<li class="listitem">
+                  Should return <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
+                  in case of failure.
+                </li>
+<li class="listitem">
+                  Note: <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code> only supports objects
+                  which are <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>,
+                  so only such objects can be <code class="computeroutput"><span class="identifier">read</span></code>.
+                  This is enforced via <code class="computeroutput"><span class="keyword">static_assert</span></code>.
+                </li>
+<li class="listitem">
+                  With regards to containers:
+                  <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                        Arrays and visitable structures must further be <code class="computeroutput"><span class="identifier">nothrow_constructible</span></code>.
+                        This is enforced via <code class="computeroutput"><span class="keyword">static_assert</span></code>.
+                      </li>
+<li class="listitem">
+                        Elements in arrays and visitable struture should be <code class="computeroutput"><span class="identifier">nothrow_move_assignable</span></code>,
+                        but this is not required, it will only go slower if they
+                        are not.
+                      </li>
+</ul></div>
+                </li>
+</ul></div>
           </li>
 <li class="listitem">
-            A specialization of <code class="computeroutput"><span class="identifier">push</span></code>
-            or <code class="computeroutput"><span class="identifier">read</span></code> throws an exception.
+            Userdata
+            <div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+                  May throw from constructor.
+                </li>
+<li class="listitem">
+                  Must not throw from destructor.
+                </li>
+</ul></div>
+          </li>
+<li class="listitem">
+            When adapting a C++ function for lua:
+            <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+                  If it has signature <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span><span class="special">(</span><span class="identifier">lua_State</span>
+                  <span class="special">*,</span> <span class="special">...)</span></code>
+                  then it must not throw. You must add a custom specialization of
+                  <code class="computeroutput"><span class="identifier">adapt</span></code> if you want
+                  it to catch your exceptions.
+                </li></ul></div>
           </li>
 </ol></div>
-<p>
-        Our handling of these situations is as follows:
-      </p>
-<h5>
-<a name="lua_primer.overview.exception_safety.h5"></a>
-        <span><a name="lua_primer.overview.exception_safety.a_user_function_which_was_adapte"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.a_user_function_which_was_adapte">A
-        user function which was adapted for lua throws an exception</a>
-      </h5>
-<p>
-        This should never happen, and we view it as a bug in user code if it does.
-      </p>
-<p>
-        Essentially, we consider that if you used the lua C api directly to push
-        such functions, you would get undefined behavior when they throw. To preempt
-        this, we fail fast by marking one of the functions within the <code class="computeroutput"><span class="identifier">adapt</span></code> mechanism as <code class="computeroutput"><span class="keyword">noexcept</span></code>,
-        which means that <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">terminate</span></code> will be called if your function
-        throws when the adapted function is called.
-      </p>
-<h5>
-<a name="lua_primer.overview.exception_safety.h6"></a>
-        <span><a name="lua_primer.overview.exception_safety.a_userdata_object_throws_an_exce"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.a_userdata_object_throws_an_exce">A
-        userdata object throws an exception</a>
-      </h5>
-<p>
-        Userdata types are permitted to throw exceptions from their constructors.
-        In such cases (<code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span></code>) Primer will abort and pop the
-        uninitialized userdata object from the stack, and rethrow the exception.
-        Primer does not ever call this function "automatically", you always
-        call it explicitly in order to create userdata. So this exception always
-        returns to the user and not into lua.
-      </p>
-<p>
-        Userdata types must not throw exceptions from their destructors, if they
-        are using the "default" garbage collection function. Even if they
-        have custom <code class="computeroutput"><span class="identifier">__gc</span></code> metamethods,
-        those metamethods must not throw exceptions. They aren't permitted to raise
-        lua errors either, since lua gc happens as a continual process and those
-        errors could appear at times that we aren't prepared to handle them.
-      </p>
-<h5>
-<a name="lua_primer.overview.exception_safety.h7"></a>
-        <span><a name="lua_primer.overview.exception_safety.an_object_which_primer_was_pushi"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.an_object_which_primer_was_pushi">An
-        object which Primer was pushing or reading throws an exception from a special
-        member function</a>
-      </h5>
-<p>
-        Primer pushes C++ values by reference, and doesn't require making copies
-        of them. So this actually isn't an issue with <code class="computeroutput"><span class="identifier">push</span></code>.
-      </p>
-<p>
-        The container type <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code>
-        imposes some constraints on objects that are <span class="emphasis"><em>read</em></span>.
-      </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-            Objects which will be held in <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code>
-            must be <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code>.
-            That is, they cannot throw from their move constructor or destructor.
-          </li></ul></div>
-<p>
-        For certain containers, that is, <span class="emphasis"><em>non-dynamic</em></span> containers
-        like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code> or structures registered using the
-        <code class="computeroutput"><span class="identifier">VISIT_STRUCT</span></code> mechanism, additional
-        requirements are placed on your objects when they are <span class="emphasis"><em>read</em></span>.
-      </p>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-            They must be <code class="computeroutput"><span class="identifier">nothrow_constructible</span></code>.
-          </li>
-<li class="listitem">
-            They <span class="bold"><strong>should</strong></span> be <code class="computeroutput"><span class="identifier">nothrow_move_assignable</span></code>.
-            If they are not, then Primer will attempt fallbacks:
-            <div class="itemizedlist"><ul class="itemizedlist" type="circle">
-<li class="listitem">
-                  It will attempt an unqualified call to <code class="computeroutput"><span class="identifier">swap</span></code>
-                  if it resolves to a <code class="computeroutput"><span class="keyword">noexcept</span></code>
-                  function.
-                </li>
-<li class="listitem">
-                  It will call the destructor explicitly and reconstruct using move-construction
-                  with placement-new. This is usually less efficient than a move
-                  assignment, so you should avoid this by providing a <code class="computeroutput"><span class="keyword">noexcept</span></code> move assignment operator
-                  or a <code class="computeroutput"><span class="keyword">noexcept</span></code> specialization
-                  of <code class="computeroutput"><span class="identifier">swap</span></code> in your
-                  namespace.
-                </li>
-</ul></div>
-          </li>
-</ul></div>
-<p>
-        In general, the necessary preconditions are checked via <code class="computeroutput"><span class="keyword">static_assert</span></code>
-        and your code won't compile if the assumptions aren't met.
-      </p>
-<p>
-        For instance, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code> is an exception-safe container
-        in the strong sense. It's just that if the contained type is not <code class="computeroutput"><span class="identifier">nothrow_move_constructible</span></code> then you cannot
-        compile.
-      </p>
-<h5>
-<a name="lua_primer.overview.exception_safety.h8"></a>
-        <span><a name="lua_primer.overview.exception_safety.a_specialization_of_push_or_read"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.a_specialization_of_push_or_read">A
-        specialization of <code class="computeroutput"><span class="identifier">push</span></code> or
-        <code class="computeroutput"><span class="identifier">read</span></code> throws an exception</a>
-      </h5>
-<p>
-        Pushing an object is not permitted to fail. The only failure mode is that
-        lua runs out of memory and raises a lua error.
-      </p>
-<p>
-        Reading an object can fail, but it should return <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
-        in that case.
-      </p>
-<p>
-        These functions are not supposed to throw exceptions under any circumstances,
-        not even <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code>. It is considered a bug in user
-        code if they do. The built-in implementations in primer all catch and internally
-        handle <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bad_alloc</span></code> by returning a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>. Push should not make C++ dynamic
-        allocations, the C++ object that it is pushing already exists -- only lua
-        is supposed to be making allocations there.
-      </p>
-<h5>
-<a name="lua_primer.overview.exception_safety.h9"></a>
-        <span><a name="lua_primer.overview.exception_safety.memory_allocation_failure"></a></span><a class="link" href="exception_safety.html#lua_primer.overview.exception_safety.memory_allocation_failure">Memory
-        allocation failure</a>
-      </h5>
-<p>
-        When compiled as C++, Primer handles memory allocation failures gracefully,
-        and doesn't leak any C++ objects or memory. The only thing that Primer leaks
-        in that scenario is lua stack objects -- if a lua memory error is raised
-        within a primer call, then whatever it was doing at the time, it loses track
-        of any temporary objects on the lua stack and they are forgotten about. In
-        theory we could fix this by creating a series of RAII objects to protect
-        every time we push such a temporary object onto the stack.
-      </p>
-<p>
-        However, there is little purpose in this. In case of a callback or a pcall,
-        lua unwinds the stack itself when it handles errors and will take care of
-        all of these objects. In case of <code class="computeroutput"><span class="identifier">lua_resume</span></code>
-        it does not unwind the stack, however, you will have to clear the thread
-        stack after an error on resuming anyways -- primer discards the thread entirely
-        in such cases.
-      </p>
-<p>
-        So, all-in-all, programs written using Primer should be quite able to handle
-        exceptional situations when lua is compiled as C++, and you should be able
-        to successfully handle and recover from memory allocation errors without
-        being forced to bring down your program.
-      </p>
-<p>
-        If you don't care about recovering from memory allocation failures, then
-        using lua compiled as C should be just fine. You just need to make sure to
-        use callbacks of the form <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="special">,</span> <span class="special">...)</span></code>
-        and not raise lua errors directly (to avoid leaks), or use the <code class="computeroutput"><span class="keyword">int</span><span class="special">(</span><span class="identifier">lua_State</span><span class="special">*)</span></code> form but very carefully.
-      </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
 <div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f0" href="#lua_primer.overview.exception_safety.f0" class="para">1</a>] </sup>
@@ -467,7 +394,7 @@
           users wiki</a>
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f3" href="#lua_primer.overview.exception_safety.f3" class="para">4</a>] </sup>
-          Usually this would lead "only" to a memory leak, but technically
+          Usually this would lead "only" to a memory leak, but actually
           the standard says that undefined behavior results if an object with a nontrivial
           destructor is jumped over.
         </p></div>
@@ -517,9 +444,10 @@
           to a <code class="computeroutput"><span class="identifier">pcall</span></code> somewhere.
         </p></div>
 <div class="footnote"><p><sup>[<a name="ftn.lua_primer.overview.exception_safety.f10" href="#lua_primer.overview.exception_safety.f10" class="para">11</a>] </sup>
-          If you want to create an exception-to-lua-error translation mechanism for
-          use with Primer in your program, you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code> trait in order to do it. See the
-          documentation for <code class="computeroutput"><span class="identifier">adapt</span></code>.
+          If you want to create an exception-to-lua-error translation mechanism specific
+          to your program, you are welcome to specialize the <code class="computeroutput"><span class="identifier">adapt</span></code>
+          trait in order to do it, and it's not too difficult. See the documentation
+          for <code class="computeroutput"><span class="identifier">adapt</span></code>.
         </p></div>
 </div>
 </div>

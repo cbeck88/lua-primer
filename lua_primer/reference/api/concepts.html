@@ -60,9 +60,9 @@
           function pointers to some placeholder names for them.
         </p>
 <p>
-          Then, when deserializing, you must provide the "inverse" of the
-          permanent objects table, which maps those placeholder names back to the
-          appropriate function pointers (potentially now on a different machine)
+          Then, when deserializing, it must be provided with the "inverse"
+          of the permanent objects table, which maps those placeholder names back
+          to the appropriate function pointers (potentially now on a different machine)
           and so on.
         </p>
 <h6>
@@ -71,10 +71,25 @@
         </h6>
 <p>
           Userdata is handled in a slightly different way -- by creating a special
-          metamethod called <code class="computeroutput"><span class="identifier">persist</span></code>.
+          metamethod called <code class="computeroutput"><span class="identifier">__persist</span></code>.
           See <a href="https://github.com/fnuecke/eris#special-persistence" target="_top">eris'
           documentation</a> on the subject.
         </p>
+<p>
+          There are three options:
+        </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+              Literal persistence. Essentially, we just <code class="computeroutput"><span class="identifier">memcpy</span></code>
+              the object.
+            </li>
+<li class="listitem">
+              No persistence. Persisting this object is a runtime error.
+            </li>
+<li class="listitem">
+              Persistence using a closure.
+            </li>
+</ol></div>
 <p>
           In C++, it's very common to have nontrivially copyable types as userdata.
           In that case, the "literal persistence" is not an option, and
@@ -101,7 +116,11 @@
           <span><a name="lua_primer.reference.api.concepts.primer"></a></span><a class="link" href="concepts.html#lua_primer.reference.api.concepts.primer">Primer</a>
         </h5>
 <p>
-          In Primer, the idea is that for each lua State that you plan to serialize,
+          In Primer, basically the idea is to simplify all this by <span class="bold"><strong>automating</strong></span>
+          the construction of the permanent objects table.
+        </p>
+<p>
+          When you do it the Primer way, for each lua State that you plan to serialize,
           there should be an associated <span class="emphasis"><em>API Object</em></span> with which
           all of the components of that API are registered. The API object manages
           the processes of initializing the API within a State, and later, serializing
@@ -119,7 +138,7 @@
               parts of the API.
             </li>
 <li class="listitem">
-              Three member functions are provided:
+              Three member functions are provided by <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>:
             </li>
 </ul></div>
 <pre class="programlisting"><span class="keyword">void</span> <span class="identifier">initialize_api</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
@@ -141,6 +160,13 @@
           <sup>[<a name="lua_primer.reference.api.concepts.f0" href="#ftn.lua_primer.reference.api.concepts.f0" class="footnote">14</a>]</sup>
         </p>
 <p>
+          Conceptually, the <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> is just a place where you register
+          objects and functions. The actual class has no data members and no nontrivial
+          initialization or destruction, so inheriting from it does not conceptually
+          complicate your class. It just gives you some nice methods that you can
+          use as you like.
+        </p>
+<p>
           Primer provides you with many useful <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>
           definitions for things like installing standard libraries, registering
           your userdata types, and customizing the VM in various common ways. It's
@@ -148,7 +174,7 @@
           whatever you want.
         </p>
 <p>
-          The advantage of doing it this way
+          The advantage of doing it this way TODO
         </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
@@ -158,8 +184,8 @@
             <code class="computeroutput"><span class="identifier">sol</span></code>, they provide you
             with an RAII object called <code class="computeroutput"><span class="identifier">sol</span><span class="special">::</span><span class="identifier">state</span></code>
             which they want you to use. You could use lua in any manner like that
-            with Primer just fine, provided that you can obtain a <code class="computeroutput"><span class="identifier">lua_State</span>
-            <span class="special">*</span></code> from whatever the object is.
+            with Primer just fine, provided that you can obtain a raw <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>
+            from whatever the object is.
           </p></div>
 </div>
 </div>
