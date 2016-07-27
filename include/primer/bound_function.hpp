@@ -138,6 +138,7 @@ public:
   expected<lua_ref_seq> call(lua_ref_seq &&) const noexcept;
 
   // Get a debug string describing what function is bound
+  // Uses lua debug api
   std::string debug_string() const;
 };
 //]
