@@ -209,8 +209,8 @@ that lua may push into its state, in order to support their serialization, and t
 and threads directly, without accessing them via the debug library.
 
 Pluto was developed to support lua 5.1. Eris is a rewrite of Pluto that supports lua 5.2 and 5.3. Both are
-robust technologies, widely used by applications that need this capability. They have a collection of unit tests
-and are regularly updated as new versions of lua are released.
+robust technologies, used by many applications that need this capability. They have a collection of unit tests
+and historically have been regularly updated as new versions of lua are released.
 
 [h2 Eris + Bindings?]
 
@@ -267,8 +267,7 @@ Even ignoring the issue of getting the function pointers, just keeping track of 
 C++ api is a actually pretty complex book-keeping problem that can lead to subtle runtime errors, if one just hacks away at it procedurally.
 All userdata, libraries, and global callbacks need to be registered at VM initialization, again at the permanent objects table,
 and again at the inverse permanent objects table. If one of these is missing, you may just get a runtime error on deserialization.
-It can easily become confusing, especially if
-there are several different lua APIs used for several different components in your application.
+It can easily become confusing, especially if there are several different lua APIs used for several different components in your application.
 
 Ideally, one would like to solve this problem with a "lazy registration" strategy. I.e. make the permanent objects table as we go,
 only adding function pointers to it at the time that we actually push them into the lua state. This is most consistent with `luabind` and
@@ -308,7 +307,7 @@ how the permanent objects table works, you can easily implement other API featur
 The most beneficial thing about the API feature concept is that it keeps the code associated to each feature separate, so you register the list of
 features once and don't end up with a procedural stew.
 
-If the concept is too restrictive for a feature that need to add, fortunately, primer does not attempt to get between you and the lua VM. You can
+If the concept is too restrictive for a feature that need to add, fortunately, Primer does not attempt to get between you and the lua VM. You can
 always do whatever initialization or setup you need outside of these functions, before or after the `initialize_api` and `persist` methods.
 The API features framework is there merely to assist in organization.
 
