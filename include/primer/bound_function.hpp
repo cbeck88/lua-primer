@@ -143,8 +143,9 @@ public:
 //]
 
 inline bound_function::bound_function(lua_State * L) //
-  : ref_(lua_gettop(L) ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
-                       : nullptr) //
+  : ref_((L && lua_gettop(L))
+           ? (lua_isfunction(L, -1) ? L : (lua_pop(L, 1), nullptr))
+           : nullptr) //
 {}
 
 inline std::string

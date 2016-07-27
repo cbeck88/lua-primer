@@ -28,8 +28,7 @@ struct bar {
 
 VISITABLE_STRUCT(test::foo, a, b, c);
 
-void
-visitable_push_test() {
+UNIT_TEST(visitable_push) {
 
   lua_raii L;
 
@@ -126,8 +125,7 @@ visitable_push_test() {
   }
 }
 
-void
-visitable_read_test() {
+UNIT_TEST(visitable_read) {
   lua_raii L;
 
   lua_newtable(L);
@@ -148,8 +146,7 @@ visitable_read_test() {
   TEST_EQ(result->c, 8.5f);
 }
 
-void
-visitable_round_trip() {
+UNIT_TEST(visitable_round_trip) {
   lua_raii L;
 
   test::foo f{true, 5, 9};
@@ -227,8 +224,7 @@ test_func_one(lua_State * L, test::foo f, test::foo g) {
   return 1;
 }
 
-void
-visitable_function_params_test() {
+UNIT_TEST(visitable_function_parameters) {
   lua_raii L;
 
   lua_CFunction f = PRIMER_ADAPT(&test_func_one);
@@ -343,8 +339,7 @@ struct test_api : public primer::callback_registrar<test_api> {
   }
 };
 
-void
-test_api_callbacks() {
+UNIT_TEST(api_callbacks) {
   test_api a;
 
   lua_State * L = a.L_;
@@ -379,20 +374,5 @@ main() {
   conf::log_conf();
 
   std::cout << "Visitable structure tests:" << std::endl;
-  test_harness tests{
-    {"visitable push", &visitable_push_test},
-    {"visitable read", &visitable_read_test},
-    {"visitable round trip", &visitable_read_test},
-    {"visitable params adapt", &visitable_function_params_test},
-    {"api callbacks", &test_api_callbacks},
-  };
-  int num_fails = tests.run();
-  std::cout << "\n";
-  if (num_fails) {
-    std::cout << num_fails << " tests failed!" << std::endl;
-    return 1;
-  } else {
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
-  }
+  test_registrar::run_tests();
 }

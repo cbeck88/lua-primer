@@ -62,8 +62,7 @@ struct test_api_one : primer::api::persistable<test_api_one> {
   }
 };
 
-void
-test_persist_simple() {
+UNIT_TEST(persist_simple) {
   std::string buffer;
 
   {
@@ -109,8 +108,7 @@ test_persist_simple() {
   }
 }
 
-void
-test_persist_simple_two() {
+UNIT_TEST(persist_simple_two) {
   std::string buffer;
   table_summary summary;
 
@@ -192,8 +190,7 @@ struct test_api_two : primer::api::base<test_api_two> {
   void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
 };
 
-void
-test_api_base() {
+UNIT_TEST(api_base) {
   std::string buffer;
   table_summary summary;
 
@@ -250,8 +247,7 @@ test_api_base() {
   }
 }
 
-void
-test_api_help() {
+UNIT_TEST(api_help) {
   test_api_two a;
 
   lua_State * L = a.L_;
@@ -427,8 +423,7 @@ struct test_api_three : primer::api::base<test_api_three> {
   }
 };
 
-void
-test_api_userdata() {
+UNIT_TEST(api_userdata) {
   std::string buffer;
 
   {
@@ -478,8 +473,7 @@ struct test_api_four : primer::api::base<test_api_four> {
   const std::string & get_my_string() const { return my_string_.get(); }
 };
 
-void
-test_api_persistent_value() {
+UNIT_TEST(persistent_value) {
   std::string buffer;
   std::string buffer2;
 
@@ -535,8 +529,7 @@ struct test_api_five : primer::api::base<test_api_five> {
   }
 };
 
-void
-test_sandboxed_libs() {
+UNIT_TEST(sandboxed_libs) {
   test_api_five a;
 
   lua_State * L = a.L_;
@@ -582,8 +575,7 @@ struct interpreter_capture {
   void clear_input() {}
 };
 
-void
-test_interpreter_contexts() {
+UNIT_TEST(api_interpreter_context) {
   test_api_six a;
   lua_State * L = a.L_;
 
@@ -665,8 +657,7 @@ struct test_api : primer::api::base<test_api> {
   void restore(const std::string & buffer) { this->unpersist(L_, buffer); }
 };
 
-void
-test_vfs() {
+UNIT_TEST(api_vfs) {
   std::string buffer;
   table_summary summary;
 
@@ -728,24 +719,5 @@ main() {
   conf::log_conf();
 
   std::cout << "Persistence tests:" << std::endl;
-  test_harness tests{
-    {"persist simple", &test_persist_simple},
-    {"persist simple two", &test_persist_simple_two},
-    {"api base", &test_api_base},
-    {"api help", &test_api_help},
-    {"api userdata", &test_api_userdata},
-    {"api persistent value", &test_api_persistent_value},
-    {"api sandboxed libs", &test_sandboxed_libs},
-    {"api interpreter context", &test_interpreter_contexts},
-    {"api vfs", &test_vfs},
-  };
-  int num_fails = tests.run();
-  std::cout << "\n";
-  if (num_fails) {
-    std::cout << num_fails << " tests failed!" << std::endl;
-    return 1;
-  } else {
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
-  }
+  return test_registrar::run_tests();
 }

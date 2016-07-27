@@ -41,6 +41,8 @@ test_primer_expected() {
 //]
 } // end anonymous namespace
 
+UNIT_TEST(test_primer_expected) { test_primer_expected(); }
+
 template <typename T>
 void
 test_push_type(lua_State * L, T t, int expected, int line) {
@@ -51,8 +53,7 @@ test_push_type(lua_State * L, T t, int expected, int line) {
   lua_pop(L, 1);
 }
 
-void
-push_type_simple() {
+UNIT_TEST(simple_type_push) {
   lua_raii L;
 
   test_push_type<int>(L, 1, LUA_TNUMBER, __LINE__);
@@ -77,8 +78,7 @@ test_truthy(lua_State * L, bool expected, int line) {
   lua_pop(L, 1);
 }
 
-void
-test_read_truthy() {
+UNIT_TEST(read_truthy) {
   lua_raii L;
 
   {
@@ -127,8 +127,7 @@ dummy_to_string_method(lua_State * L) {
   return 1;
 }
 
-void
-test_read_stringy() {
+UNIT_TEST(read_stringy) {
   lua_raii L;
 
   {
@@ -183,8 +182,7 @@ test_roundtrip_value(lua_State * L, T t, int line) {
   lua_pop(L, 1);
 }
 
-void
-roundtrip_simple() {
+UNIT_TEST(roundtrip_simple) {
   lua_raii L;
 
   test_roundtrip_value<int>(L, 1, __LINE__);
@@ -232,8 +230,7 @@ test_type_safety(lua_State * L, T t, int line) {
   lua_pop(L, 1);
 }
 
-void
-typesafe_simple() {
+UNIT_TEST(simple_type_safety) {
   lua_raii L;
 
   test_type_safety<std::string>(L, int{1}, __LINE__);
@@ -266,8 +263,7 @@ test_func_one(lua_State * L, int i, float d, std::string s) {
 }
 } // end anonymous namespace
 
-void
-primer_adapt_test_one() {
+UNIT_TEST(adapt_one) {
   lua_raii L;
 
   lua_CFunction func = PRIMER_ADAPT(&test_func_one);
@@ -354,8 +350,7 @@ test_func_two(lua_State *) {
 }
 }
 
-void
-primer_adapt_test_two() {
+UNIT_TEST(adapt_two) {
   lua_raii L;
 
   lua_CFunction func = PRIMER_ADAPT(&test_func_two);
@@ -414,8 +409,7 @@ test_func_three(lua_State * L, int i, int j, bool b) {
 
 } // end anonymous namespace
 
-void
-primer_adapt_test_three() {
+UNIT_TEST(adapt_three) {
   lua_raii L;
 
   lua_CFunction func = PRIMER_ADAPT(&test_func_three);
@@ -506,8 +500,7 @@ primer_adapt_test_three() {
 #define WEAK_REF_TEST(X)                                                       \
   TEST(X, "Unexpected value for lua_state_ref. line: " << __LINE__)
 
-void
-lua_state_ref_validity() {
+UNIT_TEST(lua_state_ref_validity) {
   using primer::lua_state_ref;
 
   lua_state_ref r;
@@ -596,8 +589,7 @@ lua_state_ref_validity() {
   WEAK_REF_TEST(!t);
 }
 
-void
-primer_ref_test() {
+UNIT_TEST(lua_ref) {
   lua_raii L;
 
   {
@@ -699,8 +691,7 @@ primer_ref_test() {
   TEST(!baz, "Expected all refs to be closed now!");
 }
 
-void
-primer_ref_examples() {
+UNIT_TEST(lua_ref_examples) {
   //[ primer_example_ref
   lua_State * L = luaL_newstate();
 
@@ -741,8 +732,7 @@ test_func_four(lua_State * L, int i, int j) {
   return 2;
 }
 
-void
-primer_call_test() {
+UNIT_TEST(primer_call) {
   lua_raii L;
 
   lua_CFunction f1 = PRIMER_ADAPT(&test_func_one);
@@ -812,8 +802,7 @@ primer_call_test() {
   CHECK_STACK(L, 0);
 }
 
-void
-primer_resume_test() {
+UNIT_TEST(primer_resume) {
   lua_raii L;
 
   using primer::expected;
@@ -929,8 +918,7 @@ struct push<vec2i> {
 
 //]
 
-void
-test_vec2i_push() {
+UNIT_TEST(vec2i_push) {
   lua_raii L;
 
   luaL_requiref(L, "", &luaopen_base, 1);
@@ -1024,8 +1012,7 @@ context to errors reported by subsidiary operations.
 */
 //]
 
-void
-test_vec2i_read() {
+UNIT_TEST(vec2i_read) {
   lua_raii L;
 
   //[ primer_example_vec2i_read_test
@@ -1042,8 +1029,7 @@ test_vec2i_read() {
   //]
 }
 
-void
-test_coroutine() {
+UNIT_TEST(coroutine) {
   lua_raii L;
 
   luaL_requiref(L, "", luaopen_base, 1);
@@ -1164,8 +1150,7 @@ returner(lua_State * L) {
   return 1;
 }
 
-void
-test_coroutine_two() {
+UNIT_TEST(coroutine_two) {
   lua_raii L;
 
   lua_pushcfunction(L, PRIMER_ADAPT(&yielder));
@@ -1202,8 +1187,7 @@ test_coroutine_two() {
 
 // This test catches a subtle issue regarding whether or not cpp_pcall
 // messes up the stack when it returns.
-void
-test_cpp_pcall_returns() {
+UNIT_TEST(cpp_pcall_returns) {
   lua_raii L;
 
   lua_pushinteger(L, 2);
@@ -1310,40 +1294,12 @@ test_adapt_example() {
 }
 //]
 
+UNIT_TEST(test_adapt_example) { test_adapt_example(); }
+
 int
 main() {
   conf::log_conf();
 
   std::cout << "Core tests:" << std::endl;
-  test_harness tests{
-    {"primer expected", &test_primer_expected},
-    {"push type simple values", &push_type_simple},
-    {"roundtrip simple values", &roundtrip_simple},
-    {"simple type safety", &typesafe_simple},
-    {"read truthy", &test_read_truthy},
-    {"read stringy", &test_read_stringy},
-    {"vec2i push", &test_vec2i_push},
-    {"vec2i read", &test_vec2i_read},
-    {"primer adapt one", &primer_adapt_test_one},
-    {"primer adapt two", &primer_adapt_test_two},
-    {"primer adapt three", &primer_adapt_test_three},
-    {"lua state ref validity", &lua_state_ref_validity},
-    {"lua value ref validity", &primer_ref_test},
-    {"ref examples", &primer_ref_examples},
-    {"primer call", &primer_call_test},
-    {"primer resume", &primer_resume_test},
-    {"primer coroutine test", &test_coroutine},
-    {"primer coroutine test 2", &test_coroutine_two},
-    {"primer cpp_pcall returns test", &test_cpp_pcall_returns},
-    {"adapt example", &test_adapt_example},
-  };
-  int num_fails = tests.run();
-  std::cout << "\n";
-  if (num_fails) {
-    std::cout << num_fails << " tests failed!" << std::endl;
-    return 1;
-  } else {
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
-  }
+  return test_registrar::run_tests();
 }

@@ -14,8 +14,7 @@
 /***
  * Test boost::optional
  */
-void
-test_optional_push() {
+UNIT_TEST(optional_push) {
   lua_raii L;
 
   boost::optional<int> b;
@@ -30,8 +29,7 @@ test_optional_push() {
   TEST_EQ(lua_tonumber(L, 2), *b);
 }
 
-void
-test_optional_read() {
+UNIT_TEST(optional_read) {
   lua_raii L;
 
   {
@@ -85,8 +83,7 @@ maximum(lua_State * L, boost::optional<int> x, boost::optional<int> y) {
 }
 //]
 
-void
-test_optional_example() {
+UNIT_TEST(optional_example) {
   lua_raii L;
 
   luaL_requiref(L, "", &luaopen_base, 1);
@@ -184,8 +181,7 @@ namespace {
 template <typename U>
 using T = boost::container::vector<U>;
 
-void
-test_vector_round_trip() {
+UNIT_TEST(boost_vector_roundtrip) {
   lua_raii L;
 
   round_trip_value(L, T<int>{}, __LINE__);
@@ -218,8 +214,7 @@ test_func(lua_State * L, int i, int j, boost::optional<std::string> k,
   return 1;
 }
 
-void
-test_bound_function() {
+UNIT_TEST(bound_function) {
   lua_raii L;
 
   lua_CFunction f1 = PRIMER_ADAPT(&test_func);
@@ -278,8 +273,7 @@ test_bound_function() {
   }
 }
 
-void
-test_bound_function_binding() {
+UNIT_TEST(bound_function_binding) {
   lua_raii L;
 
   lua_CFunction f1 = PRIMER_ADAPT(&test_func);
@@ -328,8 +322,7 @@ yield_helper(lua_State * L) {
   return lua_yield(L, 1);
 }
 
-void
-test_coroutine() {
+UNIT_TEST(coroutine) {
   lua_raii L;
 
   lua_pushcfunction(L, PRIMER_ADAPT(&yield_helper));
@@ -409,8 +402,7 @@ ref_test_func(lua_State * L, primer::lua_ref ref) {
 }
 //]
 
-void
-test_ref_read() {
+UNIT_TEST(lua_ref_read) {
   lua_raii L;
 
   luaL_requiref(L, "", luaopen_base, 1);
@@ -437,8 +429,7 @@ test_ref_read() {
   static_cast<void>(script);
 }
 
-void
-test_bound_function_mult_ret() {
+UNIT_TEST(bound_function_multiple_returns) {
   lua_raii L;
 
   const char * script =
@@ -481,24 +472,5 @@ main() {
   std::cout << std::endl;
 
   std::cout << "Boost tests:" << std::endl;
-  test_harness tests{
-    {"optional push", &test_optional_push},
-    {"optional read", &test_optional_read},
-    {"optional example", &test_optional_example},
-    {"vector", &test_vector_round_trip},
-    {"bound function", &test_bound_function},
-    {"bound function binding", &test_bound_function},
-    {"bound function multiple returns", &test_bound_function_mult_ret},
-    {"coroutine", &test_coroutine},
-    {"ref_fcn_read", &test_ref_read},
-  };
-  int num_fails = tests.run();
-  std::cout << "\n";
-  if (num_fails) {
-    std::cout << num_fails << " tests failed!" << std::endl;
-    return 1;
-  } else {
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
-  }
+  return test_registrar::run_tests();
 }
