@@ -131,12 +131,7 @@ Features
       }
     }
 
-    primer::result bind_click(lua_State * L) {
-      lua_pushvalue(L, 1);
-      primer::bound_function func{L};
-
-      if (!func) { return primer::error("Expected a function!"); }
-
+    primer::result bind_click(lua_State * L, primer::bound_function func) {
       my_gui::bind_click(lua_callback_runner{std::move(func)});
       return 0;
     }
