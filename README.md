@@ -59,12 +59,12 @@ Features
   This includes built-in support for translating fundamental C++ types and lua types.
 
   Lua:
-  ```
+  ```lua
     f('execute', 1, 2)
   ```
 
   C++:
-  ```
+  ```c++
     primer::result f(lua_State * L, std::string command, int x, int y) {
       ...
     }
@@ -73,12 +73,12 @@ Features
 - Primer can also translate fundamental C++ containers like `map`, `set`, and `vector`.  
 
   Lua:
-  ```
+  ```lua
     local list = reverse({1,2,3,4})
   ```
 
   C++:
-  ```
+  ```c++
     primer::result reverse(lua_State * L, std::vector<int> numbers) {
       std::reverse(numbers.begin(), numbers.end());
       primer::push(L, numbers);
@@ -89,12 +89,12 @@ Features
 - A "named parameter" idiom for C++ callback functions that you expose to lua.
 
   Lua:
-  ```
+  ```lua
     h{ name = 'Charlie', id = 44 }
   ```
 
   C++:
-  ```
+  ```c++
     struct h_arguments {
       std::string name;
       int id;
@@ -113,7 +113,7 @@ Features
 - Makes it easy for C++ to refer to and use lua objects which exist in a VM, such as functions.
 
   Lua:
-  ```
+  ```lua
     local function my_func()
       print("Hello world!")
     end
@@ -122,7 +122,7 @@ Features
   ```
 
   C++:
-  ```
+  ```c++
     struct lua_callback_runner : my_gui::event_handler {
       primer::bound_function func_;
 
