@@ -1,7 +1,7 @@
 # lua primer
 
 [![Build Status](https://travis-ci.org/cbeck88/lua-primer.svg?branch=master)](http://travis-ci.org/cbeck88/lua-primer)
-[![Coverage Status](https://coveralls.io/repos/cbeck88/lua-primer/badge.svg?branch=master&service=github)](https://coveralls.io/github/cbeck88/lua-primer?branch=master)
+[![Appveyor status](https://ci.appveyor.com/api/projects/status/github/cbeck88/lua-primer?branch=master&svg=true)](https://ci.appveyor.com/project/cbeck88/lua-primer)
 [![Boost licensed](https://img.shields.io/badge/license-Boost-blue.svg)](./LICENSE)
 
 **lua primer** is a modern C++ library that creates bindings between [**lua**](http://lua.org/) and C++.

@@ -1,0 +1,52 @@
+# Operating system (build VM template)
+os: Visual Studio 2015
+
+# build platform, i.e. Win32 (instead of x86), x64, Any CPU. This setting is optional.
+# platform: 
+# - Win32
+# - x64
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
+# clone directory
+clone_folder: C:\projects\primer
+
+# fetch repository as zip archive
+shallow_clone: true                 # default is "false"
+
+branches:
+  only: 
+   - master
+
+build: off
+
+install:
+  - ps: >-
+      If($true) {
+        Add-Type -assembly "system.io.compression.filesystem"
+        Write-Host "Downloading boost..."
+        (new-object net.webclient).DownloadFile("https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.zip", "C:\projects\boost_1_60_0.zip")
+        Write-Host "Extracting boost..."
+        [io.compression.zipfile]::ExtractToDirectory("C:\projects\boost_1_60_0.zip", "C:\projects\")
+        Set-Location "C:\projects\boost_1_60_0"
+        Write-Host "Building boost.build.."
+        & ".\bootstrap.bat"
+        $env:BOOST_ROOT = "C:\projects\boost_1_60_0"
+        $env:Path += ";C:\projects\boost_1_60_0;"
+        Set-Location "C:\projects\primer\test"
+        Write-Host "Building test executables"
+        & b2 --toolset=msvc -d+2
+      }
+
+test_script:
+  - ps: >-
+      If($true) {
+        Write-Host "Running test executables.."
+        $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
+        ForEach($file in $files) {
+          Write-Host $file.fullName " ... "
+          & $file.fullName
+        }
+      }
