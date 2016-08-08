@@ -1,5 +1,5 @@
-project : default-build <optimization>off debug <cxxflags>"-std=c++11" ;
-# project : default-build <optimization>speed release <cxxflags>"-std=c++11" ;
+project : default-build <optimization>off debug ;
+# project : default-build <optimization>speed release ;
 
 INSTALL_LOC = <location>stage/ ;
 
@@ -87,18 +87,21 @@ install install-lua-bin : lua : <location>stage/ ;
 
 ### Build primer
 
-STRICT = <cxxflags>"-Wall -Werror -Wextra -pedantic " ;
+GNU_FLAGS = "-Wall -Werror -Wextra -pedantic -std=c++11" ;
+FLAGS = <toolset>gcc:<cxxflags>$(GNU_FLAGS) <toolset>clang:<cxxflags>$(GNU_FLAGS) <toolset>msvc:<warnings-as-errors>"off" ;
 
-exe core : core.cpp lualib primer test_harness : $(STRICT) ;
-exe visitable : visitable.cpp lualib primer test_harness : $(STRICT) ;
-exe std : std.cpp lualib primer test_harness : $(STRICT) ;
-exe noexcept : noexcept.cpp lualib primer test_harness : <define>PRIMER_NO_EXCEPTIONS <cxxflags>"-fno-exceptions -fno-rtti" $(STRICT) ;
+NORTTI_FLAGS = <toolset>gcc:<cxxflags>"-fno-exceptions -fno-rtti" <toolset>clang:<cxxflags>"-fno-exceptions -fno-rtti" ;
+
+exe core : core.cpp lualib primer test_harness : $(FLAGS) ;
+exe visitable : visitable.cpp lualib primer test_harness : $(FLAGS) ;
+exe std : std.cpp lualib primer test_harness : $(FLAGS) ;
+exe noexcept : noexcept.cpp lualib primer test_harness : <define>PRIMER_NO_EXCEPTIONS $(FLAGS) $(NORTTI_FLAGS) ;
 
 install install-bin : core visitable std noexcept : $(INSTALL_LOC) ;
 
 # Persistence tests...
 if $(HAVE_ERIS) {
-  exe api : api.cpp lualib primer test_harness : $(STRICT) ;
+  exe api : api.cpp lualib primer test_harness : $(FLAGS) ;
 
   install install-api-bin : api : $(INSTALL_LOC) ;
 
@@ -119,7 +122,7 @@ if $(BOOST_INCLUDE_DIR) {
 
   alias boost_headers : : : : <include>$(BOOST_INCLUDE_DIR) ;
 
-  exe boost : boost.cpp lualib primer test_harness boost_headers : $(STRICT) ;
+  exe boost : boost.cpp lualib primer test_harness boost_headers : $(FLAGS) ;
 
   install install-boost-bin : boost : $(INSTALL_LOC) ;
 }
