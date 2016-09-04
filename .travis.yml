@@ -32,20 +32,9 @@ matrix:
             - g++-5
             - gdb
       env: COMPILER=g++-5
-#    - compiler: clang
-#      addons:
-#        apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
-#          packages:
-#            - g++-5
-#            - clang++-3.7
-#            - gdb
-#      env: COMPILER=clang++-3.7
 
 before_install:
 
-  # - if [[ "${COMPILER}" == "clang++-3.7" ]]; then sudo ./travis/install_clang_3_7.sh; fi
   - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
 
 install:
@@ -58,6 +47,7 @@ install:
       if [[ "${BOOST_VERSION}" == "default" ]]; then BOOST_VERSION=1.60.0; fi;
 
       if [[ "${BOOST_VERSION}" == "1.60.0" ]]; then BOOST_URL="http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz"; fi;
+      if [[ "${BOOST_VERSION}" == "1.61.0" ]]; then BOOST_URL="http://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.gz"; fi;
       if [[ "${BOOST_URL}" != "" ]]; then mkdir boost && travis_retry wget -O - ${BOOST_URL} | tar --strip-components=1 -xz -C boost; fi;
 
       cd boost/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2;
@@ -136,11 +126,11 @@ script:
 # TODO: Figure out what is wrong :(
 #  - ./eris-internal-tests.sh || true
 
-#  - ./test.sh ${FLAGS} --with-lua-as-cpp
+  - ./test.sh ${FLAGS} --with-lua-as-cpp
 #  - ./eris-internal-tests.sh
 
-#  - ./test.sh ${FLAGS} --with-lua-32bit --with-lua-as-cpp
+  - ./test.sh ${FLAGS} --with-lua-32bit --with-lua-as-cpp
 #  - ./eris-internal-tests.sh || true
 
-#  - ./test.sh ${FLAGS} release --with-lua-32bit --with-lua-as-cpp
+  - ./test.sh ${FLAGS} release --with-lua-32bit --with-lua-as-cpp
 
