@@ -1,29 +1,29 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>read</title>
+<title>function read</title>
 <link rel="stylesheet" href="../../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../core.html" title="Core">
-<link rel="prev" href="push.html" title="push">
-<link rel="next" href="result.html" title="result">
+<link rel="prev" href="function_push.html" title="function push">
+<link rel="next" href="metafunction_adapt.html" title="metafunction adapt">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="push.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="result.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="function_push.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="metafunction_adapt.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="lua_primer.reference.core.read"></a><a class="link" href="read.html" title="read">read</a>
+<a name="lua_primer.reference.core.function_read"></a><a class="link" href="function_read.html" title="function read">function read</a>
 </h4></div></div></div>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> is a template function used to read
           a C++ value from the lua stack.
         </p>
 <h5>
-<a name="lua_primer.reference.core.read.h0"></a>
-          <span><a name="lua_primer.reference.core.read.examples"></a></span><a class="link" href="read.html#lua_primer.reference.core.read.examples">Examples</a>
+<a name="lua_primer.reference.core.function_read.h0"></a>
+          <span><a name="lua_primer.reference.core.function_read.examples"></a></span><a class="link" href="function_read.html#lua_primer.reference.core.function_read.examples">Examples</a>
         </h5>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
@@ -48,8 +48,8 @@
 </li>
 </ul></div>
 <h5>
-<a name="lua_primer.reference.core.read.h1"></a>
-          <span><a name="lua_primer.reference.core.read.synopsis"></a></span><a class="link" href="read.html#lua_primer.reference.core.read.synopsis">Synopsis</a>
+<a name="lua_primer.reference.core.function_read.h1"></a>
+          <span><a name="lua_primer.reference.core.function_read.synopsis"></a></span><a class="link" href="function_read.html#lua_primer.reference.core.function_read.synopsis">Synopsis</a>
         </h5>
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">);</span>
@@ -73,8 +73,8 @@
           <span class="special">*</span></code> will invoke undefined behavior.
         </p>
 <h5>
-<a name="lua_primer.reference.core.read.h2"></a>
-          <span><a name="lua_primer.reference.core.read.supported_types"></a></span><a class="link" href="read.html#lua_primer.reference.core.read.supported_types">Supported
+<a name="lua_primer.reference.core.function_read.h2"></a>
+          <span><a name="lua_primer.reference.core.function_read.supported_types"></a></span><a class="link" href="function_read.html#lua_primer.reference.core.function_read.supported_types">Supported
           Types</a>
         </h5>
 <p>
@@ -402,8 +402,8 @@
           Link)
         </p>
 <h5>
-<a name="lua_primer.reference.core.read.h3"></a>
-          <span><a name="lua_primer.reference.core.read.customization"></a></span><a class="link" href="read.html#lua_primer.reference.core.read.customization">Customization</a>
+<a name="lua_primer.reference.core.function_read.h3"></a>
+          <span><a name="lua_primer.reference.core.function_read.customization"></a></span><a class="link" href="function_read.html#lua_primer.reference.core.function_read.customization">Customization</a>
         </h5>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>'s implementation is quite simple
@@ -525,9 +525,8 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">-&gt;</span><span class="identifier">y</span> <span class="special">==</span> <span class="number">4</span><span class="special">);</span>
 </pre>
 <h5>
-<a name="lua_primer.reference.core.read.h4"></a>
-          <span><a name="lua_primer.reference.core.read.stack_space"></a></span><a class="link" href="read.html#lua_primer.reference.core.read.stack_space">Stack
-          Space</a>
+<a name="lua_primer.reference.core.function_read.h4"></a>
+          <span><a name="lua_primer.reference.core.function_read.stack_space"></a></span><a class="link" href="function_read.html#lua_primer.reference.core.function_read.stack_space">Stack Space</a>
         </h5>
 <p>
           Similar to <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>, specializations of <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> must declare how much stack space
@@ -574,7 +573,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="push.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="result.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="function_push.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="metafunction_adapt.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

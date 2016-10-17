@@ -1,29 +1,29 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>push</title>
+<title>function push</title>
 <link rel="stylesheet" href="../../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
 <link rel="up" href="../core.html" title="Core">
-<link rel="prev" href="expected.html" title="expected">
-<link rel="next" href="read.html" title="read">
+<link rel="prev" href="class_expected.html" title="class expected">
+<link rel="next" href="function_read.html" title="function read">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="expected.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="read.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="class_expected.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="function_read.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="lua_primer.reference.core.push"></a><a class="link" href="push.html" title="push">push</a>
+<a name="lua_primer.reference.core.function_push"></a><a class="link" href="function_push.html" title="function push">function push</a>
 </h4></div></div></div>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is a template function used to push
           a C++ value to a lua Stack.
         </p>
 <h5>
-<a name="lua_primer.reference.core.push.h0"></a>
-          <span><a name="lua_primer.reference.core.push.examples"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.examples">Examples</a>
+<a name="lua_primer.reference.core.function_push.h0"></a>
+          <span><a name="lua_primer.reference.core.function_push.examples"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.examples">Examples</a>
         </h5>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
@@ -44,8 +44,8 @@
 </li>
 </ul></div>
 <h5>
-<a name="lua_primer.reference.core.push.h1"></a>
-          <span><a name="lua_primer.reference.core.push.synopsis"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.synopsis">Synopsis</a>
+<a name="lua_primer.reference.core.function_push.h1"></a>
+          <span><a name="lua_primer.reference.core.function_push.synopsis"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.synopsis">Synopsis</a>
         </h5>
 <pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
@@ -70,8 +70,8 @@
             </li>
 </ul></div>
 <h5>
-<a name="lua_primer.reference.core.push.h2"></a>
-          <span><a name="lua_primer.reference.core.push.supported_types"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.supported_types">Supported
+<a name="lua_primer.reference.core.function_push.h2"></a>
+          <span><a name="lua_primer.reference.core.function_push.supported_types"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.supported_types">Supported
           Types</a>
         </h5>
 <p>
@@ -391,8 +391,8 @@
             </li>
 </ul></div>
 <h5>
-<a name="lua_primer.reference.core.push.h3"></a>
-          <span><a name="lua_primer.reference.core.push.customization"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.customization">Customization</a>
+<a name="lua_primer.reference.core.function_push.h3"></a>
+          <span><a name="lua_primer.reference.core.function_push.customization"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.customization">Customization</a>
         </h5>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is defined in terms of a type trait,
@@ -455,9 +455,8 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
 </pre>
 <h5>
-<a name="lua_primer.reference.core.push.h4"></a>
-          <span><a name="lua_primer.reference.core.push.stack_space"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.stack_space">Stack
-          Space</a>
+<a name="lua_primer.reference.core.function_push.h4"></a>
+          <span><a name="lua_primer.reference.core.function_push.stack_space"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.stack_space">Stack Space</a>
         </h5>
 <p>
           One aspect of lua that you may easily miss on your first pass through the
@@ -492,8 +491,8 @@
           size) but large programs may give undefined behavior.
         </p>
 <h6>
-<a name="lua_primer.reference.core.push.h5"></a>
-          <span><a name="lua_primer.reference.core.push.in_primer"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.in_primer">In
+<a name="lua_primer.reference.core.function_push.h5"></a>
+          <span><a name="lua_primer.reference.core.function_push.in_primer"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.in_primer">In
           Primer</a>
         </h6>
 <p>
@@ -522,8 +521,8 @@
           to make sure it has enough space.
         </p>
 <h6>
-<a name="lua_primer.reference.core.push.h6"></a>
-          <span><a name="lua_primer.reference.core.push.querying_the_stack_space_needed"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.querying_the_stack_space_needed">Querying
+<a name="lua_primer.reference.core.function_push.h6"></a>
+          <span><a name="lua_primer.reference.core.function_push.querying_the_stack_space_needed"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.querying_the_stack_space_needed">Querying
           the Stack Space Needed</a>
         </h6>
 <p>
@@ -556,8 +555,8 @@
 </td></tr>
 </table></div>
 <h5>
-<a name="lua_primer.reference.core.push.h7"></a>
-          <span><a name="lua_primer.reference.core.push.push_each"></a></span><a class="link" href="push.html#lua_primer.reference.core.push.push_each"><code class="computeroutput"><span class="identifier">push_each</span></code></a>
+<a name="lua_primer.reference.core.function_push.h7"></a>
+          <span><a name="lua_primer.reference.core.function_push.push_each"></a></span><a class="link" href="function_push.html#lua_primer.reference.core.function_push.push_each"><code class="computeroutput"><span class="identifier">push_each</span></code></a>
         </h5>
 <p>
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_each</span></code> is an extension which pushes
@@ -583,7 +582,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="expected.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="read.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="class_expected.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="function_read.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

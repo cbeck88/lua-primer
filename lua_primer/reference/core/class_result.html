@@ -1,0 +1,107 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>class result</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="metafunction_adapt.html" title="metafunction adapt">
+<link rel="next" href="concept_userdata.html" title="concept userdata">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="metafunction_adapt.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="concept_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.class_result"></a><a class="link" href="class_result.html" title="class result">class result</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is a small structure that is meant
+          to be used by user code, in functions that are pushed to lua using <code class="computeroutput"><span class="identifier">adapt</span></code>.
+        </p>
+<p>
+          See <code class="computeroutput"><span class="identifier">adapt</span></code> for extended
+          examples. (TODO link).
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is supposed to be the return type.
+          It represents a signal of how to terminate a lua function call.
+        </p>
+<p>
+          There are three possible signals:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              return
+            </li>
+<li class="listitem">
+              yield
+            </li>
+<li class="listitem">
+              error
+            </li>
+</ul></div>
+<p>
+          Return and yield both take an <code class="computeroutput"><span class="keyword">int</span></code>,
+          indicating how many return values went on the stack.
+        </p>
+<p>
+          error is indicated by a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
+          object.
+        </p>
+<p>
+          Code to send corresponding signal to lua is in <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">detail</span><span class="special">/</span><span class="identifier">implement_result</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+        </p>
+<h5>
+<a name="lua_primer.reference.core.class_result.h0"></a>
+          <span><a name="lua_primer.reference.core.class_result.synopsis"></a></span><a class="link" href="class_result.html#lua_primer.reference.core.class_result.synopsis">Synopsis</a>
+        </h5>
+<pre class="programlisting"><span class="comment">// Tag used by the user to indicate a yield.</span>
+<span class="keyword">struct</span> <span class="identifier">yield</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">n_</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// Helper object: Represents a return or yield signal.</span>
+<span class="keyword">struct</span> <span class="identifier">return_or_yield</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">n_</span><span class="special">;</span>
+  <span class="keyword">bool</span> <span class="identifier">is_return_</span><span class="special">;</span>
+
+  <span class="keyword">bool</span> <span class="identifier">is_valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">n_</span> <span class="special">&gt;=</span> <span class="number">0</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="comment">// Result object</span>
+<span class="keyword">class</span> <span class="identifier">result</span> <span class="special">{</span>
+
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="identifier">payload_</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Ctors (implicit for ease of use)</span>
+  <span class="identifier">result</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">i</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">i</span><span class="special">,</span> <span class="keyword">true</span><span class="special">})</span> <span class="special">{}</span>
+  <span class="identifier">result</span><span class="special">(</span><span class="identifier">yield</span> <span class="identifier">y</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">y</span><span class="special">.</span><span class="identifier">n_</span><span class="special">,</span> <span class="keyword">false</span><span class="special">})</span> <span class="special">{}</span>
+  <span class="identifier">result</span><span class="special">(</span><span class="identifier">error</span> <span class="identifier">e</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{}</span>
+
+  <span class="comment">// Accessor</span>
+  <span class="keyword">const</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">get_payload</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">payload_</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">get_payload</span><span class="special">()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">payload_</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="metafunction_adapt.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="concept_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

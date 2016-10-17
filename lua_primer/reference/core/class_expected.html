@@ -1,0 +1,379 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>class expected</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="class_error.html" title="class error">
+<link rel="next" href="function_push.html" title="function push">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="class_error.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="function_push.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.class_expected"></a><a class="link" href="class_expected.html" title="class expected">class expected</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span></code> is our primary error handling
+          mechanism.
+        </p>
+<p>
+          It is broadly similar in motivation, design, and implementation to the
+          <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">expected</span></code> type which was proposed for
+          the C++17 standard. <sup>[<a name="lua_primer.reference.core.class_expected.f0" href="#ftn.lua_primer.reference.core.class_expected.f0" class="footnote">12</a>]</sup>
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+          is a container which holds either a value of type <code class="computeroutput"><span class="identifier">T</span></code>,
+          or a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>.
+        </p>
+<p>
+          Given a value <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">e</span></code>,
+          the <code class="computeroutput"><span class="keyword">operator</span> <span class="keyword">bool</span></code>
+          of <code class="computeroutput"><span class="identifier">e</span></code> tests whether it has
+          a value or an error. <code class="computeroutput"><span class="keyword">true</span></code>
+          indicates a value, <code class="computeroutput"><span class="keyword">false</span></code> indicates
+          an error.
+        </p>
+<p>
+          The value is accessed by reference using <code class="computeroutput"><span class="keyword">operator</span>
+          <span class="special">*</span></code>.
+        </p>
+<p>
+          The error is accessed by reference using member function <code class="computeroutput"><span class="identifier">err</span><span class="special">()</span></code>.
+        </p>
+<p>
+          Both kinds of access are <span class="emphasis"><em>unchecked</em></span>, you get undefined
+          behavior if you use <code class="computeroutput"><span class="keyword">operator</span> <span class="special">*</span></code> when there actually is an error.
+        </p>
+<h5>
+<a name="lua_primer.reference.core.class_expected.h0"></a>
+          <span><a name="lua_primer.reference.core.class_expected.example"></a></span><a class="link" href="class_expected.html#lua_primer.reference.core.class_expected.example">Example</a>
+        </h5>
+<pre class="programlisting"><span class="keyword">using</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">;</span>
+
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span>
+<span class="identifier">foo</span><span class="special">(</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="identifier">e</span> <span class="special">&gt;=</span> <span class="number">7</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="string">"woof!"</span><span class="special">};</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="string">"bad doggie!"</span><span class="special">};</span>
+    <span class="special">}</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="identifier">e</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span>
+<span class="identifier">test_primer_expected</span><span class="special">()</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">6</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result</span><span class="special">);</span>
+
+  <span class="keyword">auto</span> <span class="identifier">result2</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="number">7</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result2</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(*</span><span class="identifier">result2</span> <span class="special">==</span> <span class="string">"woof!"</span><span class="special">);</span>
+
+  <span class="keyword">auto</span> <span class="identifier">result3</span> <span class="special">=</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"404"</span><span class="special">));</span>
+  <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result3</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">what</span><span class="special">()</span> <span class="special">==</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="string">"404"</span><span class="special">});</span>
+
+  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">str</span><span class="special">()</span> <span class="special">==</span> <span class="string">"404"</span><span class="special">);</span>
+  <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result3</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">c_str</span><span class="special">()</span> <span class="special">==</span> <span class="identifier">result3</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">what</span><span class="special">());</span>
+<span class="special">}</span>
+</pre>
+<h5>
+<a name="lua_primer.reference.core.class_expected.h1"></a>
+          <span><a name="lua_primer.reference.core.class_expected.synopsis"></a></span><a class="link" href="class_expected.html#lua_primer.reference.core.class_expected.synopsis">Synopsis</a>
+        </h5>
+<pre class="programlisting"><span class="comment">// Define primary class template</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">E</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">expected</span> <span class="special">{</span>
+  <span class="keyword">union</span> <span class="special">{</span>
+    <span class="identifier">T</span> <span class="identifier">ham_</span><span class="special">;</span>
+    <span class="identifier">E</span> <span class="identifier">spam_</span><span class="special">;</span>
+  <span class="special">};</span>
+  <span class="keyword">bool</span> <span class="identifier">have_ham_</span><span class="special">;</span>
+
+  <span class="identifier">PRIMER_STATIC_ASSERT</span><span class="special">(</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+    <span class="string">"This class can only be used with types that are no-throw "</span>
+    <span class="string">"move constructible and destructible."</span><span class="special">);</span>
+
+  <span class="identifier">PRIMER_STATIC_ASSERT</span><span class="special">(</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_move_constructible</span><span class="special">&lt;</span><span class="identifier">E</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+    <span class="string">"This class can only be used with types that are no-throw "</span>
+    <span class="string">"move constructible and destructible."</span><span class="special">);</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Accessors and dereference semantics</span>
+  <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">have_ham_</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="special">&amp;&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="identifier">T</span> <span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">E</span> <span class="special">&amp;&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="special">&amp;&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Special member functions</span>
+
+  <span class="comment">// expected&lt;T&gt; is only default constructible if T is, and it throws if T does</span>
+  <span class="identifier">expected</span><span class="special">();</span>
+
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">expected</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">expected</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">expected</span> <span class="special">&amp;);</span>
+  <span class="identifier">expected</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">expected</span> <span class="special">&amp;);</span>
+
+  <span class="special">~</span><span class="identifier">expected</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Conversion from T</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Conversion from `E`.</span>
+  <span class="comment">// This is to make it so that we can simply return `E` from</span>
+  <span class="comment">// functions that return `expected&lt;T&gt;`.</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">);</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">E</span> <span class="special">&amp;&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Conversions to other `expected` types</span>
+  <span class="comment">// This allows you to explicitly convert to expected&lt;U&gt; as long as U is</span>
+  <span class="comment">// constructible from T. This unpacks and repacks the expected.</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">U</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">EU</span> <span class="special">=</span> <span class="identifier">E</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">,</span> <span class="identifier">EU</span><span class="special">&gt;</span> <span class="identifier">convert</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;;</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">U</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">EU</span> <span class="special">=</span> <span class="identifier">E</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">,</span> <span class="identifier">EU</span><span class="special">&gt;</span> <span class="identifier">convert</span><span class="special">()</span> <span class="special">&amp;&amp;;</span>
+
+  <span class="comment">// Map function.</span>
+  <span class="comment">// This is like monadic bind.</span>
+  <span class="comment">// If we have a value, apply this function to it and return the result.</span>
+  <span class="comment">// If we have an error, just return the error.</span>
+  <span class="comment">// If the function returns an expected type, collapse the</span>
+  <span class="comment">// `expected&lt;expected&lt;...&gt;&gt;` return into a single `expected&lt;...&gt;`.</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">F</span><span class="special">&gt;</span>
+  <span class="keyword">auto</span> <span class="identifier">map</span><span class="special">(</span><span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">&amp;</span> <span class="special">-&gt;</span> <span class="identifier">fold_expected_t</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span>
+                                          <span class="special">*</span><span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*&gt;(</span><span class="keyword">nullptr</span><span class="special">))),</span>
+                                        <span class="identifier">E</span><span class="special">&gt;</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(**</span><span class="keyword">this</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">err</span><span class="special">();</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">F</span><span class="special">&gt;</span>
+  <span class="keyword">auto</span> <span class="identifier">map</span><span class="special">(</span><span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">)</span>
+    <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">-&gt;</span> <span class="identifier">fold_expected_t</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span>
+                                 <span class="special">*</span><span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">*&gt;(</span><span class="keyword">nullptr</span><span class="special">))),</span>
+                               <span class="identifier">E</span><span class="special">&gt;</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(**</span><span class="keyword">this</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">err</span><span class="special">();</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">F</span><span class="special">&gt;</span>
+  <span class="keyword">auto</span> <span class="identifier">map</span><span class="special">(</span>
+    <span class="identifier">F</span> <span class="special">&amp;&amp;</span>
+      <span class="identifier">f</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="special">-&gt;</span> <span class="identifier">fold_expected_t</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">declval</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;())),</span>
+                               <span class="identifier">E</span><span class="special">&gt;</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(**</span><span class="keyword">this</span><span class="special">));</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">err</span><span class="special">());</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="comment">// value_or function. Similar to what it does in std::optional.</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">U</span><span class="special">&gt;</span>
+  <span class="identifier">T</span> <span class="identifier">value_or</span><span class="special">(</span><span class="identifier">U</span> <span class="special">&amp;&amp;</span> <span class="identifier">u</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="special">**</span><span class="keyword">this</span><span class="special">;</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">&gt;(</span><span class="identifier">u</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">U</span><span class="special">&gt;</span>
+  <span class="identifier">T</span> <span class="identifier">value_or</span><span class="special">(</span><span class="identifier">U</span> <span class="special">&amp;&amp;</span> <span class="identifier">u</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(**</span><span class="keyword">this</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">&gt;(</span><span class="identifier">u</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<h5>
+<a name="lua_primer.reference.core.class_expected.h2"></a>
+          <span><a name="lua_primer.reference.core.class_expected.specialization_references"></a></span><a class="link" href="class_expected.html#lua_primer.reference.core.class_expected.specialization_references">Specialization:
+          references</a>
+        </h5>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span></code>
+          is specialized, since unions cannot contain references.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&amp;&gt;</span></code>
+          is implemented as a special interface over <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">*&gt;</span></code>.
+        </p>
+<pre class="programlisting"><span class="comment">// Define `T&amp;` specialization</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">E</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">&amp;,</span> <span class="identifier">E</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*,</span> <span class="identifier">E</span><span class="special">&gt;</span> <span class="identifier">internal_</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Accessors</span>
+  <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">&gt;(</span><span class="identifier">internal_</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">**</span><span class="identifier">internal_</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">**</span><span class="identifier">internal_</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">*()</span> <span class="special">&amp;&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">**</span><span class="identifier">internal_</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="identifier">T</span> <span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">*</span><span class="identifier">internal_</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">T</span> <span class="special">*</span> <span class="keyword">operator</span><span class="special">-&gt;()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">*</span><span class="identifier">internal_</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">internal_</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">const</span> <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">internal_</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">E</span> <span class="special">&amp;&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="special">&amp;&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">internal_</span><span class="special">.</span><span class="identifier">err</span><span class="special">());</span> <span class="special">}</span>
+
+  <span class="comment">// Not default constructible</span>
+  <span class="identifier">expected</span><span class="special">()</span> <span class="special">=</span> <span class="keyword">delete</span><span class="special">;</span>
+
+  <span class="comment">// Defaulted special member functions</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">expected</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">expected</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">expected</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">expected</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">expected</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">expected</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="special">~</span><span class="identifier">expected</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+
+  <span class="comment">// Additional ctors</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="comment">//</span>
+    <span class="special">:</span> <span class="identifier">internal_</span><span class="special">(&amp;</span><span class="identifier">t</span><span class="special">)</span>        <span class="comment">//</span>
+  <span class="special">{}</span>
+
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">internal_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{}</span>
+
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">E</span> <span class="special">&amp;&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="keyword">noexcept</span>   <span class="comment">//</span>
+    <span class="special">:</span> <span class="identifier">internal_</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">e</span><span class="special">))</span> <span class="comment">//</span>
+  <span class="special">{}</span>
+
+  <span class="comment">// Map function.</span>
+  <span class="comment">// This is like monadic bind.</span>
+  <span class="comment">// If we have a value, apply this function to it and return the result.</span>
+  <span class="comment">// If we have an error, just return the error.</span>
+  <span class="comment">// If the function returns an expected type, collapse the</span>
+  <span class="comment">// `expected&lt;expected&lt;...&gt;&gt;` return into a single `expected&lt;...&gt;`.</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">F</span><span class="special">&gt;</span>
+  <span class="keyword">auto</span> <span class="identifier">map</span><span class="special">(</span><span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="keyword">const</span>
+    <span class="special">-&gt;</span> <span class="identifier">fold_expected_t</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(*</span><span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*&gt;(</span><span class="keyword">nullptr</span><span class="special">))),</span>
+                       <span class="identifier">E</span><span class="special">&gt;</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(**</span><span class="keyword">this</span><span class="special">);</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">err</span><span class="special">();</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="comment">// value_or function. Similar to what it does in std::optional.</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">U</span><span class="special">&gt;</span>
+  <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">value_or</span><span class="special">(</span><span class="identifier">U</span> <span class="special">&amp;&amp;</span> <span class="identifier">u</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="keyword">this</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="special">**</span><span class="keyword">this</span><span class="special">;</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">&amp;&gt;(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">U</span><span class="special">&gt;(</span><span class="identifier">u</span><span class="special">));</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<h5>
+<a name="lua_primer.reference.core.class_expected.h3"></a>
+          <span><a name="lua_primer.reference.core.class_expected.specialization_void"></a></span><a class="link" href="class_expected.html#lua_primer.reference.core.class_expected.specialization_void">Specialization:
+          void</a>
+        </h5>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code>
+          is specialized, in order to represent "successful completion of an
+          operation, or an error".
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code>
+          mostly has a similar interface to the others, in that <code class="computeroutput"><span class="keyword">operator</span>
+          <span class="keyword">bool</span></code> returns <code class="computeroutput"><span class="keyword">false</span></code>
+          in the presence of an error. However, <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span></code> has no <code class="computeroutput"><span class="keyword">operator</span>
+          <span class="special">*</span></code> and is not implicitly convertible
+          to other kinds of <code class="computeroutput"><span class="identifier">expected</span></code>.
+        </p>
+<pre class="programlisting"><span class="comment">// define void specialization</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">E</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">,</span> <span class="identifier">E</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">bool</span> <span class="identifier">no_error_</span><span class="special">;</span>
+
+  <span class="keyword">union</span> <span class="special">{</span>
+    <span class="identifier">E</span> <span class="identifier">error_</span><span class="special">;</span>
+    <span class="keyword">char</span> <span class="identifier">dummy_</span><span class="special">;</span>
+  <span class="special">};</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Accessors</span>
+  <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">E</span> <span class="special">&amp;&amp;</span> <span class="identifier">err</span><span class="special">()</span> <span class="special">&amp;&amp;</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Default-construct in the "ok" / `true` state</span>
+  <span class="keyword">constexpr</span> <span class="identifier">expected</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Special member functions</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">expected</span> <span class="special">&amp;);</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">expected</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">expected</span> <span class="special">&amp;);</span>
+  <span class="identifier">expected</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">expected</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="special">~</span><span class="identifier">expected</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Additional Constructors</span>
+  <span class="comment">// Allow implicit conversion from `E`, so that we can return</span>
+  <span class="comment">// `E` from functions that return `expected&lt;void&gt;`.</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">E</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">);</span>
+  <span class="identifier">expected</span><span class="special">(</span><span class="identifier">E</span> <span class="special">&amp;&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.reference.core.class_expected.f0" href="#lua_primer.reference.core.class_expected.f0" class="para">12</a>] </sup>
+            See also <a href="https://channel9.msdn.com/Shows/Going+Deep/C-and-Beyond-2012-Andrei-Alexandrescu-Systematic-Error-Handling-in-C" target="_top">a
+            talk</a> by Andrei Alexandrescu
+          </p></div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="class_error.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="function_push.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
