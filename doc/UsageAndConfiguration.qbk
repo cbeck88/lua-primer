@@ -108,7 +108,7 @@ Primer responds to a few configuration defines:
 
 [table
   [[symbol] [effect]]
-  [[`PRIMER_DEBUG`] [This is used to enable internal assertions that Primer uses to check its integrity. Especially, lua stack discipline assertions. You can turn these on if you are having strange lua errors, they may reveal stack discipline problems in usre specializatoins of `push` or `read`.]]
+  [[`PRIMER_DEBUG`] [This is used to enable internal assertions that Primer uses to check its integrity. Especially, lua stack discipline assertions. You can turn these on if you are having strange lua errors, they may reveal stack discipline problems in usre specializations of `push` or `read`.]]
   [[`PRIMER_LUA_AS_CPP`] [This should be used if lua is being compiled as C++ rather than as C in your project. It causes primer not to use `extern "C"` when it includes lua headers.]]
   [[`PRIMER_NO_STATIC_ASSERTS`] [Disables all static assertions made by Primer.]]
   [[`PRIMER_NO_EXCEPTIONS`] [Disables all try / catch blocks in primer. Use this if you want to compile with `-fno-exceptions`.]]
