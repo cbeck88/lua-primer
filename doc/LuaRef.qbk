@@ -1,4 +1,4 @@
-[section lua_ref]
+[section class lua_ref]
 
 A `primer::lua_ref` is a reference to a lua value which exists in a lua VM.
 

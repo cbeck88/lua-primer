@@ -1,4 +1,4 @@
-[section adapt]
+[section metafunction adapt]
 
 `adapt` is a mechanism that takes user functions with a complex signature and
 adapts them to be pushed to lua.

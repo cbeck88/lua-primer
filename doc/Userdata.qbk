@@ -1,7 +1,8 @@
-[section userdata]
+[section concept userdata]
 
 Primer can be told to recognize any C++ type as a *userdata* type. This means
-that you can construct it within lua.
+that you can construct instances of it within lua, and they can be manipulated
+by scripts like any lua value.
 
 Primer recognizes userdata types using a trait, `primer::traits::userdata`.
 This trait must be specialized for any type which primer will recognize as userdata.

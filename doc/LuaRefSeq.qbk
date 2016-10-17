@@ -1,4 +1,4 @@
-[section lua_ref_seq]
+[section class lua_ref_seq]
 
 A `primer::lua_ref_seq` is a dynamically-sized sequence of `lua_ref` objects.
 

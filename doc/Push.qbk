@@ -1,4 +1,4 @@
-[section push]
+[section function push]
 
 `primer::push` is a template function used to push a C++ value to a lua Stack.
 

@@ -1,4 +1,4 @@
-[section bound_function]
+[section class bound_function]
 
 `primer::bound_function` is a `primer::lua_ref` which is known to point to an object of function type.
 
