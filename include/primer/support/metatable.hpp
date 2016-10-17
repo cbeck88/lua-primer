@@ -80,10 +80,6 @@ struct metatable<T, enable_if_t<detail::is_L_Reg_sequence<decltype(
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
-    const auto & metatable_seq =
-      detail::is_L_Reg_sequence<decltype(udata::metatable)>::adapt(
-        udata::metatable);
-
     PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
@@ -96,21 +92,21 @@ struct metatable<T, enable_if_t<detail::is_L_Reg_sequence<decltype(
     constexpr const char * index_name = "__index";
     constexpr const char * metatable_name = "__metatable";
 
-    for (const auto & reg : metatable_seq) {
-      if (reg.name) {
-        if (reg.func) {
-          lua_pushcfunction(L, reg.func);
-          lua_setfield(L, -2, reg.name);
+    detail::iterate_L_Reg_sequence(udata::metatable, [&](const char * name, lua_CFunction func) {
+      if (name) {
+        if (func) {
+          lua_pushcfunction(L, func);
+          lua_setfield(L, -2, name);
         }
-        if (0 == std::strcmp(reg.name, gc_name)) { saw_gc_metamethod = true; }
-        if (0 == std::strcmp(reg.name, index_name)) {
+        if (0 == std::strcmp(name, gc_name)) { saw_gc_metamethod = true; }
+        if (0 == std::strcmp(name, index_name)) {
           saw_index_metamethod = true;
         }
-        if (0 == std::strcmp(reg.name, metatable_name)) {
+        if (0 == std::strcmp(name, metatable_name)) {
           saw_metatable_metamethod = true;
         }
       }
-    }
+    });
 
     // If the user did not register __gc then it is potentially (likely) a
     // leak, so install a trivial guy which calls the dtor.

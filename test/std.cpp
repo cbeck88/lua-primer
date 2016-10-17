@@ -387,7 +387,7 @@ dump_method(lua_State * L, userdata_test & u) {
   return 1;
 }
 
-constexpr const luaL_Reg method_list[] = {
+const luaL_Reg method_list[] = {
   {"__call", PRIMER_ADAPT(&call_method)},
   {"dump", PRIMER_ADAPT(&dump_method)},
   {nullptr, nullptr}};
@@ -398,10 +398,13 @@ namespace traits {
 
 template <>
 struct userdata<userdata_test> {
-  static constexpr const char * name = "userdata_test_type";
-  static constexpr const luaL_Reg * const metatable =
-    static_cast<const luaL_Reg *>(method_list);
+  static const char * name;
+  static const luaL_Reg * const metatable;
 };
+
+const char * userdata<userdata_test>::name = "userdata_test_type";
+
+const luaL_Reg * const userdata<userdata_test>::metatable = method_list;
 
 } // end namespace traits
 } // end namespace primer
@@ -515,7 +518,7 @@ struct vec2_test {
   }
 };
 
-constexpr const luaL_Reg vec2_methods[] = {
+const luaL_Reg vec2_methods[] = {
   {"__add", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::add)},
   {"__sub", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::subtract)},
   {"__unm", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::negate)},
@@ -530,10 +533,13 @@ namespace traits {
 
 template <>
 struct userdata<vec2_test> {
-  static constexpr const char * name = "vec2";
-  static constexpr const luaL_Reg * const metatable =
-    static_cast<const luaL_Reg * const>(vec2_methods);
+  static const char * name;
+  static const luaL_Reg * const metatable;
 };
+
+const char * userdata<vec2_test>::name = "vec2";
+
+const luaL_Reg * const userdata<vec2_test>::metatable = vec2_methods;
 
 } // end namespace traits
 } // end namespace primer

@@ -1,0 +1,106 @@
+[section concept L_Reg_sequence]
+
+An `L_Reg_sequence` is a sequence of named functions.
+
+It is quite common in lua C API programming to need to create lists of
+functions paired with names. lua has a standard idiom for this.
+The following structure is defined
+in the lua headers:
+
+``
+  struct luaL_Reg {
+    const char * name;
+    lua_CFunction func;
+  };
+``
+
+Many lua api calls take as a parameter a pointer `const luaL_Reg *`, which is
+expected to point into an array, terminated by a `luaL_Reg` holding two null pointers.
+(See [@http://www.lua.org/manual/5.2/manual.html#luaL_Reg the manual].)
+
+It is common to need to make such lists when creating APIs, or specifying userdata.
+
+In primer, we respect this idiom, but we extend it as follows:
+
+* ['Pointer to null-terminated array] of `luaL_Reg` is supported
+* ['Any standard container] (`std::array`, `std::initializer_list`, `std::vector`) is supported, with or without null terminators. It needs to satisfy the conditions for use in a range-based for loop.
+* The value-type need not actually be `luaL_Reg` -- as long as it has public members `const char * name`
+and `lua_CFunction func`, that's enough
+* Instead of a container, ['the object can actually just be a function which takes no parameters and yields the container]. This is in case you want to define the list in a header and not deal with static initialization problems.
+
+In total we call this concept "`L_Reg_sequence`".
+
+[h4 Examples]
+
+This code pushes a collection of functions to lua and gives them names in the global environment.
+
+* lua C API:
+  ``
+    lua_pushcfunction(L, &foo);
+    lua_setglobal(L, "foo");
+    lua_pushcfunction(L, &bar);
+    lua_setglobal(L, "bar");
+    lua_pushcfunction(L, &baz);
+    lua_setglobal(L, "baz");
+  ``
+
+* A different way using lua C API:
+  ``
+    static const luaL_Reg funcs[] = {
+        {"foo", &foo},
+        {"bar", &bar},
+        {"baz", &baz},
+        {nullptr, nullptr}
+    };
+    lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+    luaL_setfuncs(L, funcs);
+    lua_pop(L, 1);
+  ``
+
+* Using primer:
+  ``
+    static const std::vector<luaL_Reg> funcs{
+        {"foo", &foo},
+        {"bar", &bar},
+        {"baz", &baz},
+        {nullptr, nullptr}
+    };
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+    primer::set_funcs(L, funcs);
+    lua_pop(L, 1);
+  ``
+
+* A different way using primer:
+  ``
+    static constexpr std::array<luaL_Reg, 3> funcs() {
+        return {{"foo", &foo}, {"bar", &bar}, {"baz", &baz}};
+    }
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+    primer::set_funcs(L, funcs);
+    lua_pop(L, 1);
+  ``
+
+[h4 Synopsis]
+
+The concept is used by an internal function `detail::iterate_L_Reg_sequence`:
+
+[primer_detail_iterate_l_reg_sequence]
+
+which calls a functor using each `name, func` pair from the sequence.
+
+`primer::set_funcs` and a few variations are as follows:
+
+There are a few variations of `primer::set_funcs`.
+
+* `primer::set_funcs` is analogous to `luaL_setfuncs`, it assumes there is a table
+  on top of the stack and registers each function with it, using the name as a key.
+
+* `primer::set_funcs_reverse` is the same, but the function is the key and the name is the value.
+* `primer::set_funcs_prefix` is the same, except a prefix string is prepended to each name.
+* `primer::set_funcs_prefix_reverse` is analogous.
+
+[primer_set_funcs]
+
+[endsect]

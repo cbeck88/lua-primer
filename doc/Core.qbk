@@ -19,6 +19,7 @@ These features serve such purposes as:
 [include Read.qbk]
 [include Adapt.qbk]
 [include Result.qbk]
+[include L_Reg_Sequence.qbk]
 [include Userdata.qbk]
 [include LuaRef.qbk]
 [include LuaRefSeq.qbk]

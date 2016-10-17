@@ -26,24 +26,26 @@
 PRIMER_ASSERT_FILESCOPE;
 
 #include <primer/lua.hpp>
+#include <primer/detail/luaL_Reg.hpp>
 #include <primer/support/asserts.hpp>
 
 #include <string>
 
 namespace primer {
 
+//[ primer_set_funcs
 template <typename T>
 void
 set_funcs(lua_State * L, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  for (const auto & reg : seq) {
-    if (reg.name && reg.func) {
-      lua_pushcfunction(L, reg.func);
-      lua_setfield(L, -2, reg.name);
+  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
+    if (name && func) {
+      lua_pushcfunction(L, func);
+      lua_setfield(L, -2, name);
     }
-  }
+  });
 }
 
 template <typename T>
@@ -52,13 +54,13 @@ set_funcs_reverse(lua_State * L, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  for (const auto & reg : seq) {
-    if (reg.name && reg.func) {
-      lua_pushcfunction(L, reg.func);
-      lua_pushstring(L, reg.name);
+  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
+    if (name && func) {
+      lua_pushcfunction(L, func);
+      lua_pushstring(L, name);
       lua_settable(L, -3);
     }
-  }
+  });
 }
 
 template <typename T>
@@ -67,12 +69,12 @@ set_funcs_prefix(lua_State * L, const std::string & prefix, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  for (const auto & reg : seq) {
-    if (reg.name && reg.func) {
-      lua_pushcfunction(L, reg.func);
-      lua_setfield(L, -2, (prefix + reg.name).c_str());
+  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
+    if (name && func) {
+      lua_pushcfunction(L, func);
+      lua_setfield(L, -2, (prefix + name).c_str());
     }
-  }
+  });
 }
 
 template <typename T>
@@ -81,13 +83,14 @@ set_funcs_prefix_reverse(lua_State * L, const std::string & prefix, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  for (const auto & reg : seq) {
-    if (reg.name && reg.func) {
-      lua_pushcfunction(L, reg.func);
-      lua_pushstring(L, (prefix + reg.name).c_str());
+  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
+    if (name && func) {
+      lua_pushcfunction(L, func);
+      lua_pushstring(L, (prefix + name).c_str());
       lua_settable(L, -3);
     }
-  }
+  });
 }
+//]
 
 } // end namespace primer

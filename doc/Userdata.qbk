@@ -24,34 +24,6 @@ and adjust it as you like. If there is no userdata name, though, then primer is
 not able to ['read] this userdata type using `primer::read`, so there would be little
 that we could do with it.
 
-[h4 Representing lists of functions]
-
-It is quite common in lua C API programming to need to be able create lists of
-functions paired with their names. lua has a standard idiom for this.
-The following structure is defined
-in the lua headers:
-
-``
-  struct luaL_Reg {
-    const char * name;
-    lua_CFunction func;
-  };
-``
-
-Many lua functions take as a parameter a pointer `const luaL_Reg *`, which is
-expected to point into an array, terminated by a `luaL_Reg` holding two null pointers.
-(See [@http://www.lua.org/manual/5.2/manual.html#luaL_Reg the manual].)
-
-In primer, we respect this idiom, but we extend it as follows:
-
-* ['Pointer to null-terminated array] of `luaL_Reg` is supported
-* ['Any standard container] (`std::array`, `std::initializer_list`, `std::vector`) is supported, with or without null terminators. It needs to satisfy the conditions for use in a range-based for loop.
-* The value-type need not actually be `luaL_Reg` -- as long as it has public members `const char * name`
-and `lua_CFunction func` then that is sufficient.
-* Instead of a container, ['the object can actually just be a function which takes no parameters and yields the container]. This is in case you want to declare the list inline in a header with your specialization, and not deal with static initialization problems.
-
-In total we call this concept "`L_Reg_sequence`".
-
 [h4 Pushing userdata]
 
 `primer::push_udata` is a template function which is used to construct new userdata objects on the stack.
@@ -78,7 +50,7 @@ You can test a stack position for containing userdata of a given type using the 
 This function returns a pointer to the underlying `T`, or, `nullptr` if the value
 was not userdata corresponding to that class.
 
-`primer::read` also contains a built-in overload for userdata types, as a reference:
+`primer::read` also contains a built-in overload for ['references of userdata types]:
 
 ``
   if (expected<T&> primer::read<T&>(lua_State * L, int index)) { ... }

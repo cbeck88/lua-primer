@@ -32,6 +32,8 @@
 [import ../include/primer/result.hpp]
 [import ../include/primer/set_funcs.hpp]
 [import ../include/primer/userdata.hpp]
+[import ../include/primer/detail/luaL_Reg.hpp]
+[import ../include/primer/support/metatable.hpp]
 [import ../include/primer/support/types.hpp]
 
 [import ../include/primer/api/base.hpp]
