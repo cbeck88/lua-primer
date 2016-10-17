@@ -36,6 +36,7 @@ namespace primer {
 
 namespace detail {
 
+//[ primer_default_metatable
 // minimalistic, do-nothing metatable
 template <typename T, typename ENABLE = void>
 struct metatable {
@@ -52,6 +53,7 @@ struct metatable {
 
   static constexpr int value = 0;
 };
+//]
 
 // full manual control for user
 template <typename T>

@@ -131,4 +131,8 @@ The code which generates the "automatic" metatables from your list of methods is
 
 [primer_automatically_generated_metatable]
 
+If you don't provide a metatable field at all, you get this one:
+
+[primer_default_metatable]
+
 [endsect]
