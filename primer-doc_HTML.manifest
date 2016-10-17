@@ -16,6 +16,7 @@ lua_primer/reference/core/function_push.html
 lua_primer/reference/core/function_read.html
 lua_primer/reference/core/metafunction_adapt.html
 lua_primer/reference/core/class_result.html
+lua_primer/reference/core/concept_l_reg_sequence.html
 lua_primer/reference/core/concept_userdata.html
 lua_primer/reference/core/class_lua_ref.html
 lua_primer/reference/core/class_lua_ref_seq.html

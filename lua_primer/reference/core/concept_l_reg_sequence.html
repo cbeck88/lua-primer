@@ -1,0 +1,261 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>concept L_Reg_sequence</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="class_result.html" title="class result">
+<link rel="next" href="concept_userdata.html" title="concept userdata">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="class_result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="concept_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.reference.core.concept_l_reg_sequence"></a><a class="link" href="concept_l_reg_sequence.html" title="concept L_Reg_sequence">concept
+        L_Reg_sequence</a>
+</h4></div></div></div>
+<p>
+          An <code class="computeroutput"><span class="identifier">L_Reg_sequence</span></code> is a
+          sequence of named functions.
+        </p>
+<p>
+          It is quite common in lua C API programming to need to create lists of
+          functions paired with names. lua has a standard idiom for this. The following
+          structure is defined in the lua headers:
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">luaL_Reg</span> <span class="special">{</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">;</span>
+  <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
+          Many lua api calls take as a parameter a pointer <code class="computeroutput"><span class="keyword">const</span>
+          <span class="identifier">luaL_Reg</span> <span class="special">*</span></code>,
+          which is expected to point into an array, terminated by a <code class="computeroutput"><span class="identifier">luaL_Reg</span></code> holding two null pointers. (See
+          <a href="http://www.lua.org/manual/5.2/manual.html#luaL_Reg" target="_top">the manual</a>.)
+        </p>
+<p>
+          It is common to need to make such lists when creating APIs, or specifying
+          userdata.
+        </p>
+<p>
+          In primer, we respect this idiom, but we extend it as follows:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <span class="emphasis"><em>Pointer to null-terminated array</em></span> of <code class="computeroutput"><span class="identifier">luaL_Reg</span></code> is supported
+            </li>
+<li class="listitem">
+              <span class="emphasis"><em>Any standard container</em></span> (<code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code>,
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">initializer_list</span></code>, <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>)
+              is supported, with or without null terminators. It needs to satisfy
+              the conditions for use in a range-based for loop.
+            </li>
+<li class="listitem">
+              The value-type need not actually be <code class="computeroutput"><span class="identifier">luaL_Reg</span></code>
+              -- as long as it has public members <code class="computeroutput"><span class="keyword">const</span>
+              <span class="keyword">char</span> <span class="special">*</span>
+              <span class="identifier">name</span></code> and <code class="computeroutput"><span class="identifier">lua_CFunction</span>
+              <span class="identifier">func</span></code>, that's enough
+            </li>
+<li class="listitem">
+              Instead of a container, <span class="emphasis"><em>the object can actually just be a
+              function which takes no parameters and yields the container</em></span>.
+              This is in case you want to define the list in a header and not deal
+              with static initialization problems.
+            </li>
+</ul></div>
+<p>
+          In total we call this concept "<code class="computeroutput"><span class="identifier">L_Reg_sequence</span></code>".
+        </p>
+<h5>
+<a name="lua_primer.reference.core.concept_l_reg_sequence.h0"></a>
+          <span><a name="lua_primer.reference.core.concept_l_reg_sequence.examples"></a></span><a class="link" href="concept_l_reg_sequence.html#lua_primer.reference.core.concept_l_reg_sequence.examples">Examples</a>
+        </h5>
+<p>
+          This code pushes a collection of functions to lua and gives them names
+          in the global environment.
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+<p class="simpara">
+              lua C API:
+            </p>
+<pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">foo</span><span class="special">);</span>
+<span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"foo"</span><span class="special">);</span>
+<span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">bar</span><span class="special">);</span>
+<span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"bar"</span><span class="special">);</span>
+<span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">baz</span><span class="special">);</span>
+<span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"baz"</span><span class="special">);</span>
+</pre>
+</li>
+<li class="listitem">
+<p class="simpara">
+              A different way using lua C API:
+            </p>
+<pre class="programlisting"><span class="keyword">static</span> <span class="keyword">const</span> <span class="identifier">luaL_Reg</span> <span class="identifier">funcs</span><span class="special">[]</span> <span class="special">=</span> <span class="special">{</span>
+    <span class="special">{</span><span class="string">"foo"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">foo</span><span class="special">},</span>
+    <span class="special">{</span><span class="string">"bar"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">bar</span><span class="special">},</span>
+    <span class="special">{</span><span class="string">"baz"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">baz</span><span class="special">},</span>
+    <span class="special">{</span><span class="keyword">nullptr</span><span class="special">,</span> <span class="keyword">nullptr</span><span class="special">}</span>
+<span class="special">};</span>
+<span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">LUA_REGISTRYINDEX</span><span class="special">,</span> <span class="identifier">LUA_RIDX_GLOBALS</span><span class="special">);</span>
+<span class="identifier">luaL_setfuncs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">funcs</span><span class="special">);</span>
+<span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+</pre>
+</li>
+<li class="listitem">
+<p class="simpara">
+              Using primer:
+            </p>
+<pre class="programlisting"><span class="keyword">static</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">&gt;</span> <span class="identifier">funcs</span><span class="special">{</span>
+    <span class="special">{</span><span class="string">"foo"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">foo</span><span class="special">},</span>
+    <span class="special">{</span><span class="string">"bar"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">bar</span><span class="special">},</span>
+    <span class="special">{</span><span class="string">"baz"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">baz</span><span class="special">},</span>
+    <span class="special">{</span><span class="keyword">nullptr</span><span class="special">,</span> <span class="keyword">nullptr</span><span class="special">}</span>
+<span class="special">};</span>
+
+<span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">LUA_REGISTRYINDEX</span><span class="special">,</span> <span class="identifier">LUA_RIDX_GLOBALS</span><span class="special">);</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">funcs</span><span class="special">);</span>
+<span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+</pre>
+</li>
+<li class="listitem">
+<p class="simpara">
+              A different way using primer:
+            </p>
+<pre class="programlisting"><span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">,</span> <span class="number">3</span><span class="special">&gt;</span> <span class="identifier">funcs</span><span class="special">()</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="special">{{</span><span class="string">"foo"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">foo</span><span class="special">},</span> <span class="special">{</span><span class="string">"bar"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">bar</span><span class="special">},</span> <span class="special">{</span><span class="string">"baz"</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">baz</span><span class="special">}};</span>
+<span class="special">}</span>
+
+<span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">LUA_REGISTRYINDEX</span><span class="special">,</span> <span class="identifier">LUA_RIDX_GLOBALS</span><span class="special">);</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">funcs</span><span class="special">);</span>
+<span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+</pre>
+</li>
+</ul></div>
+<h5>
+<a name="lua_primer.reference.core.concept_l_reg_sequence.h1"></a>
+          <span><a name="lua_primer.reference.core.concept_l_reg_sequence.synopsis"></a></span><a class="link" href="concept_l_reg_sequence.html#lua_primer.reference.core.concept_l_reg_sequence.synopsis">Synopsis</a>
+        </h5>
+<p>
+          The concept is used by an internal function <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span></code>:
+        </p>
+<pre class="programlisting"><span class="comment">// Iterate over an L_Reg_sequence</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">F</span><span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">is_L_Reg_sequence</span><span class="special">&lt;</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">"Expected an L_Reg_sequence"</span><span class="special">);</span>
+
+  <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">reg</span> <span class="special">:</span> <span class="identifier">is_L_Reg_sequence</span><span class="special">&lt;</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">adapt</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">)))</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">reg</span><span class="special">.</span><span class="identifier">name</span> <span class="special">||</span> <span class="identifier">reg</span><span class="special">.</span><span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span><span class="identifier">reg</span><span class="special">.</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">reg</span><span class="special">.</span><span class="identifier">func</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+</pre>
+<p>
+          which calls a functor using each <code class="computeroutput"><span class="identifier">name</span><span class="special">,</span> <span class="identifier">func</span></code>
+          pair from the sequence.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span></code> and a few variations are as
+          follows:
+        </p>
+<p>
+          There are a few variations of <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span></code>.
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span></code> is analogous to <code class="computeroutput"><span class="identifier">luaL_setfuncs</span></code>, it assumes there is
+              a table on top of the stack and registers each function with it, using
+              the name as a key.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_reverse</span></code> is the same, but
+              the function is the key and the name is the value.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_prefix</span></code> is the same, except
+              a prefix string is prepended to each name.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_prefix_reverse</span></code> is analogous.
+            </li>
+</ul></div>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span>
+<span class="identifier">set_funcs</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">seq</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+      <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="identifier">name</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">});</span>
+<span class="special">}</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span>
+<span class="identifier">set_funcs_reverse</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">seq</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+      <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">name</span><span class="special">);</span>
+      <span class="identifier">lua_settable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">3</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">});</span>
+<span class="special">}</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span>
+<span class="identifier">set_funcs_prefix</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">prefix</span><span class="special">,</span> <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">seq</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+      <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="special">(</span><span class="identifier">prefix</span> <span class="special">+</span> <span class="identifier">name</span><span class="special">).</span><span class="identifier">c_str</span><span class="special">());</span>
+    <span class="special">}</span>
+  <span class="special">});</span>
+<span class="special">}</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span>
+<span class="identifier">set_funcs_prefix_reverse</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">prefix</span><span class="special">,</span> <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">seq</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+      <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">(</span><span class="identifier">prefix</span> <span class="special">+</span> <span class="identifier">name</span><span class="special">).</span><span class="identifier">c_str</span><span class="special">());</span>
+      <span class="identifier">lua_settable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">3</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">});</span>
+<span class="special">}</span>
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="class_result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="concept_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
