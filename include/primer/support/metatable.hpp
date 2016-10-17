@@ -82,6 +82,10 @@ struct metatable<T, enable_if_t<detail::is_L_Reg_sequence<decltype(
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
+    using m_t = decltype(udata::metatable);
+    const auto & metatable_seq =
+        detail::is_L_Reg_sequence<m_t>::adapt(udata::metatable);
+
     PRIMER_ASSERT_TABLE(L);
     PRIMER_ASSERT_STACK_NEUTRAL(L);
 
@@ -94,7 +98,12 @@ struct metatable<T, enable_if_t<detail::is_L_Reg_sequence<decltype(
     constexpr const char * index_name = "__index";
     constexpr const char * metatable_name = "__metatable";
 
-    detail::iterate_L_Reg_sequence(udata::metatable, [&](const char * name, lua_CFunction func) {
+    // TODO: why can't we just use udata::metatable instead of metatable_seq?
+    // it seems that causes an ODR-use or something that isn't otherwise there
+    // but I'm not sure why... it might be a compiler bug?
+    // This way, while more verbose, seems to allow terser registration of
+    // userdata.
+    detail::iterate_L_Reg_sequence(metatable_seq, [&](const char * name, lua_CFunction func) {
       if (name) {
         if (func) {
           lua_pushcfunction(L, func);

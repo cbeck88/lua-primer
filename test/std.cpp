@@ -398,13 +398,9 @@ namespace traits {
 
 template <>
 struct userdata<userdata_test> {
-  static const char * name;
-  static const luaL_Reg * const metatable;
+  static constexpr const char * name = "userdata_test_type";
+  static constexpr const luaL_Reg * metatable = method_list;
 };
-
-const char * userdata<userdata_test>::name = "userdata_test_type";
-
-const luaL_Reg * const userdata<userdata_test>::metatable = method_list;
 
 } // end namespace traits
 } // end namespace primer
@@ -533,13 +529,9 @@ namespace traits {
 
 template <>
 struct userdata<vec2_test> {
-  static const char * name;
-  static const luaL_Reg * const metatable;
+  static constexpr const char * name = "vec2";
+  static constexpr const luaL_Reg * metatable = vec2_methods;
 };
-
-const char * userdata<vec2_test>::name = "vec2";
-
-const luaL_Reg * const userdata<vec2_test>::metatable = vec2_methods;
 
 } // end namespace traits
 } // end namespace primer
