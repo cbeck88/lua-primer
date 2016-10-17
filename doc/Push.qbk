@@ -2,6 +2,20 @@
 
 `primer::push` is a template function used to push a C++ value to a lua Stack.
 
+[h4 Examples]
+
+* lua C API:
+  ``
+    lua_pushinteger(L, 5);
+    lua_pushstring(L, "ten");
+  ``
+
+* Using primer:
+  ``
+    primer::push(L, 5);
+    primer::push(L, "ten");
+  ``
+
 [h4 Synopsis]
 
 [primer_push]
@@ -9,30 +23,13 @@
 In the case of primitive values, it is always a direct call to the corresponding
 `lua_pushX` function.
 
-In the case of containers, it generally resolves to the
-creation of a table, with recursive calls to `push`, to push the elements and
-populate the table.
+In the case of containers, it usually creates a table, and calls push recursively
+in order to populate the table.
 
 * `push` is not permitted to fail, except in the case of lua memory allocation
 failure. In this case, it raises a lua error.
 
 * `push` always pushes exactly one object onto the stack.
-
-`primer::push_each` is an extension which pushes a sequence of objects.
-
-``
-  primer::push_each(L, a, b, c);
-``
-
-is equivalent to
-
-``
-  primer::push(L, a);
-  primer::push(L, b);
-  primer::push(L, c);
-``
-
-[/ primer_push_each]
 
 [h4 Supported Types]
 
@@ -89,7 +86,7 @@ The following core types are supported:
 
       Or, install custom handling for integer types like `long` and `long long`, see below.
 
-      Or, define `PRIMER_NO_STATIC_ASSERTS`. (But this disables many other safety-checks as well.)
+      Or, define `PRIMER_NO_STATIC_ASSERTS`. (But this disables other safety checks as well.)
       ]
 
 
@@ -191,5 +188,23 @@ since you are pushing *something*.
 If your type is complex enough that no fixed estimate of the stack space is
 possible, then you should simply define it to be one, and your implementation
 ['must] call `lua_checkstack` manually to ensure correct behavior.]
+
+[h4 `push_each`]
+
+`primer::push_each` is an extension which pushes a sequence of objects.
+
+``
+  primer::push_each(L, a, b, c);
+``
+
+is equivalent to
+
+``
+  primer::push(L, a);
+  primer::push(L, b);
+  primer::push(L, c);
+``
+
+[/ primer_push_each]
 
 [endsect]

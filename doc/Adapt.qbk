@@ -3,6 +3,51 @@
 `adapt` is a mechanism that takes user functions with a complex signature and
 adapts them to be pushed to lua.
 
+[h4 Examples]
+
+* lua C API:
+  ``
+    int f(lua_State * L) {
+      int i1 = luaL_checkinteger(L, 1);
+      int i2 = luaL_checkinteger(L, 2);
+
+      if (i1 == i2) {
+        lua_pushinteger(L, i1);
+        return 1;
+      } else {
+        lua_pushinteger(L, i2);
+        lua_pushinteger(L, i1 % i2);
+        return 2;
+      }
+    }
+
+    void init(lua_State * L) {
+      lua_pushcfunction(L, f);
+      lua_setglobal(L, "f");
+    }
+  ``
+
+* Using primer:
+  ``
+    primer::result f(lua_State * L, int i1, int i2) {
+      if (i1 == i2) {
+        primer::push(L, i1);
+        return 1;
+      } else {
+        primer::push(L, i2);
+        primer::push(L, i1 % i2);
+        return 2;
+      }
+    }
+
+    void init(lua_State * L) {
+      lua_pushcfunction(L, PRIMER_ADAPT(&f));
+	  lua_setglobal(L, "f");
+    }
+  ``
+
+[h4 Synopsis]
+
 There are two things that `adapt` accomplishes:
 
 * Generates boiler-plate code which reads parameters of given types off of the lua stack,
@@ -13,8 +58,6 @@ There are two things that `adapt` accomplishes:
 
 `adapt` handles the first one using `primer::read`. `adapt` handles the second
 one using `primer::result`.
-
-[h4 Synopsis]
 
 The core object of `adapt` is a class template:
 
@@ -99,11 +142,11 @@ will create a small leak upon `lua_yield` call. In the actual code we do somethi
 
       If it does not, then a lua error triggers a call
       to `longjmp` which will toss any automatic objects on the stack without calling
-      destructors. This will leak all of the input parameters, and technically causes
+      destructors. This will leak all of the input parameters, and technically may cause
       undefined behavior according to the C++ standard. 
 
-      A similar statement holds for calling `lua_yield(L, n)`. You should instead return
-      `primer::yield(n)`.
+      A similar situation occurs if you call `lua_yield(L, n)`. You should instead return
+      `primer::yield{n}`.
 
       The `adapt` mechanism is very useful when lua is compiled as C -- it means that
       when writing callbacks in C++, you can easily raise errors or yield

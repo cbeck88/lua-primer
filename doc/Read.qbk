@@ -2,6 +2,26 @@
 
 `primer::read` is a template function used to read a C++ value from the lua stack.
 
+[h4 Examples]
+
+* lua C API:
+  ``
+    if (lua_isinteger(L, 2)) {
+      foo(lua_tointeger(L, 2));
+    }
+    if (lua_isstring(L, 3)) {
+      bar(lua_tostring(L, 3));
+    }
+  ``
+
+* Using primer:
+  ``
+    if (auto i = primer::read<int>(L, 2)) { foo(*i); }
+	if (auto s = primer::read<std::string>(L, 3)) { bar(*s); }
+  ``
+
+[h4 Synopsis]
+
 [primer_read]
 
 * `read` returns a value of type `T`, or an error message explaining
@@ -10,7 +30,7 @@
 
 You should always test the result of `primer::read` for safety, and not
 assume that it will succeed in any given case. If the result is in an error state,
-then applying `operator *` will result in undefined behavior.
+then `operator *` will invoke undefined behavior.
 
 [h4 Supported Types]
 
