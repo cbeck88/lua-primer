@@ -117,7 +117,7 @@ Primer responds to a few configuration defines:
 
 [caution Several data structures and functions in Primer make assumptions that types used with them do not throw exceptions when default constructed, moved, etc. These assumptions are generally true for most user types and standard library types that they would be used with.
 
-However, if you are using an old compiler with an old version of the standard library, crucial constructors for objects like `std::string` are not marked `noexcept` which means that these assertions fail. In such a scenario, you cannot compile and cannot easily work around the problem.
+However, if you are using an old compiler with an old version of the standard library, crucial constructors for objects like `std::string` are not marked `noexcept` which means that these assertions fail. In such a scenario, you can't compile and can't easily work around the problem.
 
 To disable the safety checks, you can define `PRIMER_NO_STATIC_ASSERTS`. You should only do this if you have an old compiler and cannot upgrade, ['and the assertions are in fact true], just not annotated appropriately in your standard library headers.
 
