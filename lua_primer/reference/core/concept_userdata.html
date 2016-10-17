@@ -303,6 +303,26 @@
   <span class="special">}</span>
 <span class="special">}</span>
 </pre>
+<p>
+          If you don't provide a metatable field at all, you get this one:
+        </p>
+<pre class="programlisting"><span class="comment">// minimalistic, do-nothing metatable</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">metatable</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">udata</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">userdata</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;;</span>
+
+  <span class="keyword">static</span> <span class="keyword">void</span> <span class="identifier">populate</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="comment">// A minimalistic metatable with __gc</span>
+    <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">udata</span><span class="special">::</span><span class="identifier">name</span><span class="special">);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"__metatable"</span><span class="special">);</span>
+    <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">common_gc_impl</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"__gc"</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">value</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
