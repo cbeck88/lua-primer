@@ -171,7 +171,7 @@
                   This is used to enable internal assertions that Primer uses to
                   check its integrity. Especially, lua stack discipline assertions.
                   You can turn these on if you are having strange lua errors, they
-                  may reveal stack discipline problems in usre specializatoins of
+                  may reveal stack discipline problems in usre specializations of
                   <code class="computeroutput"><span class="identifier">push</span></code> or <code class="computeroutput"><span class="identifier">read</span></code>.
                 </p>
               </td>
@@ -248,8 +248,8 @@
           However, if you are using an old compiler with an old version of the standard
           library, crucial constructors for objects like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
           are not marked <code class="computeroutput"><span class="keyword">noexcept</span></code> which
-          means that these assertions fail. In such a scenario, you cannot compile
-          and cannot easily work around the problem.
+          means that these assertions fail. In such a scenario, you can't compile
+          and can't easily work around the problem.
         </p>
 <p>
           To disable the safety checks, you can define <code class="computeroutput"><span class="identifier">PRIMER_NO_STATIC_ASSERTS</span></code>.
