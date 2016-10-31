@@ -273,11 +273,12 @@ Ideally, one would like to solve this problem with a "lazy registration" strateg
 only adding function pointers to it at the time that we actually push them into the lua state. This is most consistent with `luabind` and
 `LuaBridge` anyways, which view userdata and function registration as a *runtime* event. However, this is broken with Eris -- we cannot
 afford to "experimentally determine" the permanent objects table, since when deserializing a lua VM, it's possible that this is the
-first VM we have created in this run of our application.
+first VM we have created in this run of our application, so we don't know yet what needs to be in the permanent objects table, and we'll fail
+when we try to reload.
 
-The most robust and reliable strategy, for using automatic lua bindings together with eris, seems to be to use a *compile-time* registration
-system. This way, for any given API that we expose, we know exactly how to construct the permanent objects table for serialization and destruction
-at compile time, and we can fail fast if the program attempts to push something to a lua VM that we don't know how to serialize.
+In Primer, we've opted to use a *compile-time* registration system instead. This way, for any given API that we expose,
+we know exactly how to construct the permanent objects table for serialization and destruction, and we can fail fast if the program
+attempts to push something to a lua VM that we don't know how to serialize.
 
 [h3 Concept: API Features]
 
@@ -331,7 +332,7 @@ To make this work, all the API features are declared within the API class using 
     ...
 
     /**
-     * Some functions which user scripts can call
+     * Some functions of various signatures which user scripts can call
      */
     
     API_CALLBACK(func0)(lua_State * L) -> primer::result {
@@ -350,12 +351,49 @@ To make this work, all the API features are declared within the API class using 
   };
 ``
 
-This means that what features are in what APIs is a *compile-time constant*. You won't get bugs where a one set of features was in use when you saved
+A declaration
+
+``
+  API_FEATURE(T, t_);
+``
+
+is similar to declaring a member variable
+
+``
+  T t_;
+``
+
+except that the `api::base` class also "knows" about the member variable.
+
+A declaration
+
+``
+  API_CALLBACK(foo)(lua_State * L, int x, int y, int z) -> primer::result {
+    ...
+  }
+``
+
+is similar to a member function definition
+
+``
+  auto foo(lua_State * L, int x, int y, int z) -> primer::result {
+    ...
+  }
+``
+
+except that the `api::base` class also knows about this member function.
+
+The upshot of all this is that what features are in what APIs is a *compile-time constant*. You won't get bugs where a one set of features was in use when you saved
 a state, and a different set when you reloaded the state.
 
-The most beneficial thing about the API feature concept is that it keeps the code associated to each feature separate, so you register the list of
-features once and don't end up with a procedural stew. Usually each feature object can be very small and succinct, and even very complex APIs can be
-easily specified as a list of features.
+Also, with this pattern, you don't have to to think explicitly about the permanent objects table. The API feature concept keeps the code associated to each feature
+separate, and you register the list of features once and don't end up with a procedural stew. Usually each feature object can be very small and succinct, and even
+very complex APIs can be easily specified as a list of features.
+
+Additionally, if some of the features can't be implemented independently of one another, the concept still allows that they can talk to one-another.
+They are all still just member variables of an API object, and they are intiialized in the constructor of that object. So if one feature needs to have
+a reference to another feature, for instance, that is easy to arrange. Or, you could make complex feature aggregate objects which aggregate several smaller
+features.
 
 If the concept is too restrictive for a feature that you need to add, fortunately, Primer does not attempt to get between you and the lua VM. You can
 always do whatever initialization or setup you need outside of these functions, before or after the `initialize_api` and `persist` methods.

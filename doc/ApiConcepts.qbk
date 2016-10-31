@@ -33,6 +33,10 @@ permanent objects table, which maps those placeholder names back to the
 appropriate function pointers (potentially now on a different machine) and so
 on.
 
+The placeholder values don't have to be "strings". They can be anything that
+eris is able to serialize -- even recursively, using the permanent objects table.
+This is sometimes very useful as we'll see.
+
 [h5 Userdata]
 
 Userdata is handled in a slightly different way -- by creating a special

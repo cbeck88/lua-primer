@@ -1,10 +1,11 @@
 [section:api API]
 
-The `primer::api` namesapce contains all the types which are specific to
+The `primer::api` namespace contains all the types which are specific to
 constructing API objects.
 
-Informally, an API object is a lua VM together with some features that you have
-exposed to lua, which can all be serialized and deserialized using *lua eris*.
+An API object is a collection of features and methods which can be
+exposed to a lua VM. Each API object is supposed to be used with one and only
+one VM. It provides three methods `initialize`, `persist`, and `unpersist`.
 
 You'll need to use these objects if you want to use a programming style like in
 the quick start examples for your application.
