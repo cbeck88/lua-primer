@@ -20,8 +20,21 @@
 </h4></div></div></div>
 <p>
           <code class="computeroutput"><span class="identifier">adapt</span></code> is a mechanism that
-          takes user functions with a complex signature and adapts them to be pushed
+          takes a user function with a complex signature and adapts it to be pushed
           to lua.
+        </p>
+<p>
+          It is used via the macro <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>.
+        </p>
+<p>
+          You can think of this (roughly) as a function which takes a function pointer,
+          and yields a new function pointer of signature <code class="computeroutput"><span class="keyword">int</span>
+          <span class="special">(</span><span class="identifier">lua_State</span>
+          <span class="special">*)</span></code>. However, <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>
+          happens at compile-time, and the function pointer which you give it must
+          be a constant expression -- usually, just some specific, named function
+          in your program. You can't pass it an "unknown" function pointer
+          which you obtained at run-time as a function parameter or something.
         </p>
 <h5>
 <a name="lua_primer.reference.core.metafunction_adapt.h0"></a>
@@ -141,9 +154,8 @@
 <pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo</span><span class="special">,</span> <span class="keyword">bool</span> <span class="identifier">bar</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">baz</span><span class="special">);</span>
 </pre>
 <p>
-          <code class="computeroutput"><span class="identifier">adapt</span></code> produces a function
-          a <span class="emphasis"><em>somewhat</em></span> similar to <code class="computeroutput"><span class="identifier">adapted</span></code>
-          below:
+          <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">my_func</span><span class="special">)</span></code>
+          produces a function a <span class="emphasis"><em>somewhat</em></span> similar to <code class="computeroutput"><span class="identifier">my_func_adapted</span></code> below:
         </p>
 <pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func_helper</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
   <span class="keyword">auto</span> <span class="identifier">arg1</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
@@ -270,15 +282,31 @@
           a try-catch block is setup for functions which return <code class="computeroutput"><span class="identifier">my_int</span></code>.
           Otherwise, it just defers to the regular adapt mechanism.
         </p>
-<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_int</span> <span class="special">{</span>
-  <span class="keyword">int</span> <span class="identifier">value</span><span class="special">;</span>
-<span class="special">};</span>
-
+<pre class="programlisting"><span class="comment">// This is a custom exception type, which is supposed to be handled by raising</span>
+<span class="comment">// a lua error with this error message.</span>
 <span class="keyword">struct</span> <span class="identifier">raise_lua_error</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span> <span class="special">{</span>
   <span class="identifier">raise_lua_error</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">)</span>
     <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="identifier">str</span><span class="special">)</span> <span class="special">{}</span>
 <span class="special">};</span>
 
+<span class="comment">// To make our own partial specialization of adapt, we make our own return type,</span>
+<span class="comment">// separate from primer::result. Since we are throwing exceptions rather than</span>
+<span class="comment">// returning error objects, the return can just be an int basically.</span>
+<span class="keyword">struct</span> <span class="identifier">my_int</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// Now we specialize adapt within the primer namespace</span>
+<span class="comment">// In order to make it as simple as possible, we implement it by translating the</span>
+<span class="comment">// `my_int + exception` return signal to primer::result, and adapt that version</span>
+<span class="comment">// using PRIMER_ADAPT.</span>
+<span class="comment">//</span>
+<span class="comment">// Because PRIMER_ADAPT takes place at compile-time, this is all transparent to</span>
+<span class="comment">// the optimizer and all of this can be inlined.</span>
+<span class="comment">//</span>
+<span class="comment">// Of course, you could also implement it without reference to `primer::result`</span>
+<span class="comment">// at all, but you'd likely have to dig into the implementation details for the</span>
+<span class="comment">// argument parsing off of the stack, or reimplement that yourself.</span>
 <span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">,</span> <span class="identifier">my_int</span> <span class="special">(*</span><span class="identifier">target_func</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">Args</span><span class="special">...)&gt;</span>
@@ -291,6 +319,7 @@
   <span class="special">}</span>
 
 <span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// This is the `output`, that is, the function pointer which we produce.</span>
   <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">(</span><span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">adapt_target</span><span class="special">))(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
 <span class="special">};</span>
 

@@ -25,8 +25,8 @@
         </p>
 <p>
           The way that we do this is using <span class="bold"><strong>lua-eris</strong></span>.
-          The <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> object provides an interface to
-          use eris in a controlled way.
+          The <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> object provides an interface which
+          encapsulates the use of eris.
         </p>
 <h5>
 <a name="lua_primer.reference.api.concepts.h0"></a>
@@ -35,8 +35,8 @@
 <p>
           When eris serializes a lua value, it produces a string description of it,
           from which an equivalent object can be constructed in another VM. This
-          object can be essentially arbitrarily complicated, self-referential, containing
-          complex closure functions and coroutines and so on.
+          object can be anything from a simple lua value, to a complicated, self-referential
+          table, containing complex closure functions and coroutines and so on.
         </p>
 <p>
           Usually when you serialize a lua state, you just want to serialize the
@@ -64,6 +64,11 @@
           of the permanent objects table, which maps those placeholder names back
           to the appropriate function pointers (potentially now on a different machine)
           and so on.
+        </p>
+<p>
+          The placeholder values don't have to be "strings". They can be
+          anything that eris is able to serialize -- even recursively, using the
+          permanent objects table. This is sometimes very useful as we'll see.
         </p>
 <h6>
 <a name="lua_primer.reference.api.concepts.h2"></a>
@@ -116,7 +121,7 @@
           <span><a name="lua_primer.reference.api.concepts.primer"></a></span><a class="link" href="concepts.html#lua_primer.reference.api.concepts.primer">Primer</a>
         </h5>
 <p>
-          In Primer, basically the idea is to simplify all this by <span class="bold"><strong>automating</strong></span>
+          In Primer, the idea is to simplify all this by <span class="bold"><strong>automating</strong></span>
           the construction of the permanent objects table.
         </p>
 <p>
@@ -172,9 +177,6 @@
           your userdata types, and customizing the VM in various common ways. It's
           quite easy to customize the system though, and make API features that do
           whatever you want.
-        </p>
-<p>
-          The advantage of doing it this way TODO
         </p>
 <div class="footnotes">
 <br><hr width="100" align="left">

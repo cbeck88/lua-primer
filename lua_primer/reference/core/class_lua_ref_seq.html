@@ -54,11 +54,16 @@
           They can be restored in the same order using <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>
           member function <code class="computeroutput"><span class="identifier">push_each</span></code>.
         </p>
+<h5>
+<a name="lua_primer.reference.core.class_lua_ref_seq.h0"></a>
+          <span><a name="lua_primer.reference.core.class_lua_ref_seq.lack_of_push_semantics"></a></span><a class="link" href="class_lua_ref_seq.html#lua_primer.reference.core.class_lua_ref_seq.lack_of_push_semantics">(Lack
+          of) Push semantics</a>
+        </h5>
 <p>
           Because a <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> represents
-          multiple values and not just one, it can't be used with <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>
-          -- <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is required to push exactly one
-          item.
+          multiple values and not just one, it can't be used with <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+          (<code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code> is <span class="bold"><strong>required</strong></span>
+          to push exactly one item.)
         </p>
 <p>
           However, <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code> is
@@ -66,13 +71,20 @@
         </p>
 <p>
           To prevent it from being used accidentally as a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code> with <code class="computeroutput"><span class="identifier">push</span></code>
-          or <code class="computeroutput"><span class="identifier">read</span></code>, which would cause
+          or <code class="computeroutput"><span class="identifier">read</span></code>, which could cause
           bugs, it is implemented as a <code class="computeroutput"><span class="keyword">struct</span></code>
           containing a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code>
           member, which forwards most of the member functions of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>.
         </p>
+<p>
+          Instead of <code class="computeroutput"><span class="identifier">lua_ref_seq</span></code>
+          you could simply use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code> and push and read that instead. But
+          when you push it for instance, it's going to push a single table which
+          contains the sequence of values, due to the semantics we give to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code> (TODO: Link), which is different
+          from simply pushing all of those values onto the stack.
+        </p>
 <h5>
-<a name="lua_primer.reference.core.class_lua_ref_seq.h0"></a>
+<a name="lua_primer.reference.core.class_lua_ref_seq.h1"></a>
           <span><a name="lua_primer.reference.core.class_lua_ref_seq.synopsis"></a></span><a class="link" href="class_lua_ref_seq.html#lua_primer.reference.core.class_lua_ref_seq.synopsis">Synopsis</a>
         </h5>
 <pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_ref_seq</span> <span class="special">{</span>

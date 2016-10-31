@@ -31,13 +31,14 @@
 <dt><span class="section"><a href="api/api_base.html">API Base</a></span></dt>
 </dl></div>
 <p>
-        The <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span></code> namesapce contains all the types which
+        The <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span></code> namespace contains all the types which
         are specific to constructing API objects.
       </p>
 <p>
-        Informally, an API object is a lua VM together with some features that you
-        have exposed to lua, which can all be serialized and deserialized using
-        <span class="bold"><strong>lua eris</strong></span>.
+        An API object is a collection of features and methods which can be exposed
+        to a lua VM. Each API object is supposed to be used with one and only one
+        VM. It provides three methods <code class="computeroutput"><span class="identifier">initialize</span></code>,
+        <code class="computeroutput"><span class="identifier">persist</span></code>, and <code class="computeroutput"><span class="identifier">unpersist</span></code>.
       </p>
 <p>
         You'll need to use these objects if you want to use a programming style like
