@@ -1218,15 +1218,31 @@ UNIT_TEST(cpp_pcall_returns) {
 
 //[ primer_raise_lua_error_decl
 
-struct my_int {
-  int value;
-};
-
+// This is a custom exception type, which is supposed to be handled by raising
+// a lua error with this error message.
 struct raise_lua_error : std::runtime_error {
   raise_lua_error(const std::string & str)
     : std::runtime_error(str) {}
 };
 
+// To make our own partial specialization of adapt, we make our own return type,
+// separate from primer::result. Since we are throwing exceptions rather than
+// returning error objects, the return can just be an int basically.
+struct my_int {
+  int value;
+};
+
+// Now we specialize adapt within the primer namespace
+// In order to make it as simple as possible, we implement it by translating the
+// `my_int + exception` return signal to primer::result, and adapt that version
+// using PRIMER_ADAPT.
+//
+// Because PRIMER_ADAPT takes place at compile-time, this is all transparent to
+// the optimizer and all of this can be inlined.
+//
+// Of course, you could also implement it without reference to `primer::result`
+// at all, but you'd likely have to dig into the implementation details for the
+// argument parsing off of the stack, or reimplement that yourself.
 namespace primer {
 
 template <typename... Args, my_int (*target_func)(lua_State *, Args...)>
@@ -1239,6 +1255,7 @@ class adapt<my_int (*)(lua_State *, Args...), target_func> {
   }
 
 public:
+  // This is the `output`, that is, the function pointer which we produce.
   static int adapted(lua_State * L) { return (PRIMER_ADAPT(&adapt_target))(L); }
 };
 

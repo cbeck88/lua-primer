@@ -6,10 +6,11 @@ adapts it to be pushed to lua.
 It is used via the macro `PRIMER_ADAPT`.
 
 You can think of this (roughly) as a function which takes a function pointer,
-and yields a new function pointer of signature `int (lua_State *)`.
-
-It is important to understand though that `PRIMER_ADAPT` happens at compile-time,
-and the function pointer which you give it must be a constant expression.
+and yields a new function pointer of signature `int (lua_State *)`. However,
+`PRIMER_ADAPT` happens at compile-time, and the function pointer which
+you give it must be a constant expression -- usually, just some specific,
+named function in your program. You can't pass it an "unknown" function pointer
+which you obtained at run-time as a function parameter or something.
 
 [h4 Examples]
 
