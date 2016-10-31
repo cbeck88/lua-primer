@@ -5,13 +5,13 @@ lua VMs which not only have features which may be implemented in C++, but also
 which we can ['serialize and deserialize] seamlessly.
 
 The way that we do this is using *lua-eris*. The `api::base` object provides
-an interface to use eris in a controlled way.
+an interface which encapsulates the use of eris.
 
 [h4 Eris]
 
 When eris serializes a lua value, it produces a string description of it, from
 which an equivalent object can be constructed in another VM. This object can
-be essentially arbitrarily complicated, self-referential, containing complex
+be anything from a simple lua value, to a complicated, self-referential table, containing complex
 closure functions and coroutines and so on.
 
 Usually when you serialize a lua state, you just want to serialize the `_G`
@@ -64,7 +64,7 @@ are also serializable.
 [h4 Primer]
 
 
-In Primer, basically the idea is to simplify all this by *automating* the construction
+In Primer, the idea is to simplify all this by *automating* the construction
 of the permanent objects table.
 
 When you do it the Primer way, for each lua State that you plan to serialize,
@@ -109,7 +109,5 @@ Primer provides you with many useful `API_FEATURE` definitions for things like
 installing standard libraries, registering your userdata types, and customizing
 the VM in various common ways. It's quite easy to customize the system though,
 and make API features that do whatever you want.
-
-The advantage of doing it this way TODO
 
 [endsect]
