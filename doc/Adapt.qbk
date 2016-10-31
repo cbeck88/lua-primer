@@ -1,7 +1,15 @@
 [section metafunction adapt]
 
-`adapt` is a mechanism that takes user functions with a complex signature and
-adapts them to be pushed to lua.
+`adapt` is a mechanism that takes a user function with a complex signature and
+adapts it to be pushed to lua.
+
+It is used via the macro `PRIMER_ADAPT`.
+
+You can think of this (roughly) as a function which takes a function pointer,
+and yields a new function pointer of signature `int (lua_State *)`.
+
+It is important to understand though that `PRIMER_ADAPT` happens at compile-time,
+and the function pointer which you give it must be a constant expression.
 
 [h4 Examples]
 
@@ -83,7 +91,7 @@ Given a function pointer of the form,
   primer::result my_func(lua_State * L, std::string foo, bool bar, int baz);
 ``
 
-`adapt` produces a function a ['somewhat] similar to `adapted` below:
+`PRIMER_ADAPT(&my_func)` produces a function a ['somewhat] similar to `my_func_adapted` below:
 
 ``
   primer::result my_func_helper(lua_State * L) {
