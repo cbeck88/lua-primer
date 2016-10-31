@@ -10,15 +10,22 @@ a `lua_ref_seq` using a call to `pop_stack` or `pop_n`.
 
 They can be restored in the same order using `lua_ref_seq` member function `push_each`.
 
+[h4 (Lack of) Push semantics]
+
 Because a `lua_ref_seq` represents multiple values and not just one, it can't be used
-with `primer::push` -- `primer::push` is required to push exactly one item.
+with `primer::push`. (`primer::push` is *required* to push exactly one item.)
 
 However, `lua_ref_seq` is essentially just a `std::vector<lua_ref>`, as you'll
 see from it's synopsis.
 
 To prevent it from being used accidentally as a `std::vector<lua_ref>` with `push` or `read`,
-which would cause bugs, it is implemented as a `struct` containing a `std::vector<lua_ref>`
+which could cause bugs, it is implemented as a `struct` containing a `std::vector<lua_ref>`
 member, which forwards most of the member functions of `std::vector`.
+
+Instead of `lua_ref_seq` you could simply use `std::vector<lua_ref>` and push and read that
+instead. But when you push it for instance, it's going to push a single table which contains the sequence
+of values, due to the semantics we give to `std::vector` (TODO: Link), which is different from
+simply pushing all of those values onto the stack.
 
 [h4 Synopsis]
 
