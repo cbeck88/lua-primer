@@ -31,19 +31,19 @@ state.
 
 There are two components to the `lua_ref` object:
 
-# An `int` which is the index returned by `luaL_ref`.
-# A reference-counted weak pointer to a `lua_State`. This lets the `lua_ref` determine if the state has been closed. This is basically an implementation detail.
+* An `int` which is the index returned by `luaL_ref`.
+* A reference-counted weak pointer to a `lua_State`. This lets the `lua_ref` determine if the state has been closed. This is basically an implementation detail.
 
 [primer_lua_ref]
 
 [h4 Safety and ownership]
 
-# A `primer::lua_ref` object corresponds to the lua reference created by `luaL_ref` somewhere in the registry. lua guarantees that the reference object won't be garbage collected
+* A `primer::lua_ref` object corresponds to the lua reference created by `luaL_ref` somewhere in the registry. lua guarantees that the reference object won't be garbage collected
   as long as this reference exists.
-# `primer::lua_ref` *cannot take ownership of the lua VM*. If `lua_close` is called, the object will be collected, and attempts to lock the `lua_ref` after that will yield `nullptr`. The `operator bool` test will also yield false. Effectively, once the VM is closed, any outstanding `lua_ref` objects revert to the empty state.
-# If the VM still exists and the `lua_ref` is engaged, locking the state and pushing the object are both `noexcept`, no-fail operations. They can't cause lua memory allocation failure either.
-# Binding a `lua_ref` to an object on the stack ['can] cause a lua memory allocation failure, but not `std::bad_alloc`.
-# `primer::lua_ref` is safe in the sense of not becoming a dangling pointer in any scenario. However, it is not thread-safe, you should not pass this across threads.
+* `primer::lua_ref` *cannot take ownership of the lua VM*. If `lua_close` is called, the object will be collected, and attempts to lock the `lua_ref` after that will yield `nullptr`. The `operator bool` test will also yield false. Effectively, once the VM is closed, any outstanding `lua_ref` objects revert to the empty state.
+* If the VM still exists and the `lua_ref` is engaged, locking the state and pushing the object are both `noexcept`, no-fail operations. They can't cause lua memory allocation failure either.
+* Binding a `lua_ref` to an object on the stack ['can] cause a lua memory allocation failure, but not `std::bad_alloc`.
+* `primer::lua_ref` is safe in the sense of not becoming a dangling pointer in any scenario. However, it is not thread-safe, you should not pass this across threads.
 
 [caution Copying a `lua_ref` is expensive relative to most other small objects
 and usually something that you want to avoid, since it involves interacting with
