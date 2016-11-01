@@ -34,10 +34,11 @@
 <span class="special">};</span>
 </pre>
 <p>
-          Many lua api calls take as a parameter a pointer <code class="computeroutput"><span class="keyword">const</span>
-          <span class="identifier">luaL_Reg</span> <span class="special">*</span></code>,
-          which is expected to point into an array, terminated by a <code class="computeroutput"><span class="identifier">luaL_Reg</span></code> holding two null pointers. (See
-          <a href="http://www.lua.org/manual/5.2/manual.html#luaL_Reg" target="_top">the manual</a>.)
+          Many lua api calls (e.g. <a href="http://www.lua.org/manual/5.3/manual.html#lua_register" target="_top"><code class="computeroutput"><span class="identifier">lua_register</span></code></a>) take as a parameter
+          a pointer <code class="computeroutput"><span class="keyword">const</span> <span class="identifier">luaL_Reg</span>
+          <span class="special">*</span></code>, which is expected to point into
+          an array, terminated by a <code class="computeroutput"><span class="identifier">luaL_Reg</span></code>
+          holding two null pointers.
         </p>
 <p>
           It is common to need to make such lists when creating APIs, or specifying
@@ -148,13 +149,14 @@
         </p>
 <pre class="programlisting"><span class="comment">// Iterate over an L_Reg_sequence</span>
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">F</span><span class="special">&gt;</span>
-<span class="keyword">void</span> <span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span>
-  <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">is_L_Reg_sequence</span><span class="special">&lt;</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">,</span> <span class="string">"Expected an L_Reg_sequence"</span><span class="special">);</span>
+<span class="keyword">void</span>
+<span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">,</span> <span class="identifier">F</span> <span class="special">&amp;&amp;</span> <span class="identifier">f</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">is_L_Reg_sequence</span><span class="special">&lt;</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+                <span class="string">"Expected an L_Reg_sequence"</span><span class="special">);</span>
 
-  <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">reg</span> <span class="special">:</span> <span class="identifier">is_L_Reg_sequence</span><span class="special">&lt;</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">adapt</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">)))</span> <span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">reg</span><span class="special">.</span><span class="identifier">name</span> <span class="special">||</span> <span class="identifier">reg</span><span class="special">.</span><span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-      <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span><span class="identifier">reg</span><span class="special">.</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">reg</span><span class="special">.</span><span class="identifier">func</span><span class="special">);</span>
-    <span class="special">}</span>
+  <span class="keyword">for</span> <span class="special">(</span><span class="keyword">const</span> <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">reg</span> <span class="special">:</span>
+       <span class="identifier">is_L_Reg_sequence</span><span class="special">&lt;</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;::</span><span class="identifier">adapt</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">)))</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">reg</span><span class="special">.</span><span class="identifier">name</span> <span class="special">||</span> <span class="identifier">reg</span><span class="special">.</span><span class="identifier">func</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">F</span><span class="special">&gt;(</span><span class="identifier">f</span><span class="special">)(</span><span class="identifier">reg</span><span class="special">.</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">reg</span><span class="special">.</span><span class="identifier">func</span><span class="special">);</span> <span class="special">}</span>
   <span class="special">}</span>
 <span class="special">}</span>
 </pre>
@@ -193,12 +195,13 @@
   <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
   <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
 
-  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
-      <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="identifier">name</span><span class="special">);</span>
-    <span class="special">}</span>
-  <span class="special">});</span>
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span>
+                                 <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+                                   <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+                                     <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+                                     <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="identifier">name</span><span class="special">);</span>
+                                   <span class="special">}</span>
+                                 <span class="special">});</span>
 <span class="special">}</span>
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
@@ -207,13 +210,14 @@
   <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
   <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
 
-  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
-      <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">name</span><span class="special">);</span>
-      <span class="identifier">lua_settable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">3</span><span class="special">);</span>
-    <span class="special">}</span>
-  <span class="special">});</span>
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span>
+                                 <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+                                   <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+                                     <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+                                     <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">name</span><span class="special">);</span>
+                                     <span class="identifier">lua_settable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">3</span><span class="special">);</span>
+                                   <span class="special">}</span>
+                                 <span class="special">});</span>
 <span class="special">}</span>
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
@@ -222,12 +226,13 @@
   <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
   <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
 
-  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
-      <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="special">(</span><span class="identifier">prefix</span> <span class="special">+</span> <span class="identifier">name</span><span class="special">).</span><span class="identifier">c_str</span><span class="special">());</span>
-    <span class="special">}</span>
-  <span class="special">});</span>
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+        <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="special">(</span><span class="identifier">prefix</span> <span class="special">+</span> <span class="identifier">name</span><span class="special">).</span><span class="identifier">c_str</span><span class="special">());</span>
+      <span class="special">}</span>
+    <span class="special">});</span>
 <span class="special">}</span>
 
 <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
@@ -236,13 +241,14 @@
   <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
   <span class="identifier">PRIMER_ASSERT_TABLE</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
 
-  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span> <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
-      <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
-      <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">(</span><span class="identifier">prefix</span> <span class="special">+</span> <span class="identifier">name</span><span class="special">).</span><span class="identifier">c_str</span><span class="special">());</span>
-      <span class="identifier">lua_settable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">3</span><span class="special">);</span>
-    <span class="special">}</span>
-  <span class="special">});</span>
+  <span class="identifier">detail</span><span class="special">::</span><span class="identifier">iterate_L_Reg_sequence</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">seq</span><span class="special">),</span>
+                                 <span class="special">[&amp;](</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+                                   <span class="keyword">if</span> <span class="special">(</span><span class="identifier">name</span> <span class="special">&amp;&amp;</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+                                     <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">func</span><span class="special">);</span>
+                                     <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">(</span><span class="identifier">prefix</span> <span class="special">+</span> <span class="identifier">name</span><span class="special">).</span><span class="identifier">c_str</span><span class="special">());</span>
+                                     <span class="identifier">lua_settable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">3</span><span class="special">);</span>
+                                   <span class="special">}</span>
+                                 <span class="special">});</span>
 <span class="special">}</span>
 </pre>
 </div>
