@@ -162,7 +162,7 @@
           object and you use that lua state each time you call these methods. So
           usually the API object should own / manage the lifetime of the <code class="computeroutput"><span class="identifier">lua_State</span><span class="special">*</span></code>.
           However, we don't want to force you to do that in any particular way.
-          <sup>[<a name="lua_primer.reference.api.concepts.f0" href="#ftn.lua_primer.reference.api.concepts.f0" class="footnote">14</a>]</sup>
+          <sup>[<a name="lua_primer.reference.api.concepts.f0" href="#ftn.lua_primer.reference.api.concepts.f0" class="footnote">13</a>]</sup>
         </p>
 <p>
           Conceptually, the <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> is just a place where you register
@@ -180,7 +180,7 @@
         </p>
 <div class="footnotes">
 <br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a name="ftn.lua_primer.reference.api.concepts.f0" href="#lua_primer.reference.api.concepts.f0" class="para">14</a>] </sup>
+<div class="footnote"><p><sup>[<a name="ftn.lua_primer.reference.api.concepts.f0" href="#lua_primer.reference.api.concepts.f0" class="para">13</a>] </sup>
             You could do it manually, using some RAII object, or maybe you are using
             some other binding library. For instance in the lua binding library
             <code class="computeroutput"><span class="identifier">sol</span></code>, they provide you

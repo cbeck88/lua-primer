@@ -59,7 +59,8 @@
         </p>
 <h5>
 <a name="lua_primer.reference.api.api_feature.h0"></a>
-          <span><a name="lua_primer.reference.api.api_feature.extension"></a></span><a class="link" href="api_feature.html#lua_primer.reference.api.api_feature.extension">Extension</a>
+          <span><a name="lua_primer.reference.api.api_feature.extension_serial_feature"></a></span><a class="link" href="api_feature.html#lua_primer.reference.api.api_feature.extension_serial_feature">Extension:
+          Serial Feature</a>
         </h5>
 <p>
           Sometimes, the private state of an API feature is important, and you want
@@ -85,6 +86,10 @@
           called, the feature may recover the lua value from the stack, which it
           will find on top. It should use the value to restore its internal state,
           <span class="emphasis"><em>then pop the value</em></span>.
+        </p>
+<p>
+          A feature which also has these two methods is called a <span class="bold"><strong>serial
+          feature</strong></span>.
         </p>
 <h5>
 <a name="lua_primer.reference.api.api_feature.h1"></a>

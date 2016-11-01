@@ -104,13 +104,20 @@
         </p>
 <p>
           When <code class="computeroutput"><span class="identifier">initialize_api</span></code> is
-          called, * Each library will be loaded into the <code class="computeroutput"><span class="identifier">_LOADED</span></code>
-          registry table as usual with lua, * The functions of each library will
-          be installed in the permanent objects table, so that they can survive when
-          we persist / unpersist. The name of the library will be combined in some
-          unspecified way with the function's name in order to form the placeholder
-          name.
+          called,
         </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              Each library will be loaded into the <code class="computeroutput"><span class="identifier">_LOADED</span></code>
+              registry table as usual with lua,
+            </li>
+<li class="listitem">
+              The functions of each library will be installed in the permanent objects
+              table, so that they can survive when we persist / unpersist. The name
+              of the library will be combined in some unspecified way with the function's
+              name in order to form the placeholder name.
+            </li>
+</ul></div>
 <p>
           There are also three typedefs which shorten the list of libraries:
         </p>
