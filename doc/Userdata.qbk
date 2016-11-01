@@ -53,7 +53,7 @@ was not userdata corresponding to that class.
 `primer::read` also contains a built-in overload for ['references of userdata types]:
 
 ``
-  if (expected<T&> primer::read<T&>(lua_State * L, int index)) { ... }
+  if (expected<T&> maybe_t = primer::read<T&>(lua_State * L, int index)) { ... }
 ``
 
 Usually, you can just use `test_udata` in code that you write manually -- it's a
