@@ -5,21 +5,44 @@ functions that are pushed to lua using `adapt`.
 
 See `adapt` for extended examples. (TODO link).
 
-`primer::result` is supposed to be the return type. It represents a signal of
-how to terminate a lua function call.
+`primer::result` is supposed to be the return type in a user callback. It signals
+how to terminate the lua function call when we return to lua.
 
 There are three possible signals:
 
-* return
-* yield
-* error
+* `return`: End this function call, and return some values from the stack to the caller.
+* `yield`: Yield the current coroutine, which effectively "pauses" this function call, and transfers execution back to the caller. Yield is also permitted to pass some values back to the caller. (See [@http://www.lua.org/manual/5.3/manual.html#lua_yield documentation].)
+* `error`: Raise a lua error.
 
-Return and yield both take an `int`, indicating how many return values went on the stack.
+These are normally represented in lua C api by simply returning, or by calling
+`lua_yield` or `lua_error` respectively.
 
-error is indicated by a `primer::error` object.
+In primer,
 
-Code to send corresponding signal to lua is in
-`<primer/detail/implement_result.hpp>`
+* The `yield` and `error` signals are represented by structures, `primer::yield` and `primer::error`.
+* The `return` case is represented simply by an `int`, as normally in lua.
+* `primer::result` is like a variant type that represents one of these three options.
+
+[table Example Usage
+  [[] [`lua C API`] [`primer`]]
+  [[Function Prototype] [``int my_func(lua_State *);``][`primer::result my_func(lua_State *);`]]
+  [[`return` zero values] [ ``return 0;`` ] [ ``return 0;`` ]]
+  [[] [][ ``return {0};`` ]]
+  [[] [][ ``return primer::result{0};`` ]]
+  [[`yield` two values] [ ``lua_yield(L, 2);`` ][ ``return primer::yield{2};``]]
+  [[`error`] [ ``lua_pushstring(L, "no more foobar");
+lua_error(L); `` ][ ``return primer:error{"no more foobar"};``]]
+ ]
+
+`return` and `yield` both take an `int`, indicating how many return values went on the stack which
+should be returned to the caller.
+
+`error` is indicated by a `primer::error` object.
+
+The reasons why we do it slightly differently hopefully will become clear in the `adapt` section.
+One advantage is that even though `lua_yield` and `lua_error` work by executing `longjmp`, returning
+a `primer::result` doesn't, so local variables in your function get cleaned up whether lua is compiled
+as C or C++, and without relying on C++ exceptions.
 
 [h4 Synopsis]
 
