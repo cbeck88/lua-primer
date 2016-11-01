@@ -32,7 +32,7 @@ might be something else. For instance if there is a global userdata of some type
 it could be serialized by putting it in the permanent objects table, rather than
 providing a `__persist` metamethod.
 
-[h4 Extension]
+[h4 Extension: Serial Feature]
 
 Sometimes, the private state of an API feature is important, and you want
 to have an easy way to serialize that state along with the rest of the lua
@@ -55,6 +55,8 @@ able to serialize. ['Exactly one value should be pushed.]
 When `on_deserialize` is called, the feature may recover the lua value from the
 stack, which it will find on top. It should use the value to restore its internal
 state, [' then pop the value].
+
+A feature which also has these two methods is called a *serial feature*.
 
 [h4 Behavior]
   
