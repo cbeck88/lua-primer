@@ -6,7 +6,7 @@
 #pragma once
 
 //[ primer_error
-/*` primer::error is a simple error type used by the library to represent
+/*` `primer::error` is a simple error type used by the library to represent
     run-time error signals.
 
  */
