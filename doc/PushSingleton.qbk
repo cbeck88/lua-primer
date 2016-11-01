@@ -1,11 +1,11 @@
 [section Singletons]
 
-Sometimes, when implementing an API, it's very convenient to create an object
+Sometimes, when implementing an API, it's convenient to create an object
 which is a "singleton" with respect to the lua State, and to be able to easily
 refer to this object. Usually you want to do this by creating a unique key
 for this object inside the lua registry.
 
-When the object is a lua value, primer provides a very simple way to do this
+When the object is a lua value, primer provides a simple way to do this
 using `primer::push_singleton`. When the object is a C++ object external to lua,
 you can use `primer::registry_helper`.
 
@@ -18,7 +18,7 @@ you can use `primer::registry_helper`.
 It sometimes happens that we have
 an object which we know will outlive lua, and we would like to store a pointer
 to it in the registry and recover it easily. Especially, this happens when
-the object is an API object.
+the object is a member of an API object.
 
 We can store and retrieve such objects in the following way:
 
@@ -32,5 +32,11 @@ registered.
 
 Note that `obtain_self` has UB if no object of this type was previously stored.
 If `PRIMER_DEBUG` is defined, then it will cause an assertion failure.
+
+A different approach is to simply
+make the object a feature of the API, or just a member variable of the API object.
+Then it will be in scope of any callback function that you are defining, or can be
+accessed by any features that need to access it. The `registry_helper` technique
+should probably only be used when that's not suitable for some reason.
 
 [endsect]
