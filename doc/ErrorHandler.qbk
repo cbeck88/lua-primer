@@ -5,14 +5,17 @@ when it uses `pcall`. This means that lua errors which primer encounters will
 be nicely formatted for you by the time they are returned as `primer::error`.
 
 If you want to use a customized error handler, there is a simple interface
-that you can use to install one. Primer will then use it everywhere.
+that you can use to install one. Primer will then use it everywhere that it makes
+protected calls. (Note: It
+must be installed once for each `lua_State` that you will use it with.)
 
 [primer_error_handler_decl]
 
-Primer also provides a convenient wrapper over `lua_pcall`. It is the same,
-except that it automatically installs primer's current error handler and removes
-it after the `pcall`, handling some stack arithmetic for you.
+`primer::protected_call` is a wrapper over `lua_pcall`. It is the same, except
+that it uses `primer::get_error_handler` to provide the error handler.
+Primer always uses `protected_call` internally rather than calling `lua_pcall`
+directly.
 
-[primer_protected_call_defn]
+[primer_protected_call_decl]
 
 [endsect]

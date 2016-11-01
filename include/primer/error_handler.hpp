@@ -40,10 +40,12 @@ inline int get_error_handler(lua_State * L) noexcept;
 
 // Set a new error handler. Pops one object from top of stack.
 inline void set_error_handler(lua_State * L) noexcept;
+//]
 
+//[ primer_protected_call_decl
 // Simplified version of lua_pcall which handles setting up the error handler,
 // and removing it after the pcall returns.
-// Otherwise it is the same as pcall -- leaves any arguments / errors on top
+// Otherwise it is the same as pcall -- leaves any results / errors on top
 // of the stack.
 inline int protected_call(lua_State * L, int narg, int nret) noexcept;
 
