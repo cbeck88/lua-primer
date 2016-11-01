@@ -387,10 +387,9 @@ dump_method(lua_State * L, userdata_test & u) {
   return 1;
 }
 
-const luaL_Reg method_list[] = {
-  {"__call", PRIMER_ADAPT(&call_method)},
-  {"dump", PRIMER_ADAPT(&dump_method)},
-  {nullptr, nullptr}};
+const luaL_Reg method_list[] = {{"__call", PRIMER_ADAPT(&call_method)},
+                                {"dump", PRIMER_ADAPT(&dump_method)},
+                                {nullptr, nullptr}};
 
 // Register it
 namespace primer {

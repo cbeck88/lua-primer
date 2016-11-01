@@ -25,8 +25,8 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/lua.hpp>
 #include <primer/detail/luaL_Reg.hpp>
+#include <primer/lua.hpp>
 #include <primer/support/asserts.hpp>
 
 #include <string>
@@ -40,12 +40,13 @@ set_funcs(lua_State * L, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
-    if (name && func) {
-      lua_pushcfunction(L, func);
-      lua_setfield(L, -2, name);
-    }
-  });
+  detail::iterate_L_Reg_sequence(std::forward<T>(seq),
+                                 [&](const char * name, lua_CFunction func) {
+                                   if (name && func) {
+                                     lua_pushcfunction(L, func);
+                                     lua_setfield(L, -2, name);
+                                   }
+                                 });
 }
 
 template <typename T>
@@ -54,13 +55,14 @@ set_funcs_reverse(lua_State * L, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
-    if (name && func) {
-      lua_pushcfunction(L, func);
-      lua_pushstring(L, name);
-      lua_settable(L, -3);
-    }
-  });
+  detail::iterate_L_Reg_sequence(std::forward<T>(seq),
+                                 [&](const char * name, lua_CFunction func) {
+                                   if (name && func) {
+                                     lua_pushcfunction(L, func);
+                                     lua_pushstring(L, name);
+                                     lua_settable(L, -3);
+                                   }
+                                 });
 }
 
 template <typename T>
@@ -69,12 +71,13 @@ set_funcs_prefix(lua_State * L, const std::string & prefix, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
-    if (name && func) {
-      lua_pushcfunction(L, func);
-      lua_setfield(L, -2, (prefix + name).c_str());
-    }
-  });
+  detail::iterate_L_Reg_sequence(
+    std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
+      if (name && func) {
+        lua_pushcfunction(L, func);
+        lua_setfield(L, -2, (prefix + name).c_str());
+      }
+    });
 }
 
 template <typename T>
@@ -83,13 +86,14 @@ set_funcs_prefix_reverse(lua_State * L, const std::string & prefix, T && seq) {
   PRIMER_ASSERT_STACK_NEUTRAL(L);
   PRIMER_ASSERT_TABLE(L);
 
-  detail::iterate_L_Reg_sequence(std::forward<T>(seq), [&](const char * name, lua_CFunction func) {
-    if (name && func) {
-      lua_pushcfunction(L, func);
-      lua_pushstring(L, (prefix + name).c_str());
-      lua_settable(L, -3);
-    }
-  });
+  detail::iterate_L_Reg_sequence(std::forward<T>(seq),
+                                 [&](const char * name, lua_CFunction func) {
+                                   if (name && func) {
+                                     lua_pushcfunction(L, func);
+                                     lua_pushstring(L, (prefix + name).c_str());
+                                     lua_settable(L, -3);
+                                   }
+                                 });
 }
 //]
 

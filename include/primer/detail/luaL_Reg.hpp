@@ -139,13 +139,14 @@ struct is_L_Reg_sequence<T()> : is_L_Reg_sequence<T (*)()> {};
 //[ primer_detail_iterate_l_reg_sequence
 // Iterate over an L_Reg_sequence
 template <typename T, typename F>
-void iterate_L_Reg_sequence(T && t, F && f) {
-  static_assert(is_L_Reg_sequence<decay_t<T>>::value, "Expected an L_Reg_sequence");
+void
+iterate_L_Reg_sequence(T && t, F && f) {
+  static_assert(is_L_Reg_sequence<decay_t<T>>::value,
+                "Expected an L_Reg_sequence");
 
-  for (const auto & reg : is_L_Reg_sequence<decay_t<T>>::adapt(std::forward<T>(t))) {
-    if (reg.name || reg.func) {
-      std::forward<F>(f)(reg.name, reg.func);
-    }
+  for (const auto & reg :
+       is_L_Reg_sequence<decay_t<T>>::adapt(std::forward<T>(t))) {
+    if (reg.name || reg.func) { std::forward<F>(f)(reg.name, reg.func); }
   }
 }
 //]
