@@ -53,6 +53,8 @@
 
 [import ../include/primer/api.hpp]
 [import ../include/primer/boost.hpp]
+[import ../include/primer/boost/optional.hpp]
+[import ../include/primer/container/optional_base.hpp]
 [import ../include/primer/primer.hpp]
 [import ../include/primer/std.hpp]
 [import ../include/primer/visit_struct.hpp]
