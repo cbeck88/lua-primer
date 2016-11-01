@@ -289,8 +289,12 @@
 <li class="listitem">
               A <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> object corresponds to the
               lua reference created by <code class="computeroutput"><span class="identifier">luaL_ref</span></code>
-              somewhere in the registry. lua guarantees that the reference object
-              won't be garbage collected as long as this reference exists.
+              somewhere in the registry. lua guarantees that the referenced object
+              won't be garbage collected as long as this reference exists. So, if
+              the <code class="computeroutput"><span class="identifier">lua_ref</span></code> is engaged
+              and the VM still exists, locking the state and pushing the object are
+              both <code class="computeroutput"><span class="keyword">noexcept</span></code>, no-fail
+              operations. They can't cause lua memory allocation failure either.
             </li>
 <li class="listitem">
               <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> <span class="bold"><strong>cannot
@@ -302,11 +306,6 @@
               test will also yield false. Effectively, once the VM is closed, any
               outstanding <code class="computeroutput"><span class="identifier">lua_ref</span></code>
               objects revert to the empty state.
-            </li>
-<li class="listitem">
-              If the VM still exists and the <code class="computeroutput"><span class="identifier">lua_ref</span></code>
-              is engaged, locking the state and pushing the object are both <code class="computeroutput"><span class="keyword">noexcept</span></code>, no-fail operations. They can't
-              cause lua memory allocation failure either.
             </li>
 <li class="listitem">
               Binding a <code class="computeroutput"><span class="identifier">lua_ref</span></code> to

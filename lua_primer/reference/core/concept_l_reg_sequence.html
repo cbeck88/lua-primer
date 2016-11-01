@@ -25,7 +25,8 @@
 <p>
           It is quite common in lua C API programming to need to create lists of
           functions paired with names. lua has a standard idiom for this. The following
-          structure is defined in the lua headers:
+          structure is <a href="http://www.lua.org/manual/5.3/manual.html#luaL_reg" target="_top">defined</a>
+          in the lua headers:
         </p>
 <pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">luaL_Reg</span> <span class="special">{</span>
   <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span><span class="special">;</span>
@@ -64,7 +65,7 @@
             </li>
 <li class="listitem">
               Instead of a container, <span class="emphasis"><em>the object can actually just be a
-              function which takes no parameters and yields the container</em></span>.
+              function which takes no arguments and yields the container</em></span>.
               This is in case you want to define the list in a header and not deal
               with static initialization problems.
             </li>
@@ -172,7 +173,7 @@
 <li class="listitem">
               <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs</span></code> is analogous to <code class="computeroutput"><span class="identifier">luaL_setfuncs</span></code>, it assumes there is
               a table on top of the stack and registers each function with it, using
-              the name as a key.
+              the name as a key (see <a href="http://www.lua.org/manual/5.3/manual.html#luaL_setfuncs" target="_top">documentation</a>).
             </li>
 <li class="listitem">
               <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">set_funcs_reverse</span></code> is the same, but

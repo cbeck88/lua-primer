@@ -24,9 +24,9 @@
         </p>
 <p>
           <code class="computeroutput"><span class="identifier">bound_function</span></code> provides
-          several handy methods for calling the function, passing arbitrary numbers
-          of C++ types, and obtaining the result as a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>.
-          These objects are pushed onto the lua stack using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>,
+          several handy methods for calling the function, passing in one or several
+          C++ objects, and obtaining the result as (one or several) <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>. These objects are pushed onto
+          the lua stack using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>,
           then the bound function is invoked using pcall. Any errors are returned
           to the caller -- the lua stack is always unchanged by this operation at
           the end.
@@ -49,10 +49,10 @@
           function objects without having to mentally switch context and think about
           lua preconditions and such.
         </p>
-<div class="note"><table border="0" summary="Note">
+<div class="caution"><table border="0" summary="Caution">
 <tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
-<th align="left">Note</th>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
+<th align="left">Caution</th>
 </tr>
 <tr><td align="left" valign="top"><p>
             Like <code class="computeroutput"><span class="identifier">lua_ref</span></code>, these objects
