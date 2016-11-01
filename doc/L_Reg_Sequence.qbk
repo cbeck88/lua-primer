@@ -4,7 +4,7 @@ An `L_Reg_sequence` is a sequence of named functions.
 
 It is quite common in lua C API programming to need to create lists of
 functions paired with names. lua has a standard idiom for this.
-The following structure is defined
+The following structure is [@http://www.lua.org/manual/5.3/manual.html#luaL_reg defined]
 in the lua headers:
 
 ``
@@ -95,7 +95,7 @@ which calls a functor using each `name, func` pair from the sequence.
 There are a few variations of `primer::set_funcs`.
 
 * `primer::set_funcs` is analogous to `luaL_setfuncs`, it assumes there is a table
-  on top of the stack and registers each function with it, using the name as a key.
+  on top of the stack and registers each function with it, using the name as a key (see [@http://www.lua.org/manual/5.3/manual.html#luaL_setfuncs documentation]).
 
 * `primer::set_funcs_reverse` is the same, but the function is the key and the name is the value.
 * `primer::set_funcs_prefix` is the same, except a prefix string is prepended to each name.
