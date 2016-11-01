@@ -2,9 +2,12 @@
 
 A `primer::lua_ref` is a reference to a lua value which exists in a lua VM.
 
-`lua_ref` is not quite like a C++ reference. It has an empty state, and can be assigned and reassigned to point to different objects.
+More precisely, it is an RAII object which manages a *lua reference* created by `luaL_ref` and cleaned up by `luaL_unref` (see [@http://www.lua.org/manual/5.3/manual.html#luaL_ref documentation]).
 
-[h4 Usage]
+`primer::lua_ref` doesn't have the semantics of a C++ reference. It has an empty state, and can be assigned and reassigned to point to different objects.
+Effectively, it's more like a smart pointer which points to some lua value.
+
+[h4 Basic Usage]
 
 To bind a `lua_ref` to a lua value,
 
@@ -16,36 +19,31 @@ If the stack is empty, then the `lua_ref` is placed in the empty state.
 
 It can be default constructed in the empty state as well.
 
-The value can be obtained from the reference by using the `push` methods, or the `as` method.
+The value can be obtained from the reference by using the `push` methods, or the `as` method. The `as` method
+will first push the value to the stack, then try to `primer::read` it, then clean up the stack.
 
 If the lua VM is destroyed (closed), the `lua_ref` reverts to the empty
-state the next time an attempt is made to access it.
+state.
 
 [primer_example_ref]
 
 [h4 Synopsis]
 
+There are two components to the `lua_ref` object:
+
+# An `int` which is the index returned by `luaL_ref`.
+# A reference-counted weak pointer to a `lua_State`. This lets the `lua_ref` determine if the state has been closed. This is basically an implementation detail.
+
 [primer_lua_ref]
 
 [h4 Safety and ownership]
 
-`primer::lua_ref` is safe in the sense that if the lua VM is destroyed, it
-doesn't become a dangling pointer.
-
-However, `primer::lua_ref` cannot take ownership of a lua VM. It will fail to
-lock after that point, rather than give undefined behavior.
-
-As long as the lua VM is alive, it will not garbage collect the refered object. [footnote See `luaL_ref` docs.]
-
-So it's not quite a `weak_ptr` or strong pointer -- it's perhaps "medium strength".
-It preserves the lifetime of the pointed value, unless the entire VM is destroyed.
-
-If the VM still exists and the `lua_ref` is engaged, locking the state and
-pushing the object are both `noexcept`, no-fail operations. They can't cause
-lua memory allocation failure either.
-
-Binding a `lua_ref` to an object on the stack ['can] cause a lua memory
-allocation failure, but not `std::bad_alloc`.
+# A `primer::lua_ref` object corresponds to the lua reference created by `luaL_ref` somewhere in the registry. lua guarantees that the reference object won't be garbage collected
+  as long as this reference exists.
+# `primer::lua_ref` *cannot take ownership of the lua VM*. If `lua_close` is called, the object will be collected, and attempts to lock the `lua_ref` after that will yield `nullptr`. The `operator bool` test will also yield false. Effectively, once the VM is closed, any outstanding `lua_ref` objects revert to the empty state.
+# If the VM still exists and the `lua_ref` is engaged, locking the state and pushing the object are both `noexcept`, no-fail operations. They can't cause lua memory allocation failure either.
+# Binding a `lua_ref` to an object on the stack ['can] cause a lua memory allocation failure, but not `std::bad_alloc`.
+# `primer::lua_ref` is safe in the sense of not becoming a dangling pointer in any scenario. However, it is not thread-safe, you should not pass this across threads.
 
 [caution Copying a `lua_ref` is expensive relative to most other small objects
 and usually something that you want to avoid, since it involves interacting with
@@ -57,7 +55,8 @@ a lua memory allocation failure.
 
 In low memory scenarios, this should likely be avoided.
 For instance, a `shared_ptr<lua_ref>` is just as useful as a `lua_ref` and
-can be copied without making new dynamic allocations.
+can be copied without making new dynamic allocations. If you are trying to improve
+performance you might consider profiling something like that in your application.
 
 In general prefer to move these whenever possible.]
 
