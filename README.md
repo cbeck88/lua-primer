@@ -129,7 +129,7 @@ Features
       void handle_event() {
         func_.call();
       }
-    }
+    };
 
     primer::result bind_click(lua_State * L, primer::bound_function func) {
       my_gui::bind_click(lua_callback_runner{std::move(func)});
