@@ -10,9 +10,10 @@ how to terminate the lua function call when we return to lua.
 
 There are three possible signals:
 
-* `return`: End this function call, and return some values from the stack to the caller.
-* `yield`: Yield the current coroutine, which effectively "pauses" this function call, and transfers execution back to the caller. Yield is also permitted to pass some values back to the caller. (See [@http://www.lua.org/manual/5.3/manual.html#lua_yield documentation].)
-* `error`: Raise a lua error.
+[variablelist
+[[`return`][End this function call, and return some values from the stack to the caller.]]
+[[`yield`][Yield the current coroutine, which effectively "pauses" this function call, and transfers execution back to the caller. Yield is also permitted to pass some values back to the caller. (See [@http://www.lua.org/manual/5.3/manual.html#lua_yield documentation].)]]
+[[`error`][Raise a lua error.]]]
 
 These are normally represented in lua C api by simply returning, or by calling
 `lua_yield` or `lua_error` respectively.
