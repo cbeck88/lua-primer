@@ -14,9 +14,8 @@ in the lua headers:
   };
 ``
 
-Many lua api calls take as a parameter a pointer `const luaL_Reg *`, which is
+Many lua api calls (e.g. [@http://www.lua.org/manual/5.3/manual.html#lua_register `lua_register`]) take as a parameter a pointer `const luaL_Reg *`, which is
 expected to point into an array, terminated by a `luaL_Reg` holding two null pointers.
-(See [@http://www.lua.org/manual/5.2/manual.html#luaL_Reg the manual].)
 
 It is common to need to make such lists when creating APIs, or specifying userdata.
 
