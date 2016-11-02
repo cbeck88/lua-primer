@@ -168,9 +168,23 @@
 <p>
           They can be enabled for an optional type, for example, as follows:
         </p>
-<p>
-          [primer_example_boost_optional_decl]
-        </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">optional</span><span class="special">/</span><span class="identifier">optional</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">container</span><span class="special">/</span><span class="identifier">optional_base</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">push</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="comment">//</span>
+  <span class="special">:</span> <span class="identifier">container</span><span class="special">::</span><span class="identifier">optional_push</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">{};</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span>
+  <span class="special">:</span> <span class="identifier">container</span><span class="special">::</span><span class="identifier">optional_strict_read</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">{};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
 <p>
           If we had selected <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">optional_relaxed_read</span></code>
           instead of <code class="computeroutput"><span class="identifier">detail</span><span class="special">::</span><span class="identifier">optional_strict_read</span></code>, then we would get
@@ -187,9 +201,48 @@
           strict and relaxed read, you must specialize an additional trait <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">optional_access</span></code> for your type, in order
           to tell primer how to talk to it.
         </p>
-<p>
-          [primer_optional_access]
-        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="comment">// This trait is used to tell primer in a basic way how to interact with an</span>
+<span class="comment">// optional template type.</span>
+<span class="comment">//</span>
+<span class="comment">// optional_access&lt;T&gt; should provide</span>
+<span class="comment">//</span>
+<span class="comment">// - typedef value_type</span>
+<span class="comment">// - static const value_type * as_ptr(const T &amp;) noexcept;</span>
+<span class="comment">// - static T make_empty() noexcept;</span>
+<span class="comment">// - static T from_value_type(value_type &amp;&amp;) noexcept;</span>
+<span class="comment">//</span>
+<span class="comment">// as_ptr should return nullptr if the optional is empty, or a pointer to the</span>
+<span class="comment">// contained value.</span>
+<span class="comment">//</span>
+<span class="comment">// make empty should create an empty optional.</span>
+<span class="comment">// from_value_type should move-construct an occupied optional.</span>
+<span class="comment">//</span>
+<span class="comment">// It must be specialized if your optional does not look like `boost::optional`</span>
+<span class="comment">// or `std::optional`.</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ENABLE</span> <span class="special">=</span> <span class="keyword">void</span><span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">optional_access</span> <span class="special">{</span>
+  <span class="keyword">using</span> <span class="identifier">value_type</span> <span class="special">=</span> <span class="keyword">typename</span> <span class="identifier">T</span><span class="special">::</span><span class="identifier">value_type</span><span class="special">;</span>
+
+  <span class="identifier">PRIMER_STATIC_ASSERT</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_nothrow_constructible</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
+                       <span class="string">"optional must be nothrow constructible"</span><span class="special">);</span>
+
+  <span class="comment">// TODO: boost::optional doesn't do this...</span>
+  <span class="comment">// PRIMER_STATIC_ASSERT(noexcept(T{std::declval&lt;value_type&gt;()}),</span>
+  <span class="comment">//                      "optional must be nothrow constructible from r-value</span>
+  <span class="comment">//                      reference to value type");</span>
+
+  <span class="keyword">static</span> <span class="keyword">const</span> <span class="identifier">value_type</span> <span class="special">*</span> <span class="identifier">as_ptr</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="identifier">t</span> <span class="special">?</span> <span class="special">&amp;*</span><span class="identifier">t</span> <span class="special">:</span> <span class="keyword">nullptr</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">static</span> <span class="identifier">T</span> <span class="identifier">make_empty</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">{};</span> <span class="special">}</span>
+  <span class="keyword">static</span> <span class="identifier">T</span> <span class="identifier">from_value_type</span><span class="special">(</span><span class="identifier">value_type</span> <span class="special">&amp;&amp;</span> <span class="identifier">v</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">T</span><span class="special">{</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">v</span><span class="special">)};</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

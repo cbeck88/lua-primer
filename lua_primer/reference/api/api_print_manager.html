@@ -33,25 +33,91 @@
           The <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">print_manager</span></code> class is a relatively powerful
           API feature that can handle that and some related tasks.
         </p>
+<h5>
+<a name="lua_primer.reference.api.api_print_manager.h0"></a>
+          <span><a name="lua_primer.reference.api.api_print_manager.overview"></a></span><a class="link" href="api_print_manager.html#lua_primer.reference.api.api_print_manager.overview">Overview</a>
+        </h5>
 <p>
-          The <code class="computeroutput"><span class="identifier">print_manager</span></code> class
-          is an API feature which creates "print" and "pretty_print"
-          functions which can be used by scripts. This feature also makes it so that
-          the output can be easily redirected, to e.g. a diagnostic shell or gui
-          dialog to help create an interactive interpreter for the debugging user
-          scripts. Print redirecting is achieved using the method "set_interpreter_context"
-          which takes a pointer to an arbitrary object satisfying the "interpreter_context"
-          concept. This pointer is placed on a stack, the interpreter context can
-          be detached using "pop_interpreter_context". The method "handle_user_input"
-          takes a string and considers it as user input from an interactive shell
-          or dialog. This is handled using an "experimental compilation"
-          approach. First, we assume that the command is a lua value, and we transform
-          it to <code class="computeroutput"><span class="identifier">_pretty_print</span><span class="special">(</span><span class="identifier">input</span><span class="special">)</span></code>,
-          and check if that is syntactically well-formed. If so, we execute it. If
-          it is not well-formed, then we try simply loading <code class="computeroutput"><span class="identifier">input</span></code>
-          -- maybe it is just a statement. If so, we execute it, if not we report
-          a syntax error to the user.
+          The <code class="computeroutput"><span class="identifier">print_manager</span></code> feature
+          adds two global functions to the lua environment:
         </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">print</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">_pretty_print</span></code>
+            </li>
+</ul></div>
+<p>
+          These functions <span class="emphasis"><em>format</em></span> their arguments in slightly
+          different ways. <code class="computeroutput"><span class="identifier">print</span></code> uses
+          the same formatting as the built-in lua <code class="computeroutput"><span class="identifier">print</span></code>.
+          <code class="computeroutput"><span class="identifier">_pretty_print</span></code> tries to
+          display small tables in a readable format.
+        </p>
+<p>
+          They both send their output to the current <code class="computeroutput"><span class="identifier">interpreter_context</span></code>.
+          <code class="computeroutput"><span class="identifier">interpreter_context</span></code> is
+          a C++ concept which we'll define shortly. An <code class="computeroutput"><span class="identifier">interpreter_context</span></code>
+          is set by installing it in the <code class="computeroutput"><span class="identifier">print_manager</span></code>
+          using the <code class="computeroutput"><span class="identifier">set_interpreter_context</span></code>
+          method.
+        </p>
+<p>
+          If no interpreter context is set, then formatted output is piped to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span></code>.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">print_manager</span></code> actually
+          maintains a stack of pointers to <code class="computeroutput"><span class="identifier">interpreter_context</span></code>'s.
+          The method <code class="computeroutput"><span class="identifier">set_interpreter_context</span></code>
+          pushes a pointer onto this stack, and <code class="computeroutput"><span class="identifier">pop_interpreter_context</span></code>
+          pops from this stack, unless it is empty.
+        </p>
+<p>
+          Besdies redirecting output, the <code class="computeroutput"><span class="identifier">print_manager</span></code>
+          can also act to provide debug-console functionality. It can take a user
+          input string and execute it in the lua environment, through the <code class="computeroutput"><span class="identifier">handle_interpreter_input</span></code> method. The
+          string passed to it should be the text typed by the user. The results of
+          this are relayed to the interpreter context, by calling its methods.
+        </p>
+<h5>
+<a name="lua_primer.reference.api.api_print_manager.h1"></a>
+          <span><a name="lua_primer.reference.api.api_print_manager.interpreter_context"></a></span><a class="link" href="api_print_manager.html#lua_primer.reference.api.api_print_manager.interpreter_context">Interpreter
+          Context</a>
+        </h5>
+<p>
+          The <code class="computeroutput"><span class="identifier">interpreter_context</span></code>
+          concept consists of three methods:
+        </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">new_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
+<span class="keyword">void</span> <span class="identifier">error_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
+<span class="keyword">void</span> <span class="identifier">clear_input</span><span class="special">();</span>
+</pre>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">new_text</span></code> is called
+              to report a line of print output.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">error_text</span></code> is called
+              to report an error message.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">clear_input</span></code> is called
+              when the user's input has been accepted. When creating a gui dialog,
+              one option is to clear the editbox whenever the user presses enter.
+              However, sometimes they made a typo and caused a syntax error or something
+              -- if you clear the input, they have to type it again. You can use
+              <code class="computeroutput"><span class="identifier">clear_input</span></code> as the
+              cue to clear the editbox instead, then it will only be cleared when
+              the input was successfully parsed.
+            </li>
+</ul></div>
+<h5>
+<a name="lua_primer.reference.api.api_print_manager.h2"></a>
+          <span><a name="lua_primer.reference.api.api_print_manager.synopsis"></a></span><a class="link" href="api_print_manager.html#lua_primer.reference.api.api_print_manager.synopsis">Synopsis</a>
+        </h5>
 <p>
           Besides redirecting output and providing a special method for handling
           user text input, the <code class="computeroutput"><span class="identifier">print_manager</span></code>
@@ -61,10 +127,6 @@
           and produces a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> could be used to replace the default
           formatting.
         </p>
-<h5>
-<a name="lua_primer.reference.api.api_print_manager.h0"></a>
-          <span><a name="lua_primer.reference.api.api_print_manager.synopsis"></a></span><a class="link" href="api_print_manager.html#lua_primer.reference.api.api_print_manager.synopsis">Synopsis</a>
-        </h5>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">api</span> <span class="special">{</span>
 
 <span class="keyword">class</span> <span class="identifier">print_manager</span> <span class="special">{</span>
@@ -162,36 +224,6 @@
 
 <span class="special">}</span> <span class="comment">// end namespace api</span>
 </pre>
-<h5>
-<a name="lua_primer.reference.api.api_print_manager.h1"></a>
-          <span><a name="lua_primer.reference.api.api_print_manager.interpreter_context"></a></span><a class="link" href="api_print_manager.html#lua_primer.reference.api.api_print_manager.interpreter_context">Interpreter
-          Context</a>
-        </h5>
-<p>
-          The <code class="computeroutput"><span class="identifier">interpreter_context</span></code>
-          concept consists of three methods:
-        </p>
-<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">new_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
-<span class="keyword">void</span> <span class="identifier">error_text</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
-<span class="keyword">void</span> <span class="identifier">clear_input</span><span class="special">();</span>
-</pre>
-<div class="itemizedlist"><ul class="itemizedlist" type="disc">
-<li class="listitem">
-              <code class="computeroutput"><span class="identifier">new_text</span></code> is called
-              to report a line of print output.
-            </li>
-<li class="listitem">
-              <code class="computeroutput"><span class="identifier">error_text</span></code> is called
-              to report an error message.
-            </li>
-<li class="listitem">
-              <code class="computeroutput"><span class="identifier">clear_input</span></code> is called
-              when the user's input has been accepted. When creating a gui dialog,
-              you can use this function as a cue to clear the editbox that the user
-              was using to enter the input. Then if they made a mistake, they don't
-              have to retype their whole command.
-            </li>
-</ul></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

@@ -71,6 +71,16 @@
           and added to the table. If reading of any key or value as the expected
           type fails, then reading the map fails.
         </p>
+<p>
+          <span class="bold"><strong>lua:</strong></span>
+        </p>
+<pre class="programlisting"><span class="special">{</span> <span class="identifier">a</span> <span class="special">=</span> <span class="number">3</span><span class="special">,</span> <span class="identifier">b</span> <span class="special">=</span> <span class="number">5</span><span class="special">,</span> <span class="identifier">c</span> <span class="special">=</span> <span class="number">7</span> <span class="special">}</span>
+</pre>
+<p>
+          <span class="bold"><strong>C++:</strong></span>
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;{{</span><span class="string">"a"</span><span class="special">,</span> <span class="number">3</span><span class="special">},</span> <span class="special">{</span><span class="string">"b"</span><span class="special">,</span> <span class="number">5</span><span class="special">},</span> <span class="special">{</span><span class="string">"c"</span><span class="special">,</span> <span class="number">7</span><span class="special">}}</span>
+</pre>
 <h4>
 <a name="lua_primer.reference.containers.standard_containers.h1"></a>
           <span><a name="lua_primer.reference.containers.standard_containers.lua_array_idiom"></a></span><a class="link" href="standard_containers.html#lua_primer.reference.containers.standard_containers.lua_array_idiom">Lua
@@ -94,6 +104,16 @@
           <span class="special">...</span></code>. If any of these cannot be read
           as the expected type, then reading the vector fails.
         </p>
+<p>
+          <span class="bold"><strong>lua:</strong></span>
+        </p>
+<pre class="programlisting"><span class="special">{</span> <span class="char">'a'</span><span class="special">,</span> <span class="char">'b'</span><span class="special">,</span> <span class="char">'c'</span> <span class="special">}</span>
+</pre>
+<p>
+          <span class="bold"><strong>C++:</strong></span>
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;{</span><span class="string">"a"</span><span class="special">,</span> <span class="string">"b"</span><span class="special">,</span> <span class="string">"c"</span><span class="special">}</span>
+</pre>
 <h4>
 <a name="lua_primer.reference.containers.standard_containers.h2"></a>
           <span><a name="lua_primer.reference.containers.standard_containers.lua_set_idiom"></a></span><a class="link" href="standard_containers.html#lua_primer.reference.containers.standard_containers.lua_set_idiom">Lua
@@ -115,6 +135,16 @@
           using the primer built-in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>
           semantics.
         </p>
+<p>
+          <span class="bold"><strong>lua:</strong></span>
+        </p>
+<pre class="programlisting"><span class="special">{</span> <span class="identifier">a</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">,</span> <span class="identifier">b</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">,</span> <span class="identifier">c</span> <span class="special">=</span> <span class="keyword">true</span> <span class="special">}</span>
+</pre>
+<p>
+          <span class="bold"><strong>C++:</strong></span>
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;{</span><span class="string">"a"</span><span class="special">,</span> <span class="string">"b"</span><span class="special">,</span> <span class="string">"c"</span><span class="special">}</span>
+</pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
