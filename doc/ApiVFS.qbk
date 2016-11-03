@@ -1,9 +1,48 @@
 [section API VFS]
 
-[primer_vfs_overview]
+`primer::api::vfs` helps to create a custom filesystem exposed to lua.
 
-Here's a usage example:
+[h4 Overview]
+
+`lua` provides some core functionality to allow scripts to load modules from the
+filesystem, through three functions `loadfile`, `dofile`, and `require`.
+These aren't part of the `package` module, they are part of the base library,
+and the package search path is something that can be configured during the process
+of installing lua.
+
+In an embedded lua application, it's likely that you'll want to sandbox this and
+prevent lua from directly accessing and loading things from the filesystem.
+
+`primer::api::vfs` helps to simplify this. Instead of implementing three very
+similar functions, to use `primer::api::vfs`, you only implement one of them.
+You do this by creating a class satisfying the "VFS Provider" concept.
+
+Then, you make your class derive from the `primer::api::vfs` class template using
+the CRTP style. This basically performs "dependency-injection", so that the generic
+implementations of `dofile`, `loadfile`, and `require` can access your `load`
+function and do the right thing, and brings in the boiler-plate which makes it
+a proper API feature. `primer::api::vfs` has no data members and no nontrivial
+intialization, but your "VFS Provider" might.
+
+[h4 Concept: VFS Provider]
+
+A VFS Provider is expected to provide a member function `load`:
+
+``
+  expected<void> load(lua_State *, const std::string & path);
+``
+
+which attempts to load the module corresponding to `path` onto the stack, using
+e.g. `luaL_loadbuffer`. It should then return "ok", i.e., no error. If it cannot,
+it should instead return an error message. For instance you might use the pre-formatted
+message `primer::error::module_not_found`.
+
+[h4 Example Usage]
 
 [primer_vfs_example]
+
+[h4 Synopsis]
+
+TODO
 
 [endsect]
