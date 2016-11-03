@@ -28,6 +28,20 @@ When such a map is read, the argument is expected to be a table, and it is recur
 Each key value pair is attempted to be converted using `primer::read`, and added to the table.
 If reading of any key or value as the expected type fails, then reading the map fails.
 
+[*lua:]
+[/ lua]
+
+``
+  { a = 3, b = 5, c = 7 }
+``
+
+[*C++:]
+[c++]
+
+``
+  std::map<std::string, int>{{"a", 3}, {"b", 5}, {"c", 7}}
+``
+
 [h3 Lua Array Idiom]
 
 ['arrays] such as `std::vector` and `std::array` are translated to lua as tables, in which
@@ -40,6 +54,20 @@ When a vector is read, the lua value is expected to be a table. `lua_rawlen` is 
 its length. Then `lua_rawgeti` is used to query entries `t[1], t[2], ...`. If any of these cannot
 be read as the expected type, then reading the vector fails.
 
+[*lua:]
+[/ lua]
+
+``
+  { 'a', 'b', 'c' }
+``
+
+[*C++:]
+[c++]
+
+``
+  std::vector<std::string>{"a", "b", "c"}
+``
+
 [h3 Lua Set Idiom]
 
 ['sets] such as `std::set` are translated to lua as tables, in which the value in every key-value pair is `true`.
@@ -50,4 +78,17 @@ In lua, tables cannot have custom "comparators" for their keys. If you have some
 `std::set<int>` or `std::set<std::string>`, e.g. containing tables or userdata, you will most likely
 want to create custom semantics for it rather than using the primer built-in `std::set` semantics.
 
+[*lua:]
+[/ lua]
+
+``
+  { a = true, b = true, c = true }
+``
+
+[*C++:]
+[c++]
+
+``
+  std::set<std::string>{"a", "b", "c"}
+``
 [endsect]
