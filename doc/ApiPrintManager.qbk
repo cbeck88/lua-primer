@@ -10,7 +10,39 @@ like it.
 The `api::print_manager` class is a relatively powerful API feature that can
 handle that and some related tasks.
 
-[primer_print_manager_overview]
+[h4 Overview]
+
+The `print_manager` feature adds two global functions to the lua environment:
+
+* `print`
+* `_pretty_print`
+
+These functions ['format] their arguments in slightly different ways. `print`
+uses the same formatting as the built-in lua `print`. `_pretty_print` tries to
+display small tables in a readable format.
+
+They both send their output to the current `interpreter_context`. `interpreter_context`
+is a C++ concept which we'll define shortly. An `interpreter_context` is set by
+installing it in the `print_manager` using the `set_interpreter_context` method.
+
+If no interpreter context is set, then formatted output is piped to `std::cout`.
+
+The `print_manager` actually maintains a stack of pointers to `interpreter_context`'s.
+The method `set_interpreter_context` pushes a pointer onto this stack, and
+`pop_interpreter_context` pops from this stack, unless it is empty.
+
+Besdies redirecting output, the `print_manager` can also act to provide debug-console
+functionality. It can take a user input string and execute it in the lua environment,
+through the `handle_interpreter_input` method. The string passed to it should be
+the text typed by the user. The results of this are relayed to the interpreter context, by
+calling its methods.
+
+[h4 Interpreter Context]
+
+[primer_interpreter_context_concept]
+
+
+[h4 Synopsis]
 
 Besides redirecting output and providing a special method for handling user
 text input, the `print_manager` behavior can be further customized by providing
@@ -18,12 +50,6 @@ custom implementations of `print` and `_pretty_print`. Any function which takes
 a `lua_State *` and produces a `std::string` could be used to replace the default
 formatting.
 
-[h4 Synopsis]
-
 [primer_print_manager_synopsis]
-
-[h4 Interpreter Context]
-
-[primer_interpreter_context_concept]
 
 [endsect]

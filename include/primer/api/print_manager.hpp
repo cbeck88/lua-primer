@@ -60,10 +60,13 @@ namespace primer {
 //`
 //` * `new_text` is called to report a line of print output.
 //` * `error_text` is called to report an error message.
-//` * `clear_input` is called when the user's input has been accepted. When
-//`   creating a gui dialog, you can use this function as a cue to clear the
-//`   editbox that the user was using to enter the input. Then if they made
-//`   a mistake, they don't have to retype their whole command.
+//` * `clear_input` is called when the user's input has been accepted.
+//`    When creating a gui dialog, one option is to clear the editbox whenever
+//`    the user presses enter. However, sometimes they made a typo and caused
+//`    a syntax error or something -- if you clear the input, they have to type
+//`    it again. You can use `clear_input` as the cue to clear the editbox
+//`    instead, then it will only be cleared when the input was successfully
+//`    parsed.
 //]
 
 namespace detail {
