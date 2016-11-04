@@ -1,10 +1,7 @@
 [section API Feature]
 
 A class which matches the "API Feature" concept represents some functionality
-that we could expose to a lua VM, while also retaining the ability to serialize
-the VM. An instance of the class is able to install the feature for Primer on
-request, and also to provide support when we want to serialize / deserialize the
-state.
+that we can expose to a lua VM, together with the info needed to serialize it.
 
 An object matching the API feature concept has the following three methods:
 
@@ -20,12 +17,12 @@ The `on_initialize` method is called when the API is initialized.
 
 The `on_persist_table` method is called when we are persisting the state, and
 need to construct the permanent objects table. When called, your feature will
-get a state, and can assume that the permanent objects table is on top of the stack.
-It should register each object, using the object as the key, and a serialization
-name as the value.
+get a `lua_State *`, and can assume that the permanent objects table is on top of the stack.
+It should register each permanent object, using the object as the key, and (usually) a serialization
+token as the value.
 
 The `on_unpersist_table` method is the same, but it does the reverse. The key
-should be the serialization name, and the value should be the object.
+should be the token, and the value should be the object.
 
 Usually, permanent objects are just function pointers, but occasionally they
 might be something else. For instance if there is a global userdata of some type,

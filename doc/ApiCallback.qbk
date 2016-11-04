@@ -36,8 +36,6 @@ struct my_api : primer::api::base<my_api> {
    : L_(luaL_newstate())
    , callbacks_(this)
   {}
-
-
 };
 ``
 

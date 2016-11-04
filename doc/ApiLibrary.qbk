@@ -8,8 +8,7 @@ Example:
 
 #include <primer/api/libraries.hpp>
 
-...
-
+struct my_api : primer::api::base<my_api> {
 {
   ...
 
@@ -52,6 +51,8 @@ primer::api::lua_math_lib_sandboxed
 ``
 
 You can easily make your own sandboxing decisions of course.
+
+The `libraries` object itself has no data members and no nontrivial initialization.
 
 [h3 Feature behavior]
 

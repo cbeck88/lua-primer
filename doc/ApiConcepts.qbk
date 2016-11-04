@@ -76,7 +76,15 @@ there should be an associated ['API Object] with which all of the components of
 that API are registered. The API object manages the processes of initializing
 the API within a State, and later, serializing and deserializing the state.
 
-An API object should ['derive] from the `primer::api::base` class template.
+An API object should ['derive] from the `primer::api::base` class template, using
+CRTP style:
+
+```
+  struct my_api : primer::api::base<my_api> {
+    ...
+  };
+```
+
 This accomplishes two things:
 
 * The `API_CALLBACK` and `API_FEATURE` macros may be used to register different

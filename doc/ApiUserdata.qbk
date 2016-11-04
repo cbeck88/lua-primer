@@ -8,12 +8,11 @@ Example:
 
 #include <primer/api/userdatas.hpp>
 
-...
-
+struct my_api : primer::api::base<my_api> {
 {
   ...
 
-  API_FEATURE(primer::api_userdatas<my_userdata1, my_userdata2, my_userdata3>, udatas_);
+  API_FEATURE(primer::api::userdatas<my_userdata1, my_userdata2, my_userdata3>, udatas_);
 
   ...
 
@@ -23,6 +22,8 @@ Example:
 
 The metatables of each userdata will be created when `initialize_api` is called, and the permanent objects, defined
 by the `userdata` trait, if any, will be registered when we persist / unpersist.
+
+The `userdatas` object itself has no data members and no nontrivial initialization.
 
 
 [endsect]
