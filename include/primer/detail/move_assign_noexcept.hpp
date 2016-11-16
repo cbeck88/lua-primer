@@ -23,6 +23,9 @@ PRIMER_ASSERT_FILESCOPE;
 namespace primer {
 namespace detail {
 
+/***
+ * Primary implementation for move_assign_noexcept
+ */
 template <typename T>
 auto
 move_assign_noexcept(T & dest, T && src) noexcept
@@ -32,21 +35,31 @@ move_assign_noexcept(T & dest, T && src) noexcept
 
 using std::swap;
 
-// Need to use SFINAE for this in case there is no `swap`.
-template <typename T, typename ENABLE = void>
-struct is_nothrow_swappable : std::false_type {};
+/***
+ * is_nothrow_swappable
+ *   This implementation is stolen from WG proposal 0185
+ *   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0185r1.html#Appendix
+ */
+struct do_is_nothrow_swappable
+{
+  template<class T>
+  static auto test(int) -> std::integral_constant<bool,
+    noexcept(swap(std::declval<T&>(), std::declval<T&>()))
+  >;
 
-// TODO: Is this an "expression SFINAE" issue with MSVC 2015?
-#ifndef _MSC_VER
+  template<class>
+  static std::false_type test(...);
+};
 
 template <typename T>
-struct is_nothrow_swappable<T, enable_if_t<noexcept(
-                                 swap(*static_cast<T *>(nullptr),
-                                      *static_cast<T *>(nullptr)))>>
-  : std::true_type {};
+struct is_nothrow_swappable : decltype(
+  do_is_nothrow_swappable::test<T>(0)
+)
+{};
 
-#endif
-
+/***
+ * More overloads for `move_assign_noexcept` depending on `is_nothrow_swappable`
+ */
 template <typename T>
 auto
 move_assign_noexcept(T & dest, T && src) noexcept
