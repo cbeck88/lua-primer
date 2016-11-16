@@ -92,13 +92,13 @@ public:
   template <typename T>
   explicit interpreter_context_ptr(T * t)
     : object_(static_cast<void *>(t))
-    , new_text_call_(+[](void * o, const std::string & str) {
+    , new_text_call_([](void * o, const std::string & str) {
       static_cast<T *>(o)->new_text(str);
     })
-    , error_text_call_(+[](void * o, const std::string & str) {
+    , error_text_call_([](void * o, const std::string & str) {
       static_cast<T *>(o)->error_text(str);
     })
-    , clear_input_call_(+[](void * o) { static_cast<T *>(o)->clear_input(); }) {
+    , clear_input_call_([](void * o) { static_cast<T *>(o)->clear_input(); }) {
   }
 };
 
