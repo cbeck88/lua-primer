@@ -78,7 +78,21 @@ class interpreter_context_ptr {
   void (*error_text_call_)(void *, const std::string &);
   void (*clear_input_call_)(void *);
 
+  template <typename T>
+  struct helper {
+    static void new_text(void * o, const std::string & str) {
+      static_cast<T*>(o)->new_text(str);
+    }
+    static void error_text(void * o, const std::string & str) {
+      static_cast<T*>(o)->error_text(str);
+    }
+    static void clear_input(void * o) {
+      static_cast<T*>(o)->clear_input();
+    }
+  };
+
 public:
+
   void new_text(const std::string & str) const {
     this->new_text_call_(object_, str);
   }
@@ -92,13 +106,9 @@ public:
   template <typename T>
   explicit interpreter_context_ptr(T * t)
     : object_(static_cast<void *>(t))
-    , new_text_call_([](void * o, const std::string & str) {
-      static_cast<T *>(o)->new_text(str);
-    })
-    , error_text_call_([](void * o, const std::string & str) {
-      static_cast<T *>(o)->error_text(str);
-    })
-    , clear_input_call_([](void * o) { static_cast<T *>(o)->clear_input(); }) {
+    , new_text_call_(&helper<T>::new_text)
+    , error_text_call_(&helper<T>::error_text)
+    , clear_input_call_(&helper<T>::clear_input) {
   }
 };
 
