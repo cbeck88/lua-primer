@@ -36,11 +36,16 @@ using std::swap;
 template <typename T, typename ENABLE = void>
 struct is_nothrow_swappable : std::false_type {};
 
+// TODO: Is this an "expression SFINAE" issue with MSVC 2015?
+#ifndef _MSC_VER
+
 template <typename T>
 struct is_nothrow_swappable<T, enable_if_t<noexcept(
                                  swap(*static_cast<T *>(nullptr),
                                       *static_cast<T *>(nullptr)))>>
   : std::true_type {};
+
+#endif
 
 template <typename T>
 auto
