@@ -41,7 +41,7 @@ install:
       }
       
 # Note: static asserts are disabled because in MSVC 2015, standard containers are not
-  noexcept correct unfortunately.
+# noexcept correct unfortunately.
 
 test_script:
   - ps: >-
