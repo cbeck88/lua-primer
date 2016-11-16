@@ -49,7 +49,9 @@ test_script:
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
         ForEach($file in $files) {
+          Write-Host ""
           Write-Host $file.fullName " ... "
           & $file.fullName
+          Write-Host "Exit code: " $lastExitCode
         }
       }
