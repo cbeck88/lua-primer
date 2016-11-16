@@ -387,7 +387,7 @@ dump_method(lua_State * L, userdata_test & u) {
   return 1;
 }
 
-constexpr luaL_Reg method_list[] = {{"__call", PRIMER_ADAPT(&call_method)},
+static constexpr luaL_Reg method_list[] = {{"__call", PRIMER_ADAPT(&call_method)},
                                 {"dump", PRIMER_ADAPT(&dump_method)},
                                 {nullptr, nullptr}};
 
@@ -398,7 +398,7 @@ namespace traits {
 template <>
 struct userdata<userdata_test> {
   static constexpr const char * name = "userdata_test_type";
-  static constexpr const luaL_Reg * metatable = &method_list[0];
+  static constexpr const luaL_Reg * metatable = method_list;
 };
 
 } // end namespace traits
