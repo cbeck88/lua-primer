@@ -51,13 +51,21 @@ class bound_function {
     expected<return_type> result{primer::error::cant_lock_vm()};
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
+// TODO: MSVC seems to struggle with this lambda capture, not sure why.
+// For the moment we simply disable the pcall for msvc to see if the rest of it
+// compiles and tests correctly.
+#ifndef _MSC_VER
         auto ok = mem_pcall(L, [this, L, &result, &args...]() {
+#endif
           ref_.push(L);
           primer::push_each(L, std::forward<Args>(args)...);
           detail::fcn_call(result, L, sizeof...(args));
+#ifndef _MSC_VER
         });
 
         if (!ok) { result = std::move(ok.err()); }
+#endif
+
       } else {
         result = std::move(stack_check.err());
       }
