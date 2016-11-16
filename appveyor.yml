@@ -37,8 +37,11 @@ install:
         $env:Path += ";C:\projects\boost_1_60_0;"
         Set-Location "C:\projects\primer\test"
         Write-Host "Building test executables"
-        & b2 --toolset=msvc -d+2
+        & b2 --toolset=msvc --no-static-asserts -d+2
       }
+      
+# Note: static asserts are disabled because in MSVC 2015, standard containers are not
+  noexcept correct unfortunately.
 
 test_script:
   - ps: >-
