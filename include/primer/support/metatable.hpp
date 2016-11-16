@@ -58,10 +58,10 @@ struct metatable {
 // full manual control for user
 template <typename T>
 struct metatable<T,
-                 enable_if_t<noexcept(primer::traits::userdata<T>::metatable(
-                               static_cast<lua_State *>(nullptr)))
-                             == noexcept(primer::traits::userdata<T>::metatable(
-                                  static_cast<lua_State *>(nullptr)))>> {
+                 enable_if_t<std::is_same<decltype(primer::traits::userdata<T>::metatable(
+                               static_cast<lua_State *>(nullptr))),
+                             decltype(primer::traits::userdata<T>::metatable(
+                                  static_cast<lua_State *>(nullptr)))>::value>> {
   using udata = primer::traits::userdata<T>;
 
   static void populate(lua_State * L) {
