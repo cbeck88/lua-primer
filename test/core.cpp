@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 
+using uint = unsigned int;
+
 namespace {
 //[ primer_expected_example
 using primer::expected;
