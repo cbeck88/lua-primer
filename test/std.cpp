@@ -513,7 +513,7 @@ struct vec2_test {
   }
 };
 
-static const luaL_Reg vec2_methods[] = {
+static constexpr luaL_Reg vec2_methods[] = {
   {"__add", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::add)},
   {"__sub", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::subtract)},
   {"__unm", PRIMER_ADAPT_USERDATA(vec2_test, &vec2_test::negate)},
