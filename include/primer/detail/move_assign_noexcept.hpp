@@ -16,7 +16,6 @@ PRIMER_ASSERT_FILESCOPE;
 
 #include <new>
 #include <primer/detail/type_traits.hpp>
-#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -34,6 +33,9 @@ move_assign_noexcept(T & dest, T && src) noexcept
 }
 
 using std::swap;
+
+// TODO: Fix on msvc
+#ifndef _MSC_VER
 
 /***
  * is_nothrow_swappable
@@ -56,6 +58,13 @@ struct is_nothrow_swappable : decltype(
   do_is_nothrow_swappable::test<T>(0)
 )
 {};
+
+#else
+
+template <typename T>
+struct is_nothrow_swappable : std::false_type{};
+
+#endif
 
 /***
  * More overloads for `move_assign_noexcept` depending on `is_nothrow_swappable`
