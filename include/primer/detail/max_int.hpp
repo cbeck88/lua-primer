@@ -36,13 +36,13 @@ min(int x, int y) {
 template <typename... Args>
 constexpr int
 max_int(int x, Args &&... args) {
-  return right_assoc_int(&primer::detail::max, x, args...);
+  return right_assoc_int(primer::detail::max, x, args...);
 }
 
 template <typename... Args>
 constexpr int
 min_int(int x, Args &&... args) {
-  return right_assoc_int(&primer::detail::min, x, args...);
+  return right_assoc_int(primer::detail::min, x, args...);
 }
 
 } // end namespace detail
