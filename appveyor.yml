@@ -87,7 +87,7 @@ test_script:
           if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
             Write-Host ""
             Write-Host $file.fullName " ... "
-            cdb -y $SymPath -c "~*kv;q" -o $file.fullName
+            cdb -y $SymPath -c "|;g;kv;q" -o $file.fullName
             Write-Host "Exit code: " $lastExitCode
           }
         }
