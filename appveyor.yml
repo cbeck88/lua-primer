@@ -47,7 +47,7 @@ install:
 test_script:
   - ps: >-
       If($true) {
-        set Path=%ProgramFiles(x86)%\Windows Kits\8.1\Debuggers\x86;%Path%
+        set Path=%programfiles%\Windows Kits\8.1\Debuggers\x86;%Path%
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
         ForEach($file in $files) {
