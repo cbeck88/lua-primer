@@ -49,7 +49,7 @@ test_script:
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
         ForEach($file in $files) {
-          if ($file.name !=  "lua.exe" && $file.name != "persist.exe" && $file.name != "unpersist.exe" && $file.name != "persist.lua" && $file.name != "unpersist.lua") {
+          if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
             Write-Host ""
             Write-Host $file.fullName " ... "
             & $file.fullName
