@@ -80,6 +80,8 @@ test_script:
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x86\;"
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x64\;"
         $SymPath = "C:\projects\primer\test\stage"
+        
+        cmd /r mkdir /Y c:\symbols
 
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
@@ -87,7 +89,7 @@ test_script:
           if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
             Write-Host ""
             Write-Host $file.fullName " ... "
-            cdb -y $SymPath -c "|;g;kv;q" -o $file.fullName
+            cdb -y $SymPath -c ".symfix+ C:\symbols;.reload;|;g;kv;q" -o $file.fullName
             Write-Host "Exit code: " $lastExitCode
           }
         }
