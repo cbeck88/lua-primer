@@ -61,6 +61,7 @@ install:
         Write-Host "Attempting to copy the symbol files for test executables"        
         cmd /r dir
         cmd /r dir bin\
+        cmd /r dir bin\msvc-14.0\
         cmd /r copy /Y bin\msvc-14.0\release\debug-symbols-on\threading-multi\*.pdb stage\
         cmd /r copy /Y cdb_script.txt stage\
       }
@@ -82,7 +83,7 @@ test_script:
           if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
             Write-Host ""
             Write-Host $file.fullName " ... "
-            cdb -c ".sympath srv*C:\Windows\Symbols*http://msdl.microsoft.com/download/symbols;.reload;~* k 99;q" -o $file.fullName
+            cdb -c ".sympath srv*C:\Windows\Symbols*C:\projects\primer\test\stage*http://msdl.microsoft.com/download/symbols ; .reload ; ~* k 99 ; q" -o $file.fullName
             Write-Host "Exit code: " $lastExitCode
           }
         }
