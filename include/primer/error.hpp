@@ -252,8 +252,8 @@ template <typename... Args>
 inline error &
 error::prepend_error_line(Args &&... args) noexcept {
   PRIMER_TRY_BAD_ALLOC {
-    msg_.str() =
-      primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + msg_.str();
+    std::string & s = msg_.str();
+    s = primer::detail::str_cat(std::forward<Args>(args)...) + "\n" + s;
   }
   PRIMER_CATCH_BAD_ALLOC { /* msg_ = impl{impl::bad_alloc_tag{}}; */
   }
