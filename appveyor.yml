@@ -43,16 +43,18 @@ install:
 # Note: static asserts are disabled because in MSVC 2015, standard containers are not
 # noexcept correct unfortunately.
 
+
 test_script:
   - ps: >-
       If($true) {
+        set Path=%ProgramFiles(x86)%\Windows Kits\8.1\Debuggers\x86;%Path%
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
         ForEach($file in $files) {
           if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
             Write-Host ""
             Write-Host $file.fullName " ... "
-            & windbg -o $file.fullName
+            cdb -o $file.fullName
             Write-Host "Exit code: " $lastExitCode
           }
         }
