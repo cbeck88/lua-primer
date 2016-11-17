@@ -16,8 +16,8 @@ int main() {
   expected<float> b;
   expected<std::string> c;
 
-  c = "foo";
-  c = "bar";
+  c = std::string{"foo"};
+  c = std::string{"bar"};
 
   expected<std::string> d{"baz"};
 
@@ -27,7 +27,7 @@ int main() {
   c = d;
   d = std::move(c);
   c = d;
-  d = "qaz";
+  d = std::string{"qaz"};
   c = std::move(d);
 
   std::cout << "OK!" << std::endl;
