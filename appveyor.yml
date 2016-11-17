@@ -87,11 +87,9 @@ test_script:
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
         ForEach($file in $files) {
-          if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
-            Write-Host ""
-            Write-Host $file.fullName " ... "
-            cdb -y $SymPath -c "|;g;kv;q" -o $file.fullName
-            Write-Host "Exit code: " $lastExitCode
-          }
+          Write-Host ""
+          Write-Host $file.fullName " ... "
+          cdb -y $SymPath -c "|;g;kv;q" -o $file.fullName
+          Write-Host "Exit code: " $lastExitCode
         }
       }
