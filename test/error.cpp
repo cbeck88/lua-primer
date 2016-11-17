@@ -4,27 +4,18 @@
 #include <string>
 
 /***
- * This is a mininmal test of primer::error, meant to help
+ * This is a small test of primer::error, meant to help
  * isolate a bug on msvc.
  */
 
 using primer::error;
 
-error
-foo(int e) {
-  if (e >= 7) {
-    return primer::error{"woof!"};
-  } else {
-    return primer::error{"bad doggie!"};
-  }
-}
-
 int main() {
-  auto result = foo(6);
-  assert(result.str() == "bad doggie!");
+  primer::error e1{"aa"};
+  assert(e1.str() == "aa");
 
-  auto result2 = foo(7);
-  assert(result2.str() == "woof!");
+  primer::error e2{"bb"};
+  assert(e2.str() == "bb");
 
   std::cout << "OK!" << std::endl;
 }
