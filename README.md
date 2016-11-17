@@ -174,7 +174,7 @@ MSVC support is a work in progress.
 The appveyor build is currently passing, however, two parts of the code were disabled with `#ifdef` and marked `TODO: MSVC` in order to get it to compile and prevent losing ground wrt msvc.
 
 * There is a problem with an instance of lambda capture and parameter packs (see `bound_function.hpp`)  
-  I wasn't able to devise a reasonable workaround here unfortunately. The `#ifdef` results in us not using a `pcall` when technically we should. It means that a memory allocation error could be fatal,
+  I don't see a reasonable workaround here right now unfortunately. The `#ifdef` results in us not using a `pcall` when technically we should. It means that a memory allocation error could be fatal,
   instead of recoverable. This is bad, but it's rare that it would actually cause a problem.
 * There is a problem with a trait which detects if a type is nothrow swappable.  
   This is really not an essential thing for us,
