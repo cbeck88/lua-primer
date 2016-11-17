@@ -156,7 +156,14 @@ public:
   // Takes a sequence of strings, string literals, or numbers
   // and concatenates them to form the message.
   template <typename... Args>
-  explicit error(Args &&... args) noexcept;
+  explicit error::error(Args &&... args) noexcept
+    : msg_()
+  {
+    PRIMER_TRY_BAD_ALLOC {
+      msg_ = impl{primer::detail::str_cat(std::forward<Args>(args)...)};
+    }
+    PRIMER_CATCH_BAD_ALLOC { msg_ = impl{impl::bad_alloc_tag{}}; }
+  }
 
   // Help to give context to errors
   /*<< This method takes a sequence of
@@ -196,7 +203,7 @@ public:
   static error module_not_found(const std::string & path) noexcept;
 
   // Accessor
-  const char * what() const noexcept;
+  const char * what() const noexcept { return msg_.c_str(); }
   const char * c_str() const noexcept { return this->what(); }
   std::string str() const { return this->what(); }
 };
@@ -241,14 +248,6 @@ error::cant_lock_vm() noexcept {
 }
 
 template <typename... Args>
-inline error::error(Args &&... args) noexcept {
-  PRIMER_TRY_BAD_ALLOC {
-    msg_ = impl{primer::detail::str_cat(std::forward<Args>(args)...)};
-  }
-  PRIMER_CATCH_BAD_ALLOC { msg_ = impl{impl::bad_alloc_tag{}}; }
-}
-
-template <typename... Args>
 inline error &
 error::prepend_error_line(Args &&... args) noexcept {
   PRIMER_TRY_BAD_ALLOC {
@@ -261,11 +260,6 @@ error::prepend_error_line(Args &&... args) noexcept {
   // prepend error line is used to give context, better to keep the previous
   // error and skip the addition of context than lose all of the original.
   return *this;
-}
-
-inline const char *
-error::what() const noexcept {
-  return msg_.c_str();
 }
 
 } // end namespace primer

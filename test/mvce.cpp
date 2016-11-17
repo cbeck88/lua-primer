@@ -147,24 +147,17 @@ public:
   // Takes a sequence of strings, string literals, or numbers
   // and concatenates them to form the message.
   template <typename... Args>
-  explicit error(Args &&... args) noexcept;
+  explicit error(Args &&... args) noexcept
+    : msg_()
+  {
+    msg_ = impl{detail::str_cat(std::forward<Args>(args)...)};
+  }
 
   // Accessor
-  const char * what() const noexcept;
+  const char * what() const noexcept { return msg_.c_str(); }
   const char * c_str() const noexcept { return this->what(); }
   std::string str() const { return this->what(); }
 };
-
-template <typename... Args>
-inline error::error(Args &&... args) noexcept {
-  msg_ = impl{detail::str_cat(std::forward<Args>(args)...)};
-}
-
-inline const char *
-error::what() const noexcept {
-  return msg_.c_str();
-}
-
 
 int main() {
   error e1{"foo"};
