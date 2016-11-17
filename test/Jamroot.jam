@@ -100,8 +100,9 @@ exe noexcept : noexcept.cpp lualib primer test_harness : <define>PRIMER_NO_EXCEP
 exe error : error.cpp lualib primer : <define>PRIMER_NO_EXCEPTIONS $(FLAGS) $(NORTTI_FLAGS) ;
 exe expected : expected.cpp lualib primer : <define>PRIMER_NO_EXCEPTIONS $(FLAGS) $(NORTTI_FLAGS) ;
 exe str_cat : str_cat.cpp lualib primer : <define>PRIMER_NO_EXCEPTIONS $(FLAGS) $(NORTTI_FLAGS) ;
+exe mvce : mvce.cpp : $(FLAGS) $(NORTTI_FLAGS) ;
 
-install install-bin : core visitable std noexcept error expected str_cat : $(INSTALL_LOC) ;
+install install-bin : core visitable std noexcept error expected str_cat mvce : $(INSTALL_LOC) ;
 
 # Persistence tests...
 if $(HAVE_ERIS) {
