@@ -14,8 +14,6 @@
 
 PRIMER_ASSERT_FILESCOPE;
 
-#include <primer/detail/type_traits.hpp>
-
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -52,7 +50,7 @@ str_cat() {
 template <typename T, typename... Args>
 std::string
 str_cat(T && t, Args &&... args) {
-  using helper_t = str_cat_helper<remove_reference_t<remove_cv_t<decay_t<T>>>>;
+  using helper_t = str_cat_helper<typename std::decay<T>::type>;
   return helper_t::to_string(std::forward<T>(t))
          + str_cat(std::forward<Args>(args)...);
 }

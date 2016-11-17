@@ -58,7 +58,7 @@ install:
 
         Set-Location "C:\projects\primer\test"
         Write-Host "Building test executables"
-        & b2 --toolset=msvc --no-static-asserts --debug-symbols=on --debug-store=database -d+2
+        & b2 --toolset=msvc --variant=debug --no-static-asserts --debug-symbols=on --debug-store=database -d+2
 
         Write-Host "Attempting to copy the symbol files for test executables"        
         cmd /r dir

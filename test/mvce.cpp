@@ -9,20 +9,6 @@
  * isolate a bug when compiling with msvc.
  */
 
-// Backported for C++11
-template <typename T>
-using remove_cv_t = typename std::remove_cv<T>::type;
-
-template <typename T>
-using remove_reference_t = typename std::remove_reference<T>::type;
-
-template <typename T>
-using decay_t = typename std::decay<T>::type;
-
-template <bool b, typename V = void>
-using enable_if_t = typename std::enable_if<b, V>::type;
-
-
 namespace detail {
 
 // Trait
@@ -40,7 +26,8 @@ struct str_cat_helper<const char *> {
 };
 
 template <typename T>
-struct str_cat_helper<T, enable_if_t<std::is_integral<T>::value>> {
+struct str_cat_helper<T, typename std::enable_if<std::is_integral<T>::value>::
+                           type> {
   static std::string to_string(T t) { return std::to_string(t); }
 };
 
@@ -53,7 +40,7 @@ str_cat() {
 template <typename T, typename... Args>
 std::string
 str_cat(T && t, Args &&... args) {
-  using helper_t = str_cat_helper<remove_reference_t<remove_cv_t<decay_t<T>>>>;
+  using helper_t = str_cat_helper<typename std::decay<T>::type>;
   return helper_t::to_string(std::forward<T>(t))
          + str_cat(std::forward<Args>(args)...);
 }
