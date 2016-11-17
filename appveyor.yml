@@ -53,6 +53,8 @@ install:
 
         $env:BOOST_ROOT = $boost_path
         $env:Path += ";" + $boost_path + ";"
+        
+        $env:LUA_ROOT = "lua-5.3.3"
 
         Set-Location "C:\projects\primer\test"
         Write-Host "Building test executables"
@@ -78,13 +80,24 @@ install:
 test_script:
   - ps: >-
       If($true) {
+        Write-Host ""
+        Write-Host "Running " + $env:LUA_ROOT + " unit tests"
+
+        Set-Location "C:\projects\primer\test\lua-5.3.3-tests
+        ../stage_lua/lua.exe -e "_port=true" all.lua
+
+
+        Write-Host ""
+        Write-Host "Running primer test executables.."
+
+        Set-Location "C:\projects\primer\test
+      
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x86\;"
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x64\;"
         $SymPath = "C:\projects\primer\test\stage;SRV*c:\symbols*http://msdl.microsoft.com/download/symbols"
         
         cmd /r mkdir c:\symbols
 
-        Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
         ForEach($file in $files) {
           Write-Host ""
