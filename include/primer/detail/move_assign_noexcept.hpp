@@ -35,7 +35,8 @@ move_assign_noexcept(T & dest, T && src) noexcept
 using std::swap;
 
 // TODO: Fix on msvc
-#ifndef _MSC_VER
+// #ifndef _MSC_VER
+#if 1
 
 /***
  * is_nothrow_swappable
