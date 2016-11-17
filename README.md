@@ -166,5 +166,9 @@ Compiler Support
 It is currently tested against `gcc 4.9, gcc 5.3, clang 3.5, clang 3.7`. (It should work with all
 later versions of `gcc` and `clang`.)
 
-MSVC support is a work in progress. (Even if the appveyor build seems to be passing, read the test log more carefully. Also, certain features were disabled
-with `#ifdef` and marked `TODO: MSVC` in order to get it to compile on appveyor and prevent further regressions.) Patches are welcome!
+MSVC support is a work in progress.
+
+(The appveyor build is currently passing, however, certain features were disabled
+with `#ifdef` and marked `TODO: MSVC` in order to get it to compile and prevent losing further ground wrt msvc. The unit tests themselves are actually passing.)
+
+There are only a few problems remaining, but they aren't resolved yet. Patches are welcome!
