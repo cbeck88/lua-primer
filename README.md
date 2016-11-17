@@ -180,4 +180,4 @@ The appveyor build is currently passing, however, two parts of the code were dis
   This is really not an essential thing for us,
   it's only there to enable a minor optimization. On MSVC there is a cryptic compilation error related to `std::swap` which I think is a standard library bug, so for now the trait is fixed to yield false on MSVC.
 
-I'm not aware of any other problems with the MSVC build. Patches are welcome!
+I'm not aware of any other problems with the MSVC build. The unit tests themselves are actually passing, once these two `#ifdef` are applied. Patches are welcome!
