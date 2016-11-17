@@ -73,20 +73,22 @@ namespace detail {
 
 // Implementation here is based on "impossibly fast delegates" article
 class interpreter_context_ptr {
-  void * object_;
-  void (*new_text_call_)(void *, const std::string &);
-  void (*error_text_call_)(void *, const std::string &);
-  void (*clear_input_call_)(void *);
+  using obj_ptr = void *;
+
+  obj_ptr object_;
+  void (*new_text_call_)(obj_ptr, const std::string &);
+  void (*error_text_call_)(obj_ptr, const std::string &);
+  void (*clear_input_call_)(obj_ptr);
 
   template <typename T>
   struct helper {
-    static void new_text(void * o, const std::string & str) {
+    static void new_text(obj_ptr o, const std::string & str) {
       static_cast<T*>(o)->new_text(str);
     }
-    static void error_text(void * o, const std::string & str) {
+    static void error_text(obj_ptr o, const std::string & str) {
       static_cast<T*>(o)->error_text(str);
     }
-    static void clear_input(void * o) {
+    static void clear_input(obj_ptr o) {
       static_cast<T*>(o)->clear_input();
     }
   };
@@ -105,7 +107,7 @@ public:
 
   template <typename T>
   explicit interpreter_context_ptr(T * t)
-    : object_(static_cast<void *>(t))
+    : object_(static_cast<obj_ptr>(t))
     , new_text_call_(&helper<T>::new_text)
     , error_text_call_(&helper<T>::error_text)
     , clear_input_call_(&helper<T>::clear_input) {
