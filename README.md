@@ -156,7 +156,9 @@ packaged releases. On Debian-based linux, you can install `libboost-tools-dev`, 
 the executable to `/usr/bin/bjam`.)
 
 To run the tests, go to the `/test` folder, build with `b2`, and
-go to `stage` to run test executables there.
+go to `/test/stage` to run primer's test executables there.
+
+`/test/stage_lua` will contain some executables relevant to lua's and eris' internal unit tests.
 
 Compiler Support
 ================

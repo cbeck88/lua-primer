@@ -2,6 +2,7 @@ project : default-build <optimization>off debug ;
 # project : default-build <optimization>speed release ;
 
 INSTALL_LOC = <location>stage/ ;
+INSTALL_LUA_LOC = <location>stage_lua/ ;
 
 ### Boost directory
 
@@ -83,7 +84,7 @@ lib lualib : [ glob $(LUA_PATH)/*.c : $(LUA_PATH)/lua.c $(LUA_PATH)/luac.c ] : $
 exe lua : $(LUA_PATH)/lua.c lualib : $(LUA_PRIVATE_FLAGS) ;
 
 
-install install-lua-bin : lua : <location>stage/ ;
+install install-lua-bin : lua : $(INSTALL_LUA_LOC) ;
 
 ### Build primer
 
@@ -109,10 +110,10 @@ if $(HAVE_ERIS) {
   exe persist : $(LUA_ROOT)/test/persist.c lualib : $(LUA_PRIVATE_FLAGS) ;
   exe unpersist : $(LUA_ROOT)/test/unpersist.c lualib : $(LUA_PRIVATE_FLAGS) ;
 
-  install install-eris-test-bin : persist unpersist : $(INSTALL_LOC) ;
+  install install-eris-test-bin : persist unpersist : $(INSTALL_LUA_LOC) ;
 
-  install install-persist-lua : $(LUA_ROOT)/test/persist.lua : $(INSTALL_LOC) ;
-  install install-unpersist-lua : $(LUA_ROOT)/test/unpersist.lua : $(INSTALL_LOC) ;
+  install install-persist-lua : $(LUA_ROOT)/test/persist.lua : $(INSTALL_LUA_LOC) ;
+  install install-unpersist-lua : $(LUA_ROOT)/test/unpersist.lua : $(INSTALL_LUA_LOC) ;
 }
 
 

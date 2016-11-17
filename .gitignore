@@ -1,6 +1,7 @@
 # bjam working folders
 /test/bin
 /test/stage
+/test/stage_lua
 
 # unsure ?
 .directory
