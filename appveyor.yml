@@ -60,6 +60,7 @@ install:
         
         cmd /r dir
         cmd /r copy /Y bin\libs\thread\build\msvc-14.0\release\debug-symbols-on\threading-multi\*.pdb stage\
+        cmd /r copy /Y cdb_script.txt stage\
       }
       
 # Note: static asserts are disabled because in MSVC 2015, standard containers are not
@@ -79,7 +80,7 @@ test_script:
           if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
             Write-Host ""
             Write-Host $file.fullName " ... "
-            cdb -o $file.fullName
+            cdb -o $file.fullName -c "$$><(cdb_script.txt)"
             Write-Host "Exit code: " $lastExitCode
           }
         }

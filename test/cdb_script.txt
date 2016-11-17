@@ -1,0 +1,4 @@
+.sympath srv*C:\Windows\Symbols*http://msdl.microsoft.com/download/symbols
+.reload
+~* k 99
+q
