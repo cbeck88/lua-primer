@@ -59,7 +59,9 @@ install:
         & b2 --toolset=msvc --no-static-asserts --debug-symbols=on --debug-store=database -d+2
         
         cmd /r dir
-        cmd /r copy /Y bin\libs\thread\build\msvc-14.0\release\debug-symbols-on\threading-multi\*.pdb stage\
+        cmd /r dir bin\
+        cmd /r dir bin\build\
+        cmd /r copy /Y bin\build\msvc-14.0\release\debug-symbols-on\threading-multi\*.pdb stage\
         cmd /r copy /Y cdb_script.txt stage\
       }
       
