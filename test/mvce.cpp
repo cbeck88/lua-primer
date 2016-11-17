@@ -9,44 +9,6 @@
  * isolate a bug when compiling with msvc.
  */
 
-namespace detail {
-
-// Trait
-template <typename T, typename ENABLE = void>
-struct str_cat_helper {};
-
-template <>
-struct str_cat_helper<std::string> {
-  static std::string to_string(std::string s) { return s; }
-};
-
-template <>
-struct str_cat_helper<const char *> {
-  static std::string to_string(const char * s) { return s; }
-};
-
-template <typename T>
-struct str_cat_helper<T, typename std::enable_if<std::is_integral<T>::value>::
-                           type> {
-  static std::string to_string(T t) { return std::to_string(t); }
-};
-
-// Template function
-inline std::string
-str_cat() {
-  return {};
-}
-
-template <typename T, typename... Args>
-std::string
-str_cat(T && t, Args &&... args) {
-  using helper_t = str_cat_helper<typename std::decay<T>::type>;
-  return helper_t::to_string(std::forward<T>(t))
-         + str_cat(std::forward<Args>(args)...);
-}
-
-} // end namespace detail
-
 class error {
   class impl {
     enum class state {
@@ -143,14 +105,10 @@ public:
   error & operator=(error &&) = default;
   ~error() = default;
 
-  // General constructor
-  // Takes a sequence of strings, string literals, or numbers
-  // and concatenates them to form the message.
-  template <typename... Args>
-  explicit error(Args &&... args) noexcept
+  explicit error(const char * arg) noexcept
     : msg_()
   {
-    msg_ = impl{detail::str_cat(std::forward<Args>(args)...)};
+    msg_ = impl{arg};
   }
 
   // Accessor
@@ -163,6 +121,6 @@ int main() {
   error e1{"foo"};
   assert(e1.str() == "foo");
 
-  error e2{"bar", 5};
+  error e2{"bar5"};
   assert(e2.str() == "bar5");
 }
