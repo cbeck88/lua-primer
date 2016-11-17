@@ -67,7 +67,6 @@ install:
         cmd /r dir bin\msvc-14.0\debug\
         cmd /r dir bin\msvc-14.0\debug\threading-multi
         cmd /r copy /Y bin\msvc-14.0\debug\debug-symbols-on\threading-multi\*.pdb stage\
-        cmd /r copy /Y cdb_script.txt stage\
       }
       
 # Note: static asserts are disabled because in MSVC 2015, standard containers are not
