@@ -75,7 +75,7 @@ class error {
     template <typename T>
     void initialize_string(T && t) {
       state_ = state::dynamic_text;
-      str_ = std::move(t);
+      str_ = std::forward<T>(t);
     }
 
   public:
