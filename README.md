@@ -151,14 +151,15 @@ Tests
 The tests and documentation are built using [Boost.Build](http://www.boost.org/build/).
 
 (You can install `boost.build` by downloading the Boost sources from sourceforge and running
-`bootstrap.sh` which will build it from source on your machine. Or, download one of their
+`bootstrap` which will build it from source on your machine. Or, download one of their
 packaged releases. On Debian-based linux, you can install `libboost-tools-dev`, which will install
 the executable to `/usr/bin/bjam`.)
 
 To run the tests, go to the `/test` folder, build with `b2`, and
 go to `/test/stage` to run primer's test executables there.
 
-`/test/stage_lua` will contain some executables relevant to lua's and eris' internal unit tests.
+You can also run lua's and eris' internal unit tests, relevant executables for that
+go to `/test/stage_lua`.
 
 Compiler Support
 ================
