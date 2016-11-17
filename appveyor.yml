@@ -56,7 +56,10 @@ install:
 
         Set-Location "C:\projects\primer\test"
         Write-Host "Building test executables"
-        & b2 --toolset=msvc --no-static-asserts -d+2
+        & b2 --toolset=msvc --no-static-asserts --debug-symbols=on --debug-store=database -d+2
+        
+        cmd /r dir
+        cmd /r copy /Y bin\libs\thread\build\msvc-14.0\release\debug-symbols-on\threading-multi\*.pdb stage\
       }
       
 # Note: static asserts are disabled because in MSVC 2015, standard containers are not
@@ -67,8 +70,6 @@ install:
 test_script:
   - ps: >-
       If($true) {
-        $env:Path += ";%programfiles%\Windows Kits\8.1\Debuggers\x86;"
-        $env:Path += ";%programfiles%\Windows Kits\8.1\Debuggers\x64;"
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x86\;"
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x64\;"
 
