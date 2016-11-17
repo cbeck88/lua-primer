@@ -156,7 +156,7 @@ public:
   // Takes a sequence of strings, string literals, or numbers
   // and concatenates them to form the message.
   template <typename... Args>
-  explicit error::error(Args &&... args) noexcept
+  explicit error(Args &&... args) noexcept
     : msg_()
   {
     PRIMER_TRY_BAD_ALLOC {
