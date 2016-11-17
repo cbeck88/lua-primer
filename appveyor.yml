@@ -62,7 +62,8 @@ install:
         cmd /r dir
         cmd /r dir bin\
         cmd /r dir bin\msvc-14.0\
-        cmd /r copy /Y bin\msvc-14.0\release\debug-symbols-on\threading-multi\*.pdb stage\
+        cmd /r dir bin\msvc-14.0\debug\
+        cmd /r copy /Y bin\msvc-14.0\debug\debug-symbols-on\threading-multi\*.pdb stage\
         cmd /r copy /Y cdb_script.txt stage\
       }
       
@@ -70,13 +71,15 @@ install:
 # noexcept correct unfortunately.
 
 # TODO: What is the right cdb path?
+# $SymPath = "srv;C:\Windows\Symbols;C:\projects\primer\test\stage;http://msdl.microsoft.com/download/symbols"
+
 
 test_script:
   - ps: >-
       If($true) {
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x86\;"
         $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x64\;"
-        $SymPath = "srv;C:\Windows\Symbols;C:\projects\primer\test\stage;http://msdl.microsoft.com/download/symbols"
+        $SymPath = "C:\projects\primer\test\stage"
 
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
@@ -84,7 +87,7 @@ test_script:
           if ($file.name -ne "lua.exe" -and $file.name -ne "persist.exe" -and $file.name -ne "unpersist.exe" -and $file.name -ne "persist.lua" -and $file.name -ne "unpersist.lua") {
             Write-Host ""
             Write-Host $file.fullName " ... "
-            cdb -y $SymPath -c "~* k 99 ; q" -o $file.fullName
+            cdb -y $SymPath -c "~*kv;q" -o $file.fullName
             Write-Host "Exit code: " $lastExitCode
           }
         }
