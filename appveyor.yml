@@ -62,10 +62,13 @@ install:
 # Note: static asserts are disabled because in MSVC 2015, standard containers are not
 # noexcept correct unfortunately.
 
+# TODO: What is the right cdb path?
+
 test_script:
   - ps: >-
       If($true) {
         $env:Path += ";%programfiles%\Windows Kits\8.1\Debuggers\x86;"
+        $env:Path += ";%programfiles%\Windows Kits\8.1\Debuggers\x64;"
 
         Write-Host "Running test executables.."
         $files = Get-ChildItem C:\projects\primer\test\stage\*.exe
