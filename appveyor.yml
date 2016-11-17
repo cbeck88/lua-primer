@@ -86,15 +86,15 @@ test_script:
         Set-Location "C:\projects\primer\test\lua-5.3.3-tests"
         ../stage_lua/lua.exe -e "_port=true" all.lua
 
-        Write-Host ""
-        Write-Host "Running eris unit tests"
-
         Set-Location "C:\projects\primer\test\stage_lua"
 
-        cmd /r dir
+        If(Test-Path ./persist.exe) {
+          Write-Host ""
+          Write-Host "Running eris unit tests"
 
-        ./persist.exe persist.lua test.eris
-        ./unpersist.exe unpersist.lua test.eris
+          ./persist.exe persist.lua test.eris
+          ./unpersist.exe unpersist.lua test.eris
+        }
 
         Write-Host ""
         Write-Host "Running primer test executables.."
