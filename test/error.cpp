@@ -1,19 +1,19 @@
-#include <primer/expected.hpp>
+#include <primer/error.hpp>
 #include <cassert>
 #include <iostream>
 #include <string>
 
 /***
- * This is a mininmal test of primer::error, primer::expected, meant to help
+ * This is a mininmal test of primer::error, meant to help
  * isolate a bug on msvc.
  */
 
-using primer::expected;
+using primer::error;
 
-expected<std::string>
+error
 foo(int e) {
   if (e >= 7) {
-    return std::string{"woof!"};
+    return primer::error{"woof!"};
   } else {
     return primer::error{"bad doggie!"};
   }
@@ -21,11 +21,10 @@ foo(int e) {
 
 int main() {
   auto result = foo(6);
-  assert(!result);
+  assert(result.str() == "bad doggie!");
 
   auto result2 = foo(7);
-  assert(result2);
-  assert(*result2 == "woof!");
+  assert(result2.str() == "woof!");
 
   std::cout << "OK!" << std::endl;
 }
