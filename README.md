@@ -163,12 +163,21 @@ go to `/test/stage` to run primer's test executables there.
 Compiler Support
 ================
 
-It is currently tested against `gcc 4.9, gcc 5.3, clang 3.5, clang 3.7`. (It should work with all
-later versions of `gcc` and `clang`.)
+It is currently tested against `gcc 4.9, gcc 5.3, clang 3.5, clang 3.7`.
+
+(It should work with all later versions of `gcc` and `clang`, for instance I also
+use this code at time of writing in another project with clang 3.8 and clang 4.0, but I don't specifically
+run the primer unit tests there.)
 
 MSVC support is a work in progress.
 
-(The appveyor build is currently passing, however, certain features were disabled
-with `#ifdef` and marked `TODO: MSVC` in order to get it to compile and prevent losing further ground wrt msvc. The unit tests themselves are actually passing.)
+The appveyor build is currently passing, however, two parts of the code were disabled with `#ifdef` and marked `TODO: MSVC` in order to get it to compile and prevent losing ground wrt msvc.
 
-There are only a few problems remaining, but they aren't resolved yet. Patches are welcome!
+* There is a problem with an instance of lambda capture and parameter packs (see `bound_function.hpp`)  
+  I wasn't able to devise a reasonable workaround here unfortunately. The `#ifdef` results in us not using a `pcall` when technically we should. It means that a memory allocation error could be fatal,
+  instead of recoverable. This is bad, but it's rare that it would actually cause a problem.
+* There is a problem with a trait which detects if a type is nothrow swappable.  
+  This is really not an essential thing for us,
+  it's only there to enable a minor optimization. On MSVC there is a cryptic compilation error related to `std::swap` which I think is a standard library bug, so for now the trait is fixed to yield false on MSVC.
+
+I'm not aware of any other problems with the MSVC build. Patches are welcome!

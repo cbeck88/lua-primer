@@ -52,8 +52,7 @@ class bound_function {
     if (lua_State * L = ref_.lock()) {
       if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
 // TODO: MSVC seems to struggle with this lambda capture, not sure why.
-// For the moment we simply disable the pcall for msvc to see if the rest of it
-// compiles and tests correctly.
+// For the moment we simply disable the pcall for msvc only
 #ifndef _MSC_VER
         auto ok = mem_pcall(L, [this, L, &result, &args...]() {
 #endif

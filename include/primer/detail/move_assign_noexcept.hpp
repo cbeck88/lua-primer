@@ -34,9 +34,9 @@ move_assign_noexcept(T & dest, T && src) noexcept
 
 using std::swap;
 
-// TODO: Fix on msvc
-// #ifndef _MSC_VER
-#if 1
+// TODO: Fix on MSVC
+// error C2660: 'std::swap': function does not take 1 arguments
+#ifndef _MSC_VER
 
 /***
  * is_nothrow_swappable
