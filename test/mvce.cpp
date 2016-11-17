@@ -1,5 +1,4 @@
 #include <cassert>
-#include <new>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -11,38 +10,10 @@
 
 namespace detail {
 
-// Trait
-template <typename T, typename ENABLE = void>
-struct str_cat_helper {};
-
-template <>
-struct str_cat_helper<std::string> {
-  static std::string to_string(std::string s) { return s; }
-};
-
-template <>
-struct str_cat_helper<const char *> {
-  static std::string to_string(const char * s) { return s; }
-};
-
-template <typename T>
-struct str_cat_helper<T, typename std::enable_if<std::is_integral<T>::value>::
-                           type> {
-  static std::string to_string(T t) { return std::to_string(t); }
-};
-
-// Template function
-inline std::string
-str_cat() {
-  return {};
-}
-
 template <typename T, typename... Args>
 std::string
-str_cat(T && t, Args &&... args) {
-  using helper_t = str_cat_helper<typename std::decay<T>::type>;
-  return helper_t::to_string(std::forward<T>(t))
-         + str_cat(std::forward<Args>(args)...);
+str_cat(T && t, Args && ...) {
+  return t;
 }
 
 } // end namespace detail
@@ -155,7 +126,6 @@ public:
 
   // Accessor
   const char * what() const noexcept { return msg_.c_str(); }
-  const char * c_str() const noexcept { return this->what(); }
   std::string str() const { return this->what(); }
 };
 
@@ -164,5 +134,5 @@ int main() {
   assert(e1.str() == "foo");
 
   error e2{"bar", 5};
-  assert(e2.str() == "bar5");
+  assert(e2.str() == "bar");
 }
