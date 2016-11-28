@@ -17,6 +17,7 @@
 
 #include <primer/api/extraspace_dispatch.hpp>
 
+#include <primer/detail/preprocessor.hpp>
 #include <primer/detail/rank.hpp>
 #include <primer/detail/span.hpp>
 #include <primer/detail/typelist.hpp>
@@ -106,7 +107,7 @@ public:
  * The function pointer is wrapped using PRIMER_ADAPT_EXTRASPACE
  */
 
-#define USE_LUA_CALLBACK(name, help, fcn)                                      \
+#define USE_LUA_CALLBACK_3(name, help, fcn)                                    \
   static constexpr const char * lua_callback_name_##name() { return #name; }   \
   static constexpr const char * lua_callback_help_##name() { return help; }    \
   static constexpr lua_CFunction lua_get_fcn_ptr_##name() {                    \
@@ -120,6 +121,11 @@ public:
       GetCallbacks(primer::detail::Rank<GET_CALLBACKS::size + 1>);             \
   static_assert(true, "")
 
+#define USE_LUA_CALLBACK_2(name, fcn) USE_LUA_CALLBACK_3(name, "", fcn)
+
+#define USE_LUA_CALLBACK(name, ...)                                            \
+  PRIMER_PP_OVERLOAD(USE_LUA_CALLBACK_, name, __VA_ARGS__)
+
 /***
  * Declare & define inline a new lua callback. Uses trailing return.
  * You are expected to use the automatic argument parsing by putting the
@@ -129,7 +135,13 @@ public:
  */
 
 //[ primer_api_callback_defn
-#define NEW_LUA_CALLBACK(name, help)                                           \
-  USE_LUA_CALLBACK(name, help, &owner_type::intf_##name);                      \
+#define NEW_LUA_CALLBACK_1(name)                                               \
+  USE_LUA_CALLBACK_2(name, &owner_type::intf_##name);                          \
   auto intf_##name
+
+#define NEW_LUA_CALLBACK_2(name, help)                                         \
+  USE_LUA_CALLBACK_3(name, help, &owner_type::intf_##name);                    \
+  auto intf_##name
+
+#define NEW_LUA_CALLBACK(...) PRIMER_PP_OVERLOAD(NEW_LUA_CALLBACK_, __VA_ARGS__)
 //]

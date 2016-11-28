@@ -175,6 +175,9 @@ struct test_api_two : primer::api::base<test_api_two> {
   USE_LUA_CALLBACK(help, "get help for a built-in function",
                    &primer::api::intf_help_impl);
 
+  // A function with no help
+  USE_LUA_CALLBACK(foo, &primer::api::intf_help_impl);
+
   test_api_two()
     : L_()
     , cb_man_(this) {

@@ -158,10 +158,10 @@ public:
   // (Implementation note: The t parameter is only here to help out msvc 2015)
   template <typename T, typename... Args>
   explicit error(T && t, Args &&... args) noexcept
-    : msg_()
-  {
+    : msg_() {
     PRIMER_TRY_BAD_ALLOC {
-      msg_ = impl{primer::detail::str_cat(std::forward<T>(t), std::forward<Args>(args)...)};
+      msg_ = impl{primer::detail::str_cat(std::forward<T>(t),
+                                          std::forward<Args>(args)...)};
     }
     PRIMER_CATCH_BAD_ALLOC { msg_ = impl{impl::bad_alloc_tag{}}; }
   }

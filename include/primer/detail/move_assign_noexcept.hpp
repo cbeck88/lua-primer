@@ -43,27 +43,23 @@ using std::swap;
  *   This implementation is stolen from WG proposal 0185
  *   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0185r1.html#Appendix
  */
-struct do_is_nothrow_swappable
-{
-  template<class T>
-  static auto test(int) -> std::integral_constant<bool,
-    noexcept(swap(std::declval<T&>(), std::declval<T&>()))
-  >;
+struct do_is_nothrow_swappable {
+  template <class T>
+  static auto test(int)
+    -> std::integral_constant<bool, noexcept(swap(std::declval<T &>(),
+                                                  std::declval<T &>()))>;
 
-  template<class>
+  template <class>
   static std::false_type test(...);
 };
 
 template <typename T>
-struct is_nothrow_swappable : decltype(
-  do_is_nothrow_swappable::test<T>(0)
-)
-{};
+struct is_nothrow_swappable : decltype(do_is_nothrow_swappable::test<T>(0)) {};
 
 #else
 
 template <typename T>
-struct is_nothrow_swappable : std::false_type{};
+struct is_nothrow_swappable : std::false_type {};
 
 #endif
 

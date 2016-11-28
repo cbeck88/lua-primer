@@ -1,6 +1,6 @@
-#include <primer/error.hpp>
 #include <cassert>
 #include <iostream>
+#include <primer/error.hpp>
 #include <string>
 
 /***
@@ -10,7 +10,8 @@
 
 using primer::error;
 
-int main() {
+int
+main() {
   primer::error e1{"aa"};
   assert(e1.str() == "aa");
 

@@ -1,6 +1,6 @@
-#include <primer/expected.hpp>
 #include <cassert>
 #include <iostream>
+#include <primer/expected.hpp>
 #include <string>
 #include <utility>
 
@@ -11,7 +11,8 @@
 
 using primer::expected;
 
-int main() {
+int
+main() {
   expected<int> a;
   expected<float> b;
   expected<std::string> c;

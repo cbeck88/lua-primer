@@ -1,6 +1,6 @@
-#include <primer/detail/str_cat.hpp>
 #include <cassert>
 #include <iostream>
+#include <primer/detail/str_cat.hpp>
 #include <string>
 
 /***
@@ -8,7 +8,8 @@
  * isolate a bug on msvc.
  */
 
-int main() {
+int
+main() {
   std::string s1{primer::detail::str_cat("a")};
   assert(s1 == "a");
 

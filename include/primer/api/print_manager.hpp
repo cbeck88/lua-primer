@@ -83,18 +83,15 @@ class interpreter_context_ptr {
   template <typename T>
   struct helper {
     static void new_text(obj_ptr o, const std::string & str) {
-      static_cast<T*>(o)->new_text(str);
+      static_cast<T *>(o)->new_text(str);
     }
     static void error_text(obj_ptr o, const std::string & str) {
-      static_cast<T*>(o)->error_text(str);
+      static_cast<T *>(o)->error_text(str);
     }
-    static void clear_input(obj_ptr o) {
-      static_cast<T*>(o)->clear_input();
-    }
+    static void clear_input(obj_ptr o) { static_cast<T *>(o)->clear_input(); }
   };
 
 public:
-
   void new_text(const std::string & str) const {
     this->new_text_call_(object_, str);
   }
@@ -110,8 +107,7 @@ public:
     : object_(static_cast<obj_ptr>(t))
     , new_text_call_(&helper<T>::new_text)
     , error_text_call_(&helper<T>::error_text)
-    , clear_input_call_(&helper<T>::clear_input) {
-  }
+    , clear_input_call_(&helper<T>::clear_input) {}
 };
 
 // Default print and pretty print implementations
