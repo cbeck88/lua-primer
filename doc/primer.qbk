@@ -67,6 +67,8 @@
 [import ../test/noexcept.cpp]
 [import ../test/std.cpp]
 [import ../test/tutorial.cpp]
+[import ../test/tutorial2.cpp]
+[import ../test/tutorial3.cpp]
 
 [section:quickstart Quickstart]
 [include Intro.qbk]

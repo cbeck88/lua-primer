@@ -157,9 +157,9 @@ struct read<T, enable_if_t<std::is_same<T, float>::value ||  //
 };
 
 // Userdata
-template <typename T>
-struct read<T &, enable_if_t<primer::detail::is_userdata<T>::value>> {
-  static expected<T &> from_stack(lua_State * L, int idx) {
+template <typename T, typename U>
+struct read_udata_impl {
+  static expected<U> from_stack(lua_State * L, int idx) {
     if (T * t = primer::test_udata<T>(L, idx)) {
       return *t;
     } else {
@@ -167,9 +167,17 @@ struct read<T &, enable_if_t<primer::detail::is_userdata<T>::value>> {
                            "', found ", primer::describe_lua_value(L, idx)};
     }
   }
+
   static constexpr int stack_space_needed{1};
-  // have to push metatable to test
+  // have to push metatable to test, (happens implicitly in primer::test_udata)
 };
+
+template <typename T>
+struct read<T &, enable_if_t<primer::detail::is_userdata<T>::value>> : read_udata_impl<T, T&> {};
+
+template <typename T>
+struct read<const T &, enable_if_t<primer::detail::is_userdata<T>::value>> : read_udata_impl<T, const T&> {};
+
 
 // Misc support types
 template <>

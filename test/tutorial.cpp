@@ -316,6 +316,14 @@ void userdata_test_two() {
 //` In this example, the userdata type `token` is passed by reference to the function `inspect_token`.
 //` This implicitly carries out the `luaL_testudata`, and signals an argument error if the it isn't passed
 //` a `token`. (i.e. `inspect_token(5)`)
+//`
+//` Generally userdata must be passed by reference and not by value -- the values exist in lua's memory, not
+//` on the stack. It's usually incorrect and undesirable to take a copy.
+//`
+//` By constrast, when passing `std::string` or `std::vector`, usually it makes the most sense to recieve it
+//` by value. It doesn't exist in that format in lua's memory, so primer will make a temporary when it calls 
+//` your function. You might as well take ownership of that temporary, rather than getting it by `const &`
+//` or something.
 
 //]
 
@@ -425,7 +433,6 @@ void userdata_test_three() {
 //= x < y
 //= x == y
 //`  
-//` When using primer, some steps become unnecessary, particularly, `init_token_metatable` happens implicitly.
 
 //]
 
