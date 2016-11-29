@@ -7,6 +7,8 @@ cache:
   directories:
     - ${TRAVIS_BUILD_DIR}/deps
 
+# TODO: Find a good way to install recent version of clang
+
 matrix:
   include:
     - compiler: gcc
@@ -18,14 +20,6 @@ matrix:
             - g++-4.9
             - gdb
       env: COMPILER=g++-4.9
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang++-3.6
-            - gdb
     - compiler: gcc
       addons:
         apt:
