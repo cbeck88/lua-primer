@@ -66,11 +66,17 @@
 [import ../test/core.cpp]
 [import ../test/noexcept.cpp]
 [import ../test/std.cpp]
+[import ../test/tutorial.cpp]
 
 [section:quickstart Quickstart]
 [include Intro.qbk]
 [include EmbeddedLua.qbk]
 [include ExampleUsage.qbk]
+[endsect]
+
+[section:tutorial Tutorial]
+[include TutorialPushRead.qbk]
+[include TutorialAdapt.qbk]
 [endsect]
 
 [section:overview Overview]
