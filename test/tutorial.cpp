@@ -328,6 +328,12 @@ namespace test_three {
 //` [h3 Metatables]
 //` Extending our contrived example, let's suppose we want lua scripts to be able to access the token id, but not change it.
 //`  
+//` We'd like to give `token` a metatable that looks like
+//= {
+//=   __index = impl_token_index
+//= }
+//` where `impl_token_index` is some appropriate C function.
+//`  
 //` In pure lua it looks something like this:
 
 struct token {
@@ -408,6 +414,8 @@ void userdata_test_three() {
 //<-
   lua_close(L);
 }
+} // end namespace test_three
+
 //->
 
 //` This example prints
@@ -417,18 +425,7 @@ void userdata_test_three() {
 //= x < y
 //= x == y
 //`  
-//` When using the pure lua C api.
-
-//]
-
-} // end namespace test_three
-
-//[ primer_tutorial_userdata_example_3
-
-//` However scripts cannot directly inspect the memory or otherwise access it, unless functions
-//` are provided in order to do so. Your C++ functions are able to access it however they like.
-
-//` You can create an object-oriented interface by giving the userdata a *metatable*.  
+//` When using primer, some steps become unnecessary, particularly, `init_token_metatable` happens implicitly.
 
 //]
 
