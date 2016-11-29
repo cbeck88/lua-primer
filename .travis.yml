@@ -1,6 +1,6 @@
 sudo: required
 # sudo is required by the clang_3_7 install script
-dist: trusty
+dist: precise
 language: cpp
 
 cache:
@@ -21,7 +21,10 @@ matrix:
     - compiler: clang
       addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
           packages:
+            - clang++-3.6
             - gdb
     - compiler: gcc
       addons:
