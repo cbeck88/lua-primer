@@ -41,7 +41,7 @@ namespace detail {
 
 template <class... Ts>
 struct TypeList {
-  static constexpr unsigned int size = sizeof...(Ts);
+  static VISIT_STRUCT_CONSTEXPR const unsigned int size = sizeof...(Ts);
 };
 
 // Append metafunction
@@ -68,7 +68,7 @@ struct Rank : Rank<N - 1> {};
 template <>
 struct Rank<0> {};
 
-static constexpr int max_visitable_members_intrusive = 100;
+static VISIT_STRUCT_CONSTEXPR const int max_visitable_members_intrusive = 100;
 
 /***
  * To create a "compile-time" TypeList whose members are accumulated one-by-one,
@@ -137,7 +137,7 @@ struct intrusive_tag{};
 
 template <typename S, typename T, T S::*member_ptr>
 struct member_ptr_helper {
-  static constexpr T S::* get_ptr() { return member_ptr; }
+  static VISIT_STRUCT_CONSTEXPR T S::* get_ptr() { return member_ptr; }
 };
 
 // M should be a member_ptr_helper
@@ -151,6 +151,13 @@ struct member_helper {
   template <typename V>
   VISIT_STRUCT_CXX14_CONSTEXPR static void apply_visitor(V && visitor) {
     std::forward<V>(visitor)(M::member_name, M::get_ptr());
+  }
+
+  template <typename V, typename S1, typename S2>
+  VISIT_STRUCT_CXX14_CONSTEXPR static void apply_visitor(V && visitor, S1 && s1, S2 && s2) {
+    std::forward<V>(visitor)(M::member_name,
+                             std::forward<S1>(s1).*M::get_ptr(),
+                             std::forward<S2>(s2).*M::get_ptr());
   }
 };
 
@@ -177,6 +184,15 @@ struct structure_helper<TypeList<Ms...>> {
     int dummy[] = {(member_helper<Ms>::apply_visitor(std::forward<V>(visitor)), 0)..., 0};
     static_cast<void>(dummy);
     static_cast<void>(visitor);
+  }
+
+  template <typename V, typename S1, typename S2>
+  VISIT_STRUCT_CXX14_CONSTEXPR static void apply_visitor(V && visitor, S1 && s1, S2 && s2) {
+    int dummy[] = {(member_helper<Ms>::apply_visitor(std::forward<V>(visitor), std::forward<S1>(s1), std::forward<S2>(s2)), 0)..., 0};
+    static_cast<void>(dummy);
+    static_cast<void>(visitor);
+    static_cast<void>(s1);
+    static_cast<void>(s2);
   }
 };
 
@@ -206,13 +222,19 @@ struct visitable <T,
     detail::structure_helper<typename T::Visit_Struct_Registered_Members_List__>::apply_visitor(std::forward<V>(v), std::forward<S>(s));
   }
 
+  // Apply with two instances
+    template <typename V, typename S1, typename S2>
+  VISIT_STRUCT_CXX14_CONSTEXPR static void apply(V && v, S1 && s1, S2 && s2) {
+    detail::structure_helper<typename T::Visit_Struct_Registered_Members_List__>::apply_visitor(std::forward<V>(v), std::forward<S1>(s1), std::forward<S2>(s2));
+  }
+
   // Apply with no instance
   template <typename V>
   VISIT_STRUCT_CXX14_CONSTEXPR static void apply(V && v) {
     detail::structure_helper<typename T::Visit_Struct_Registered_Members_List__>::apply_visitor(std::forward<V>(v));
   }
 
-  static constexpr bool value = true;
+  static VISIT_STRUCT_CONSTEXPR const bool value = true;
 };
 
 } // end namespace trait
@@ -237,7 +259,7 @@ struct VISIT_STRUCT_MAKE_MEMBER_NAME(NAME) :                                    
                                           TYPE,                                                                  \
                                           &VISIT_STRUCT_CURRENT_TYPE::NAME>                                      \
 {                                                                                                                \
-  static constexpr const char * const member_name = #NAME;                                                       \
+  static VISIT_STRUCT_CONSTEXPR const char * const member_name = #NAME;                                          \
 };                                                                                                               \
 static inline ::visit_struct::detail::Append_t<VISIT_STRUCT_GET_REGISTERED_MEMBERS,                              \
                                                VISIT_STRUCT_MAKE_MEMBER_NAME(NAME)>                              \
