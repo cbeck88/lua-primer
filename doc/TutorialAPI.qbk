@@ -28,11 +28,11 @@ representation such that they can be unambiguously reconstructed on any machine.
 
 But, function pointers like `new_token` and `inspect_token` are inherently hard
 to serialize. Numerically these are equal to addresses in your binary, and they
-vary arbitrarily from build to build, compiler to compiler.
-
-Additionally, it's inherently risky to take data serialized from disk and reinterpret
+vary arbitrarily from build to build, compiler to compiler. Additionally,
+it's inherently risky to take data serialized from disk and reinterpret
 it as a function pointer, and then call such a function pointer -- it can easily
-create security holes if an attacker crafts malicious data.
+create security holes if an attacker crafts malicious data. So trying to store
+a function pointer literally in some file is usually a bad idea.
 
 Fortunately, eris doesn't attempt to do that. Instead, eris provides a mechanism
 called the "permanent objects table". To serialize function pointers like this,
