@@ -9,8 +9,6 @@ using uint = unsigned int;
 
 //[ primer_tutorial_userdata_example_4
 
-//` [h3 Userdata Member Functions]
-
 //` Besides registering free functions, sometimes we'd like to register methods
 //` (member functions) of userdata types -- it may simply be more elegant that way.
 //` You can do that using a special version of `PRIMER_ADAPT`.

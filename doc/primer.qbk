@@ -80,6 +80,7 @@
 [include TutorialPushRead.qbk]
 [include TutorialAdapt.qbk]
 [include TutorialUserdata.qbk]
+[include TutorialUserdataMethods.qbk]
 [endsect]
 
 [section:overview Overview]
