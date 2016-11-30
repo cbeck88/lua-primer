@@ -73,15 +73,10 @@
 [section:quickstart Quickstart]
 [include Intro.qbk]
 [include EmbeddedLua.qbk]
+[include Tutorial.qbk]
 [include ExampleUsage.qbk]
 [endsect]
 
-[section:tutorial Tutorial]
-[include TutorialPushRead.qbk]
-[include TutorialAdapt.qbk]
-[include TutorialUserdata.qbk]
-[include TutorialUserdataMethods.qbk]
-[endsect]
 
 [section:overview Overview]
 [include Motivation.qbk]

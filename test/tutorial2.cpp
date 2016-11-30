@@ -6,7 +6,6 @@
 
 using uint = unsigned int;
 
-
 //[ primer_tutorial_userdata_example_3
 
 //` When using primer, some steps above become unnecessary. Particularly, `init_token_metatable` happens implicitly.

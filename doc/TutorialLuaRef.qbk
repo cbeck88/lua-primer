@@ -1,0 +1,130 @@
+[section Lua References]
+
+As we saw, userdata is a way that you can allocate C++ objects in memory owned
+by lua, and attach a lua interface to it.
+
+Sometimes, you want to have objects which are exposed like this, but aren't
+owned exclusively by lua -- they exist in some other part of your program and
+play an active role there.
+
+A common idiom for this is to make lua own a smart pointer to the object, not
+the object itself:
+
+``
+  struct foo_ref {
+    std::shared_ptr<foo> foo_ptr;
+  };
+  
+  namespace primer {
+  namespace traits {
+
+  template <>
+  struct userdata<foo_ref> { ... };
+
+  } // end namespace traits
+  } // end namespace primer
+``
+
+In this case, the object only gets freed when your program is finished with it,
+and lua garbage collects the userdata. (In `primer`, if you don't specify a `__gc`
+metamethod, a default one is installed which calls the destructor, which is
+almost always what you want. In pure lua you generally need to do that manually.
+See reference for more details.)
+
+This allows lua to share ownership with C++ of C++ objects. However, sometimes
+we want to do the mirror of this -- C++ shares ownership with lua of lua objects.
+
+lua provides a facility to do basically exactly that: `luaL_ref` and `luaL_unref`.
+
+If you push an object on top of the stack and use `luaL_ref`, it basically increments
+lua's internal reference count for that object, and gives you a token that you can
+use to find it again. `luaL_unref` can be used to decrement the count when you
+don't need to hold onto the object anymore.
+
+In C++, we can basically hold this token in an RAII object which calls `luaL_unref`
+from the destructor.
+
+In some cases this is more elegant and convenient than using `std::shared_ptr`
+userdata. When `shared_ptr` is used, there are actually two reference counts
+taking place -- lua's internal reference counts for its garbage collection,
+and the one within `std::shared_ptr`. When we use `primer::lua_ref`, we effectively
+get a "smart pointer" to a lua value which hooks into lua's own garbage collection,
+so only one reference count is occuring rather than two.
+
+
+Particularly, this is one of the only ways you can "hang on" to some objects within
+a lua state that can only really be represented within lua and not easily in C++: lua functions, and lua coroutines.
+
+* `primer::lua_ref` is an RAII object representing a lua reference.
+   * It can point to *any* lua value.
+   * After it is bound, you can push the object onto a given stack, or, recover the pointer `lua_State *` which it was bound to.
+   * It doesn't become invalid or a dangling pointer, even if the lua state is closed.
+* `primer::bound_function` is a `lua_ref` which is known to point to a function.
+  * It can be "called" similarly to any C++ function object.
+  * When it is called (from C++), arguments are pushed onto the stack using `primer::push`. Depending on how you call it, various numbers of return values are expected, and taken from the stack using `primer::read`.
+  * Calling the bound function is "safe". It won't raise a lua error, throw an exception, long jump, whatever. It may return an error message produced by lua in case of an error.
+* `primer::coroutine` is a `lua_ref` which is known to point to a coroutine.
+  * It can be constructed from a `bound_function`.
+  * It can be called or resumed using a generic syntax, similar to the function call syntax.
+
+Here's an example binding a `lua_ref`:
+
+``
+  // Make a table
+  luaL_newtable(L);
+  lua_pushinteger(L, 5);
+  lua_setfield(L, -2, "asdf");
+
+  primer::lua_ref ref{L}; // pops table from the stack
+
+  assert(ref);
+
+  ref.push(); // pushes the table back onto the stack
+              // ref is still bound
+  
+  lua_getfield(L, -2, "asdf");
+  assert(lua_isinteger(L, -1));
+``
+
+For extended syntax examples, see the reference pages.
+
+A particularly useful example has to do with using `primer::bound_function` to bind user script functions
+to a C++ gui.
+
+In many applications, people want to use lua scripts to create mods or plugins. They'd like to be able to create
+functions that act as gui callbacks, in lua:
+
+[python]
+
+```
+  local function my_func()
+    print("Hello world!")
+  end
+
+  bind_click(my_func)
+```
+
+Using primer, this can be used with a typical C++ gui by taking advantage of `bound_function`:
+
+[c++]
+
+```
+  struct lua_callback_runner : my_gui::event_handler {
+    primer::bound_function func_;
+
+    void handle_event() {
+      func_.call();
+    }
+  };
+
+  primer::result bind_click(lua_State * L, primer::bound_function func) {
+    my_gui::bind_click(lua_callback_runner{std::move(func)});
+    return 0;
+  }
+```
+
+In this case, the bound function becomes the guts of a function object meeting your gui's requirements.
+It's okay for the `bound_function` to live past the lifetime of your `lua_State`, it doesn't particularly matter
+when the gui cleans up its event handlers.
+
+[endsect]

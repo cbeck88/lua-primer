@@ -1,0 +1,49 @@
+[section Persistence]
+
+Everything we saw in the earlier sections is fairly standard among lua binding
+libraries -- you'll find similar features in `luabind`,
+`LuaBridge`, `sol`, and others.
+
+Now, suppose we want to achieve heavy-duty persistence of our lua states as well.
+That is, we want to install an API similarly as we did before, then run arbitrary
+user scripts, stop, write out the entire `lua_State *` to disk and destroy it,
+and rebuild it exactly from disk at a later time.
+
+It turns out that **lua-eris** almost totally solves this problem, however, there's
+a certain problem that it cannot solve out of the box.
+
+Recall that in our earlier tutorial code, we installed our API's straightforwardly
+using `lua_pushcfunction`:
+
+```
+  lua_pushcfunction(L, PRIMER_ADAPT(&new_token));
+  lua_setglobal(L, "new_token");
+  lua_pushcfunction(L, PRIMER_ADAPT(&inspect_token));
+  lua_setglobal(L, "inspect_token");
+```
+
+`eris` is able to persist almost any native lua object. For example, lua tables with
+arbitrarily pathological structure -- these can be decomposed into a flat
+representation such that they can be unambiguously reconstructed on any machine.
+
+But, function pointers like `new_token` and `inspect_token` are inherently hard
+to serialize. Numerically these are equal to addresses in your binary, and they
+vary arbitrarily from build to build, compiler to compiler.
+
+Additionally, it's inherently risky to take data serialized from disk and reinterpret
+it as a function pointer, and then call such a function pointer -- it can easily
+create security holes if an attacker crafts malicious data.
+
+Fortunately, eris doesn't attempt to do that. Instead, eris provides a mechanism
+called the "permanent objects table". To serialize function pointers like this,
+we basically give them a serialization name, which is a string which gets written
+to disk in place of the pointer. And when deserializing, we must again provide
+the names and the corresponding function pointers. Since the names will be the
+same for all compilers and platforms, this scheme ends up being portable, and
+function pointers can all be translated appropriately.
+
+Here's an example that shows how our "token" api from before can be written such that it
+will be serializable.
+
+
+[endsect]
