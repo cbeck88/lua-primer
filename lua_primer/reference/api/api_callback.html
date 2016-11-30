@@ -65,8 +65,6 @@
    <span class="special">:</span> <span class="identifier">L_</span><span class="special">(</span><span class="identifier">luaL_newstate</span><span class="special">())</span>
    <span class="special">,</span> <span class="identifier">callbacks_</span><span class="special">(</span><span class="keyword">this</span><span class="special">)</span>
   <span class="special">{}</span>
-
-
 <span class="special">};</span>
 </pre>
 <p>
@@ -125,9 +123,15 @@
           The macro which we saw in examples was simply <code class="computeroutput"><span class="identifier">API_CALLBACK</span></code>.
           That macro is defined as follows:
         </p>
-<pre class="programlisting"><span class="preprocessor">#define</span> <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">help</span><span class="special">)</span>                                           <span class="special">\</span>
-  <span class="identifier">USE_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">help</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">owner_type</span><span class="special">::</span><span class="identifier">intf_</span><span class="special">##</span><span class="identifier">name</span><span class="special">);</span>                      <span class="special">\</span>
+<pre class="programlisting"><span class="preprocessor">#define</span> <span class="identifier">NEW_LUA_CALLBACK_1</span><span class="special">(</span><span class="identifier">name</span><span class="special">)</span>                                               <span class="special">\</span>
+  <span class="identifier">USE_LUA_CALLBACK_2</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">owner_type</span><span class="special">::</span><span class="identifier">intf_</span><span class="special">##</span><span class="identifier">name</span><span class="special">);</span>                          <span class="special">\</span>
   <span class="keyword">auto</span> <span class="identifier">intf_</span><span class="special">##</span><span class="identifier">name</span>
+
+<span class="preprocessor">#define</span> <span class="identifier">NEW_LUA_CALLBACK_2</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">help</span><span class="special">)</span>                                         <span class="special">\</span>
+  <span class="identifier">USE_LUA_CALLBACK_3</span><span class="special">(</span><span class="identifier">name</span><span class="special">,</span> <span class="identifier">help</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">owner_type</span><span class="special">::</span><span class="identifier">intf_</span><span class="special">##</span><span class="identifier">name</span><span class="special">);</span>                    <span class="special">\</span>
+  <span class="keyword">auto</span> <span class="identifier">intf_</span><span class="special">##</span><span class="identifier">name</span>
+
+<span class="preprocessor">#define</span> <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(...)</span> <span class="identifier">PRIMER_PP_OVERLOAD</span><span class="special">(</span><span class="identifier">NEW_LUA_CALLBACK_</span><span class="special">,</span> <span class="identifier">__VA_ARGS__</span><span class="special">)</span>
 </pre>
 <p>
           In this definition, <code class="computeroutput"><span class="identifier">owner_type</span></code>

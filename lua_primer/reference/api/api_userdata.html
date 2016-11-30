@@ -26,12 +26,11 @@
         </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">api</span><span class="special">/</span><span class="identifier">userdatas</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="special">...</span>
-
+<span class="keyword">struct</span> <span class="identifier">my_api</span> <span class="special">:</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">my_api</span><span class="special">&gt;</span> <span class="special">{</span>
 <span class="special">{</span>
   <span class="special">...</span>
 
-  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api_userdatas</span><span class="special">&lt;</span><span class="identifier">my_userdata1</span><span class="special">,</span> <span class="identifier">my_userdata2</span><span class="special">,</span> <span class="identifier">my_userdata3</span><span class="special">&gt;,</span> <span class="identifier">udatas_</span><span class="special">);</span>
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">userdatas</span><span class="special">&lt;</span><span class="identifier">my_userdata1</span><span class="special">,</span> <span class="identifier">my_userdata2</span><span class="special">,</span> <span class="identifier">my_userdata3</span><span class="special">&gt;,</span> <span class="identifier">udatas_</span><span class="special">);</span>
 
   <span class="special">...</span>
 
@@ -41,6 +40,10 @@
           The metatables of each userdata will be created when <code class="computeroutput"><span class="identifier">initialize_api</span></code>
           is called, and the permanent objects, defined by the <code class="computeroutput"><span class="identifier">userdata</span></code>
           trait, if any, will be registered when we persist / unpersist.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">userdatas</span></code> object itself
+          has no data members and no nontrivial initialization.
         </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

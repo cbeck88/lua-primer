@@ -26,8 +26,7 @@
         </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">api</span><span class="special">/</span><span class="identifier">libraries</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
-<span class="special">...</span>
-
+<span class="keyword">struct</span> <span class="identifier">my_api</span> <span class="special">:</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">my_api</span><span class="special">&gt;</span> <span class="special">{</span>
 <span class="special">{</span>
   <span class="special">...</span>
 
@@ -92,6 +91,10 @@
 </pre>
 <p>
           You can easily make your own sandboxing decisions of course.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">libraries</span></code> object itself
+          has no data members and no nontrivial initialization.
         </p>
 <h4>
 <a name="lua_primer.reference.api.api_library.h0"></a>

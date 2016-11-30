@@ -132,8 +132,14 @@
           and deserializing the state.
         </p>
 <p>
-          An API object should <span class="emphasis"><em>derive</em></span> from the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> class template. This accomplishes
-          two things:
+          An API object should <span class="emphasis"><em>derive</em></span> from the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> class template, using CRTP style:
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_api</span> <span class="special">:</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">my_api</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="special">...</span>
+<span class="special">};</span>
+</pre>
+<p>
+          This accomplishes two things:
         </p>
 <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">

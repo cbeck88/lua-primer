@@ -21,31 +21,59 @@
           <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span></code> helps to create a custom filesystem
           exposed to lua.
         </p>
+<h5>
+<a name="lua_primer.reference.api.api_vfs.h0"></a>
+          <span><a name="lua_primer.reference.api.api_vfs.overview"></a></span><a class="link" href="api_vfs.html#lua_primer.reference.api.api_vfs.overview">Overview</a>
+        </h5>
 <p>
-          If you have a class which can resolve lua-style paths to loadable chunks
-          in some fashion, you can use the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span></code>
-          object to get implementations of <code class="computeroutput"><span class="identifier">loadfile</span></code>,
-          <code class="computeroutput"><span class="identifier">dofile</span></code>, and <code class="computeroutput"><span class="identifier">require</span></code> which are tied to your vfs and
-          not the actual OS.
+          <code class="computeroutput"><span class="identifier">lua</span></code> provides some core
+          functionality to allow scripts to load modules from the filesystem, through
+          three functions <code class="computeroutput"><span class="identifier">loadfile</span></code>,
+          <code class="computeroutput"><span class="identifier">dofile</span></code>, and <code class="computeroutput"><span class="identifier">require</span></code>. These aren't part of the <code class="computeroutput"><span class="identifier">package</span></code> module, they are part of the
+          base library, and the package search path is something that can be configured
+          during the process of installing lua.
         </p>
 <p>
-          Your class should essentially provide an implementation of <code class="computeroutput"><span class="identifier">loadfile</span></code>, with the following signature:
+          In an embedded lua application, it's likely that you'll want to sandbox
+          this and prevent lua from directly accessing and loading things from the
+          filesystem.
         </p>
-<pre class="programlisting"><span class="comment">// Concept "VFS Provider"</span>
-<span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">load</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">path</span><span class="special">)</span>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span></code> helps to simplify this. Instead of
+          implementing three very similar functions, to use <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span></code>,
+          you only implement one of them. You do this by creating a class satisfying
+          the "VFS Provider" concept.
+        </p>
+<p>
+          Then, you make your class derive from the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span></code>
+          class template using the CRTP style. This basically performs "dependency-injection",
+          so that the generic implementations of <code class="computeroutput"><span class="identifier">dofile</span></code>,
+          <code class="computeroutput"><span class="identifier">loadfile</span></code>, and <code class="computeroutput"><span class="identifier">require</span></code> can access your <code class="computeroutput"><span class="identifier">load</span></code> function and do the right thing,
+          and brings in the boiler-plate which makes it a proper API feature. <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span></code> has no data members and no nontrivial
+          intialization, but your "VFS Provider" might.
+        </p>
+<h5>
+<a name="lua_primer.reference.api.api_vfs.h1"></a>
+          <span><a name="lua_primer.reference.api.api_vfs.concept_vfs_provider"></a></span><a class="link" href="api_vfs.html#lua_primer.reference.api.api_vfs.concept_vfs_provider">Concept:
+          VFS Provider</a>
+        </h5>
+<p>
+          A VFS Provider is expected to provide a member function <code class="computeroutput"><span class="identifier">load</span></code>:
+        </p>
+<pre class="programlisting"><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">load</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">path</span><span class="special">);</span>
 </pre>
 <p>
-          Given a pointer to the stack and the path argument from the lua script,
-          either call <code class="computeroutput"><span class="identifier">luaL_loadbuffer</span></code>
-          to load a chunk onto the stack and return "ok" (<code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;{}</span></code>),
-          or return some sort of error message regarding the path.
+          which attempts to load the module corresponding to <code class="computeroutput"><span class="identifier">path</span></code>
+          onto the stack, using e.g. <code class="computeroutput"><span class="identifier">luaL_loadbuffer</span></code>.
+          It should then return "ok", i.e., no error. If it cannot, it
+          should instead return an error message. For instance you might use the
+          pre-formatted message <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">::</span><span class="identifier">module_not_found</span></code>.
         </p>
-<p>
-          The vfs can then be constructed from a pointer to an instance of your class.
-        </p>
-<p>
-          Here's a usage example:
-        </p>
+<h5>
+<a name="lua_primer.reference.api.api_vfs.h2"></a>
+          <span><a name="lua_primer.reference.api.api_vfs.example_usage"></a></span><a class="link" href="api_vfs.html#lua_primer.reference.api.api_vfs.example_usage">Example
+          Usage</a>
+        </h5>
 <pre class="programlisting"><span class="comment">// Model of vfs provider concept</span>
 <span class="keyword">struct</span> <span class="identifier">my_files</span> <span class="special">:</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">vfs</span><span class="special">&lt;</span><span class="identifier">my_files</span><span class="special">&gt;</span> <span class="special">{</span>
   <span class="keyword">using</span> <span class="identifier">map_t</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;;</span>
@@ -148,6 +176,13 @@
   <span class="special">}</span>
 <span class="special">}</span>
 </pre>
+<h5>
+<a name="lua_primer.reference.api.api_vfs.h3"></a>
+          <span><a name="lua_primer.reference.api.api_vfs.synopsis"></a></span><a class="link" href="api_vfs.html#lua_primer.reference.api.api_vfs.synopsis">Synopsis</a>
+        </h5>
+<p>
+          TODO
+        </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
