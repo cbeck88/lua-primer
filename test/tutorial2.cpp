@@ -79,10 +79,12 @@ void userdata_test_four() {
   "if x.id == y.id then print('x == y') end ";
  
 //=  assert(LUA_OK == luaL_loadstring(L, script));
+//<-
   if(LUA_OK != luaL_loadstring(L, script)) {
     std::cerr << lua_tostring(L, -1);
     std::abort();
   }
+//->
 //=  assert(LUA_OK == lua_pcall(L, 0, 0, 0));
 //<-
   if(LUA_OK != lua_pcall(L, 0, 0, 0)) {

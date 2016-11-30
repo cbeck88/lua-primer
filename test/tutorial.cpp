@@ -207,10 +207,12 @@ void userdata_test_one() {
 
   
 //=  assert(LUA_OK == luaL_loadstring(L, script));
+//<-
   if(LUA_OK != luaL_loadstring(L, script)) {
     std::cerr << lua_tostring(L, -1);
     std::abort();
   }
+//->
 //=  assert(LUA_OK == lua_pcall(L, 0, 0, 0));
 //<-
   if(LUA_OK != lua_pcall(L, 0, 0, 0)) {
@@ -298,10 +300,12 @@ void userdata_test_two() {
   // "inspect_token(5)";
 
 //=  assert(LUA_OK == luaL_loadstring(L, script));
+//<-
   if(LUA_OK != luaL_loadstring(L, script)) {
     std::cerr << lua_tostring(L, -1);
     std::abort();
   }
+//->
 //=  assert(LUA_OK == lua_pcall(L, 0, 0, 0));
 //<-
   if(LUA_OK != lua_pcall(L, 0, 0, 0)) {
@@ -411,7 +415,6 @@ void userdata_test_three() {
     std::abort();
   }
 //->
-
 //=  assert(LUA_OK == lua_pcall(L, 0, 0, 0));
 //<-
   if(LUA_OK != lua_pcall(L, 0, 0, 0)) {
