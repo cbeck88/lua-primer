@@ -173,11 +173,12 @@ struct read_udata_impl {
 };
 
 template <typename T>
-struct read<T &, enable_if_t<primer::detail::is_userdata<T>::value>> : read_udata_impl<T, T&> {};
+struct read<T &, enable_if_t<primer::detail::is_userdata<T>::value>>
+  : read_udata_impl<T, T &> {};
 
 template <typename T>
-struct read<const T &, enable_if_t<primer::detail::is_userdata<T>::value>> : read_udata_impl<T, const T&> {};
-
+struct read<const T &, enable_if_t<primer::detail::is_userdata<T>::value>>
+  : read_udata_impl<T, const T &> {};
 
 // Misc support types
 template <>

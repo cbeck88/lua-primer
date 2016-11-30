@@ -60,21 +60,22 @@ struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...), target_func> {
 /***
  * Const member functions
  */
- 
+
 template <typename T, typename R, typename... Args,
           R (T::*target_func)(lua_State *, Args...) const>
-struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...) const, target_func> {
+struct userdata_dispatcher<T, R (T::*)(lua_State *, Args...) const,
+                           target_func> {
 
   static R dispatch_target(lua_State * L, const T & t, Args... args) {
     return (t.*target_func)(L, std::forward<Args>(args)...);
   }
 
   static int adapted(lua_State * L) {
-    using helper_t = adapt<R (*)(lua_State *, const T &, Args...), dispatch_target>;
+    using helper_t =
+      adapt<R (*)(lua_State *, const T &, Args...), dispatch_target>;
     return helper_t::adapted(L);
   }
 };
-
 
 /***
  * Specialize for member functions of "raw" type, i.e. int (T::*)(lua_State *).
@@ -95,7 +96,7 @@ struct userdata_dispatcher<T, int (T::*)(lua_State *), target_func> {
 /***
  * Const
  */
- 
+
 template <typename T, int (T::*target_func)(lua_State *) const>
 struct userdata_dispatcher<T, int (T::*)(lua_State *) const, target_func> {
   static int adapted(lua_State * L) {
@@ -107,7 +108,6 @@ struct userdata_dispatcher<T, int (T::*)(lua_State *) const, target_func> {
     }
   }
 };
-
 
 #define PRIMER_ADAPT_USERDATA(t, f)                                            \
   &primer::userdata_dispatcher<t, decltype(f), f>::adapted
