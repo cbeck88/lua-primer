@@ -120,9 +120,7 @@ class coroutine {
   //->
 public:
   // Special member functions
-  coroutine() noexcept
-    : ref_()
-    , thread_stack_(nullptr) {}
+  coroutine() noexcept : ref_(), thread_stack_(nullptr) {}
 
   coroutine(coroutine &&) noexcept = default;
   coroutine & operator=(coroutine &&) noexcept = default;

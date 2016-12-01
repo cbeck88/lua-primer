@@ -195,10 +195,9 @@ public:
   }
 
   template <typename F>
-  auto map(
-    F &&
-      f) && -> fold_expected_t<decltype(std::forward<F>(f)(std::declval<T>())),
-                               E> {
+  auto map(F && f) && -> fold_expected_t<decltype(std::forward<F>(f)(
+                                           std::declval<T>())),
+                                         E> {
     if (*this) {
       return std::forward<F>(f)(std::move(**this));
     } else {
@@ -541,9 +540,7 @@ template <typename E>
 
 // Ctors
 template <typename E>
-constexpr expected<void, E>::expected() noexcept
-  : no_error_(true)
-  , dummy_() {}
+constexpr expected<void, E>::expected() noexcept : no_error_(true), dummy_() {}
 
 template <typename E>
 expected<void, E>::~expected() noexcept {
@@ -557,8 +554,7 @@ expected<void, E>::expected(const expected & o)
 }
 
 template <typename E>
-expected<void, E>::expected(expected && o) noexcept
-  : expected() {
+expected<void, E>::expected(expected && o) noexcept : expected() {
   this->move(std::move(o));
 }
 

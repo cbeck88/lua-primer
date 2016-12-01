@@ -54,7 +54,7 @@ push_read() {
   //` actually has a `T`, and get the `T &` using `operator *`. (If present, the
   //` `T` is
   //` stored on site, not on the heap somewhere, like `optional`.)
-  //`  
+  //`
   //` However, when `expected<T>` does *not* have a `T` value, it instead
   //` contains
   //` an error message, accessed using `::err()` method. This error message
@@ -141,7 +141,7 @@ adapt_one() {
 //->
 
 //` When using primer, you can automate that to some extent, and pass C++
-//functions directly to lua.
+// functions directly to lua.
 
 primer::result
 new_is_pythag(lua_State * L, int a, int b, int c) {
@@ -166,7 +166,7 @@ adapt_two() {
 //` `PRIMER_ADAPT` is used to "convert" the primer signature
 //` `primer::result (*)(lua_State *, ...)` to the lua signature
 //` `int (*)(lua_State *)`.
-//`  
+//`
 //` `PRIMER_ADAPT` generates the boiler-plate which reads the arguments off of
 //` the stack,
 //` using `primer::read` to do the work. That is: If you implement
@@ -186,7 +186,7 @@ namespace test_one {
 //` A `userdata` is essentially a block of memory, owned by lua,
 //` which external code has initialized in some way. Scripts are able to pass
 //` this "value" around, storing it in variables or passing it to functions.
-//` 
+//`
 //` Here's a minimal example of userdata -- an opaque "token" type for use with
 //` some API.
 

@@ -100,13 +100,10 @@ class error {
     };
 
     template <typename T, typename = decltype(T::value)>
-    explicit impl(T) noexcept
-      : str_()
-      , state_(T::value) {}
+    explicit impl(T) noexcept : str_(), state_(T::value) {}
 
     // Construct from string
-    explicit impl(std::string s) noexcept
-      : impl() {
+    explicit impl(std::string s) noexcept : impl() {
       this->initialize_string(std::move(s));
     }
 
@@ -157,8 +154,7 @@ public:
   // and concatenates them to form the message.
   // (Implementation note: The t parameter is only here to help out msvc 2015)
   template <typename T, typename... Args>
-  explicit error(T && t, Args &&... args) noexcept
-    : msg_() {
+  explicit error(T && t, Args &&... args) noexcept : msg_() {
     PRIMER_TRY_BAD_ALLOC {
       msg_ = impl{primer::detail::str_cat(std::forward<T>(t),
                                           std::forward<Args>(args)...)};
