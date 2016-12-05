@@ -1,0 +1,23 @@
+[section VMs and the rule of five]
+
+One of the basic things we wanted to do with VMs in our motivation, besides
+serialize them, was implement the rule of five, so that we can easily store
+large collections of VMs, and deep copy VMs with ease.
+
+However, lua does not provide a builtin way to deep copy a `lua_State *`, so
+it's not clear how to copy API objects that we created before. For that matter,
+API objects may not always be moveable even -- in the simplest cases, the `lua_State *`
+pointer can simply be moved, and any pure C++ objects can be moved, but in more complex
+cases care must be exercised -- lua may hold userdata objects containing smart pointers to C++ objects, or the
+C++ objects may be holding `primer::lua_ref` to specific lua objects. Sometimes in C++, the default move constructor
+of a type actually results in a copy -- this can result in objects being silently cloned, and the structure of
+your API object silently changing.
+
+This simplest way to achieve the rule of five for VMs is often to change the goal
+slightly, and only do it in concert with the `pimpl` idiom. In that case, move can always be handled by a  
+pointer move in the pimpl, and copy can always be done by serialization and deserialization of the API object 
+-- we never have to actually move the API object at all, and the pimpl can still be naturally copyable and moveable with expected semantics.
+
+[primer_tutorial_example_api_rule_of_five]
+
+[endsect] 

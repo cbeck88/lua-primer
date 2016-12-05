@@ -73,12 +73,13 @@
 [import ../test/tutorial_api1.cpp]
 [import ../test/tutorial_api2.cpp]
 [import ../test/tutorial_api3.cpp]
+[import ../test/tutorial_api_rule_of_five.cpp]
 
 [section:quickstart Quickstart]
 [include Intro.qbk]
 [include EmbeddedLua.qbk]
 [include Tutorial.qbk]
-[include ExampleUsage.qbk]
+[include TutorialConclusion.qbk]
 [endsect]
 
 

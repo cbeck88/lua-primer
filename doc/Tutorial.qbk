@@ -1,5 +1,7 @@
 [section:tutorial Tutorial]
 
+A tour of [*primer] via a series of small code examples.
+
 [include TutorialPushRead.qbk]
 [include TutorialAdapt.qbk]
 [include TutorialUserdata.qbk]
@@ -7,5 +9,6 @@
 [include TutorialLuaRef.qbk]
 [include TutorialAPI.qbk]
 [include TutorialAPIUserdata.qbk]
+[include TutorialAPIFive.qbk]
 
 [endsect]
