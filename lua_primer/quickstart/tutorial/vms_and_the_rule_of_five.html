@@ -1,0 +1,306 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>VMs and the rule of five</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="persisting_userdata.html" title="Persisting Userdata">
+<link rel="next" href="../conclusion.html" title="Conclusion">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="persisting_userdata.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../conclusion.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.quickstart.tutorial.vms_and_the_rule_of_five"></a><a class="link" href="vms_and_the_rule_of_five.html" title="VMs and the rule of five">VMs
+        and the rule of five</a>
+</h4></div></div></div>
+<p>
+          One of the basic things we wanted to do with VMs in our motivation, besides
+          serialize them, was implement the rule of five, so that we can easily store
+          large collections of VMs, and deep copy VMs with ease.
+        </p>
+<p>
+          However, lua does not provide a builtin way to deep copy a <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>,
+          so it's not clear how to copy API objects that we created before. For that
+          matter, API objects may not always be moveable even -- in the simplest
+          cases, the <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>
+          pointer can simply be moved, and any pure C++ objects can be moved, but
+          in more complex cases care must be exercised -- lua may hold userdata objects
+          containing smart pointers to C++ objects, or the C++ objects may be holding
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> to specific lua objects. Sometimes
+          in C++, the default move constructor of a type actually results in a copy
+          -- this can result in objects being silently cloned, and the structure
+          of your API object silently changing.
+        </p>
+<p>
+          This simplest way to achieve the rule of five for VMs is often to change
+          the goal slightly, and only do it in concert with the <code class="computeroutput"><span class="identifier">pimpl</span></code>
+          idiom. In that case, move can always be handled by a pointer move in the
+          pimpl, and copy can always be done by serialization and deserialization
+          of the API object -- we never have to actually move the API object at all,
+          and the pimpl can still be naturally copyable and moveable with expected
+          semantics.
+        </p>
+<p>
+          <span class="bold"><strong>vm.hpp</strong></span>
+        </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">memory</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+
+<span class="keyword">class</span> <span class="identifier">vm</span> <span class="special">{</span>
+  <span class="keyword">struct</span> <span class="identifier">impl</span><span class="special">;</span>
+
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_ptr</span><span class="special">&lt;</span><span class="identifier">impl</span><span class="special">&gt;</span> <span class="identifier">impl_</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="identifier">vm</span><span class="special">();</span>
+  <span class="special">~</span><span class="identifier">vm</span><span class="special">();</span>
+
+  <span class="identifier">vm</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">vm</span> <span class="special">&amp;);</span>
+  <span class="identifier">vm</span><span class="special">(</span><span class="identifier">vm</span> <span class="special">&amp;&amp;);</span>
+
+  <span class="identifier">vm</span> <span class="special">&amp;</span> <span class="keyword">operator</span> <span class="special">=(</span><span class="keyword">const</span> <span class="identifier">vm</span> <span class="special">&amp;);</span>
+  <span class="identifier">vm</span> <span class="special">&amp;</span> <span class="keyword">operator</span> <span class="special">=(</span><span class="identifier">vm</span> <span class="special">&amp;&amp;);</span>
+
+
+  <span class="keyword">void</span> <span class="identifier">run_script</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
+
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">serialize</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">void</span> <span class="identifier">deserialize</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;);</span>
+<span class="special">};</span>
+</pre>
+<p>
+          <span class="bold"><strong>vm.cpp</strong></span>
+        </p>
+<pre class="programlisting"> <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">vm</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">api</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">primer</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">iostream</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">memory</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">utility</span><span class="special">&gt;</span>
+
+<span class="keyword">struct</span> <span class="identifier">lua_raii</span> <span class="special">{</span>
+  <span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L_</span><span class="special">;</span>
+
+  <span class="identifier">lua_raii</span><span class="special">()</span>
+    <span class="special">:</span> <span class="identifier">L_</span><span class="special">(</span><span class="identifier">luaL_newstate</span><span class="special">())</span> <span class="special">{}</span>
+
+  <span class="special">~</span><span class="identifier">lua_raii</span><span class="special">()</span> <span class="special">{</span> <span class="identifier">lua_close</span><span class="special">(</span><span class="identifier">L_</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="keyword">operator</span> <span class="identifier">lua_State</span> <span class="special">*()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">L_</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="keyword">namespace</span> <span class="identifier">api</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">;</span>
+
+<span class="keyword">struct</span> <span class="identifier">vm</span><span class="special">::</span><span class="identifier">impl</span> <span class="special">:</span> <span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">impl</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="identifier">lua_raii</span> <span class="identifier">lua_</span><span class="special">;</span>
+
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">callbacks</span><span class="special">,</span> <span class="identifier">callbacks_</span><span class="special">);</span>
+
+  <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">a</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*)</span> <span class="special">-&gt;</span> <span class="keyword">int</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"a"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+    <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">b</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*)</span> <span class="special">-&gt;</span> <span class="keyword">int</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"b"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+    <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">c</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*)</span> <span class="special">-&gt;</span> <span class="keyword">int</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"c"</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+    <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="identifier">impl</span><span class="special">()</span>
+    <span class="special">:</span> <span class="identifier">callbacks_</span><span class="special">(</span><span class="keyword">this</span><span class="special">)</span>
+  <span class="special">{</span>
+    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">initialize_api</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">serialize</span><span class="special">()</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">result</span><span class="special">;</span>
+    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">persist</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">deserialize</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buff</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">unpersist</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="identifier">buff</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">run_script</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">script</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">lua_settop</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="number">0</span><span class="special">);</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">!=</span> <span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="identifier">script</span><span class="special">.</span><span class="identifier">c_str</span><span class="special">()))</span> <span class="special">{</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">cerr</span> <span class="special">&lt;&lt;</span> <span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">abort</span><span class="special">();</span>
+    <span class="special">}</span>
+
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">!=</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">))</span> <span class="special">{</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">cerr</span> <span class="special">&lt;&lt;</span> <span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">abort</span><span class="special">();</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="comment">/***
+ * pimpl definitions
+ */</span>
+
+<span class="identifier">vm</span><span class="special">::</span><span class="identifier">vm</span><span class="special">()</span>
+  <span class="special">:</span> <span class="identifier">impl_</span><span class="special">(</span><span class="keyword">new</span> <span class="identifier">vm</span><span class="special">::</span><span class="identifier">impl</span><span class="special">())</span>
+<span class="special">{}</span>
+
+<span class="identifier">vm</span><span class="special">::~</span><span class="identifier">vm</span><span class="special">()</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+
+<span class="identifier">vm</span><span class="special">::</span><span class="identifier">vm</span><span class="special">(</span><span class="identifier">vm</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+
+<span class="identifier">vm</span><span class="special">::</span><span class="identifier">vm</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">vm</span> <span class="special">&amp;</span> <span class="identifier">m</span><span class="special">)</span>
+  <span class="special">:</span> <span class="identifier">vm</span><span class="special">()</span> <span class="comment">// Call default ctor first</span>
+<span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">buffer</span><span class="special">{</span><span class="identifier">m</span><span class="special">.</span><span class="identifier">serialize</span><span class="special">()};</span>
+  <span class="identifier">impl_</span><span class="special">-&gt;</span><span class="identifier">deserialize</span><span class="special">(</span><span class="identifier">buffer</span><span class="special">);</span>
+<span class="special">}</span>
+
+<span class="identifier">vm</span> <span class="special">&amp;</span> <span class="identifier">vm</span><span class="special">::</span><span class="keyword">operator</span><span class="special">=(</span><span class="identifier">vm</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+
+<span class="identifier">vm</span> <span class="special">&amp;</span> <span class="identifier">vm</span><span class="special">::</span><span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">vm</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">vm</span> <span class="identifier">temp</span><span class="special">{</span><span class="identifier">other</span><span class="special">};</span>
+  <span class="special">*</span><span class="keyword">this</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">temp</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="special">*</span><span class="keyword">this</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span> <span class="identifier">vm</span><span class="special">::</span><span class="identifier">run_script</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">script</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">impl_</span><span class="special">-&gt;</span><span class="identifier">run_script</span><span class="special">(</span><span class="identifier">script</span><span class="special">);</span>
+<span class="special">}</span>
+
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">vm</span><span class="special">::</span><span class="identifier">serialize</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span>
+  <span class="keyword">return</span> <span class="identifier">impl_</span><span class="special">-&gt;</span><span class="identifier">serialize</span><span class="special">();</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span> <span class="identifier">vm</span><span class="special">::</span><span class="identifier">deserialize</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buff</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">impl_</span><span class="special">-&gt;</span><span class="identifier">deserialize</span><span class="special">(</span><span class="identifier">buff</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          <span class="bold"><strong>main.cpp</strong></span>
+        </p>
+<pre class="programlisting"> <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">vm</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">iostream</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+
+<span class="keyword">void</span> <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">vm</span> <span class="special">&amp;</span> <span class="identifier">m</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">m</span><span class="special">.</span><span class="identifier">run_script</span><span class="special">(</span><span class="string">"a() "</span>
+               <span class="string">"b() "</span>
+               <span class="string">"c() "</span><span class="special">);</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span> <span class="identifier">cycle_funcs</span><span class="special">(</span><span class="identifier">vm</span> <span class="special">&amp;</span> <span class="identifier">m</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">m</span><span class="special">.</span><span class="identifier">run_script</span><span class="special">(</span><span class="string">"d = c "</span>
+               <span class="string">"c = b "</span>
+               <span class="string">"b = a "</span>
+               <span class="string">"a = d "</span>
+               <span class="string">"d = nil "</span><span class="special">);</span>
+<span class="special">}</span>
+
+<span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+  <span class="identifier">vm</span> <span class="identifier">m1</span><span class="special">;</span>
+  <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+  <span class="identifier">cycle_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+  <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+
+  <span class="special">{</span>
+    <span class="identifier">vm</span> <span class="identifier">m2</span><span class="special">;</span>
+    <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m2</span><span class="special">);</span>
+    <span class="identifier">m2</span> <span class="special">=</span> <span class="identifier">m1</span><span class="special">;</span>
+    <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+    <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m2</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+  <span class="identifier">cycle_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+  <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+
+  <span class="identifier">m1</span> <span class="special">=</span> <span class="identifier">vm</span><span class="special">{};</span>
+
+  <span class="identifier">call_funcs</span><span class="special">(</span><span class="identifier">m1</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          This example shows how we can give our VM pimpl objects proper C++ value-type
+          semantics. The API consists of three trivial functions, and the scripts
+          <code class="computeroutput"><span class="identifier">call_funcs</span></code> and <code class="computeroutput"><span class="identifier">cycle_funcs</span></code> variously shuffle these functions
+          around and dump the current arrangement. The example shows that things
+          like copy assignment and move assignment work as expected here. The expected
+          output is:
+        </p>
+<pre class="programlisting"><span class="identifier">a</span>
+<span class="identifier">b</span>
+<span class="identifier">c</span>
+
+<span class="identifier">c</span>
+<span class="identifier">a</span>
+<span class="identifier">b</span>
+
+<span class="identifier">a</span>
+<span class="identifier">b</span>
+<span class="identifier">c</span>
+
+<span class="identifier">c</span>
+<span class="identifier">a</span>
+<span class="identifier">b</span>
+
+<span class="identifier">c</span>
+<span class="identifier">a</span>
+<span class="identifier">b</span>
+
+<span class="identifier">c</span>
+<span class="identifier">a</span>
+<span class="identifier">b</span>
+
+<span class="identifier">b</span>
+<span class="identifier">c</span>
+<span class="identifier">a</span>
+
+<span class="identifier">a</span>
+<span class="identifier">b</span>
+<span class="identifier">c</span>
+</pre>
+<p>
+          It's worth it to note that copying the VM this way can potentially be made
+          slightly more efficient, if we eliminate the use of the buffer. Under the
+          hood, eris' dump and undump functions are implemented in terms of incremental
+          read and write functions, and don't require the use of a giant presized
+          buffer. <code class="computeroutput"><span class="identifier">primer</span></code>'s functions
+          wrap over this by trivially buffering to and from a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>,
+          but in principle if your goal is just to copy a VM, you could do without
+          the buffer, and push bytes from one vm directly to the other, in producer
+          / consumer fashion. The reason I didn't do this is that it's more complex
+          to implement and complicates error handling -- it's not easy to abort the
+          read / write operation for one if the other fails in the middle somewhere,
+          at least so far as I know. If you decide to implement this, you could contribute
+          it as a patch and it could become a part of <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>.
+          :D
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="persisting_userdata.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../conclusion.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

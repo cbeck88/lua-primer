@@ -8,7 +8,10 @@ lua_primer/quickstart/tutorial/adapting_functions.html
 lua_primer/quickstart/tutorial/userdata.html
 lua_primer/quickstart/tutorial/userdata_methods.html
 lua_primer/quickstart/tutorial/lua_references.html
-lua_primer/quickstart/example_usage.html
+lua_primer/quickstart/tutorial/persistence.html
+lua_primer/quickstart/tutorial/persisting_userdata.html
+lua_primer/quickstart/tutorial/vms_and_the_rule_of_five.html
+lua_primer/quickstart/conclusion.html
 lua_primer/overview.html
 lua_primer/overview/motivation.html
 lua_primer/overview/design.html

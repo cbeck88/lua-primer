@@ -1,0 +1,253 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Persisting Userdata</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="persistence.html" title="Persistence">
+<link rel="next" href="vms_and_the_rule_of_five.html" title="VMs and the rule of five">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="persistence.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="vms_and_the_rule_of_five.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.quickstart.tutorial.persisting_userdata"></a><a class="link" href="persisting_userdata.html" title="Persisting Userdata">Persisting
+        Userdata</a>
+</h4></div></div></div>
+<p>
+          Now, we'll show how userdata works in conjunction with serialization, by
+          bringing back the <code class="computeroutput"><span class="identifier">token</span></code>
+          userdata type. The main thing that's new is, we need to register the userdata
+          using an API feature, and we need to provide a <code class="computeroutput"><span class="identifier">__persist</span></code>
+          metamethod.
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">token</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">id</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span>
+<span class="identifier">impl_token_index</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">token</span> <span class="special">&amp;</span> <span class="identifier">tok</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">str</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="number">0</span> <span class="special">==</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">strcmp</span><span class="special">(</span><span class="identifier">str</span><span class="special">,</span> <span class="string">"id"</span><span class="special">))</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">tok</span><span class="special">.</span><span class="identifier">id</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+  <span class="special">}</span>
+  <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="comment">// "ctor" for token type, constructs it from an int, passed as first up-value.</span>
+<span class="comment">// This isn't part of our API directly, but it's needed for persistence</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span>
+<span class="identifier">token_ctor</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">id</span> <span class="special">=</span> <span class="identifier">luaL_checkinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_upvalueindex</span><span class="special">(</span><span class="number">1</span><span class="special">));</span>
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span><span class="special">&lt;</span><span class="identifier">token</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">id</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="comment">// persistence method</span>
+<span class="comment">// Given a token, it pushes a lua closure which *yields* the</span>
+<span class="comment">// same token back when called. Eris can't serialize the token</span>
+<span class="comment">// directly, but it can serialize this closure, because it knows how to serialize</span>
+<span class="comment">// the `int` up-value, and `token_ctor` goes into the permanent objects table.</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span>
+<span class="identifier">impl_token_persist</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">token</span> <span class="special">&amp;</span> <span class="identifier">tok</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">tok</span><span class="special">.</span><span class="identifier">id</span><span class="special">);</span>
+  <span class="identifier">lua_pushcclosure</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">token_ctor</span><span class="special">),</span> <span class="number">1</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="comment">// userdata declaration, with both metatable and permanent ojects</span>
+<span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">userdata</span><span class="special">&lt;</span><span class="identifier">token</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"token"</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">,</span> <span class="number">2</span><span class="special">&gt;</span> <span class="identifier">metatable</span><span class="special">()</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="special">{{{</span><span class="string">"__index"</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">impl_token_index</span><span class="special">)},</span>
+             <span class="special">{</span><span class="string">"__persist"</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">impl_token_persist</span><span class="special">)}}};</span>
+  <span class="special">}</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">,</span> <span class="number">1</span><span class="special">&gt;</span> <span class="identifier">permanents</span><span class="special">()</span> <span class="special">{</span>
+    <span class="keyword">return</span> <span class="special">{{{</span><span class="string">"ctor"</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">token_ctor</span><span class="special">)}}};</span>
+  <span class="special">};</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+
+<span class="keyword">struct</span> <span class="identifier">lua_raii</span> <span class="special">{</span>
+  <span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L_</span><span class="special">;</span>
+
+  <span class="identifier">lua_raii</span><span class="special">()</span>
+    <span class="special">:</span> <span class="identifier">L_</span><span class="special">(</span><span class="identifier">luaL_newstate</span><span class="special">())</span> <span class="special">{}</span>
+
+  <span class="special">~</span><span class="identifier">lua_raii</span><span class="special">()</span> <span class="special">{</span> <span class="identifier">lua_close</span><span class="special">(</span><span class="identifier">L_</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="keyword">operator</span> <span class="identifier">lua_State</span> <span class="special">*()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">L_</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="keyword">namespace</span> <span class="identifier">api</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">;</span>
+
+<span class="keyword">struct</span> <span class="identifier">my_api</span> <span class="special">:</span> <span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">my_api</span><span class="special">&gt;</span> <span class="special">{</span>
+
+  <span class="identifier">lua_raii</span> <span class="identifier">lua_</span><span class="special">;</span>
+
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">callbacks</span><span class="special">,</span> <span class="identifier">callbacks_</span><span class="special">);</span>
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">persistent_value</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;,</span> <span class="identifier">count_</span><span class="special">);</span>
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">userdatas</span><span class="special">&lt;</span><span class="identifier">token</span><span class="special">&gt;,</span> <span class="identifier">userdata_types_</span><span class="special">);</span>
+
+  <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">new_token</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)-&gt;</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span><span class="special">&lt;</span><span class="identifier">token</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">count_</span><span class="special">.</span><span class="identifier">get</span><span class="special">()++);</span>
+    <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="identifier">NEW_LUA_CALLBACK</span><span class="special">(</span><span class="identifier">inspect_token</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">token</span> <span class="special">&amp;</span> <span class="identifier">tok</span><span class="special">)-&gt;</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Token id: "</span> <span class="special">&lt;&lt;</span> <span class="identifier">tok</span><span class="special">.</span><span class="identifier">id</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+    <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="identifier">my_api</span><span class="special">()</span>
+    <span class="special">:</span> <span class="identifier">lua_</span><span class="special">()</span>
+    <span class="special">,</span> <span class="identifier">callbacks_</span><span class="special">(</span><span class="keyword">this</span><span class="special">)</span>
+    <span class="special">,</span> <span class="identifier">count_</span><span class="special">{</span><span class="number">0</span><span class="special">}</span> <span class="special">{</span>
+    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">initialize_api</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">);</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">run_script</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">script</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">lua_settop</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="number">0</span><span class="special">);</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">!=</span> <span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="identifier">script</span><span class="special">))</span> <span class="special">{</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">cerr</span> <span class="special">&lt;&lt;</span> <span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">abort</span><span class="special">();</span>
+    <span class="special">}</span>
+
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">!=</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">))</span> <span class="special">{</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">cerr</span> <span class="special">&lt;&lt;</span> <span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
+      <span class="identifier">std</span><span class="special">::</span><span class="identifier">abort</span><span class="special">();</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">serialize</span><span class="special">()</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">result</span><span class="special">;</span>
+    <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">persist</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">void</span> <span class="identifier">deserialize</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">unpersist</span><span class="special">(</span><span class="identifier">lua_</span><span class="special">,</span> <span class="identifier">str</span><span class="special">);</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="comment">// Test that we can make two separate, encapsulated copies of the api object,</span>
+<span class="comment">// and serialize and deserialize them.</span>
+
+<span class="keyword">int</span>
+<span class="identifier">main</span><span class="special">()</span> <span class="special">{</span>
+  <span class="identifier">my_api</span> <span class="identifier">api1</span><span class="special">;</span>
+  <span class="identifier">api1</span><span class="special">.</span><span class="identifier">run_script</span><span class="special">(</span>
+    <span class="string">"x = new_token() "</span>
+    <span class="string">"y = new_token() "</span>
+    <span class="string">"inspect_token(x) "</span>
+    <span class="string">"inspect_token(y) "</span><span class="special">);</span>
+
+  <span class="identifier">my_api</span> <span class="identifier">api2</span><span class="special">;</span>
+  <span class="identifier">api2</span><span class="special">.</span><span class="identifier">run_script</span><span class="special">(</span>
+    <span class="string">"z = new_token() "</span>
+    <span class="string">"x = new_token() "</span>
+    <span class="string">"inspect_token(x) "</span><span class="special">);</span>
+
+  <span class="identifier">api1</span><span class="special">.</span><span class="identifier">run_script</span><span class="special">(</span><span class="string">"inspect_token(x)"</span><span class="special">);</span>
+
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span> <span class="special">=</span> <span class="identifier">api1</span><span class="special">.</span><span class="identifier">serialize</span><span class="special">();</span>
+
+  <span class="identifier">api2</span><span class="special">.</span><span class="identifier">run_script</span><span class="special">(</span><span class="string">"inspect_token(x)"</span><span class="special">);</span>
+  <span class="identifier">api2</span><span class="special">.</span><span class="identifier">deserialize</span><span class="special">(</span><span class="identifier">s</span><span class="special">);</span>
+  <span class="identifier">api2</span><span class="special">.</span><span class="identifier">run_script</span><span class="special">(</span><span class="string">"inspect_token(x)"</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          There are six calls to inspect here: they print respectively
+        </p>
+<pre class="programlisting"><span class="identifier">Token</span> <span class="identifier">id</span><span class="special">:</span> <span class="number">0</span>
+<span class="identifier">Token</span> <span class="identifier">id</span><span class="special">:</span> <span class="number">1</span>
+<span class="identifier">Token</span> <span class="identifier">id</span><span class="special">:</span> <span class="number">1</span>
+<span class="identifier">Token</span> <span class="identifier">id</span><span class="special">:</span> <span class="number">0</span>
+<span class="identifier">Token</span> <span class="identifier">id</span><span class="special">:</span> <span class="number">1</span>
+<span class="identifier">Token</span> <span class="identifier">id</span><span class="special">:</span> <span class="number">0</span>
+</pre>
+<p>
+          The two new functions we have which we didn't have before are the <code class="computeroutput"><span class="identifier">token_ctor</span></code> and the <code class="computeroutput"><span class="identifier">persist</span></code>
+          implementation. <code class="computeroutput"><span class="identifier">token_ctor</span></code>
+          is like a constructor or factory function for <code class="computeroutput"><span class="identifier">token</span></code>'s,
+          but adapted for lua.
+        </p>
+<p>
+          Notably, it takes it's argument from <code class="computeroutput"><span class="identifier">lua_upvalueindex</span><span class="special">(</span><span class="number">1</span><span class="special">)</span></code>
+          rather than from the stack. This is because it is always used as a closure.
+        </p>
+<p>
+          When eris serializes the lua state and encounters a <code class="computeroutput"><span class="identifier">token</span></code>
+          userdata, it inspects the <code class="computeroutput"><span class="identifier">__persist</span></code>
+          metamethod. Since the value is a function, it calls that function, expecting
+          to find a closure object which will be serialized. That closure object,
+          when called, yields the original <code class="computeroutput"><span class="identifier">token</span></code>
+          userdata value.
+        </p>
+<p>
+          This approach reduces the problem of serializing userdata to serializing
+          a closure. To serialize a closure, we need to be able to serialize the
+          function, and all the up-values.
+        </p>
+<p>
+          We can serialize the function because <code class="computeroutput"><span class="identifier">token_ctor</span></code>
+          is in the permanents list. If it wasn't, we would get a runtime error on
+          failing to serialize the function. Note that nothing says we have to use
+          a "C closure", we could concievably use a function written in
+          lua rather than a function written in C++ -- the lua closure could concievably
+          call other parts of our API, since it needs to somehow produce a new userdata
+          value. Eris can serialize functions written in lua just fine, without any
+          assistance. In the typical case, though, it's easier for these things to
+          be implemented in C++ and to just put them in the permanent object's table.
+          We can serialize the up-values here because it's just an integer. In general,
+          the up-values could be userdata also, and then the process would be repeated
+          recursively. Eventually, every table, closure, or other composite object
+          gets broken down into either primitive values which can be directly serialized,
+          or into values in the permanent objects table. When deserializing, eris
+          requires you to provide the "reverse" permanent objects table,
+          which maps the "stand-in" values back to the "true"
+          values. When using <code class="computeroutput"><span class="identifier">primer</span></code>,
+          you don't have to do this explicitly, it does it automatically based on
+          what API features are registered and what permanent objects they declare.
+        </p>
+<p>
+          One thing other thing you might notice in the above code -- in earlier
+          examples we used a <code class="computeroutput"><span class="keyword">static</span> <span class="keyword">constexpr</span></code> data member <code class="computeroutput"><span class="identifier">metatable</span></code>
+          in the userdata declaration. In this example, we used a <code class="computeroutput"><span class="keyword">static</span>
+          <span class="keyword">constexpr</span></code> function instead. Primer
+          is okay with either form, but sometimes you need to use a function for
+          the program to link. (If I understand right, the standard doesn't actually
+          say that the first version should link until C++17, due to changes in the
+          ODR, and the introduction of "inline variables", but gcc and
+          clang mostly do anyways...) The function format conceptually slightly less
+          clear perhaps, but it's usually better and more useful. For instance, it
+          allows for better encapsulation in common cases, when you want to declare
+          a userdata type in the header, and specialize the trait there, and conceal
+          all the method implementations in a cpp file.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="persistence.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="vms_and_the_rule_of_five.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

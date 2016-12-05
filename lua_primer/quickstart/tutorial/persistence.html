@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Persistence</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.0">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="lua_references.html" title="Lua References">
+<link rel="next" href="persisting_userdata.html" title="Persisting Userdata">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="lua_references.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="persisting_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="lua_primer.quickstart.tutorial.persistence"></a><a class="link" href="persistence.html" title="Persistence">Persistence</a>
+</h4></div></div></div>
+<p>
+          Everything we saw in the earlier sections is fairly standard among lua
+          binding libraries -- you'll find similar features in <code class="computeroutput"><span class="identifier">luabind</span></code>,
+          <code class="computeroutput"><span class="identifier">LuaBridge</span></code>, <code class="computeroutput"><span class="identifier">sol</span></code>, and others.
+        </p>
+<p>
+          Now, suppose we want to achieve heavy-duty persistence of our lua states
+          as well. That is, we want to install an API similarly as we did before,
+          then run arbitrary user scripts, stop, write out the entire <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>
+          to disk and destroy it, and rebuild it exactly from disk at a later time.
+        </p>
+<p>
+          It turns out that lua-eris almost totally solves this problem, however,
+          there's a certain problem that it cannot solve out of the box.
+        </p>
+<p>
+          Recall that in our earlier tutorial code, we installed our API's straightforwardly
+          using <code class="computeroutput"><span class="identifier">lua_pushcfunction</span></code>:
+        </p>
+<pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">new_token</span><span class="special">));</span>
+<span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"new_token"</span><span class="special">);</span>
+<span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">inspect_token</span><span class="special">));</span>
+<span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"inspect_token"</span><span class="special">);</span>
+</pre>
+<p>
+          <code class="computeroutput"><span class="identifier">eris</span></code> is able to persist
+          almost any native lua object. For example, lua tables with arbitrarily
+          pathological structure -- these can be decomposed into a flat representation
+          such that they can be unambiguously reconstructed on any machine.
+        </p>
+<p>
+          But, function pointers like <code class="computeroutput"><span class="identifier">new_token</span></code>
+          and <code class="computeroutput"><span class="identifier">inspect_token</span></code> are inherently
+          hard to serialize. Numerically these are equal to addresses in your binary,
+          and they vary arbitrarily from build to build, compiler to compiler. Additionally,
+          it's inherently risky to take data serialized from disk and reinterpret
+          it as a function pointer, and then call such a function pointer -- it can
+          easily create security holes if an attacker crafts malicious data. So trying
+          to store a function pointer literally in some file is usually a bad idea.
+        </p>
+<p>
+          Fortunately, eris doesn't attempt to do that. Instead, eris provides a
+          mechanism called the "permanent objects table". To serialize
+          function pointers like this, we basically give them a serialization name,
+          which is a string which gets written to disk in place of the pointer. And
+          when deserializing, we must again provide the names and the corresponding
+          function pointers. Since the names will be the same for all compilers and
+          platforms, this scheme ends up being portable, and function pointers can
+          all be translated appropriately.
+        </p>
+<p>
+          In the next section, we'll show through a series of examples how to token
+          API from before can be written in a way that it is serializable.
+        </p>
+<p>
+          [primer_tutorial_api_example0]
+        </p>
+<p>
+          [primer_tutorial_api_example1]
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="lua_references.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="persisting_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
