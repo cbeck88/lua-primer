@@ -9,7 +9,7 @@ That is, we want to install an API similarly as we did before, then run arbitrar
 user scripts, stop, write out the entire `lua_State *` to disk and destroy it,
 and rebuild it exactly from disk at a later time.
 
-It turns out that **lua-eris** almost totally solves this problem, however, there's
+It turns out that lua-eris almost totally solves this problem, however, there's
 a certain problem that it cannot solve out of the box.
 
 Recall that in our earlier tutorial code, we installed our API's straightforwardly
@@ -45,5 +45,6 @@ function pointers can all be translated appropriately.
 Here's an example that shows how our "token" api from before can be written such that it
 will be serializable.
 
+[primer_tutorial_api_example]
 
 [endsect]

@@ -69,6 +69,7 @@
 [import ../test/tutorial.cpp]
 [import ../test/tutorial2.cpp]
 [import ../test/tutorial3.cpp]
+[import ../test/tutorial4.cpp]
 
 [section:quickstart Quickstart]
 [include Intro.qbk]

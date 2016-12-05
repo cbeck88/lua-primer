@@ -92,7 +92,7 @@ A particularly useful example has to do with using `primer::bound_function` to b
 to a C++ gui.
 
 In many applications, people want to use lua scripts to create mods or plugins. They'd like to be able to create
-functions that act as gui callbacks, in lua:
+functions that act as callbacks, in lua. For example, for rigging up gui's using lua:
 
 [python]
 
@@ -125,6 +125,6 @@ Using primer, this can be used with a typical C++ gui by taking advantage of `bo
 
 In this case, the bound function becomes the guts of a function object meeting your gui's requirements.
 It's okay for the `bound_function` to live past the lifetime of your `lua_State`, it doesn't particularly matter
-when the gui cleans up its event handlers.
+when the gui cleans up its event handlers in this example.
 
 [endsect]

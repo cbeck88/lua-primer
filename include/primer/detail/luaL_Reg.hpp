@@ -107,7 +107,9 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
     return ptr->name ? end_finder(ptr + 1) : ptr;
   }
 
-  using span_t = span<remove_pointer_t<decay_t<T>>>;
+  using value_t = remove_pointer_t<decay_t<T>>;
+  using span_t = span<value_t>;
+
   static constexpr span_t adapt(decay_t<T> t) {
     return span_t{t, end_finder(t)};
   }
@@ -116,7 +118,7 @@ struct is_L_Reg_sequence<T, enable_if_t<is_L_Reg_ptr<decay_t<T>>::value>> {
   // then skip the null terminator check. All code that uses these arrays is
   // required to put a null check for each name and skip null entries anyways.
   template <std::size_t N>
-  static constexpr span_t adapt(T (&arr)[N]) {
+  static constexpr span_t adapt(value_t (&arr)[N]) {
     return span_t{arr, arr + N};
   }
 };
@@ -135,6 +137,11 @@ struct is_L_Reg_sequence<T (*)(), enable_if_t<is_L_Reg_sequence<T>::value>> {
 // Decay functions to function pointer
 template <typename T>
 struct is_L_Reg_sequence<T()> : is_L_Reg_sequence<T (*)()> {};
+
+// Decay function referencess to function pointer
+template <typename T>
+struct is_L_Reg_sequence<T(&)()> : is_L_Reg_sequence<T (*)()> {};
+
 
 //[ primer_detail_iterate_l_reg_sequence
 // Iterate over an L_Reg_sequence
