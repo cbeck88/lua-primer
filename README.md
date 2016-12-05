@@ -6,7 +6,8 @@
 
 **lua primer** is a modern C++ library that creates bindings between [**lua**](http://lua.org/) and C++.
 It is header-only, and has no external dependencies besides lua and the standard library.
-**primer** was specifically designed to support [**lua-eris**](https://github.com/fnuecke/eris). 
+**primer** was specifically designed to support [**lua-eris**](https://github.com/fnuecke/eris).
+Indeed, you can think of it basically as a C++ wrapper over eris.
 
 In short, if you use **lua-eris** and expose your C++ api via **primer**, then you get to write your
 application in a nice idiomatic C++ style, expose designated features to lua VMs, and you get

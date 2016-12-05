@@ -28,7 +28,7 @@ impl_token_index(lua_State * L, token & tok, const char * str) {
 // This isn't part of our API directly, but it's needed for persistence
 primer::result
 token_ctor(lua_State * L) {
-  int id = lua_tointeger(L, lua_upvalueindex(1));
+  int id = luaL_checkinteger(L, lua_upvalueindex(1));
   primer::push_udata<token>(L, id);
   return 1;
 }
@@ -175,18 +175,19 @@ int main() {
 }
 
 //` There are six calls to inspect here: they print respectively  
-//= 0  
-//= 1  
-//= 1
-//= 0
-//= 1
-//= 0
+//= Token id: 0
+//= Token id: 1
+//= Token id: 1
+//= Token id: 0
+//= Token id: 1
+//= Token id: 0
 //`  
 
-//` A few things of note in the implementation:
+//` A few things of note in the implementation:  
+//`  
 //` * Callbacks are declared and defined using a macro `NEW_API_CALLBACK`.
 //`   The C++11 trailing return type syntax is used so that you can control
-//`   the return type without invading the macro.
+//`   the return type without invading the macro.  
 //`   The macro registers the callback at compile-time within the primer framework.
 //` * Member variables of the API object which requirem persistence support
 //`   are registered using the `API_FEATURE` macro. This takes the type and the
@@ -196,7 +197,7 @@ int main() {
 //`   we had in the old, unserializable version of the API. Because we used `persistent_value`,
 //`   the value is different for two different api objects `api1` and `api2` and they
 //`   can get incremented independently. And, when the api is serialized and deserialized,
-//`   the persistent value gets restored.
+//`   the persistent value gets restored.  
 //` * The `api::callbacks` feature is responsible for actually pushing our
 //`   callback functions into the global environment, and ensuring that they get
 //`   persisted properly. It provies some member functions so that you can make
@@ -204,3 +205,19 @@ int main() {
 //`  `this` in order to actually access the registered callbacks.
 
 //]
+
+// TODO: Maybe put this back if literal persistence is fixed, see tutorial5.cpp
+
+//` Another thing worth noting in this implementation is that although we went through the
+//` most general form of persisting userdata, with a `__persist` metamethod and a closure,
+//` in the end those functions didn't really do any work, they just wrote down the int,
+//` and reinstalled the int within the `token` struct. In other words, we just did "literal"
+//` userdata persistence -- we could equally well have just `memcpy`'d the block into our
+//` data file essentially.
+//`  
+//` Eris has a special mode to support literal userdata persistence. You simply set the
+//` "__persist" entry to `true` instead of to a function.
+//`
+//` To do this in `primer` we need to drop out of the `luaL_Reg` sequence (since that locks us in
+//` to using only functions.) Instead, we can use full manual control for the metatable, and
+//` rewrite the above program like so:
