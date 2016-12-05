@@ -42,11 +42,9 @@ the names and the corresponding function pointers. Since the names will be the
 same for all compilers and platforms, this scheme ends up being portable, and
 function pointers can all be translated appropriately.
 
-Here's an example that shows how our "token" api from before can be written such that it
-will be serializable.
+In the next section, we'll show through a series of examples how to token API
+from before can be written in a way that it is serializable.
 
 [primer_tutorial_api_example]
-
-[/primer_tutorial_api_example_2]
 
 [endsect]

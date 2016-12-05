@@ -111,10 +111,11 @@ if $(HAVE_ERIS) {
   exe api : api.cpp lualib primer test_harness : $(FLAGS) ;
 
   exe tutorial_api : tutorial_api.cpp lualib primer : $(FLAGS) ;
-  #exe tutorial3 : tutorial3.cpp lualib primer : $(FLAGS) ;
+  exe tutorial_api2 : tutorial_api2.cpp lualib primer : $(FLAGS) ;
+  # exe tutorial_api3 : tutorial_api3.cpp lualib primer : $(FLAGS) ;
 
 
-  install install-api-bin : api tutorial_api : $(INSTALL_LOC) ;
+  install install-api-bin : api tutorial_api tutorial_api2 : $(INSTALL_LOC) ;
 
   # Eris internal tests
   exe persist : $(LUA_ROOT)/test/persist.c lualib : $(LUA_PRIVATE_FLAGS) ;

@@ -140,8 +140,7 @@ struct is_L_Reg_sequence<T()> : is_L_Reg_sequence<T (*)()> {};
 
 // Decay function referencess to function pointer
 template <typename T>
-struct is_L_Reg_sequence<T(&)()> : is_L_Reg_sequence<T (*)()> {};
-
+struct is_L_Reg_sequence<T (&)()> : is_L_Reg_sequence<T (*)()> {};
 
 //[ primer_detail_iterate_l_reg_sequence
 // Iterate over an L_Reg_sequence

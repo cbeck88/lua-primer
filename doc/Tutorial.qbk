@@ -6,5 +6,6 @@
 [include TutorialUserdataMethods.qbk]
 [include TutorialLuaRef.qbk]
 [include TutorialAPI.qbk]
+[include TutorialAPIUserdata.qbk]
 
 [endsect]
