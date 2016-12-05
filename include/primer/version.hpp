@@ -8,7 +8,7 @@
 // clang-format off
 
 #define PRIMER_VERSION_MAJOR    "0"
-#define PRIMER_VERSION_MINOR    "2"
+#define PRIMER_VERSION_MINOR    "3"
 #define PRIMER_VERSION_NUM      000
 #define PRIMER_VERSION_RELEASE  "0"
 

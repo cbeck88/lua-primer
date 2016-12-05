@@ -1,6 +1,6 @@
 [library Lua Primer
     [quickbook 1.6]
-    [version 0.0]
+    [version 0.3]
     [copyright 2016 Chris Beck]
     [authors [Beck, Chris]]
     [category Inter-language Support]
