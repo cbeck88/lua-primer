@@ -7,10 +7,10 @@
 
 using uint = unsigned int;
 
-//[ primer_tutorial_api_example
+//[ primer_tutorial_api_example_0
 
-//` First, as a warmup, we'll skip the userdata, and just have an API with
-//` callbacks and some internal state.
+//` First, as a warmup, we'll give an api which only has some callback functions,
+//` and show how the save / restore semantics works exactly.
 
 // lua_raii is a simple raii object that manages a lua state, for this demo
 
@@ -35,22 +35,15 @@ struct my_api : api::base<my_api> {
   lua_raii lua_;
 
   API_FEATURE(api::callbacks, callbacks_);
-  API_FEATURE(api::persistent_value<int>, count_);
 
-  NEW_LUA_CALLBACK(next_number)(lua_State * L)->primer::result {
-    primer::push(L, count_.get()++);
-    return 1;
-  }
-
-  NEW_LUA_CALLBACK(print_number)(lua_State *, int i)->primer::result {
-    std::cout << "The number was: " << i << std::endl;
+  NEW_LUA_CALLBACK(announce)(lua_State *, const char * str)->primer::result {
+    std::cout << "lua: " << str << std::endl;
     return 0;
   }
 
   my_api()
     : lua_()
-    , callbacks_(this)
-    , count_{0} {
+    , callbacks_(this) {
     this->initialize_api(lua_);
   }
 
@@ -83,33 +76,22 @@ int
 main() {
   my_api api1;
   api1.run_script(
-    "x = next_number() "
-    "y = next_number() "
-    "print_number(x) "
-    "print_number(y) ");
-
-  my_api api2;
-  api2.run_script(
-    "z = next_number() "
-    "x = next_number() "
-    "print_number(x) ");
-
-  api1.run_script("print_number(x)");
-
+    "msg1 = 'hello world!' "
+    "msg2 = 'good bye world!' "
+    "msg = msg1 "
+    "announce(msg)");
+  
   std::string s = api1.serialize();
 
-  api2.run_script("print_number(x)");
-  api2.deserialize(s);
-  api2.run_script("print_number(x)");
+  api1.run_script("msg = msg2");
+  
+  api1.deserialize(s);
+  
+  api1.run_script("announce(msg)");
+  api1.run_script("msg = msg2");
+  api1.run_script("announce(msg)");
 }
 
-//` There are six calls to `print_number` here: they print respectively
-//= The number was: 0
-//= The number was: 1
-//= The number was: 1
-//= The number was: 0
-//= The number was: 1
-//= The number was: 0
 //`
 
 //` A few things of note in the implementation:
@@ -119,23 +101,33 @@ main() {
 //`   the return type without invading the macro.
 //`   The macro registers the callback at compile-time within the primer
 //`   framework.
-//` * Member variables of the API object which requirem persistence support
+//` * Member variables of the API object which need to hook into the persistence
+//`   system
 //`   are registered using the `API_FEATURE` macro. This takes the type and the
 //`   name of the member, and registers it within the primer framework. By
 //`   registering, it gets to participate in calls `serialize() ` and
 //`   `deserialize()`.
-//`   The `persistent_value` template is used instead of the local `static int`
-//`   we had in the old, unserializable version of the API. Because we used
-//`   `persistent_value`,
-//`   the value is different for two different api objects `api1` and `api2` and
-//`   they
-//`   can get incremented independently. And, when the api is serialized and
-//`   deserialized,
-//`   the persistent value gets restored.
 //` * The `api::callbacks` feature is responsible for actually pushing our
 //`   callback functions into the global environment, and ensuring that they get
 //`   persisted properly. It provies some member functions so that you can make
 //`   queries of it. It must be initialized with
 //`  `this` in order to actually access the registered callbacks.
+//`
+//` This simple program calls "announce" three times, and prints the following:
+//=  lua: hello world!
+//=  lua: hello world!
+//=  lua: goodbye world!
+//`  The second line is `hello world` and not `goodbye world` because when the
+//`  state gets serialized, `msg = msg2` hasn't happened yet. When it gets restored,
+//`  the entire global environment gets reset to the saved state. Only the second
+//`  line `msg = msg2` affects the state at the time of `announce.
+//`
+//` Another thing worth mentioning -- when callbacks are registered, they are
+//` automatically pushed into the global environment by `initialize_api`. However,
+//` the functions can be renamed or removed after this, and upon unpersisting,
+//` those renames will still be in effect. The global enviornment -- that is,
+//` the values of all variables visible to scripts -- are supposed to be exactly
+//` the same after a state is deserialized.
+
 
 //]

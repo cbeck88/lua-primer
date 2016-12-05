@@ -110,12 +110,13 @@ install install-bin : core visitable std noexcept error expected str_cat tutoria
 if $(HAVE_ERIS) {
   exe api : api.cpp lualib primer test_harness : $(FLAGS) ;
 
-  exe tutorial_api : tutorial_api.cpp lualib primer : $(FLAGS) ;
+  exe tutorial_api0 : tutorial_api0.cpp lualib primer : $(FLAGS) ;
+  exe tutorial_api1 : tutorial_api1.cpp lualib primer : $(FLAGS) ;
   exe tutorial_api2 : tutorial_api2.cpp lualib primer : $(FLAGS) ;
   # exe tutorial_api3 : tutorial_api3.cpp lualib primer : $(FLAGS) ;
 
 
-  install install-api-bin : api tutorial_api tutorial_api2 : $(INSTALL_LOC) ;
+  install install-api-bin : api tutorial_api0 tutorial_api1 tutorial_api2 : $(INSTALL_LOC) ;
 
   # Eris internal tests
   exe persist : $(LUA_ROOT)/test/persist.c lualib : $(LUA_PRIVATE_FLAGS) ;

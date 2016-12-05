@@ -69,7 +69,8 @@
 [import ../test/tutorial.cpp]
 [import ../test/tutorial2.cpp]
 [import ../test/tutorial3.cpp]
-[import ../test/tutorial_api.cpp]
+[import ../test/tutorial_api0.cpp]
+[import ../test/tutorial_api1.cpp]
 [import ../test/tutorial_api2.cpp]
 [import ../test/tutorial_api3.cpp]
 
