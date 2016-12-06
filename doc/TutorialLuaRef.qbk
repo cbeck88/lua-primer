@@ -29,7 +29,7 @@ In this case, the object only gets freed when your program is finished with it,
 and lua garbage collects the userdata. (In `primer`, if you don't specify a `__gc`
 metamethod, a default one is installed which calls the destructor, which is
 almost always what you want. In pure lua you generally need to do that manually.
-See reference for more details.)
+See [link lua_ref_reference reference page] for more details.)
 
 This allows lua to share ownership with C++ of C++ objects. However, sometimes
 we want to do the mirror of this -- C++ shares ownership with lua of lua objects.

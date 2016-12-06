@@ -1,6 +1,7 @@
 [library Lua Primer
     [quickbook 1.6]
     [version 0.3]
+    [id primer]
     [copyright 2016 Chris Beck]
     [authors [Beck, Chris]]
     [category Inter-language Support]
@@ -10,6 +11,7 @@
         (See accompanying file LICENSE_1_0.txt or copy at
         [@http://www.boost.org/LICENSE_1_0.txt])
     ]
+    [source-mode c++]
 ]
 
 [import ../include/primer/adapt.hpp]

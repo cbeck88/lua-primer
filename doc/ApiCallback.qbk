@@ -1,4 +1,5 @@
-[section API Callback]
+[#api_callbacks_reference]
+[section:callbacks API Callback]
 
 An "API Callback" is a *member function* of an API object.
 

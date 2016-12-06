@@ -1,4 +1,4 @@
-[section function push]
+[section:push function push]
 
 `primer::push` is a template function used to push a C++ value to a lua Stack.
 
@@ -90,7 +90,7 @@ The following core types are supported:
       ]
 
 
-The following ancillary types are supported (see `primer::read` docs for more info).
+The following ancillary types are supported (see [link read_reference `primer::read` docs] for more info).
 
 [table
   [[Type] [`primer::push`]]
@@ -101,7 +101,7 @@ The following ancillary types are supported (see `primer::read` docs for more in
 
 
 Primer includes additional headers to support some C++ standard containers and
-and boost containers, which are pushed as tables. See the containers section for
+and boost containers, which are pushed as tables. See [link primer.reference.containers the containers section] for
 details.
 
 * `std::vector`

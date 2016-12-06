@@ -1,4 +1,5 @@
-[section API Feature]
+[#api_features_reference]
+[section:features API Feature]
 
 A class which matches the "API Feature" concept represents some functionality
 that we can expose to a lua VM, together with the info needed to serialize it.

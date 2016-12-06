@@ -1,4 +1,4 @@
-[section class lua_ref_seq]
+[section:lua_ref_seq class lua_ref_seq]
 
 A `primer::lua_ref_seq` is a dynamically-sized sequence of `lua_ref` objects.
 
@@ -24,7 +24,7 @@ member, which forwards most of the member functions of `std::vector`.
 
 Instead of `lua_ref_seq` you could simply use `std::vector<lua_ref>` and push and read that
 instead. But when you push it for instance, it's going to push a single table which contains the sequence
-of values, due to the semantics we give to `std::vector` (TODO: Link), which is different from
+of values, due to the semantics we give to `std::vector` (see [link primer.reference.containers the containers section]), which is different from
 simply pushing all of those values onto the stack.
 
 [h4 Synopsis]

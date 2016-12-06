@@ -1,4 +1,5 @@
-[section function read]
+[#read_reference]
+[section:read function read]
 
 `primer::read` is a template function used to read a C++ value from the lua stack.
 
@@ -86,7 +87,7 @@ certain implicit conversions typical of lua.
 ]
 
 Primer includes additional headers to support some C++ standard containers and
-and boost containers, which tables may be converted to. See the containers section for
+and boost containers, which tables may be converted to. See [link primer.reference.containers the containers section] for
 details.
 
 * `std::vector`
@@ -97,7 +98,7 @@ details.
 * `boost::vector`
 
 Primer also supports the ability to read ['references] to userdata types. (See
-['userdata] section docs. TODO Link)
+[link userdata_reference userdata reference page].)
 
 [h4 Customization]
 

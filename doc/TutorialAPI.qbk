@@ -1,3 +1,4 @@
+[#api_tutorial_start]
 [section Persistence]
 
 Everything we saw in the earlier sections is fairly standard among lua binding

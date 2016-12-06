@@ -22,7 +22,7 @@ any of the ['extra] headers
 
 ``
 #include <primer/std/vector.hpp>
-#incldue <primer/std/set.hpp>
+#include <primer/std/set.hpp>
 ...
 #include <primer/boost/optional.hpp>
 ...
@@ -123,7 +123,7 @@ To disable the safety checks, you can define `PRIMER_NO_STATIC_ASSERTS`. You sho
 
 In general the failure of the conditions checked by these assertions can lead to undefined behavior.]
 
-[note If lua is compiled as C, i.e., `PRIMER_LUA_AS_CPP` is not defined, then `PRIMER_NO_MEMORY_FAILURE` will be defined automatically. See Exception Safety section for rationale. (TODO Link).]
+[note If lua is compiled as C, i.e., `PRIMER_LUA_AS_CPP` is not defined, then `PRIMER_NO_MEMORY_FAILURE` will be defined automatically. See [link exception_safety_overview Exception Safety section] for rationale.]
 
 To enable these, you can add them in your build system, define them in your source files before including primer, or create a custom version of `<primer/conf.hpp>`.
 

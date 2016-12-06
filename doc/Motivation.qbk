@@ -1,4 +1,4 @@
-[section Motivation]
+[section:motivation Motivation]
 
 Lua is a popular scripting language. The standard lua implementation is written
 in C, and provides several facilities to permit application writers to create
@@ -399,7 +399,7 @@ If the concept is too restrictive for a feature that you need to add, fortunatel
 always do whatever initialization or setup you need outside of these functions, before or after the `initialize_api` and `persist` methods.
 The API features framework is there merely to assist in organization, not to box you in to one way of doing things.
 
-For more information see the API section of the documentation (TODO: Link).
+For more information see [link api_section the API reference section].
 
 [h3 Common Features]
 

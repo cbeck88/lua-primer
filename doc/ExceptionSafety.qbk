@@ -1,3 +1,4 @@
+[#exception_safety_overview]
 [section Exception Safety]
 
 Primer is designed with the following constraints in mind:

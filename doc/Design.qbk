@@ -1,4 +1,4 @@
-[section Design]
+[section:design Design]
 
 Primer is a header-only C++ library. It is intended to be a thin layer over lua/eris.
 As such, we don't make any use of "heavy" C++ features like virtual functions, exceptions,

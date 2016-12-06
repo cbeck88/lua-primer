@@ -1,4 +1,4 @@
-[section API Base]
+[section:base API Base]
 
 The template `primer::api::base` is meant to be the base class of any API object
 that you use with primer.
@@ -48,7 +48,7 @@ the global table `_G` of the lua state, as well as any additional objects provid
 Other data, such as values stored in the lua registry, are not serialized. Any such values
 that need to be serialized, should be managed by an `API_FEATURE` to ensure that.
 
-(See documentation on API Features for more. TODO link)
+(See [link api_features_reference documentation on API Features] for more info.)
 
 [h3 Callbacks]
 
@@ -89,13 +89,10 @@ on it's own, doesn't actually get them into the lua State.
 tl;dr for that you need to add an `api::callbacks` object using `API_FEATURE`. It makes sure
 all the callbacks are added and persists them correctly.
 
-For more details about callbacks, check out the API callbacks page. TODO link
+For more details about callbacks, check out the [link api_callbacks_reference API callbacks page].
 
-[h3 Rule of five ]
+[h3 Example Usage]
 
-Here we'll see some notes and example code showing a complete API object which
-implements the rule of five.
-
-TODO
+For extended examples of API objects, check out the [link api_tutorial_start tutorial].
 
 [endsect]

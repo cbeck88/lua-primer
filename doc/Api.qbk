@@ -1,3 +1,4 @@
+[#api_section]
 [section:api API]
 
 The `primer::api` namespace contains all the types which are specific to

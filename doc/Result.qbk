@@ -1,9 +1,9 @@
-[section class result]
+[section:result class result]
 
 `primer::result` is a small structure that is meant to be used by user code, in
 functions that are pushed to lua using `adapt`.
 
-See `adapt` for extended examples. (TODO link).
+See [link adapt_reference `adapt` reference page] for extended examples.
 
 `primer::result` is supposed to be the return type in a user callback. It signals
 how to terminate the lua function call when we return to lua.

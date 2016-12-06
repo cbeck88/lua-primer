@@ -1,4 +1,4 @@
-[section Containers]
+[section:containers Containers]
 
 Besides reading and writing primitive values like numbers and strings, primer
 is also able to intelligently move *aggregate* objects to and from lua as
@@ -9,7 +9,7 @@ This is accomplished by a number of (opt-in) partial-specializations of the
 
 Because of the overall design, this makes primer able to recognize such containers
 as function parameters in API callbacks, or to pass such containers as arguments to calls to 
-`bound_function` function objects. (See "Design" section.)
+`bound_function` function objects. (See [link primer.overview.design design].)
 
 Primer can also give nice semantics to optional types like `boost::optional`, or
 `std::optional` from C++17. In primer, these types can be used to specify that

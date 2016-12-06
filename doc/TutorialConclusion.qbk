@@ -3,13 +3,13 @@
 That concludes our whirlwind tour of [*primer].  
 
 If you'd like a more high-level discussion of the design goals of [*primer] and
-the different ways of using it, and how it compares with alternatives, check out the overview section (LINK TODO).
+the different ways of using it, and how it compares with alternatives, check out the [link primer.overview overview section].
 
 If you want to have a look at the source of more complete demos built using
 Primer, have a look in the `example` folder TODO. (Most of the tutorial code is
 also built as part of the test suite.)
 
-If you'd like a more exhaustive and methodical exposition, check out the reference
-section (LINK TODO).
+If you'd like a more exhaustive and methodical exposition, check out the [link primer.reference reference
+section].
 
 [endsect]
