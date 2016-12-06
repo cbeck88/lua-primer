@@ -36,7 +36,7 @@ public:
 
 //` [*vm.cpp]
 
-//= #include <vm.hpp>
+//=#include <vm.hpp>
 
 #include <primer/api.hpp>
 #include <primer/primer.hpp>
@@ -150,7 +150,7 @@ void vm::deserialize(const std::string & buff) {
 
 //` [*main.cpp]
 
-//= #include <vm.hpp>
+//=#include <vm.hpp>
 #include <iostream>
 #include <string>
 
