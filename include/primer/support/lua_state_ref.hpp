@@ -124,7 +124,7 @@ private:
     }
     PRIMER_CATCH_BAD_ALLOC {
       lua_pop(L, 1);
-      lua_pushstring(L, "lua_state_ref: std::bad_alloc encountered");
+      lua_pushstring(L, "lua_state_ref: bad_alloc");
       lua_error(L);
       return;
     }
@@ -168,6 +168,7 @@ swap(lua_state_ref & one, lua_state_ref & other) noexcept {
 
 // Forward facing interface
 // Note: this raises lua errors in case of memory allocation failure
+// Doesn't throw exceptions
 inline lua_state_ref
 obtain_state_ref(lua_State * L) {
   return lua_state_ref::obtain_weak_ref_to_state(L);

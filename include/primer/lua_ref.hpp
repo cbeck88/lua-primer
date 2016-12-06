@@ -58,7 +58,8 @@ class lua_ref {
   }
 
   // Not to be called unless the ref is in an empty / disengaged state.
-  // Note: Technically, memory allocation failure can occur in luaL_ref.
+  // Note: Memory allocation failure can occur in luaL_ref, or in obtain_state_ref
+  // Doesn't throw exceptions
   void init(lua_State * L) {
     if (L) {
       if (lua_gettop(L)) {
@@ -107,7 +108,8 @@ public:
   /*<< Pops an object from the top of given stack, and binds to it. If no
        object is on top, enters the empty state.
 
-Note: This can cause a lua memory allocation failure.
+Note: This can cause a lua memory allocation failure, but it doesn't throw
+  std::bad_alloc.
   >>*/
   explicit lua_ref(lua_State * L);
 
@@ -167,6 +169,17 @@ check.
 };
 //]
 
+#ifdef PRIMER_NO_EXCEPTIONS
+#define PRIMER_CTOR_FAIL(X)                                                    \
+  PRIMER_FATAL_ERROR(X)
+#else
+#define PRIMER_CTOR_FAIL(X)                                                    \
+ throw std::bad_alloc{};
+#endif
+
+// Note: Decided that it's acceptable for this to raise a lua error, since you
+// are explicitly manipulating a lua_State * and there is no possible leak.
+// It does not throw std::bad_alloc, that gets translated to a lua error.
 inline lua_ref::lua_ref(lua_State * L) { this->init(L); }
 
 inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
@@ -176,26 +189,29 @@ inline lua_ref::lua_ref(lua_ref && other) noexcept { this->move(other); }
 //       allocation failure, and it's really not very practical to require the
 //       user to create a protected context for any, accidental, copy.
 
-#ifdef PRIMER_NO_EXCEPTIONS
-#define PRIMER_COPY_CTOR_FAIL std::abort()
-#else
-#define PRIMER_COPY_CTOR_FAIL                                                  \
-  throw std::bad_alloc {}
-#endif
 
 inline lua_ref::lua_ref(const lua_ref & other)
   : lua_ref() {
   if (lua_State * L = other.lock()) {
-    if (!lua_checkstack(L, 1)) { PRIMER_COPY_CTOR_FAIL; }
-    if (!other.push(L)) { PRIMER_COPY_CTOR_FAIL; }
+    if (!lua_checkstack(L, 1)) {
+      PRIMER_CTOR_FAIL("lua_ref copy ctor: out of lua stack space");
+    }
+    if (!other.push(L)) {
+       // This shouldn't happen because `push` normally returns the same value
+       // as lock, but let's assume it means other is actually empty.
+       this->set_empty();
+       return;
+    }
 
     // Protect against memory failure in `luaL_ref`.
     auto ok = primer::mem_pcall<1>(L, [this, L]() { this->init(L); });
-    if (!ok) { PRIMER_COPY_CTOR_FAIL; }
+    if (!ok) {
+      PRIMER_CTOR_FAIL("lua_ref copy ctor: bad_alloc");
+    }
   }
 }
 
-#undef PRIMER_COPY_CTOR_FAIL
+#undef PRIMER_CTOR_FAIL
 
 inline lua_ref::~lua_ref() noexcept { this->release(); }
 
