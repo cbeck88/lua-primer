@@ -43,6 +43,22 @@ message `primer::error::module_not_found`.
 
 [h4 Synopsis]
 
-TODO
+Once you have a VFS provider, you make it derive from `primer::api::vfs` using CRTP like so:
+
+```
+  struct my_vfs_provider : primer::api::vfs<my_vfs_provider> {
+    ...
+  };
+```
+
+Your object will then inherit appropriate implementations of API Feature methods, so that
+it effectively implements a little library consisting of `loadfile`, `dofile`, and `require`.
+The implementations of these work by calling your `load` method as appropriate.
+
+You can then declare it in your API object using API_FEATURE as usual, e.g.:
+
+```
+  API_FEATURE(my_vfs_provider, vfs_);
+```
 
 [endsect]
