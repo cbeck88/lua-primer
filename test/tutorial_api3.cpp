@@ -1,11 +1,18 @@
 #include <primer/api.hpp>
 #include <primer/primer.hpp>
 
-#include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
 using uint = unsigned int;
+
+#define ASSERT(X)                                                              \
+  if (!(X)) {                                                                  \
+    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: "         \
+              << #X << std::endl;                                              \
+    std::abort();                                                              \
+  }
 
 /***
  * TODO: This example doesn't actually work!
@@ -95,7 +102,7 @@ struct my_api : api::base<my_api> {
     : lua_()
     , callbacks_(this)
     , count_{0} {
-    assert(this->initialize_api(lua_));
+    ASSERT(this->initialize_api(lua_));
   }
 
   void run_script(const char * script) {
@@ -113,11 +120,11 @@ struct my_api : api::base<my_api> {
 
   std::string serialize() {
     std::string result;
-    this->persist(lua_, result);
+    ASSERT(this->persist(lua_, result));
     return result;
   }
 
-  void deserialize(const std::string & str) { this->unpersist(lua_, str); }
+  void deserialize(const std::string & str) { ASSERT(this->unpersist(lua_, str)); }
 };
 
 int

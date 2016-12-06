@@ -114,16 +114,39 @@ private:
     lua_rawseti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
 
     {
+      // TODO: This assertion is probably bad, since
+      // these functions may raise lua errors and probably should be allowed
+      // to leave the stack however. If lua is compiled as C++ then the dtor
+      // here will be called.
       PRIMER_ASSERT_STACK_NEUTRAL(L);
       this->visit_features(on_deserialize_visitor{L});
     }
     lua_pop(L, 1);
   }
 
-  // This may raise lua errors
+  // These impl functions may raise lua errors, but they should not throw
+  // exceptions.
   void initialize_api_impl(lua_State * L) {
     primer::api::init_caches(L);
     this->visit_features(on_init_visitor{L});
+  }
+
+  void persist_impl(lua_State * L, std::string & buffer) {
+    this->make_persist_table(L);
+    this->make_target_table(L);
+
+    buffer.resize(0);
+    eris_dump(L, detail::trivial_string_writer, &buffer); // [_persist] [target]
+  }
+
+  void unpersist_impl(lua_State * L, const std::string & buffer) {
+    this->make_unpersist_table(L); // [_unpersist]
+
+    detail::reader_helper rh{buffer};
+    eris_undump(L, detail::trivial_string_reader, &rh); // [_unpersist] [target]
+
+    lua_remove(L, 1); // [target]
+    this->consume_target_table(L); 
   }
 
 protected:
@@ -144,32 +167,24 @@ protected:
     return cpp_pcall<0>(L, [&L, this](){ this->initialize_api_impl(L); });
   }
 
-  void persist(lua_State * L, std::string & buffer) {
+  expected<void> persist(lua_State * L, std::string & buffer) {
     lua_settop(L, 0);
 
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    expected<void> result = cpp_pcall<0>(L, [&L, &buffer, this](){ this->persist_impl(L, buffer); });
 
-    this->make_persist_table(L);
-    this->make_target_table(L);
+    lua_settop(L, 0);
 
-    buffer.resize(0);
-    eris_dump(L, detail::trivial_string_writer, &buffer); // [_persist] [target]
-
-    lua_pop(L, 2);
+    return result;
   }
 
-  void unpersist(lua_State * L, const std::string & buffer) {
+  expected<void> unpersist(lua_State * L, const std::string & buffer) {
     lua_settop(L, 0);
 
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    expected<void> result = cpp_pcall<0>(L, [&L, &buffer, this](){ this->unpersist_impl(L, buffer); });
 
-    this->make_unpersist_table(L); // [_unpersist]
-
-    detail::reader_helper rh{buffer};
-    eris_undump(L, detail::trivial_string_reader, &rh); // [_unpersist] [target]
-
-    lua_remove(L, 1); // [target]
-    this->consume_target_table(L);
+    lua_settop(L, 0);
+    
+    return result;
   }
 };
 
