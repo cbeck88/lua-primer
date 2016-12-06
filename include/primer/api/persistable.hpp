@@ -120,15 +120,19 @@ private:
     lua_pop(L, 1);
   }
 
+  // This may raise lua errors
+  void initialize_api_impl(lua_State * L) {
+    primer::api::init_caches(L);
+    this->visit_features(on_init_visitor{L});
+  }
+
 protected:
   /***
    * Forward-facing interface for derived classes. Initialization / persistance.
    */
 
-  void initialize_api(lua_State * L) {
+  expected<void> initialize_api(lua_State * L) {
     PRIMER_ASSERT_STACK_NEUTRAL(L);
-
-    primer::api::init_caches(L);
 
 #ifdef PRIMER_DEBUG
     // Set debugging mode for eris
@@ -137,7 +141,7 @@ protected:
     lua_pop(L, 1);
 #endif
 
-    this->visit_features(on_init_visitor{L});
+    return cpp_pcall<0>(L, [&L, this](){ this->initialize_api_impl(L); });
   }
 
   void persist(lua_State * L, std::string & buffer) {

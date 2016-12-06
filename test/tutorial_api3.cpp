@@ -95,7 +95,7 @@ struct my_api : api::base<my_api> {
     : lua_()
     , callbacks_(this)
     , count_{0} {
-    this->initialize_api(lua_);
+    assert(this->initialize_api(lua_));
   }
 
   void run_script(const char * script) {

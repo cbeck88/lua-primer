@@ -82,7 +82,7 @@ struct vm::impl : api::base<impl> {
   impl()
     : callbacks_(this)
   {
-    this->initialize_api(lua_);
+    assert(this->initialize_api(lua_));
   }
 
   std::string serialize() {
