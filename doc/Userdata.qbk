@@ -72,7 +72,7 @@ While primitive types like `number`, `string`, and `table` are generally read fr
 for userdata types this is usually much less useful. Often, you want to manipulate the userdata value that is actually contained within lua,
 not some copy of it -- and you don't really want to make copies anyways.
 
-TODO better examples
+For extended examples, check out the [link userdata_tutorial tutorial].
 
 [h4 Adapting userdata methods]
 

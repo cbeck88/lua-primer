@@ -25,7 +25,7 @@ In primer, we respect this idiom, but we extend it as follows:
 * ['Any standard container] (`std::array`, `std::initializer_list`, `std::vector`) is supported, with or without null terminators. It needs to satisfy the conditions for use in a range-based for loop.
 * The value-type need not actually be `luaL_Reg` -- as long as it has public members `const char * name`
 and `lua_CFunction func`, that's enough
-* Instead of a container, ['the object can actually just be a function which takes no arguments and yields the container]. This is in case you want to define the list in a header and not deal with static initialization problems.
+* Instead of a container, ['the object can actually just be a function which takes no arguments and yields the container]. This is in case you want to define the list in a header and not deal with linkage headaches.
 
 In total we call this concept "`L_Reg_sequence`".
 
