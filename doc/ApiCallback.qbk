@@ -25,7 +25,7 @@ The API feature that does this is `primer::api::callbacks`.
 ``
 struct my_api : primer::api::base<my_api> {
 
-  API_CALLBACK(foo, ("This is the foo help")) (lua_State * L, std::string arg) -> primer::result {
+  NEW_LUA_CALLBACK(foo, ("This is the foo help")) (lua_State * L, std::string arg) -> primer::result {
 
   }
 
@@ -59,36 +59,36 @@ This is where it obtains the list of functions that it should manage.
 
 [h4 Registration of callbacks]
 
-The actual callbacks array is assembled by the api::base itself, based on declarations
+The actual callbacks array is assembled by the `api::base` itself, based on declarations
 that it sees in the api object body.
 
-All callbacks are registered via a macro `USE_API_CALLBACK`.
+All callbacks are registered via a macro `USE_LUA_CALLBACK`.
 
-This macro takes two parameters:
- * a token which becomes the name of the function in lua
- * a function pointer, which is adapted using the macro `PRIMER_ADAPT_EXTRASPACE`
+This macro takes two parameters:  
+
+* a token which becomes the name of the function in lua
+* a function pointer, which is adapted using the macro `PRIMER_ADAPT_EXTRASPACE`
 
 Thus, this macro can be used with free functions, as well as member functions --
 it will just fallback to `PRIMER_ADAPT` in that case.
 
-The macro which we saw in examples was simply `API_CALLBACK`. That macro is
+The macro which we saw in examples was simply `NEW_LUA_CALLBACK`. That macro is
 defined as follows:
 
 [primer_api_callback_defn]
 
 In this definition, `owner_type` is a `typedef` created by `api::base`.
-The macro simply calls `USE_API_CALLBACK` using a member function `intf_##name`,
+The macro simply calls `USE_LUA_CALLBACK` using a member function `intf_##name`,
 yet to be created. Then it opens a definition for that member function, using
 `auto` for trailing return specifier.
 
-So, there is no magic here. `USE_API_CALLBACK` is what is doing the work, and all
+So, there is no magic here. `USE_LUA_CALLBACK` is what is doing the work, and all
 it needs is a function pointer.
 
 If you prefer the syntax, you can just declare all your callbacks "normally" and without
-macros, and then register them one-by-one using `USE_API_CALLBACK`. (But, it creates
+macros, and then register them one-by-one using `USE_LUA_CALLBACK`. (But, it creates
 another point of maintanence failure since you have to manually update this list when
-functions are added or removed. You won't get a compiler error if you define a new
-callback function and forget to register it.)
+functions are added or removed.)
 
 TODO example
 
