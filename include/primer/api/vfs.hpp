@@ -109,13 +109,12 @@ protected:
   }
 
   // Helper
-  static std::array<const luaL_Reg, 3> get_funcs() {
-    std::array<const luaL_Reg, 3> funcs = {{
+  static constexpr std::array<luaL_Reg, 3> get_funcs() {
+    return {{
       luaL_Reg{"loadfile", PRIMER_ADAPT(&intf_loadfile)},
       luaL_Reg{"dofile", PRIMER_ADAPT(&intf_dofile)},
       luaL_Reg{"require", PRIMER_ADAPT(&intf_require)},
     }};
-    return funcs;
   }
 
 public:
