@@ -112,15 +112,21 @@ public:
 private:
   // Create a strong pointer in a userdata. This object will be cached,
   // and needs to be destroyed when the lua state is destroyed.
+  // This function raises a lua error in case of memory allocation failures.
   static void make_strong_ptr(lua_State * L) {
-    // TODO: Handle std::bad_alloc ... ?
-    {
+    PRIMER_TRY_BAD_ALLOC {
       // Get the *main* thread, in case this is being called from a short-lived
       // thread. We want the strong_ptr to be pointing to something that lives
       // as long as the lua state.
       lua_State * M = primer::main_thread(L);
       PRIMER_ASSERT(M, "The main thread was not a thread (!)");
       new (lua_newuserdata(L, sizeof(strong_ptr_type))) strong_ptr_type{M};
+    }
+    PRIMER_CATCH_BAD_ALLOC {
+      lua_pop(L, 1);
+      lua_pushstring(L, "lua_state_ref: std::bad_alloc encountered");
+      lua_error(L);
+      return;
     }
 
     lua_newtable(L); // Create the metatable
@@ -161,9 +167,9 @@ swap(lua_state_ref & one, lua_state_ref & other) noexcept {
 }
 
 // Forward facing interface
-
+// Note: this raises lua errors in case of memory allocation failure
 inline lua_state_ref
-obtain_state_ref(lua_State * L) noexcept {
+obtain_state_ref(lua_State * L) {
   return lua_state_ref::obtain_weak_ref_to_state(L);
 }
 
