@@ -1,0 +1,169 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Userdata Methods</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="userdata.html" title="Userdata">
+<link rel="next" href="lua_references.html" title="Lua References">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="userdata.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="lua_references.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.quickstart.tutorial.userdata_methods"></a><a class="link" href="userdata_methods.html" title="Userdata Methods">Userdata
+        Methods</a>
+</h4></div></div></div>
+<p>
+          Besides registering free functions, sometimes we'd like to register methods
+          (member functions) of userdata types -- it may simply be more elegant that
+          way. You can do that using a special version of <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>.
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">bar</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">str</span><span class="special">;</span>
+
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">foo</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">str</span> <span class="special">+=</span> <span class="identifier">s</span><span class="special">;</span>
+    <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">userdata</span><span class="special">&lt;</span><span class="identifier">bar</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"bar"</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">,</span> <span class="number">1</span><span class="special">&gt;</span> <span class="identifier">metatable</span><span class="special">{</span>
+    <span class="special">{{</span><span class="string">"foo"</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT_USERDATA</span><span class="special">(</span><span class="identifier">bar</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">bar</span><span class="special">::</span><span class="identifier">foo</span><span class="special">)}}};</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span>
+<span class="identifier">new_bar</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">s</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span><span class="special">&lt;</span><span class="identifier">bar</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">s</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">}</span>
+
+  <span class="comment">// ...</span>
+
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">new_bar</span><span class="special">));</span>
+  <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"new_bar"</span><span class="special">);</span>
+
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">script</span> <span class="special">=</span>
+    <span class="string">""</span>
+    <span class="string">"x = new_bar('a') "</span>
+    <span class="string">"x:foo('b') "</span>
+    <span class="string">"x:foo('c') "</span><span class="special">;</span>
+
+    <span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">script</span><span class="special">));</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">!=</span> <span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">script</span><span class="special">))</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cerr</span> <span class="special">&lt;&lt;</span> <span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">)</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+    <span class="identifier">assert</span><span class="special">(</span><span class="keyword">false</span><span class="special">);</span>
+  <span class="special">}</span>
+    <span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+</pre>
+<p>
+          The above example works because, by default, unless you provide an <code class="computeroutput"><span class="identifier">__index</span></code> function, primer sets __index
+          to refer to the metatable itself -- so <code class="computeroutput"><span class="special">.</span><span class="identifier">foo</span></code> obtains the function <code class="computeroutput"><span class="identifier">foo</span></code> which we registered. (This is an
+          extremely common technique in lua C api programming. If you really want
+          to have no <code class="computeroutput"><span class="identifier">__index</span></code> function,
+          you should specifiy <code class="computeroutput"><span class="keyword">nullptr</span></code>.
+          See reference for more detail.) Another example, using the token class
+          again, to do something like "operator overloading". Suppose we
+          don't want the <code class="computeroutput"><span class="identifier">id</span></code> value
+          to be directly visible from lua, but we want lua to be able to sort tokens.
+          When using primer, some steps above become unnecessary. Particularly, init_token_metatable`
+          happens implicitly. It's necessary for primer to know how to set up the
+          metatables properly -- basically it lets initialization happen lazily,
+          while also allowing serialization and deserialization to happen with less
+          work on your part.
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">token</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">id</span><span class="special">;</span>
+
+  <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">&lt;(</span><span class="keyword">const</span> <span class="identifier">token</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">id</span> <span class="special">&lt;</span> <span class="identifier">other</span><span class="special">.</span><span class="identifier">id</span><span class="special">;</span> <span class="special">}</span>
+
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">lua_less</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">token</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">const</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">*</span><span class="keyword">this</span> <span class="special">&lt;</span> <span class="identifier">other</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">userdata</span><span class="special">&lt;</span><span class="identifier">token</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">"token"</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span><span class="special">&lt;</span><span class="identifier">luaL_Reg</span><span class="special">,</span> <span class="number">1</span><span class="special">&gt;</span> <span class="identifier">metatable</span><span class="special">{</span>
+    <span class="special">{{</span><span class="string">"__lt"</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT_USERDATA</span><span class="special">(</span><span class="identifier">token</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">token</span><span class="special">::</span><span class="identifier">lua_less</span><span class="special">)}}};</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span>
+<span class="identifier">new_token</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">count</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span><span class="special">&lt;</span><span class="identifier">token</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">count</span><span class="special">++);</span>
+  <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">}</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span>
+<span class="identifier">inspect_token</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">token</span> <span class="special">&amp;</span> <span class="identifier">tok</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Token id: "</span> <span class="special">&lt;&lt;</span> <span class="identifier">tok</span><span class="special">.</span><span class="identifier">id</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+  <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+<span class="special">}</span>
+
+  <span class="comment">// ...</span>
+
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">new_token</span><span class="special">));</span>
+  <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"new_token"</span><span class="special">);</span>
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">inspect_token</span><span class="special">));</span>
+  <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"inspect_token"</span><span class="special">);</span>
+
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">script</span> <span class="special">=</span>
+    <span class="string">""</span>
+    <span class="string">"x = new_token() "</span>
+    <span class="string">"y = new_token() "</span>
+    <span class="string">"inspect_token(x) "</span>
+    <span class="string">"inspect_token(y) "</span>
+    <span class="string">"if x &lt; y then print('x &lt; y') end "</span>
+    <span class="string">"y = x "</span>
+    <span class="string">"if not (x &lt; y) and not (y &lt; x) then print('x == y') end "</span><span class="special">;</span>
+
+    <span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">script</span><span class="special">));</span>
+    <span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+</pre>
+<p>
+          Usually, it is simplest for <code class="computeroutput"><span class="identifier">metatable</span></code>
+          to be a <code class="computeroutput"><span class="keyword">constexpr</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code>
+          like above. However you have other options, see the reference section for
+          an exhaustive spec.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="userdata.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="lua_references.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

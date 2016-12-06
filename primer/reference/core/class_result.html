@@ -1,0 +1,249 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>class result</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="read.html" title="function read">
+<link rel="next" href="metafunction_adapt.html" title="metafunction adapt">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="read.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="metafunction_adapt.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.core.class_result"></a><a class="link" href="class_result.html" title="class result">class result</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is a small structure that is meant
+          to be used by user code, in functions that are pushed to lua using <code class="computeroutput"><span class="identifier">adapt</span></code>.
+        </p>
+<p>
+          See <code class="computeroutput"><span class="identifier">adapt</span></code> for extended
+          examples. (TODO link).
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is supposed to be the return type
+          in a user callback. It signals how to terminate the lua function call when
+          we return to lua.
+        </p>
+<p>
+          There are three possible signals:
+        </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl>
+<dt><span class="term"><code class="computeroutput"><span class="keyword">return</span></code></span></dt>
+<dd><p>
+                End this function call, and return some values from the stack to
+                the caller.
+              </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">yield</span></code></span></dt>
+<dd><p>
+                Yield the current coroutine, which effectively "pauses"
+                this function call, and transfers execution back to the caller. Yield
+                is also permitted to pass some values back to the caller. (See <a href="http://www.lua.org/manual/5.3/manual.html#lua_yield" target="_top">documentation</a>.)
+              </p></dd>
+<dt><span class="term"><code class="computeroutput"><span class="identifier">error</span></code></span></dt>
+<dd><p>
+                Raise a lua error.
+              </p></dd>
+</dl>
+</div>
+<p>
+          These are normally represented in lua C api by simply returning, or by
+          calling <code class="computeroutput"><span class="identifier">lua_yield</span></code> or <code class="computeroutput"><span class="identifier">lua_error</span></code> respectively.
+        </p>
+<p>
+          In primer,
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              The <code class="computeroutput"><span class="identifier">yield</span></code> and <code class="computeroutput"><span class="identifier">error</span></code> signals are represented by
+              structures, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">yield</span></code>
+              and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>.
+            </li>
+<li class="listitem">
+              The <code class="computeroutput"><span class="keyword">return</span></code> case is represented
+              simply by an <code class="computeroutput"><span class="keyword">int</span></code>, as normally
+              in lua.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is like a variant type that
+              represents one of these three options.
+            </li>
+</ul></div>
+<div class="table">
+<a name="primer.reference.core.class_result.example_usage"></a><p class="title"><b>Table&#160;1.1.&#160;Example Usage</b></p>
+<div class="table-contents"><table class="table" summary="Example Usage">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                </th>
+<th>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">lua</span> <span class="identifier">C</span>
+                    <span class="identifier">API</span></code>
+                  </p>
+                </th>
+<th>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">primer</span></code>
+                  </p>
+                </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                  <p>
+                    Function Prototype
+                  </p>
+                </td>
+<td>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span></pre>
+                </td>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">lua_State</span>
+                    <span class="special">*);</span></code>
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">return</span></code> zero values
+                  </p>
+                </td>
+<td>
+<pre class="programlisting"><span class="keyword">return</span> <span class="number">0</span><span class="special">;</span></pre>
+                </td>
+<td>
+<pre class="programlisting"><span class="keyword">return</span> <span class="number">0</span><span class="special">;</span></pre>
+                </td>
+</tr>
+<tr>
+<td>
+                </td>
+<td>
+                </td>
+<td>
+<pre class="programlisting"><span class="keyword">return</span> <span class="special">{</span><span class="number">0</span><span class="special">};</span></pre>
+                </td>
+</tr>
+<tr>
+<td>
+                </td>
+<td>
+                </td>
+<td>
+<pre class="programlisting"><span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span><span class="special">{</span><span class="number">0</span><span class="special">};</span></pre>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">yield</span></code> two values
+                  </p>
+                </td>
+<td>
+<pre class="programlisting"><span class="identifier">lua_yield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span></pre>
+                </td>
+<td>
+<pre class="programlisting"><span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">yield</span><span class="special">{</span><span class="number">2</span><span class="special">};</span></pre>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">error</span></code>
+                  </p>
+                </td>
+<td>
+<pre class="programlisting"><span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"no more foobar"</span><span class="special">);</span>
+<span class="identifier">lua_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span></pre>
+                </td>
+<td>
+<pre class="programlisting"><span class="keyword">return</span> <span class="identifier">primer</span><span class="special">:</span><span class="identifier">error</span><span class="special">{</span><span class="string">"no more foobar"</span><span class="special">};</span></pre>
+                </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>
+          <code class="computeroutput"><span class="keyword">return</span></code> and <code class="computeroutput"><span class="identifier">yield</span></code>
+          both take an <code class="computeroutput"><span class="keyword">int</span></code>, indicating
+          how many return values went on the stack which should be returned to the
+          caller.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">error</span></code> is indicated by a
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> object.
+        </p>
+<p>
+          The reasons why we do it slightly differently hopefully will become clear
+          in the <code class="computeroutput"><span class="identifier">adapt</span></code> section. One
+          advantage is that even though <code class="computeroutput"><span class="identifier">lua_yield</span></code>
+          and <code class="computeroutput"><span class="identifier">lua_error</span></code> work by executing
+          <code class="computeroutput"><span class="identifier">longjmp</span></code>, returning a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> doesn't, so local variables in
+          your function get cleaned up whether lua is compiled as C or C++, and without
+          relying on C++ exceptions.
+        </p>
+<h5>
+<a name="primer.reference.core.class_result.h0"></a>
+          <span><a name="primer.reference.core.class_result.synopsis"></a></span><a class="link" href="class_result.html#primer.reference.core.class_result.synopsis">Synopsis</a>
+        </h5>
+<pre class="programlisting"><span class="comment">// Tag used by the user to indicate a yield.</span>
+<span class="keyword">struct</span> <span class="identifier">yield</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">n_</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// Helper object: Represents a return or yield signal.</span>
+<span class="keyword">struct</span> <span class="identifier">return_or_yield</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">n_</span><span class="special">;</span>
+  <span class="keyword">bool</span> <span class="identifier">is_return_</span><span class="special">;</span>
+
+  <span class="keyword">bool</span> <span class="identifier">is_valid</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">n_</span> <span class="special">&gt;=</span> <span class="number">0</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="comment">// Result object</span>
+<span class="keyword">class</span> <span class="identifier">result</span> <span class="special">{</span>
+
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="identifier">payload_</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Ctors (implicit for ease of use)</span>
+  <span class="identifier">result</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">i</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">i</span><span class="special">,</span> <span class="keyword">true</span><span class="special">})</span> <span class="special">{}</span>
+  <span class="identifier">result</span><span class="special">(</span><span class="identifier">yield</span> <span class="identifier">y</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">return_or_yield</span><span class="special">{</span><span class="identifier">y</span><span class="special">.</span><span class="identifier">n_</span><span class="special">,</span> <span class="keyword">false</span><span class="special">})</span> <span class="special">{}</span>
+  <span class="identifier">result</span><span class="special">(</span><span class="identifier">error</span> <span class="identifier">e</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">payload_</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{}</span>
+
+  <span class="comment">// Accessor</span>
+  <span class="keyword">const</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">get_payload</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">payload_</span><span class="special">;</span> <span class="special">}</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">return_or_yield</span><span class="special">&gt;</span> <span class="special">&amp;</span> <span class="identifier">get_payload</span><span class="special">()</span> <span class="special">&amp;</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">payload_</span><span class="special">;</span> <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="read.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="metafunction_adapt.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>API Library</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../api.html" title="API">
+<link rel="prev" href="features.html" title="API Feature">
+<link rel="next" href="api_userdata.html" title="API Userdata">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="features.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.api.api_library"></a><a class="link" href="api_library.html" title="API Library">API Library</a>
+</h4></div></div></div>
+<p>
+          Libraries may be registered with an API using the <code class="computeroutput"><span class="identifier">libraries</span></code>
+          API feature.
+        </p>
+<p>
+          Example:
+        </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">api</span><span class="special">/</span><span class="identifier">libraries</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">struct</span> <span class="identifier">my_api</span> <span class="special">:</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">my_api</span><span class="special">&gt;</span> <span class="special">{</span>
+<span class="special">{</span>
+  <span class="special">...</span>
+
+  <span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">libraries</span><span class="special">&lt;</span><span class="identifier">lua_base_lib</span><span class="special">,</span> <span class="identifier">lua_table_lib</span><span class="special">,</span> <span class="identifier">lua_debug_lib</span><span class="special">,</span> <span class="identifier">lua_coroutine_lib</span><span class="special">&gt;,</span> <span class="identifier">libs_</span><span class="special">);</span>
+
+  <span class="special">...</span>
+
+<span class="special">};</span>
+</pre>
+<p>
+          Here, an individual library is a <code class="computeroutput"><span class="keyword">struct</span></code>
+          with <code class="computeroutput"><span class="keyword">static</span></code> class members
+          <code class="computeroutput"><span class="keyword">const</span> <span class="keyword">char</span>
+          <span class="special">*</span> <span class="identifier">name</span></code>
+          and <code class="computeroutput"><span class="identifier">luaCFunction</span> <span class="identifier">func</span></code>.
+          For instance,
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_base_lib</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">""</span><span class="special">;</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span> <span class="special">=</span> <span class="special">&amp;</span><span class="identifier">luaopen_base</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
+          There are corresponding definitions in primer for the following:
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_base_lib</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_table_lib</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_string_lib</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_math_lib</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_coroutine_lib</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_debug_lib</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_io_lib</span>
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_os_lib</span>
+</pre>
+<p>
+          There are also some "sandboxed" versions of some of these libs
+          to help in situations where you want a tightly encapsulated lua vm.
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_base_lib_sandboxed</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">name</span> <span class="special">=</span> <span class="string">""</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">get_clean_base</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">luaopen_base</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"print"</span><span class="special">);</span>
+
+    <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"loadfile"</span><span class="special">);</span>
+
+    <span class="identifier">lua_pushnil</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+    <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"dofile"</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="identifier">lua_CFunction</span> <span class="identifier">func</span> <span class="special">=</span> <span class="special">&amp;</span><span class="identifier">get_clean_base</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
+          Besides this there are
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">lua_math_lib_sandboxed</span>
+</pre>
+<p>
+          You can easily make your own sandboxing decisions of course.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">libraries</span></code> object itself
+          has no data members and no nontrivial initialization.
+        </p>
+<h4>
+<a name="primer.reference.api.api_library.h0"></a>
+          <span><a name="primer.reference.api.api_library.feature_behavior"></a></span><a class="link" href="api_library.html#primer.reference.api.api_library.feature_behavior">Feature
+          behavior</a>
+        </h4>
+<p>
+          The <code class="computeroutput"><span class="identifier">libraries</span></code> feature does
+          the following:
+        </p>
+<p>
+          When <code class="computeroutput"><span class="identifier">initialize_api</span></code> is
+          called,
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              Each library will be loaded into the <code class="computeroutput"><span class="identifier">_LOADED</span></code>
+              registry table as usual with lua,
+            </li>
+<li class="listitem">
+              The functions of each library will be installed in the permanent objects
+              table, so that they can survive when we persist / unpersist. The name
+              of the library will be combined in some unspecified way with the function's
+              name in order to form the placeholder name.
+            </li>
+</ul></div>
+<p>
+          There are also three typedefs which shorten the list of libraries:
+        </p>
+<pre class="programlisting"><span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">basic_libraries</span><span class="special">,</span> <span class="identifier">libs_</span><span class="special">);</span> <span class="comment">// Only base, table, string, math, and coroutine</span>
+</pre>
+<pre class="programlisting"><span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">all_core_libraries</span><span class="special">,</span> <span class="identifier">libs_</span><span class="special">);</span> <span class="comment">// All standard libraries:  at time of writing, basic, table, string, math, io, os, debug, coroutine</span>
+</pre>
+<pre class="programlisting"><span class="identifier">API_FEATURE</span><span class="special">(</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">sanbdoxed_basic_libraries</span><span class="special">,</span> <span class="identifier">libs_</span><span class="special">);</span> <span class="comment">// Same as basic, but with sandboxed versions of base lib and math lib.</span>
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="features.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="api_userdata.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

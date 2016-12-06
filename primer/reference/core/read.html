@@ -1,0 +1,581 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>function read</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="push.html" title="function push">
+<link rel="next" href="result.html" title="class result">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="push.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="result.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.core.read"></a><a name="read_reference"></a><a class="link" href="read.html" title="function read">function
+        read</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> is a template function used to read
+          a C++ value from the lua stack.
+        </p>
+<h5>
+<a name="primer.reference.core.read.h0"></a>
+          <span><a name="primer.reference.core.read.examples"></a></span><a class="link" href="read.html#primer.reference.core.read.examples">Examples</a>
+        </h5>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+<p class="simpara">
+              lua C API:
+            </p>
+<pre class="programlisting"><span class="keyword">if</span> <span class="special">(</span><span class="identifier">lua_isinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">))</span> <span class="special">{</span>
+  <span class="identifier">foo</span><span class="special">(</span><span class="identifier">lua_tointeger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">));</span>
+<span class="special">}</span>
+<span class="keyword">if</span> <span class="special">(</span><span class="identifier">lua_isstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">))</span> <span class="special">{</span>
+  <span class="identifier">bar</span><span class="special">(</span><span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">));</span>
+<span class="special">}</span>
+</pre>
+</li>
+<li class="listitem">
+<p class="simpara">
+              Using primer:
+            </p>
+<pre class="programlisting"><span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">i</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">))</span> <span class="special">{</span> <span class="identifier">foo</span><span class="special">(*</span><span class="identifier">i</span><span class="special">);</span> <span class="special">}</span>
+<span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">s</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">))</span> <span class="special">{</span> <span class="identifier">bar</span><span class="special">(*</span><span class="identifier">s</span><span class="special">);</span> <span class="special">}</span>
+</pre>
+</li>
+</ul></div>
+<h5>
+<a name="primer.reference.core.read.h1"></a>
+          <span><a name="primer.reference.core.read.synopsis"></a></span><a class="link" href="read.html#primer.reference.core.read.synopsis">Synopsis</a>
+        </h5>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">);</span>
+</pre>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">read</span></code> returns a value
+              of type <code class="computeroutput"><span class="identifier">T</span></code>, or an error
+              message explaining why the value on the stack could not be converted
+              to <code class="computeroutput"><span class="identifier">T</span></code>.
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">read</span></code> is not permitted
+              to leave the stack in a different state than it was found.
+            </li>
+</ul></div>
+<p>
+          You should always test the result of <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>
+          for safety, and not assume that it will succeed in any given case. If the
+          result is in an error state, then <code class="computeroutput"><span class="keyword">operator</span>
+          <span class="special">*</span></code> will invoke undefined behavior.
+        </p>
+<h5>
+<a name="primer.reference.core.read.h2"></a>
+          <span><a name="primer.reference.core.read.supported_types"></a></span><a class="link" href="read.html#primer.reference.core.read.supported_types">Supported
+          Types</a>
+        </h5>
+<p>
+          The following core types are supported:
+        </p>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                  <p>
+                    Type
+                  </p>
+                </th>
+<th>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>
+                  </p>
+                </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">bool</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Checks <code class="computeroutput"><span class="identifier">lua_isboolean</span></code>,
+                    returns value of <code class="computeroutput"><span class="identifier">lua_toboolean</span></code>.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">int</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Checks <code class="computeroutput"><span class="identifier">lua_isinteger</span></code>,
+                    returns value of <code class="computeroutput"><span class="identifier">lua_tointeger</span></code>.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">long</span></code>
+                  </p>
+                </td>
+<td>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">long</span></code>
+                  </p>
+                </td>
+<td>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">int</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Checks <code class="computeroutput"><span class="identifier">lua_isinteger</span></code>,
+                    returns value of <code class="computeroutput"><span class="identifier">lua_tointeger</span></code>.
+                    Fails if the value is negative.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">long</span></code>
+                  </p>
+                </td>
+<td>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">unsigned</span> <span class="keyword">long</span>
+                    <span class="keyword">long</span></code>
+                  </p>
+                </td>
+<td>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">float</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Checks <code class="computeroutput"><span class="identifier">lua_isnumber</span></code>,
+                    returns value of <code class="computeroutput"><span class="identifier">lua_tonumber</span></code>.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">double</span></code>
+                  </p>
+                </td>
+<td>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">long</span> <span class="keyword">double</span></code>
+                  </p>
+                </td>
+<td>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="keyword">const</span> <span class="keyword">char</span>
+                    <span class="special">*</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Checks <code class="computeroutput"><span class="identifier">lua_isstring</span></code>,
+                    returns value of <code class="computeroutput"><span class="identifier">lua_tostring</span></code>.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+                  </p>
+                </td>
+<td>
+                </td>
+</tr>
+</tbody>
+</table></div>
+<p>
+          In the above table, "Checks" means that, the checked function
+          must report "true" or an error is reported.
+        </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+            In the above table, when an integral type is read, if the target type
+            is <span class="bold"><strong>narrower</strong></span> than <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code>,
+            then an overflow check is performed, and an overflow error will be reported
+            if it occurs.
+          </p>
+<p>
+            To avoid the overhead of overflow checks, consider using the type <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code> in your code, or only using
+            <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> with integral types known to be
+            as large as <code class="computeroutput"><span class="identifier">LUA_INTEGER</span></code>.
+          </p>
+<p>
+            Or, consider compiling lua using <code class="computeroutput"><span class="special">-</span><span class="identifier">DLUA_32BITS</span></code> to force lua to use a 32
+            bit type for integers and floating point numbers internally.
+          </p>
+<p>
+            Alternatively, see "customization" below and specialize reading
+            for <code class="computeroutput"><span class="keyword">int</span></code>, <code class="computeroutput"><span class="keyword">unsigned</span>
+            <span class="keyword">int</span></code>, etc. as you like.
+          </p>
+</td></tr>
+</table></div>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+            In the above table, when a floating point type is read, if the target
+            type is <span class="bold"><strong>narrower</strong></span> than <code class="computeroutput"><span class="identifier">LUA_NUMBER</span></code>, no overflow check is performed,
+            and the conversion is performed using a <code class="computeroutput"><span class="keyword">static_cast</span></code>.
+            This gives you (the / a) "closest possible" matching float
+            value.
+          </p>
+<p>
+            In most applications this is what you want. If this conversion is a concern
+            for you, consider specializing the <code class="computeroutput"><span class="identifier">read</span></code>
+            trait for <code class="computeroutput"><span class="keyword">float</span></code>, <code class="computeroutput"><span class="keyword">double</span></code>, etc., or using <code class="computeroutput"><span class="identifier">LUA_NUMBER</span></code>
+            in your code for portability.
+          </p>
+</td></tr>
+</table></div>
+<p>
+          The following extra types are supported, which allow "flexible"
+          reads.
+        </p>
+<p>
+          This is useful for writing functions which allow in their parameters certain
+          implicit conversions typical of lua.
+        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+
+<span class="comment">// Use this type if you want to push nil onto the stack using primer::push</span>
+<span class="comment">// interface.</span>
+<span class="keyword">struct</span> <span class="identifier">nil_t</span> <span class="special">{};</span>
+
+<span class="comment">// Use this type if you want primer to convert given type to a boolean, even if</span>
+<span class="comment">// it was not originally a boolean</span>
+<span class="keyword">struct</span> <span class="identifier">truthy</span> <span class="special">{</span>
+  <span class="keyword">bool</span> <span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// Use this type if you want primer to convert given type to a string, even if</span>
+<span class="comment">// it was not originally a string</span>
+<span class="keyword">struct</span> <span class="identifier">stringy</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                  <p>
+                    Type
+                  </p>
+                </th>
+<th>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>
+                  </p>
+                </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">truthy</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Returns value of <code class="computeroutput"><span class="identifier">lua_toboolean</span></code>.
+                    Does not fail.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">stringy</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Returns value of <code class="computeroutput"><span class="identifier">lua_tostring</span></code>
+                    if argument is string or number. Returns result of <code class="computeroutput"><span class="identifier">__tostring</span></code> if metamethod is
+                    present and produces a string. Otherwise fails.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">nil_t</span></code>
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Checks <code class="computeroutput"><span class="identifier">lua_isnoneornil</span></code>.
+                  </p>
+                </td>
+</tr>
+</tbody>
+</table></div>
+<p>
+          Primer includes additional headers to support some C++ standard containers
+          and and boost containers, which tables may be converted to. See <a class="link" href="../containers.html" title="Containers">the
+          containers section</a> for details.
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">array</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">map</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">unordered_map</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">vector</span></code>
+            </li>
+</ul></div>
+<p>
+          Primer also supports the ability to read <span class="emphasis"><em>references</em></span>
+          to userdata types. (See <a class="link" href="userdata.html#userdata_reference">userdata reference
+          page</a>.)
+        </p>
+<h5>
+<a name="primer.reference.core.read.h3"></a>
+          <span><a name="primer.reference.core.read.customization"></a></span><a class="link" href="read.html#primer.reference.core.read.customization">Customization</a>
+        </h5>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>'s implementation is quite simple
+          -- it delegates work to a <span class="emphasis"><em>type trait</em></span>.
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span>
+<span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">PRIMER_ASSERT_STACK_NEUTRAL</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="keyword">return</span> <span class="special">::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          This trait, named <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">read</span></code>,
+          can be specialized to override primer's behavior for certain types, or
+          to add new behavior for these custom types.
+        </p>
+<p>
+          For example, suppose we have a simple vector type:
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">vec2i</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">x</span><span class="special">;</span>
+  <span class="keyword">int</span> <span class="identifier">y</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
+          Primer could be taught to read <code class="computeroutput"><span class="identifier">vec2i</span></code>
+          objects, represented in lua as a table with entries <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">1</span><span class="special">]</span></code>
+          and <code class="computeroutput"><span class="identifier">t</span><span class="special">[</span><span class="number">2</span><span class="special">]</span></code> using
+          the following code:
+        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;</span> <span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+
+    <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">lua_istable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">))</span> <span class="special">{</span>
+      <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Expected a table, found "</span><span class="special">,</span>
+                             <span class="identifier">primer</span><span class="special">::</span><span class="identifier">describe_lua_value</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">));</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+      <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">t1</span> <span class="special">=</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
+      <span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+
+      <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">t1</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">t1</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">prepend_error_line</span><span class="special">(</span><span class="string">"In position [1]"</span><span class="special">);</span>
+        <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">t1</span><span class="special">.</span><span class="identifier">err</span><span class="special">());</span>
+      <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+
+        <span class="identifier">lua_rawgeti</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">index</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
+        <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">t2</span> <span class="special">=</span> <span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;::</span><span class="identifier">from_stack</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">);</span>
+        <span class="identifier">lua_pop</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+
+        <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">t2</span><span class="special">)</span> <span class="special">{</span>
+          <span class="identifier">t2</span><span class="special">.</span><span class="identifier">err</span><span class="special">().</span><span class="identifier">prepend_error_line</span><span class="special">(</span><span class="string">"In position [2]"</span><span class="special">);</span>
+          <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">t2</span><span class="special">.</span><span class="identifier">err</span><span class="special">());</span>
+        <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+          <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">vec2i</span><span class="special">{*</span><span class="identifier">t1</span><span class="special">,</span> <span class="special">*</span><span class="identifier">t2</span><span class="special">};</span>
+        <span class="special">}</span>
+      <span class="special">}</span>
+    <span class="special">}</span>
+
+    <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">stack_space_needed</span> <span class="special">=</span> <span class="number">1</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<p>
+          A few things to note about this code:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              The returned local variable is declared at the top, and only one return
+              statement exists, at the end. This ensures that named return value
+              optimization can take place.
+            </li>
+<li class="listitem">
+              We avoid using the stack excessively. When a new value is pushed onto
+              the stack using <code class="computeroutput"><span class="identifier">lua_rawgeti</span></code>,
+              we read it immediately and then pop it. This means we need only one
+              extra stack space rather than two.
+            </li>
+<li class="listitem">
+              One consequence of this is that we don't need to worry about the case
+              that <code class="computeroutput"><span class="identifier">index</span></code> is negative.
+              In general, one can use <code class="computeroutput"><span class="identifier">lua_absindex</span></code>
+              to convert negative indices to positive indices. If the top of the
+              stack is changing, then this may be necessary for correctness.
+            </li>
+<li class="listitem">
+              The <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> constructor can take any number
+              of strings, and concatenates them together. <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">describe_lua_value</span></code>
+              is used to generate a diagnostic message describing a value on the
+              stack.
+            </li>
+<li class="listitem">
+              The <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> member function <code class="computeroutput"><span class="identifier">prepend_error_line</span></code> is used to give
+              context to errors reported by subsidiary operations.
+            </li>
+</ul></div>
+<p>
+          The following code snippet shows how this looks from lua's point of view
+        </p>
+<pre class="programlisting"><span class="identifier">luaL_loadstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"return {7, 4}"</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">==</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">0</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_gettop</span><span class="special">(</span><span class="identifier">L</span><span class="special">)</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span> <span class="comment">// the table is now on top of the stack</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_istable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">));</span>
+
+<span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">vec2i</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">-&gt;</span><span class="identifier">x</span> <span class="special">==</span> <span class="number">7</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">-&gt;</span><span class="identifier">y</span> <span class="special">==</span> <span class="number">4</span><span class="special">);</span>
+</pre>
+<h5>
+<a name="primer.reference.core.read.h4"></a>
+          <span><a name="primer.reference.core.read.stack_space"></a></span><a class="link" href="read.html#primer.reference.core.read.stack_space">Stack
+          Space</a>
+        </h5>
+<p>
+          Similar to <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>, specializations of <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> must declare how much stack space
+          they <span class="bold"><strong>assume</strong></span> that they will have available.
+          If your specialization performs it's own calls to <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>,
+          then the <code class="computeroutput"><span class="identifier">stack_space_needed</span></code>
+          value can be zero.
+        </p>
+<p>
+          The stack space needed for a given type can be calculated at compile-time
+          using
+        </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="identifier">stack_space_for_read</span><span class="special">();</span>
+</pre>
+<p>
+          It is important to declare a <code class="computeroutput"><span class="identifier">stack_space_needed</span></code>
+          value for any customization of <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>,
+          it can protect you from certain obscure problems. For instance, when lua
+          calls a C++ function passed by you, the lua API guarantees that there will
+          be at least <code class="computeroutput"><span class="identifier">LUA_MINSTACK</span></code>
+          stack positions free for you to work with, by default, 20 in current versions.
+          However, if one day your function requires 21 stack spaces to read its
+          parameters off of the stack, then you can get have undefined behavior when
+          that function is called if there is no call to <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>.
+        </p>
+<p>
+          When a C++ function is adapted for lua using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code>
+          (see docs there) Primer computes at compile-time how much space is needed
+          to read the parameters, using the values associated with <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>. It compares this with <code class="computeroutput"><span class="identifier">LUA_MINSTACK</span></code>, and insert a single call
+          to <code class="computeroutput"><span class="identifier">lua_checkstack</span></code> if necessary,
+          and omits it otherwise. So, you pay the minimum possible at runtime for
+          this protection, and usually nothing. But it only works if the <code class="computeroutput"><span class="identifier">stack_space_needed</span></code> values are accurate,
+          or at least conservative.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="push.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="result.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

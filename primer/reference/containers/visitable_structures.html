@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Visitable Structures</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../containers.html" title="Containers">
+<link rel="prev" href="optionals.html" title="Optionals">
+<link rel="next" href="../api.html" title="API">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="optionals.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../containers.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../api.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.containers.visitable_structures"></a><a class="link" href="visitable_structures.html" title="Visitable Structures">Visitable
+        Structures</a>
+</h4></div></div></div>
+<p>
+          The <code class="computeroutput"><span class="identifier">visit_struct</span></code> library
+          is a miniature reflection library.
+        </p>
+<p>
+          It provides some macros that allow you to define an arbitrary C++ struct
+          as a "visitable structure". This means that you can apply any
+          generic function object to the pairs formed of its field names and values
+          in sequential order.
+        </p>
+<p>
+          Usually, you will declare all the members as "visitable" when
+          you do this, but you don't have to.
+        </p>
+<p>
+          See <a href="https://github.com/cbeck88/visit_struct" target="_top">visit_struct docs</a>
+          for more info.
+        </p>
+<h5>
+<a name="primer.reference.containers.visitable_structures.h0"></a>
+          <span><a name="primer.reference.containers.visitable_structures.in_primer"></a></span><a class="link" href="visitable_structures.html#primer.reference.containers.visitable_structures.in_primer">In
+          Primer</a>
+        </h5>
+<p>
+          This library is integrated with Primer:
+        </p>
+<p>
+          Primer has a specialization of <code class="computeroutput"><span class="identifier">push</span></code>
+          and <code class="computeroutput"><span class="identifier">read</span></code> for any visitable
+          structure, which you can get via
+        </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">primer</span><span class="special">/</span><span class="identifier">visit_struct</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+</pre>
+<p>
+          Basically, the struct definition becomes a schema for a table layout.
+        </p>
+<p>
+          When a visitable structure is <span class="emphasis"><em>pushed</em></span>:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              Primer creates a table
+            </li>
+<li class="listitem">
+              Primer pushes each visitable member using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>
+              and sets it to be a field of the table corresponding to the member
+              name.
+            </li>
+</ul></div>
+<p>
+          When a visitable structure is <span class="emphasis"><em>read</em></span>:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              Primer checks that it is reading from a table.
+            </li>
+<li class="listitem">
+              Primer attempts to default construct the structure.
+            </li>
+<li class="listitem">
+              Primer reads from corresponding field names of the table, using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> to try to obtain appropriate
+              C++ values. These are move-assigned into the members of the structure.
+              If all visitable fields are read, the structure is returned, if not,
+              an error is reported.
+            </li>
+</ul></div>
+<h5>
+<a name="primer.reference.containers.visitable_structures.h1"></a>
+          <span><a name="primer.reference.containers.visitable_structures.example"></a></span><a class="link" href="visitable_structures.html#primer.reference.containers.visitable_structures.example">Example</a>
+        </h5>
+<p>
+          The use of this can be seen with an example.
+        </p>
+<p>
+          Here we are demonstrating a form of "named parameters" in a callback
+          function. The argument to a function is expected to be a single lua table.
+          A visitable structure is used so that the arguments are automatically parsed
+          into a struct. Note that we are using <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span></code>
+          as some of the structure members, so that those entries don't have to appear
+          in the table.
+        </p>
+<p>
+          <span class="bold"><strong>lua:</strong></span>
+        </p>
+<pre class="programlisting"><span class="identifier">h</span><span class="special">{</span> <span class="identifier">name</span> <span class="special">=</span> <span class="char">'Charlie'</span><span class="special">,</span> <span class="identifier">id</span> <span class="special">=</span> <span class="number">44</span> <span class="special">}</span>
+</pre>
+<p>
+          <span class="bold"><strong>C++:</strong></span>
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">h_arguments</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">name</span><span class="special">;</span>
+  <span class="keyword">int</span> <span class="identifier">id</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">group</span><span class="special">;</span>
+  <span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">task</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="identifier">VISITABLE_STRUCT</span><span class="special">(</span><span class="identifier">h_arguments</span><span class="special">,</span> <span class="identifier">name</span><span class="special">,</span> <span class="identifier">id</span><span class="special">,</span> <span class="identifier">group</span><span class="special">,</span> <span class="identifier">task</span><span class="special">);</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">h</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">h_arguments</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">it</span> <span class="special">=</span> <span class="identifier">database</span><span class="special">.</span><span class="identifier">find</span><span class="special">(</span><span class="identifier">args</span><span class="special">.</span><span class="identifier">id</span><span class="special">);</span>
+  <span class="special">...</span>
+<span class="special">}</span>
+</pre>
+<h5>
+<a name="primer.reference.containers.visitable_structures.h2"></a>
+          <span><a name="primer.reference.containers.visitable_structures.hana_and_fusion"></a></span><a class="link" href="visitable_structures.html#primer.reference.containers.visitable_structures.hana_and_fusion">Hana
+          and Fusion</a>
+        </h5>
+<p>
+          Note that, because <code class="computeroutput"><span class="identifier">visit_struct</span></code>
+          has compatibility headers for <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span></code>
+          and <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">fusion</span></code>, any "fusion adapted structure"
+          or <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="keyword">struct</span></code> may be read or pushed in this manner
+          as well.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="optionals.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../containers.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../api.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

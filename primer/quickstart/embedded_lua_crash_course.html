@@ -1,0 +1,261 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Embedded Lua Crash Course</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../quickstart.html" title="Quickstart">
+<link rel="prev" href="intro.html" title="Intro">
+<link rel="next" href="tutorial.html" title="Tutorial">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="intro.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickstart.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="tutorial.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="primer.quickstart.embedded_lua_crash_course"></a><a class="link" href="embedded_lua_crash_course.html" title="Embedded Lua Crash Course">Embedded
+      Lua Crash Course</a>
+</h3></div></div></div>
+<p>
+        This is a quick overview of the lua C api, sufficient for getting an idea
+        of how lua works, using <code class="computeroutput"><span class="identifier">primer</span></code>,
+        and making sense of the examples. It is not a substitute for <a href="http://www.lua.org/manual/5.3/manual.html" target="_top">the
+        manual</a>.
+      </p>
+<h4>
+<a name="primer.quickstart.embedded_lua_crash_course.h0"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.basics"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.basics">Basics</a>
+      </h4>
+<p>
+        The reference implementation of lua is written in C, and is designed to be
+        embedded into larger programs. Lua has the following basic features:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Dynamic typing. Every lua value has one of the following types:
+            <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">boolean</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">number</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">string</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">table</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">nil</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">function</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">thread</span></code>
+                </li>
+<li class="listitem">
+                  <code class="computeroutput"><span class="identifier">userdata</span></code>
+                </li>
+</ul></div>
+          </li>
+<li class="listitem">
+            Garbage collection. Lua has an internal memory allocator and performs
+            its own memory management.
+          </li>
+</ul></div>
+<h4>
+<a name="primer.quickstart.embedded_lua_crash_course.h1"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.the_stack"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.the_stack">The Stack</a>
+      </h4>
+<p>
+        An essential part of the lua C api is the <a href="http://www.lua.org/manual/5.3/manual.html#4.1" target="_top"><span class="emphasis"><em>lua
+        stack</em></span></a>.
+      </p>
+<p>
+        Lua transfers values to and from your application by means of a stack, in
+        which each item is a lua value.
+      </p>
+<p>
+        You can <span class="emphasis"><em>adjust</em></span> the stack by means of calls like <code class="computeroutput"><span class="identifier">lua_gettop</span></code> and <code class="computeroutput"><span class="identifier">lua_settop</span></code>.
+      </p>
+<p>
+        You can <span class="emphasis"><em>query</em></span> the type of a value in the stack by calling
+        <code class="computeroutput"><span class="identifier">lua_type</span></code>.
+      </p>
+<p>
+        You can <span class="emphasis"><em>push</em></span> values onto the stack using calls like
+        <code class="computeroutput"><span class="identifier">lua_pushnumber</span></code> or <code class="computeroutput"><span class="identifier">lua_pushstring</span></code>.
+      </p>
+<p>
+        You can <span class="emphasis"><em>recover</em></span> values from the stack using calls like
+        <code class="computeroutput"><span class="identifier">lua_tonumber</span></code> or <code class="computeroutput"><span class="identifier">lua_tostring</span></code>.
+      </p>
+<p>
+        These functions all take as input a <span class="emphasis"><em>handle</em></span> to the stack.
+        The handle is an <span class="emphasis"><em>opaque pointer</em></span>, of type <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>.
+      </p>
+<h5>
+<a name="primer.quickstart.embedded_lua_crash_course.h2"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.calling_a_function"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.calling_a_function">Calling
+        a function</a>
+      </h5>
+<p>
+        When you wish for lua to call a function, first the function is pushed onto
+        the lua stack, then the arguments to the function are pushed.
+      </p>
+<p>
+        A special API function, usually <code class="computeroutput"><span class="identifier">lua_pcall</span></code>,
+        triggers the call. The return values appear on the stack afterwards.
+      </p>
+<h5>
+<a name="primer.quickstart.embedded_lua_crash_course.h3"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.calling_a_c_function"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.calling_a_c_function">Calling
+        a C++ function</a>
+      </h5>
+<p>
+        When lua calls a C++ function from your application, it gives you a handle
+        to the stack, where you will find the inputs.
+      </p>
+<p>
+        Your function is expected to place return values on the stack before it returns.
+      </p>
+<p>
+        A pointer to your function can be pushed onto the stack using <code class="computeroutput"><span class="identifier">lua_pushcfunction</span></code>, provided that it has
+        the signature <code class="computeroutput"><span class="keyword">int</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*)</span></code>.
+        The resulting lua value will have type <code class="computeroutput"><span class="identifier">function</span></code>.
+      </p>
+<h4>
+<a name="primer.quickstart.embedded_lua_crash_course.h4"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.userdata"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.userdata">Userdata</a>
+      </h4>
+<p>
+        Userdata is a way to create C++ objects in memory that lua owns, and which
+        lua will treat as a lua value.
+      </p>
+<p>
+        A userdata, from the point of view of the lua language, is a <span class="emphasis"><em>reference</em></span>
+        type which can be passed around and assigned to variables just like tables
+        or functions.
+      </p>
+<p>
+        Creating a userdata with C++ type <code class="computeroutput"><span class="identifier">T</span></code>
+        typically looks like this:
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="special">*</span> <span class="identifier">storage</span> <span class="special">=</span> <span class="identifier">lua_newuserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">(</span><span class="identifier">T</span><span class="special">));</span>
+<span class="keyword">new</span> <span class="special">(</span><span class="identifier">storage</span><span class="special">)</span> <span class="identifier">T</span><span class="special">(</span><span class="identifier">argument1</span><span class="special">,</span> <span class="identifier">argument2</span><span class="special">,</span> <span class="special">...);</span>
+</pre>
+<p>
+        The call <code class="computeroutput"><span class="identifier">lua_newuserdata</span></code>
+        creates a new userdata on the top of the stack, associated to a block of
+        memory of size <code class="computeroutput"><span class="keyword">sizeof</span><span class="special">(</span><span class="identifier">T</span><span class="special">)</span></code> acquired
+        by lua.
+      </p>
+<p>
+        The second line uses placement-new to invoke an appropriate C++ constructor
+        of <code class="computeroutput"><span class="identifier">T</span></code> at that location.
+      </p>
+<h5>
+<a name="primer.quickstart.embedded_lua_crash_course.h5"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.metatables"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.metatables">Metatables</a>
+      </h5>
+<p>
+        Userdata can be given an interface by specifying a <span class="emphasis"><em>metatable</em></span>.
+      </p>
+<p>
+        A metatable is a lua table in which the keys are strings with special meaning,
+        and the values are (typically) functions. These functions are invoked when
+        the userdata value is used in certain ways by a script.
+      </p>
+<p>
+        For instance, the <code class="computeroutput"><span class="identifier">__index</span></code>
+        metamethod is called when the user uses dot (<code class="computeroutput"><span class="special">.</span></code>)
+        or subscript <code class="computeroutput"><span class="special">[</span> <span class="special">...</span>
+        <span class="special">]</span></code> notation to access the object.
+      </p>
+<p>
+        (For a list, check <a href="http://www.lua.org/manual/5.3/manual.html#2.4" target="_top">the
+        manual</a>.)
+      </p>
+<p>
+        Functions written in C++ can be added to the metatable, and they can recover
+        the underlying C++ object when they are called, in order to interact with
+        it.
+      </p>
+<p>
+        Here's some example code using the "raw" lua C api:
+      </p>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">my_index</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+<span class="keyword">int</span> <span class="identifier">my_new_index</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+<span class="keyword">int</span> <span class="identifier">my_gc</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+
+<span class="keyword">void</span> <span class="identifier">push_T</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
+  <span class="comment">// Create userdata and construct T</span>
+  <span class="keyword">new</span> <span class="special">(</span><span class="identifier">lua_newuserdata</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="keyword">sizeof</span><span class="special">(</span><span class="identifier">T</span><span class="special">)))</span> <span class="identifier">T</span><span class="special">(</span><span class="identifier">t</span><span class="special">);</span>
+
+  <span class="comment">// Create table which will be the metatable</span>
+  <span class="identifier">lua_newtable</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">my_index</span><span class="special">);</span>
+  <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"__index"</span><span class="special">);</span>
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">my_new_index</span><span class="special">);</span>
+  <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"__new_index"</span><span class="special">);</span>
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">&amp;</span><span class="identifier">my_gc</span><span class="special">);</span>
+  <span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"__gc"</span><span class="special">);</span>
+
+  <span class="comment">// Make it the metatable</span>
+  <span class="identifier">lua_setmetatable</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<h5>
+<a name="primer.quickstart.embedded_lua_crash_course.h6"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.lifetime"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.lifetime">Lifetime</a>
+      </h5>
+<p>
+        Because lua is garbage collected, userdata objects may not be destroyed immediately
+        when they go out of scope.
+      </p>
+<p>
+        If the userdata is a nontrivial C++ object, it requires a <code class="computeroutput"><span class="identifier">__gc</span></code>
+        metamethod in its metatable, in order to avoid leaks. This <span class="emphasis"><em>finalizer</em></span>
+        is called just before lua frees the memory.
+      </p>
+<p>
+        Generally, the finalizer should call the destructor of the C++ object.
+      </p>
+<h5>
+<a name="primer.quickstart.embedded_lua_crash_course.h7"></a>
+        <span><a name="primer.quickstart.embedded_lua_crash_course.references"></a></span><a class="link" href="embedded_lua_crash_course.html#primer.quickstart.embedded_lua_crash_course.references">References</a>
+      </h5>
+<p>
+        Sometimes, you want to create a value which a lua script can manipulate,
+        but you don't want lua actually to own the object, you want the object to
+        be owned by your application.
+      </p>
+<p>
+        Lua provides a mechanism called "lightuserdata" which is essentially
+        a userdata which contains a void pointer. You can use this to store a pointer
+        to some C++ object in lua, and in the interface functions, cast it to a pointer
+        to the appropriate type.
+      </p>
+<p>
+        In many applications, it is a better design not to use "lightuserdata"
+        for this, and instead to use regular userdata which contains a smart pointer.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="intro.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickstart.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="tutorial.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

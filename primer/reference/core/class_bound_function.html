@@ -1,0 +1,162 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>class bound_function</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="lua_ref_seq.html" title="class lua_ref_seq">
+<link rel="next" href="class_coroutine.html" title="class coroutine">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="lua_ref_seq.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="class_coroutine.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.core.class_bound_function"></a><a class="link" href="class_bound_function.html" title="class bound_function">class bound_function</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> is a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>
+          which is known to point to an object of function type.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">bound_function</span></code> provides
+          several handy methods for calling the function, passing in one or several
+          C++ objects, and obtaining the result as (one or several) <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>. These objects are pushed onto
+          the lua stack using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>,
+          then the bound function is invoked using pcall. Any errors are returned
+          to the caller -- the lua stack is always unchanged by this operation at
+          the end.
+        </p>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> can be used to create
+          C++ function objects referring to a function implemented in lua.
+        </p>
+<p>
+          These objects are <span class="bold"><strong>safe</strong></span> -- calling them
+          does not raise exceptions, and they handle any lua errors and return them
+          as <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> objects, even if the user function
+          errs or the lua VM is destroyed. Furthermore, they carry out an appropriate
+          call to <code class="computeroutput"><span class="identifier">lua_checkstack</span></code>
+          no matter what parameters they are passed for the call.
+        </p>
+<p>
+          The idea is that you should be able to pass these to other parts of a C++
+          program that don't have anything to do with lua, and use them like generic
+          function objects without having to mentally switch context and think about
+          lua preconditions and such.
+        </p>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Like <code class="computeroutput"><span class="identifier">lua_ref</span></code>, these objects
+            are not thread-safe.
+          </p></td></tr>
+</table></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> can also be used to create
+          a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">coroutine</span></code>.
+        </p>
+<h5>
+<a name="primer.reference.core.class_bound_function.h0"></a>
+          <span><a name="primer.reference.core.class_bound_function.synopsis"></a></span><a class="link" href="class_bound_function.html#primer.reference.core.class_bound_function.synopsis">Synopsis</a>
+        </h5>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">bound_function</span> <span class="special">{</span>
+  <span class="identifier">lua_ref</span> <span class="identifier">ref_</span><span class="special">;</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Special member functions</span>
+  <span class="identifier">bound_function</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">bound_function</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span><span class="special">(</span><span class="identifier">bound_function</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">bound_function</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">bound_function</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">bound_function</span> <span class="special">&amp;&amp;)</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="special">~</span><span class="identifier">bound_function</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+
+  <span class="comment">// Primary constructor: Bind to a function on top of the stack.</span>
+  <span class="comment">// Only capture the top item if it is actually a function.</span>
+  <span class="comment">// Pop the item *whether or not* it is a function.</span>
+  <a class="co" name="primer.reference.core.class_bound_function.c0" href="class_bound_function.html#primer.reference.core.class_bound_function.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">explicit</span> <span class="identifier">bound_function</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">);</span>
+
+  <span class="comment">// Forwarded methods from lua_ref</span>
+  <span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="keyword">bool</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">static_cast</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">&gt;(</span><span class="identifier">ref_</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">lock</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">lock</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">push</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">push</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">bool</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">reset</span><span class="special">()</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">reset</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">void</span> <span class="identifier">swap</span><span class="special">(</span><span class="identifier">bound_function</span> <span class="special">&amp;</span> <span class="identifier">other</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="identifier">ref_</span><span class="special">.</span><span class="identifier">swap</span><span class="special">(</span><span class="identifier">other</span><span class="special">.</span><span class="identifier">ref_</span><span class="special">);</span> <span class="special">}</span>
+
+  <span class="comment">// Call methods</span>
+  <span class="comment">// These methods attempt to lock the state which holds the lua function,</span>
+  <span class="comment">// and perform the call there. They clean up after themselves and leave the</span>
+  <span class="comment">// stack as they found it afterwards.</span>
+  <span class="comment">//</span>
+  <span class="comment">// If passed a lua_ref_seq, its members are the call arguments. If passed</span>
+  <span class="comment">// any other sequence of C++ types, those objects are pushed onto the stack</span>
+  <span class="comment">// and are the call arguments.</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">call_no_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span> <span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="keyword">const</span> <span class="special">&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref_seq</span><span class="special">&gt;</span> <span class="identifier">call</span><span class="special">(</span><span class="identifier">lua_ref_seq</span> <span class="special">&amp;&amp;)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Get a debug string describing what function is bound</span>
+  <span class="comment">// Uses lua debug api</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">debug_string</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list"><tr>
+<td width="5%" valign="top" align="left"><p><a name="primer.reference.core.class_bound_function.c1"></a><a href="#primer.reference.core.class_bound_function.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Note: Can cause lua memory allocation failure from <code class="computeroutput"><span class="identifier">ref_</span></code>
+              ctor.
+            </p></td>
+</tr></table></div>
+<h5>
+<a name="primer.reference.core.class_bound_function.h1"></a>
+          <span><a name="primer.reference.core.class_bound_function.read_push_semantics"></a></span><a class="link" href="class_bound_function.html#primer.reference.core.class_bound_function.read_push_semantics">Read
+          / Push semantics</a>
+        </h5>
+<p>
+          Similar to <code class="computeroutput"><span class="identifier">lua_ref</span></code>, these
+          can be pushed onto the stack by <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+        </p>
+<p>
+          On read, the nil value is read as putting the <code class="computeroutput"><span class="identifier">bound_function</span></code>
+          into the empty state. Otherwise, if it's a function, it is bound, and anything
+          else causes an error.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="lua_ref_seq.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="class_coroutine.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

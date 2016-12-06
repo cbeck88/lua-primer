@@ -1,0 +1,149 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>class error</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="../core.html" title="Core">
+<link rel="next" href="class_expected.html" title="class expected">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../core.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="class_expected.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.core.class_error"></a><a class="link" href="class_error.html" title="class error">class error</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> is a simple error type used by
+          the library to represent run-time error signals.
+        </p>
+<p>
+          It is not an exception, and it is not thrown.
+        </p>
+<p>
+          Primer generally translates lua errors into <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
+          when it performs an operation which fails, and will translate <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> into a lua error when adapting
+          callbacks.
+        </p>
+<p>
+          The constructor can be used to easily format error messages. For instance,
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">(</span><span class="string">"Bad doggie, '"</span><span class="special">,</span> <span class="identifier">dog_name_str</span><span class="special">,</span> <span class="string">"'! You get "</span><span class="special">,</span> <span class="identifier">biscuit_num</span><span class="special">,</span> <span class="string">"biscuits!"</span><span class="special">)</span>
+</pre>
+<p>
+          produces a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> object with error string equal
+          to
+        </p>
+<pre class="programlisting"><span class="string">"Bad doggie, '"</span> <span class="special">+</span> <span class="identifier">dog_name_str</span> <span class="special">+</span> <span class="string">"'! You get "</span> <span class="special">+</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">to_string</span><span class="special">(</span><span class="identifier">biscuit_num</span><span class="special">)</span> <span class="special">+</span> <span class="string">" biscuits!"</span>
+</pre>
+<p>
+          Synopsis:
+        </p>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">error</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// Defaulted special member functions</span>
+  <span class="identifier">error</span><span class="special">()</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">error</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">error</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">error</span><span class="special">(</span><span class="identifier">error</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">error</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="keyword">const</span> <span class="identifier">error</span> <span class="special">&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="identifier">error</span> <span class="special">&amp;</span> <span class="keyword">operator</span><span class="special">=(</span><span class="identifier">error</span> <span class="special">&amp;&amp;)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <span class="special">~</span><span class="identifier">error</span><span class="special">()</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+
+  <span class="comment">// General constructor</span>
+  <span class="comment">// Takes a sequence of strings, string literals, or numbers</span>
+  <span class="comment">// and concatenates them to form the message.</span>
+  <span class="comment">// (Implementation note: The t parameter is only here to help out msvc 2015)</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="keyword">explicit</span> <span class="identifier">error</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">t</span><span class="special">,</span> <span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span> <span class="special">:</span> <span class="identifier">msg_</span><span class="special">()</span> <span class="special">{</span>
+    <span class="identifier">PRIMER_TRY_BAD_ALLOC</span> <span class="special">{</span>
+      <span class="identifier">msg_</span> <span class="special">=</span> <span class="identifier">impl</span><span class="special">{</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">str_cat</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;(</span><span class="identifier">t</span><span class="special">),</span>
+                                          <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...)};</span>
+    <span class="special">}</span>
+    <span class="identifier">PRIMER_CATCH_BAD_ALLOC</span> <span class="special">{</span> <span class="identifier">msg_</span> <span class="special">=</span> <span class="identifier">impl</span><span class="special">{</span><span class="identifier">impl</span><span class="special">::</span><span class="identifier">bad_alloc_tag</span><span class="special">{}};</span> <span class="special">}</span>
+  <span class="special">}</span>
+
+  <span class="comment">// Help to give context to errors</span>
+  <a class="co" name="primer.reference.core.class_error.c0" href="class_error.html#primer.reference.core.class_error.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+  <span class="identifier">error</span> <span class="special">&amp;</span> <span class="identifier">prepend_error_line</span><span class="special">(</span><span class="identifier">Args</span> <span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">//</span>
+  <span class="comment">// Preformatted errors</span>
+  <span class="comment">//</span>
+
+  <span class="comment">// Used to indicate an out-of-memory error like `std::bad_alloc`</span>
+  <span class="keyword">static</span> <span class="identifier">error</span> <span class="identifier">bad_alloc</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// "Integer overflow occured: X"</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">static</span> <span class="identifier">error</span> <span class="identifier">integer_overflow</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// "Insufficient stack space: needed n"</span>
+  <span class="keyword">static</span> <span class="identifier">error</span> <span class="identifier">insufficient_stack_space</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">n</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// "Expected foo, found 'bar'"</span>
+  <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">static</span> <span class="identifier">error</span> <span class="identifier">unexpected_value</span><span class="special">(</span><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">expected</span><span class="special">,</span> <span class="identifier">T</span> <span class="special">&amp;&amp;</span> <span class="identifier">found</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// "Can't lock VM".</span>
+  <a class="co" name="primer.reference.core.class_error.c2" href="class_error.html#primer.reference.core.class_error.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a><span class="keyword">static</span> <span class="identifier">error</span> <span class="identifier">cant_lock_vm</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// "Expired coroutine"</span>
+  <a class="co" name="primer.reference.core.class_error.c4" href="class_error.html#primer.reference.core.class_error.c5"><img src="../../../images/callouts/3.png" alt="3" border="0"></a><span class="keyword">static</span> <span class="identifier">error</span> <span class="identifier">expired_coroutine</span><span class="special">()</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// "Module 'foo' not found"</span>
+  <span class="keyword">static</span> <span class="identifier">error</span> <span class="identifier">module_not_found</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">path</span><span class="special">)</span> <span class="keyword">noexcept</span><span class="special">;</span>
+
+  <span class="comment">// Accessor</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">what</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">msg_</span><span class="special">.</span><span class="identifier">c_str</span><span class="special">();</span> <span class="special">}</span>
+  <span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span> <span class="identifier">c_str</span><span class="special">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">what</span><span class="special">();</span> <span class="special">}</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">str</span><span class="special">()</span> <span class="keyword">const</span> <span class="special">{</span> <span class="keyword">return</span> <span class="keyword">this</span><span class="special">-&gt;</span><span class="identifier">what</span><span class="special">();</span> <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="primer.reference.core.class_error.c1"></a><a href="#primer.reference.core.class_error.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              This method takes a sequence of strings and concatenates them on their
+              own line to the front of the error message.
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="primer.reference.core.class_error.c3"></a><a href="#primer.reference.core.class_error.c2"><img src="../../../images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Used with coroutines / bound_functions that are called but the VM could
+              not be accessed.
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="primer.reference.core.class_error.c5"></a><a href="#primer.reference.core.class_error.c4"><img src="../../../images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Used with coroutines that are called while in an empty state
+            </p></td>
+</tr>
+</table></div>
+<p>
+          The <code class="computeroutput"><span class="identifier">prepend_error_line</span></code>
+          method can be used to add context to an error message as it comes up the
+          callstack. For instance,
+        </p>
+<pre class="programlisting"><span class="identifier">err</span><span class="special">.</span><span class="identifier">prepend_error_line</span><span class="special">(</span><span class="string">"In index ["</span><span class="special">,</span> <span class="identifier">idx</span><span class="special">,</span> <span class="string">"] of table:"</span><span class="special">);</span>
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../core.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="class_expected.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

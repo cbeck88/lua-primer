@@ -1,0 +1,201 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Intro</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../quickstart.html" title="Quickstart">
+<link rel="prev" href="../quickstart.html" title="Quickstart">
+<link rel="next" href="embedded_lua_crash_course.html" title="Embedded Lua Crash Course">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../quickstart.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickstart.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="embedded_lua_crash_course.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="primer.quickstart.intro"></a><a class="link" href="intro.html" title="Intro">Intro</a>
+</h3></div></div></div>
+<p>
+        Let's suppose that you are designing a C++ application which employs a scripting
+        language in order to customize its behavior. For instance, maybe it embeds
+        <span class="bold"><strong>Python</strong></span> or <span class="bold"><strong>lua</strong></span>.
+      </p>
+<p>
+        Most likely, there is some dedicated object in your application that represents
+        an instance of a virtual machine, and acts as an RAII object wrapping over
+        functionality provided by a C implementation of your scripting language of
+        choice.
+      </p>
+<p>
+        In modern C++, how would we expect that the interface to such an object might
+        look, and what are some basic functionalities that we might hope for or expect?
+      </p>
+<p>
+        Here's a sketch, using the PIMPL idiom:
+      </p>
+<pre class="programlisting"><span class="comment">// Just an example "message" structure, specific to your application.</span>
+<span class="keyword">struct</span> <span class="identifier">message</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">command</span><span class="special">;</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">parameters</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// Represents a virtual machine</span>
+<span class="keyword">class</span> <span class="identifier">VM</span> <span class="special">{</span>
+  <span class="keyword">struct</span> <span class="identifier">impl</span><span class="special">;</span>
+
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">unique_ptr</span><span class="special">&lt;</span><span class="identifier">impl</span><span class="special">&gt;</span> <span class="identifier">impl_</span><span class="special">;</span>
+<span class="keyword">public</span><span class="special">:</span>
+
+  <span class="comment">// Special member functions</span>
+  <span class="identifier">VM</span><span class="special">();</span>
+  <span class="special">~</span><span class="identifier">VM</span><span class="special">();</span>
+
+  <span class="identifier">VM</span><span class="special">(</span><span class="identifier">VM</span> <span class="special">&amp;&amp;);</span>
+  <span class="identifier">VM</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">VM</span> <span class="special">&amp;);</span>
+
+  <span class="identifier">VM</span> <span class="special">&amp;</span> <span class="keyword">operator</span> <span class="special">=</span> <span class="special">(</span><span class="identifier">VM</span> <span class="special">&amp;&amp;);</span>
+  <span class="identifier">VM</span> <span class="special">&amp;</span> <span class="keyword">operator</span> <span class="special">=</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">VM</span> <span class="special">&amp;);</span>
+
+  <span class="comment">// Initialize from a script</span>
+  <span class="keyword">void</span> <span class="identifier">load_and_execute_script</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">script</span><span class="special">);</span>
+
+  <span class="comment">// Send message from the application logic to the script inside the VM.</span>
+  <span class="comment">//   (Means, call a function which was earlier constructed and registered by</span>
+  <span class="comment">//   the script, to be the message handler).</span>
+  <span class="comment">// May throw exceptions in case of an error (?)</span>
+  <span class="keyword">void</span> <span class="identifier">send_message</span><span class="special">(</span><span class="identifier">message</span> <span class="identifier">m</span><span class="special">);</span>
+
+  <span class="comment">// Get output messages from the script</span>
+  <span class="comment">//   (e.g., which were emitted using an api function "send_message")</span>
+  <span class="keyword">bool</span> <span class="identifier">has_output_messages</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">const</span> <span class="identifier">message</span> <span class="special">&amp;</span> <span class="identifier">top_message</span><span class="special">()</span> <span class="keyword">const</span><span class="special">;</span>
+  <span class="keyword">void</span> <span class="identifier">pop_message</span><span class="special">();</span>
+
+  <span class="comment">// Serialization &amp; Deserialization</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">serialize</span><span class="special">();</span>
+  <span class="keyword">static</span> <span class="identifier">VM</span> <span class="identifier">deserialize</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">);</span>
+<span class="special">};</span>
+</pre>
+<p>
+        Given this kind of an interface, the details of the VM are quite well encapsulated.
+      </p>
+<p>
+        From the point of view of the rest of the application, the VM is just a "movable,
+        copyable, serializable black box that can send and receive messages."
+        Nothing about the particular scripting language is even visible at all.
+      </p>
+<p>
+        Quite possibly, one would want a richer interface, allowing the VM to interact
+        more directly with other components of the application rather than having
+        to make requests via message objects. But for purposes of exposition, this
+        should be sufficient for now.
+      </p>
+<p>
+        Most of these member functions are straightforward to implement when using
+        a language like Python or Lua, but three of them, perhaps surprisingly, are
+        not:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Copy constructor: <code class="computeroutput"><span class="identifier">VM</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">VM</span> <span class="special">&amp;);</span></code>
+          </li>
+<li class="listitem">
+            Serialization: <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">serialize</span><span class="special">();</span></code>
+          </li>
+<li class="listitem">
+            Deserialization: <code class="computeroutput"><span class="keyword">static</span> <span class="identifier">VM</span> <span class="identifier">deserialize</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">);</span></code>
+          </li>
+</ul></div>
+<p>
+        Indeed, it's relatively uncommon for a scripting language implementation
+        to provide built-in facilities to deep copy a VM, or to provide built-in
+        serialization facilities.
+      </p>
+<p>
+        There are several common reasons for this:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Many possible implementations, no "right" one. Different applications
+            need different solutions with different performance characteristics.
+          </li>
+<li class="listitem">
+            These VMs can be pretty complicated. Oftentimes scripting languages provide
+            some FFI or binding facility so that they can talk to external libraries
+            -- how can one generically serialize or copy a pointer, or an object
+            obtained from some C library?
+          </li>
+<li class="listitem">
+            Many applications don't <span class="emphasis"><em>actually</em></span> need this. They
+            just need to run their script and be done, and it will be different every
+            time. Or, the script may be cheap to run, and they can recreate the state
+            by just rerunning the script, and serialize it by just writing down the
+            script.
+          </li>
+</ul></div>
+<p>
+        However, in some applications, it's very important to be able to do these
+        things.
+      </p>
+<p>
+        For instance, in a game engine, a scripting language VM might be used to
+        represent the game logic and the state of the game. Then, you really want
+        to be able to deep copy the VM, if one wants to create "simulation-based"
+        AIs which can experiment with a position without messing up the "actual"
+        position. You really want to be able to serialize and deserialize the state
+        faithfully, to create saved games, and replays. You really want these things
+        to work correctly with a minimum of hassle, as it can be very frustrating
+        to users when it doesn't work right. These problems are often hard to reproduce
+        and very finicky to solve. Even popular AAA game engines sometimes have lingering
+        problems with saving and reloading the game.
+      </p>
+<p>
+        Another popular use of scripting languages is in Webservers. In web frameworks
+        like Ruby-on-rails and OpenResty, web applications are written in a scripting
+        language like Ruby or lua. Serializing and deserializing a VM state has an
+        obvious potential use in load balancing -- if a server gets bogged down,
+        some of its threads could pause and their VM states written to disk. Then
+        they could be moved and booted back up again on a different machine seamlessly.
+      </p>
+<p>
+        <span class="bold"><strong>Primer</strong></span> is a C++ library that makes it easy
+        to expose complex APIs to <span class="bold"><strong>lua</strong></span> while also
+        preserving its <span class="emphasis"><em>serializability</em></span>, using a lua technology
+        called <span class="bold"><strong>eris</strong></span>. <span class="bold"><strong>eris</strong></span>
+        is a very powerful serialization facility for lua 5.2 and 5.3, but many of
+        the strategies traditionally used to expose C++ APIs to lua don't work very
+        well together with serializability or with eris.
+      </p>
+<p>
+        In this quick-start, you'll see
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            a crash course in lua C api, establishing some basic concepts and terminology.
+          </li>
+<li class="listitem">
+            an example implementation of a VM object like the above, exposing a "sample"
+            API using Primer.
+          </li>
+<li class="listitem">
+            some further examples, and pointers into the documentation for specific
+            info on various topics of interest.
+          </li>
+</ul></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../quickstart.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickstart.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="embedded_lua_crash_course.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

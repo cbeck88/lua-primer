@@ -1,0 +1,213 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Concepts</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../api.html" title="API">
+<link rel="prev" href="../api.html" title="API">
+<link rel="next" href="features.html" title="API Feature">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../api.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="features.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.api.concepts"></a><a class="link" href="concepts.html" title="Concepts">Concepts</a>
+</h4></div></div></div>
+<p>
+          Everything in the <code class="computeroutput"><span class="identifier">api</span></code> namespace
+          is organized around the goal of creating lua VMs which not only have features
+          which may be implemented in C++, but also which we can <span class="emphasis"><em>serialize
+          and deserialize</em></span> seamlessly.
+        </p>
+<p>
+          The way that we do this is using <span class="bold"><strong>lua-eris</strong></span>.
+          The <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> object provides an interface which
+          encapsulates the use of eris.
+        </p>
+<h5>
+<a name="primer.reference.api.concepts.h0"></a>
+          <span><a name="primer.reference.api.concepts.eris"></a></span><a class="link" href="concepts.html#primer.reference.api.concepts.eris">Eris</a>
+        </h5>
+<p>
+          When eris serializes a lua value, it produces a string description of it,
+          from which an equivalent object can be constructed in another VM. This
+          object can be anything from a simple lua value, to a complicated, self-referential
+          table, containing complex closure functions and coroutines and so on.
+        </p>
+<p>
+          Usually when you serialize a lua state, you just want to serialize the
+          <code class="computeroutput"><span class="identifier">_G</span></code> table, which represents
+          the global environment visible to the user scripts.
+        </p>
+<p>
+          Eris can serialize any object described purely in the lua language just
+          fine. But for some objects, like external C function pointers, or userdata
+          representing C++ objects, it needs some help.
+        </p>
+<h6>
+<a name="primer.reference.api.concepts.h1"></a>
+          <span><a name="primer.reference.api.concepts.permanent_objects"></a></span><a class="link" href="concepts.html#primer.reference.api.concepts.permanent_objects">Permanent
+          Objects</a>
+        </h6>
+<p>
+          The organizing idea is eris is the <span class="emphasis"><em>permanent objects</em></span>
+          table. When eris serializes a value, it does so <span class="emphasis"><em>relative</em></span>
+          to a fixed table, which maps such "unserializable" entities like
+          function pointers to some placeholder names for them.
+        </p>
+<p>
+          Then, when deserializing, it must be provided with the "inverse"
+          of the permanent objects table, which maps those placeholder names back
+          to the appropriate function pointers (potentially now on a different machine)
+          and so on.
+        </p>
+<p>
+          The placeholder values don't have to be "strings". They can be
+          anything that eris is able to serialize -- even recursively, using the
+          permanent objects table. This is sometimes very useful as we'll see.
+        </p>
+<h6>
+<a name="primer.reference.api.concepts.h2"></a>
+          <span><a name="primer.reference.api.concepts.userdata"></a></span><a class="link" href="concepts.html#primer.reference.api.concepts.userdata">Userdata</a>
+        </h6>
+<p>
+          Userdata is handled in a slightly different way -- by creating a special
+          metamethod called <code class="computeroutput"><span class="identifier">__persist</span></code>.
+          See <a href="https://github.com/fnuecke/eris#special-persistence" target="_top">eris'
+          documentation</a> on the subject.
+        </p>
+<p>
+          There are three options:
+        </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+              Literal persistence. Essentially, we just <code class="computeroutput"><span class="identifier">memcpy</span></code>
+              the object.
+            </li>
+<li class="listitem">
+              No persistence. Persisting this object is a runtime error.
+            </li>
+<li class="listitem">
+              Persistence using a closure.
+            </li>
+</ol></div>
+<p>
+          In C++, it's very common to have nontrivially copyable types as userdata.
+          In that case, the "literal persistence" is not an option, and
+          the third option is the most useful. What it means is that, for each userdata
+          type, there should be some C++ function adapted for lua which can act as
+          a "constructor". It doesn't need to be globally exposed to the
+          user, but it needs to appear in the permanent objects table. Then, for
+          any given state of an object, it needs to be possible to create a series
+          of arguments for that constructor which will produce an instance of the
+          object in that state. The <code class="computeroutput"><span class="identifier">__persist</span></code>
+          metamethod is supposed to create those arguments for a given object, form
+          a closure over these using the constructor function (use the call <code class="computeroutput"><span class="identifier">lua_pushcclosure</span></code>), and return that to
+          lua.
+        </p>
+<p>
+          Then, when eris encounters your userdata type, it calls the <code class="computeroutput"><span class="identifier">__persist</span></code> method, which produces the
+          closure object. It then tries to persist the closure object in place of
+          your userdata -- because the constructor is in the permanent objects table,
+          this succeeds, as long as all the upvalues that you closed over are also
+          serializable.
+        </p>
+<h5>
+<a name="primer.reference.api.concepts.h3"></a>
+          <span><a name="primer.reference.api.concepts.primer"></a></span><a class="link" href="concepts.html#primer.reference.api.concepts.primer">Primer</a>
+        </h5>
+<p>
+          In Primer, the idea is to simplify all this by <span class="bold"><strong>automating</strong></span>
+          the construction of the permanent objects table.
+        </p>
+<p>
+          When you do it the Primer way, for each lua State that you plan to serialize,
+          there should be an associated <span class="emphasis"><em>API Object</em></span> with which
+          all of the components of that API are registered. The API object manages
+          the processes of initializing the API within a State, and later, serializing
+          and deserializing the state.
+        </p>
+<p>
+          An API object should <span class="emphasis"><em>derive</em></span> from the <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> class template, using CRTP style:
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_api</span> <span class="special">:</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span><span class="special">&lt;</span><span class="identifier">my_api</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="special">...</span>
+<span class="special">};</span>
+</pre>
+<p>
+          This accomplishes two things:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              The <code class="computeroutput"><span class="identifier">API_CALLBACK</span></code> and
+              <code class="computeroutput"><span class="identifier">API_FEATURE</span></code> macros
+              may be used to register different members of the API object as being
+              parts of the API.
+            </li>
+<li class="listitem">
+              Three member functions are provided by <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>:
+            </li>
+</ul></div>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">initialize_api</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*);</span>
+<span class="keyword">void</span> <span class="identifier">persist</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buffer</span><span class="special">);</span>
+<span class="keyword">void</span> <span class="identifier">unpersist</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">buffer</span><span class="special">);</span>
+</pre>
+<p>
+          What exactly the API object does when these methods are called depends
+          on what things get registered. Basically it's going to carry out the <code class="computeroutput"><span class="identifier">lua</span><span class="special">-</span><span class="identifier">eris</span></code> serialization pattern in a straightforward
+          way, providing each <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>
+          object with simple hooks into that process so that it can participate.
+        </p>
+<p>
+          The assumption here is that there is a single <code class="computeroutput"><span class="identifier">lua_State</span>
+          <span class="special">*</span></code> object associated with the API
+          object and you use that lua state each time you call these methods. So
+          usually the API object should own / manage the lifetime of the <code class="computeroutput"><span class="identifier">lua_State</span><span class="special">*</span></code>.
+          However, we don't want to force you to do that in any particular way.
+          <sup>[<a name="primer.reference.api.concepts.f0" href="#ftn.primer.reference.api.concepts.f0" class="footnote">13</a>]</sup>
+        </p>
+<p>
+          Conceptually, the <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> is just a place where you register
+          objects and functions. The actual class has no data members and no nontrivial
+          initialization or destruction, so inheriting from it does not conceptually
+          complicate your class. It just gives you some nice methods that you can
+          use as you like.
+        </p>
+<p>
+          Primer provides you with many useful <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>
+          definitions for things like installing standard libraries, registering
+          your userdata types, and customizing the VM in various common ways. It's
+          quite easy to customize the system though, and make API features that do
+          whatever you want.
+        </p>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.primer.reference.api.concepts.f0" href="#primer.reference.api.concepts.f0" class="para">13</a>] </sup>
+            You could do it manually, using some RAII object, or maybe you are using
+            some other binding library. For instance in the lua binding library
+            <code class="computeroutput"><span class="identifier">sol</span></code>, they provide you
+            with an RAII object called <code class="computeroutput"><span class="identifier">sol</span><span class="special">::</span><span class="identifier">state</span></code>
+            which they want you to use. You could use lua in any manner like that
+            with Primer just fine, provided that you can obtain a raw <code class="computeroutput"><span class="identifier">lua_State</span> <span class="special">*</span></code>
+            from whatever the object is.
+          </p></div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../api.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../api.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="features.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

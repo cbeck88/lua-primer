@@ -1,0 +1,404 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>metafunction adapt</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../core.html" title="Core">
+<link rel="prev" href="class_result.html" title="class result">
+<link rel="next" href="concept_l_reg_sequence.html" title="concept L_Reg_sequence">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="class_result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="concept_l_reg_sequence.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.reference.core.metafunction_adapt"></a><a class="link" href="metafunction_adapt.html" title="metafunction adapt">metafunction
+        adapt</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">adapt</span></code> is a mechanism that
+          takes a user function with a complex signature and adapts it to be pushed
+          to lua.
+        </p>
+<p>
+          It is used via the macro <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>.
+        </p>
+<p>
+          You can think of this (roughly) as a function which takes a function pointer,
+          and yields a new function pointer of signature <code class="computeroutput"><span class="keyword">int</span>
+          <span class="special">(</span><span class="identifier">lua_State</span>
+          <span class="special">*)</span></code>. However, <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>
+          happens at compile-time, and the function pointer which you give it must
+          be a constant expression -- usually, just some specific, named function
+          in your program. You can't pass it an "unknown" function pointer
+          which you obtained at run-time as a function parameter or something.
+        </p>
+<h5>
+<a name="primer.reference.core.metafunction_adapt.h0"></a>
+          <span><a name="primer.reference.core.metafunction_adapt.examples"></a></span><a class="link" href="metafunction_adapt.html#primer.reference.core.metafunction_adapt.examples">Examples</a>
+        </h5>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+<p class="simpara">
+              lua C API:
+            </p>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">f</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">i1</span> <span class="special">=</span> <span class="identifier">luaL_checkinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+  <span class="keyword">int</span> <span class="identifier">i2</span> <span class="special">=</span> <span class="identifier">luaL_checkinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
+
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">i1</span> <span class="special">==</span> <span class="identifier">i2</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">i1</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">i2</span><span class="special">);</span>
+    <span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">i1</span> <span class="special">%</span> <span class="identifier">i2</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">2</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span> <span class="identifier">init</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">f</span><span class="special">);</span>
+  <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"f"</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+</li>
+<li class="listitem">
+<p class="simpara">
+              Using primer:
+            </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">f</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">i1</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">i2</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">i1</span> <span class="special">==</span> <span class="identifier">i2</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">i1</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">1</span><span class="special">;</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">i2</span><span class="special">);</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">i1</span> <span class="special">%</span> <span class="identifier">i2</span><span class="special">);</span>
+    <span class="keyword">return</span> <span class="number">2</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span> <span class="identifier">init</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">f</span><span class="special">));</span>
+  <span class="identifier">lua_setglobal</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"f"</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+</li>
+</ul></div>
+<h5>
+<a name="primer.reference.core.metafunction_adapt.h1"></a>
+          <span><a name="primer.reference.core.metafunction_adapt.synopsis"></a></span><a class="link" href="metafunction_adapt.html#primer.reference.core.metafunction_adapt.synopsis">Synopsis</a>
+        </h5>
+<p>
+          There are two things that <code class="computeroutput"><span class="identifier">adapt</span></code>
+          accomplishes:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              Generates boiler-plate code which reads parameters of given types off
+              of the lua stack, and handles errors in reading them.
+            </li>
+<li class="listitem">
+              Provides a way for the caller to terminate the function call without
+              triggering <code class="computeroutput"><span class="identifier">longjmp</span></code>
+              and trashing objects on the stack without calling their destructors.
+              (This is only an issue if lua is compiled as C.)
+            </li>
+</ul></div>
+<p>
+          <code class="computeroutput"><span class="identifier">adapt</span></code> handles the first
+          one using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>. <code class="computeroutput"><span class="identifier">adapt</span></code>
+          handles the second one using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code>.
+        </p>
+<p>
+          The core object of <code class="computeroutput"><span class="identifier">adapt</span></code>
+          is a class template:
+        </p>
+<pre class="programlisting"><span class="comment">// adapt is what does the actual work.</span>
+<span class="comment">// The PRIMER_ADAPT macro provides a suitable interface to it</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">,</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">;</span>
+</pre>
+<p>
+          When given a function pointer <code class="computeroutput"><span class="identifier">f</span></code>,
+          <code class="computeroutput"><span class="identifier">adapt</span></code> is expected to provide
+          a static member function of signature <code class="computeroutput"><span class="keyword">int</span>
+          <span class="special">(</span><span class="identifier">lua_State</span>
+          <span class="special">*)</span></code> which is named <code class="computeroutput"><span class="identifier">adapted</span></code>.
+        </p>
+<p>
+          The <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> macro
+          is defined:
+        </p>
+<pre class="programlisting"><span class="comment">// Simplified interface to the helper structure template</span>
+<span class="comment">// (This seems to be necessary since we can't deduce non-type template parameter</span>
+<span class="comment">// types, at least prior to C++17.)</span>
+<span class="comment">//</span>
+<span class="preprocessor">#define</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(</span><span class="identifier">F</span><span class="special">)</span> <span class="special">&amp;::</span><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">F</span><span class="special">),</span> <span class="special">(</span><span class="identifier">F</span><span class="special">)&gt;::</span><span class="identifier">adapted</span>
+</pre>
+<p>
+          so that <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> can
+          be used to push complex functions directly to lua, e.g.:
+        </p>
+<pre class="programlisting"><span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">my_func</span><span class="special">));</span>
+</pre>
+<h5>
+<a name="primer.reference.core.metafunction_adapt.h2"></a>
+          <span><a name="primer.reference.core.metafunction_adapt.behavior"></a></span><a class="link" href="metafunction_adapt.html#primer.reference.core.metafunction_adapt.behavior">Behavior</a>
+        </h5>
+<p>
+          Given a function pointer of the form,
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo</span><span class="special">,</span> <span class="keyword">bool</span> <span class="identifier">bar</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">baz</span><span class="special">);</span>
+</pre>
+<p>
+          <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">my_func</span><span class="special">)</span></code>
+          produces a function a <span class="emphasis"><em>somewhat</em></span> similar to <code class="computeroutput"><span class="identifier">my_func_adapted</span></code> below:
+        </p>
+<pre class="programlisting"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">my_func_helper</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">arg1</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+  <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">arg1</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">arg1</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">auto</span> <span class="identifier">arg2</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">bool</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">2</span><span class="special">);</span>
+  <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">arg2</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">arg2</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">auto</span> <span class="identifier">arg3</span> <span class="special">=</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">3</span><span class="special">);</span>
+  <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">arg3</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">arg3</span><span class="special">.</span><span class="identifier">err</span><span class="special">();</span> <span class="special">}</span>
+
+  <span class="keyword">return</span> <span class="identifier">my_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">*</span><span class="identifier">arg1</span><span class="special">,</span> <span class="special">*</span><span class="identifier">arg2</span><span class="special">,</span> <span class="special">*</span><span class="identifier">arg3</span><span class="special">);</span>
+<span class="special">}</span>
+
+<span class="keyword">int</span> <span class="identifier">my_func_adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">r</span> <span class="special">=</span> <span class="identifier">my_func_helper</span><span class="special">(</span><span class="identifier">L</span><span class="special">))</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">r</span><span class="special">-&gt;</span><span class="identifier">is_return_</span><span class="special">)</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">r</span><span class="special">-&gt;</span><span class="identifier">n_</span><span class="special">;</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="keyword">return</span> <span class="identifier">lua_yield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">r</span><span class="special">-&gt;</span><span class="identifier">n_</span><span class="special">);</span>
+    <span class="special">}</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">err_c_str</span><span class="special">());</span>
+  <span class="special">}</span>
+  <span class="keyword">return</span> <span class="identifier">lua_error</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          Each parameter is read from the stack in succession using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>. If any cannot be read, then the
+          input is invalid and an error is returned. If all can be read, then the
+          user function is invoked, and its result returned.
+        </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+            An important principle of <code class="computeroutput"><span class="identifier">adapt</span></code>
+            is that, it always gives you the stack as it found it from lua. <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> is not supposed to have side-effects
+            for the stack, and <code class="computeroutput"><span class="identifier">adapt</span></code>
+            is not supposed to clear the stack before your function is called. So,
+            if for some reason you need to access the actual lua values that were
+            the inputs, rather than their C++ versions, (as occasionally happens),
+            you can easily do that.
+          </p>
+<p>
+            This is also important because lua values may be destroyed by the garbage
+            collector once they are removed from the stack. For instance, if your
+            callback takes a <code class="computeroutput"><span class="keyword">const</span> <span class="keyword">char</span> <span class="special">*</span></code>
+            parameter, or retrieves a reference to a userdata object, those pointers
+            and references can become dangling if the stack is cleared and there
+            are no other references to these objects. They are guaranteed to be valid
+            at least as long as the values are on the stack.
+          </p>
+</td></tr>
+</table></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span></code> is implemented by a simple <code class="computeroutput"><span class="keyword">return</span></code> in the case of a return signal, by
+          calling <code class="computeroutput"><span class="identifier">lua_yield</span></code> in case
+          of a yield, and by raising a lua error in case of an error. The only tricky
+          part is making sure that it works with no leaks, whether lua is compiled
+          as C or C++. (Technically, the above example will create a small leak upon
+          <code class="computeroutput"><span class="identifier">lua_yield</span></code> call. In the
+          actual code we do something different.)
+        </p>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+            When using the <code class="computeroutput"><span class="identifier">adapt</span></code>
+            mechanism, if lua is compiled as C, the user function <code class="computeroutput"><span class="identifier">my_func</span></code>
+            must not trigger a lua error directly -- it must return objects of the
+            form <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> instead.
+          </p>
+<p>
+            If it does not, then a lua error triggers a call to <code class="computeroutput"><span class="identifier">longjmp</span></code>
+            which will toss any automatic objects on the stack without calling destructors.
+            This will leak all of the input parameters, and technically may cause
+            undefined behavior according to the C++ standard.
+          </p>
+<p>
+            A similar situation occurs if you call <code class="computeroutput"><span class="identifier">lua_yield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">n</span><span class="special">)</span></code>. You should instead return <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">yield</span><span class="special">{</span><span class="identifier">n</span><span class="special">}</span></code>.
+          </p>
+<p>
+            The <code class="computeroutput"><span class="identifier">adapt</span></code> mechanism is
+            very useful when lua is compiled as C -- it means that when writing callbacks
+            in C++, you can easily raise errors or yield without leaking your local
+            C++ variables, since they will always be destroyed when you return.
+          </p>
+</td></tr>
+</table></div>
+<p>
+          <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code> also has a trivial specialization
+          for functions which are already <code class="computeroutput"><span class="identifier">lua_CFunction</span></code>:
+        </p>
+<pre class="programlisting"><span class="comment">// Traditional "raw" C-style lua callbacks.</span>
+<span class="comment">// We don't have to do any work</span>
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="identifier">lua_CFunction</span> <span class="identifier">target_func</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">&lt;</span><span class="identifier">lua_CFunction</span><span class="special">,</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">target_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<h5>
+<a name="primer.reference.core.metafunction_adapt.h3"></a>
+          <span><a name="primer.reference.core.metafunction_adapt.customization"></a></span><a class="link" href="metafunction_adapt.html#primer.reference.core.metafunction_adapt.customization">Customization</a>
+        </h5>
+<p>
+          If you would like to implement a custom parameter reading / error handling
+          mechanism, you can do that by introducing a new return type for such functions,
+          and specializing the <code class="computeroutput"><span class="identifier">adapt</span></code>
+          class template for function pointers with your given return type.
+        </p>
+<p>
+          Here's an example:
+        </p>
+<p>
+          In this code, an exception "raise_lua_error" is defined, and
+          a try-catch block is setup for functions which return <code class="computeroutput"><span class="identifier">my_int</span></code>.
+          Otherwise, it just defers to the regular adapt mechanism.
+        </p>
+<pre class="programlisting"><span class="comment">// This is a custom exception type, which is supposed to be handled by raising</span>
+<span class="comment">// a lua error with this error message.</span>
+<span class="keyword">struct</span> <span class="identifier">raise_lua_error</span> <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span> <span class="special">{</span>
+  <span class="identifier">raise_lua_error</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="special">&amp;</span> <span class="identifier">str</span><span class="special">)</span>
+    <span class="special">:</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="identifier">str</span><span class="special">)</span> <span class="special">{}</span>
+<span class="special">};</span>
+
+<span class="comment">// To make our own partial specialization of adapt, we make our own return type,</span>
+<span class="comment">// separate from primer::result. Since we are throwing exceptions rather than</span>
+<span class="comment">// returning error objects, the return can just be an int basically.</span>
+<span class="keyword">struct</span> <span class="identifier">my_int</span> <span class="special">{</span>
+  <span class="keyword">int</span> <span class="identifier">value</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="comment">// Now we specialize adapt within the primer namespace</span>
+<span class="comment">// In order to make it as simple as possible, we implement it by translating the</span>
+<span class="comment">// `my_int + exception` return signal to primer::result, and adapt that version</span>
+<span class="comment">// using PRIMER_ADAPT.</span>
+<span class="comment">//</span>
+<span class="comment">// Because PRIMER_ADAPT takes place at compile-time, this is all transparent to</span>
+<span class="comment">// the optimizer and all of this can be inlined.</span>
+<span class="comment">//</span>
+<span class="comment">// Of course, you could also implement it without reference to `primer::result`</span>
+<span class="comment">// at all, but you'd likely have to dig into the implementation details for the</span>
+<span class="comment">// argument parsing off of the stack, or reimplement that yourself.</span>
+<span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">,</span> <span class="identifier">my_int</span> <span class="special">(*</span><span class="identifier">target_func</span><span class="special">)(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">Args</span><span class="special">...)&gt;</span>
+<span class="keyword">class</span> <span class="identifier">adapt</span><span class="special">&lt;</span><span class="identifier">my_int</span> <span class="special">(*)(</span><span class="identifier">lua_State</span> <span class="special">*,</span> <span class="identifier">Args</span><span class="special">...),</span> <span class="identifier">target_func</span><span class="special">&gt;</span> <span class="special">{</span>
+  <span class="keyword">static</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">adapt_target</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">Args</span><span class="special">...</span> <span class="identifier">args</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">try</span> <span class="special">{</span>
+      <span class="identifier">my_int</span> <span class="identifier">r</span> <span class="special">=</span> <span class="identifier">target_func</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">Args</span><span class="special">&gt;(</span><span class="identifier">args</span><span class="special">)...);</span>
+      <span class="keyword">return</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">value</span><span class="special">;</span>
+    <span class="special">}</span> <span class="keyword">catch</span> <span class="special">(</span><span class="identifier">raise_lua_error</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span><span class="special">{</span><span class="identifier">e</span><span class="special">.</span><span class="identifier">what</span><span class="special">()};</span> <span class="special">}</span>
+  <span class="special">}</span>
+
+<span class="keyword">public</span><span class="special">:</span>
+  <span class="comment">// This is the `output`, that is, the function pointer which we produce.</span>
+  <span class="keyword">static</span> <span class="keyword">int</span> <span class="identifier">adapted</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="special">(</span><span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">adapt_target</span><span class="special">))(</span><span class="identifier">L</span><span class="special">);</span> <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<p>
+          With this specialization installed, any function passed to <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> with return value <code class="computeroutput"><span class="identifier">my_int</span></code> gets the automatic argument parsing
+          feature, but it now can signal lua errors by throwing an exception derived
+          from <code class="computeroutput"><span class="identifier">raise_lua_error</span></code> rather
+          than in the default way that Primer does it.
+        </p>
+<pre class="programlisting"><span class="identifier">my_int</span>
+<span class="identifier">reverse_palindrome</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">p</span><span class="special">)</span> <span class="special">{</span>
+  <span class="keyword">auto</span> <span class="identifier">it</span> <span class="special">=</span> <span class="identifier">p</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span>
+  <span class="keyword">auto</span> <span class="identifier">it2</span> <span class="special">=</span> <span class="identifier">p</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">-</span> <span class="number">1</span><span class="special">;</span>
+
+  <span class="keyword">while</span> <span class="special">(</span><span class="identifier">it</span> <span class="special">&lt;</span> <span class="identifier">it2</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(*</span><span class="identifier">it</span> <span class="special">!=</span> <span class="special">*</span><span class="identifier">it2</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">throw</span> <span class="identifier">raise_lua_error</span><span class="special">(</span><span class="string">"not a palidrome"</span><span class="special">);</span> <span class="special">}</span>
+    <span class="special">++</span><span class="identifier">it</span><span class="special">;</span>
+    <span class="special">--</span><span class="identifier">it2</span><span class="special">;</span>
+  <span class="special">}</span>
+
+  <span class="keyword">if</span> <span class="special">(</span><span class="identifier">it</span> <span class="special">==</span> <span class="identifier">it2</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span><span class="special">{</span><span class="identifier">it</span><span class="special">,</span> <span class="identifier">p</span><span class="special">.</span><span class="identifier">end</span><span class="special">()};</span>
+    <span class="identifier">s</span> <span class="special">+=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="identifier">p</span><span class="special">.</span><span class="identifier">begin</span><span class="special">()</span> <span class="special">+</span> <span class="number">1</span><span class="special">,</span> <span class="identifier">it</span> <span class="special">+</span> <span class="number">1</span><span class="special">};</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">s</span><span class="special">);</span>
+  <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span><span class="special">{</span><span class="identifier">it</span><span class="special">,</span> <span class="identifier">p</span><span class="special">.</span><span class="identifier">end</span><span class="special">()};</span>
+    <span class="identifier">s</span> <span class="special">+=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="identifier">p</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">it</span><span class="special">};</span>
+    <span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">s</span><span class="special">);</span>
+  <span class="special">}</span>
+  <span class="keyword">return</span> <span class="special">{</span><span class="number">1</span><span class="special">};</span>
+<span class="special">}</span>
+
+<span class="keyword">void</span>
+<span class="identifier">test_adapt_example</span><span class="special">()</span> <span class="special">{</span>
+  <span class="identifier">lua_raii</span> <span class="identifier">L</span><span class="special">;</span>
+
+  <span class="identifier">lua_CFunction</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">PRIMER_ADAPT</span><span class="special">(&amp;</span><span class="identifier">reverse_palindrome</span><span class="special">);</span>
+
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">f</span><span class="special">);</span>
+  <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"amanapanama"</span><span class="special">);</span>
+  <span class="identifier">TEST_LUA_OK</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+  <span class="identifier">TEST</span><span class="special">(</span><span class="identifier">lua_isstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">),</span> <span class="string">"expected a string"</span><span class="special">);</span>
+  <span class="identifier">TEST_EQ</span><span class="special">(</span><span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="string">"panamamanap"</span><span class="special">});</span>
+
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">f</span><span class="special">);</span>
+  <span class="identifier">lua_insert</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">);</span>
+  <span class="identifier">TEST_LUA_OK</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">));</span>
+  <span class="identifier">TEST</span><span class="special">(</span><span class="identifier">lua_isstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">),</span> <span class="string">"expected a string"</span><span class="special">);</span>
+  <span class="identifier">TEST_EQ</span><span class="special">(</span><span class="identifier">lua_tostring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">{</span><span class="string">"amanapanama"</span><span class="special">});</span>
+
+  <span class="identifier">lua_pushcfunction</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="identifier">f</span><span class="special">);</span>
+  <span class="identifier">lua_pushstring</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="string">"abfxxxx"</span><span class="special">);</span>
+  <span class="identifier">TEST</span><span class="special">(</span><span class="identifier">LUA_OK</span> <span class="special">!=</span> <span class="identifier">lua_pcall</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">0</span><span class="special">),</span> <span class="string">"expected failure"</span><span class="special">);</span>
+<span class="special">}</span>
+</pre>
+<p>
+          Your functions using the new return type would then be automatically recognized
+          also by <code class="computeroutput"><span class="identifier">PRIMER_ADAPT_USERDATA</span></code>
+          and <code class="computeroutput"><span class="identifier">USE_LUA_CALLBACK</span></code> in
+          an <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code> object, see later in the docs.
+        </p>
+<p>
+          Another option for specialization is to use tag-dispatch to select different
+          behaviors.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="class_result.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../core.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="concept_l_reg_sequence.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

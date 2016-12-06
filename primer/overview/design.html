@@ -1,0 +1,441 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Design</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../overview.html" title="Overview">
+<link rel="prev" href="motivation.html" title="Motivation">
+<link rel="next" href="usage_and_configuration.html" title="Usage and Configuration">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="motivation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="usage_and_configuration.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="primer.overview.design"></a><a class="link" href="design.html" title="Design">Design</a>
+</h3></div></div></div>
+<p>
+        Primer is a header-only C++ library. It is intended to be a thin layer over
+        lua/eris. As such, we don't make any use of "heavy" C++ features
+        like virtual functions, exceptions, or RTTI.
+      </p>
+<p>
+        We do however make heavy use of templates. Primer's headers generate many
+        tiny functions which, in an optimized build, the compiler will inline (god
+        willing).
+      </p>
+<p>
+        It is recommended also to statically link to lua or lua-eris, as for current
+        compilers, this is the best way to take advantage of link-time optimizations.
+      </p>
+<p>
+        Primer is also intended to be light-weight in another more important way
+        -- it should be <span class="emphasis"><em>cohesive</em></span> with the lua C API. Mechanisms
+        like <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>,
+        and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">adapt</span></code>, are meant to be readily understandable
+        as a short series of calls to the lua C API following a pattern. Primer is
+        meant to provide tools which supplement the lua C API, not to replace it,
+        and to provide organizational structures that facilitate its use. We aren't
+        trying to "abstract away the lua stack" or anything like that here.
+      </p>
+<h4>
+<a name="primer.overview.design.h0"></a>
+        <span><a name="primer.overview.design.error_handling"></a></span><a class="link" href="design.html#primer.overview.design.error_handling">Error
+        Handling</a>
+      </h4>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> is the basic object which Primer
+        uses to represent a runtime error. Primer translates lua errors into <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code> when it performs an operation which
+        fails, and will translate <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>
+        into a lua error when adapting callbacks.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> is
+        a class template which Primer uses to perform error handling. This is a discriminated
+        union type, representing either a <code class="computeroutput"><span class="identifier">T</span></code>
+        value, or a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">error</span></code>. This template is broadly similar
+        to the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">expected</span></code> which was proposed for C++17,
+        except that it does not use exceptions.
+      </p>
+<h4>
+<a name="primer.overview.design.h1"></a>
+        <span><a name="primer.overview.design.reading_and_pushing"></a></span><a class="link" href="design.html#primer.overview.design.reading_and_pushing">Reading
+        and Pushing</a>
+      </h4>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> and <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>
+        are template functions which form the foundation of primer. These two functions
+        establish how to transfer C++ values to and from the lua stack. They have
+        the following signatures:
+      </p>
+<pre class="programlisting"><span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">push</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">T</span> <span class="special">&amp;</span> <span class="identifier">t</span><span class="special">);</span>
+
+<span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="identifier">read</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">index</span><span class="special">);</span>
+</pre>
+<p>
+        These functions should not be overloaded or specialized. Instead, both functions
+        are backed up by a <span class="emphasis"><em>type trait</em></span>, which may be specialized
+        to customize primer's behavior.
+      </p>
+<p>
+        Many other functions in primer's repertoire use the <code class="computeroutput"><span class="identifier">push</span></code>
+        and <code class="computeroutput"><span class="identifier">read</span></code> traits implicitly,
+        so specializing these makes primer universally "aware" of your
+        custom types.
+      </p>
+<p>
+        Traits are used because it provides for more precise and powerful customization.
+        For instance, if we merely used function overloading, then all kinds of implicit
+        conversions can come into play, and your ability to provide partial specializations
+        is limited.
+      </p>
+<h4>
+<a name="primer.overview.design.h2"></a>
+        <span><a name="primer.overview.design.reflecting_c_into_lua"></a></span><a class="link" href="design.html#primer.overview.design.reflecting_c_into_lua">Reflecting
+        C++ into lua</a>
+      </h4>
+<h5>
+<a name="primer.overview.design.h3"></a>
+        <span><a name="primer.overview.design.adapting_classes_as_userdata_typ"></a></span><a class="link" href="design.html#primer.overview.design.adapting_classes_as_userdata_typ">Adapting
+        classes as userdata types</a>
+      </h5>
+<p>
+        Userdata types are registered by specializing a trait, <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">traits</span><span class="special">::</span><span class="identifier">userdata</span></code>.
+      </p>
+<p>
+        The specialized trait is required to provide enough information to construct
+        the metatable of the userdata.
+      </p>
+<p>
+        While primitive types like numbers and tables are often read <span class="emphasis"><em>by
+        value</em></span>, using e.g. <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="keyword">float</span><span class="special">&gt;</span></code> or <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;&gt;</span></code>,
+        generally it is much more useful to read userdata types <span class="emphasis"><em>by reference</em></span>.
+      </p>
+<p>
+        If <code class="computeroutput"><span class="identifier">my_type</span></code> has been registered
+        as userdata, then <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>
+        has a built-in specialization for the type <code class="computeroutput"><span class="identifier">my_type</span>
+        <span class="special">&amp;</span></code>. If a userdata of type <code class="computeroutput"><span class="identifier">my_type</span></code> is found at that stack position,
+        then a reference to the underlying <code class="computeroutput"><span class="identifier">my_type</span></code>
+        is returned, otherwise, an error.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push_udata</span></code> is used to create new userdata
+        on the stack of a given type. It forwards all arguments to the constructor
+        of the userdata type.
+      </p>
+<h5>
+<a name="primer.overview.design.h4"></a>
+        <span><a name="primer.overview.design.adapting_functions"></a></span><a class="link" href="design.html#primer.overview.design.adapting_functions">Adapting
+        functions</a>
+      </h5>
+<p>
+        <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> is the mechanism
+        which implements type-safe parameter reading and error handling.
+      </p>
+<p>
+        It takes a function pointer of a general signature, and constructs a delegate
+        of the form <code class="computeroutput"><span class="identifier">lua_CFunction</span></code>
+        which can be pushed to lua.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> uses <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code> under the hood. If you specialize
+        the read trait for a special type or container, then that type or container
+        can be used as a parameter in any lua callback which you expose using primer.
+        A reference or const reference to any userdata type can also be used as a
+        function parameter, since <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>
+        recognizes it.
+      </p>
+<h5>
+<a name="primer.overview.design.h5"></a>
+        <span><a name="primer.overview.design.adapting_member_functions"></a></span><a class="link" href="design.html#primer.overview.design.adapting_member_functions">Adapting
+        member functions</a>
+      </h5>
+<p>
+        <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code> only directly
+        handles free functions. In order to dispatch calls to member functions, we
+        must construct a delegate which can recover the pointer to the base object
+        by some means.
+      </p>
+<p>
+        Primer provides three different ways to do this. They each work by recovering
+        this pointer, then using <code class="computeroutput"><span class="identifier">PRIMER_ADAPT</span></code>
+        to read arguments from the lua stack and call the target function. The three
+        different mechanisms are:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">userdata</span></code> dispatch
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">extraspace</span></code> dispatch
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code> dispatch
+          </li>
+</ul></div>
+<p>
+        Each has their pros and cons.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">userdata</span></code> dispatch is used
+        for userdata methods. This is simple and it works -- a drawback is that it
+        imposes syntactic constraints on your lua API, as the userdata methods must
+        be invoked as object methods.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">extraspace</span></code> dispatch is used
+        for callbacks in an API object. In this method, member functions of the API
+        object are exposed as <span class="emphasis"><em>free functions</em></span> in lua -- from
+        the point of view of the script, they are not attached to any object. But
+        in their implementation, they have access to data members of the API object
+        associated to the lua state. <code class="computeroutput"><span class="identifier">extraspace</span></code>
+        dispatch works by storing a pointer in the <a href="http://www.lua.org/manual/5.3/manual.html#lua_getextraspace" target="_top">lua
+        extraspace</a> region. It may be significantly faster than other dispatch
+        methods. But, only one object may have its members dispatched this way. It
+        is only appropriate for "global" functionalities that your API
+        exposes.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code> dispatch is a third method. In
+        an extra header, primer provides the ability to push any <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code>
+        object to lua. This mechanism is very flexible, but it comes with all the
+        caveats of using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code> -- you must make sure that any
+        pointers concealed inside it are not left dangling, and you pay some price
+        in overhead for using the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code>.
+        Also, <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">function</span></code> is usually impossible to serialize.
+        This dispatch mechanism is not usually appropriate to use when you are hoping
+        to use eris to serialize your lua state, it is only provided for convenience
+        in general lua applications.
+      </p>
+<p>
+        These are viewed as low-level decisions -- usually, the choice is obvious
+        from the context and primer does this for you. However, it is not difficult
+        to access or modify the three different mechanisms directly if you want to.
+      </p>
+<h4>
+<a name="primer.overview.design.h6"></a>
+        <span><a name="primer.overview.design.reflecting_lua_into_c"></a></span><a class="link" href="design.html#primer.overview.design.reflecting_lua_into_c">Reflecting
+        lua into C++</a>
+      </h4>
+<h5>
+<a name="primer.overview.design.h7"></a>
+        <span><a name="primer.overview.design.lua_values"></a></span><a class="link" href="design.html#primer.overview.design.lua_values">Lua
+        values</a>
+      </h5>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> is a lightweight C++ object which
+        represents a reference to a particular lua value inside of some VM.
+      </p>
+<p>
+        First, the value is pushed on top of the stack. Then, <code class="computeroutput"><span class="identifier">lua_ref</span></code>
+        is constructed, which pops the values and stores a link to it in the registry.
+      </p>
+<p>
+        The value can later be retrieved by using the <code class="computeroutput"><span class="identifier">lua_ref</span><span class="special">::</span><span class="identifier">push</span><span class="special">()</span></code> function, which pushes it back on top of
+        the stack. This only fails if the lua VM has already been destroyed, and
+        this is safe in the sense of producing a failure signal rather than undefined
+        behavior.
+      </p>
+<p>
+        You can simply convert the value to a C++ value by using the <code class="computeroutput"><span class="identifier">lua_ref</span><span class="special">::</span><span class="identifier">as</span></code> function, which uses <code class="computeroutput"><span class="identifier">lua</span><span class="special">::</span><span class="identifier">read</span></code>
+        to try to convert it. This is stack-neutral.
+      </p>
+<pre class="programlisting"><span class="keyword">if</span> <span class="special">(</span><span class="identifier">expected</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">i</span> <span class="special">=</span> <span class="identifier">ref</span><span class="special">.</span><span class="identifier">as</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;())</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"The integer is '"</span> <span class="special">&lt;&lt;</span> <span class="special">*</span><span class="identifier">i</span> <span class="special">&lt;&lt;</span> <span class="string">"'\n"</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<h5>
+<a name="primer.overview.design.h8"></a>
+        <span><a name="primer.overview.design.lua_functions"></a></span><a class="link" href="design.html#primer.overview.design.lua_functions">Lua
+        functions</a>
+      </h5>
+<p>
+        Some lua values cannot be converted to C++ values.
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> is a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>
+        which is known to point to an object of function type. It has extra member
+        functions in order to support calling the function easily from C++. A <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> can be called by passing
+        it C++ objects (which it passes to lua using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>),
+        and it can return the results as e.g. <code class="computeroutput"><span class="identifier">expected</span><span class="special">&lt;</span><span class="identifier">lua_ref</span><span class="special">&gt;</span></code> or similar.
+      </p>
+<p>
+        This makes it easy to construct typical-looking C++ function objects which
+        actually call lua functions.
+      </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">my_function_object</span> <span class="special">{</span>
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span> <span class="identifier">func_</span><span class="special">;</span>
+
+  <span class="keyword">int</span> <span class="identifier">call</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">input</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">func_</span><span class="special">.</span><span class="identifier">call_one_ret</span><span class="special">(</span><span class="identifier">input</span><span class="special">))</span> <span class="special">{</span>
+      <span class="keyword">if</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">maybe_int</span> <span class="special">=</span> <span class="identifier">result</span><span class="special">-&gt;</span><span class="identifier">as</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;())</span> <span class="special">{</span>
+        <span class="keyword">return</span> <span class="special">*</span><span class="identifier">maybe_int</span><span class="special">;</span>
+      <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+        <span class="comment">// The lua function did not return an integer</span>
+        <span class="keyword">throw</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="identifier">maybe_int</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">());</span>
+      <span class="special">}</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+      <span class="comment">// The function call failed</span>
+      <span class="keyword">throw</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="identifier">result</span><span class="special">.</span><span class="identifier">err_str</span><span class="special">());</span>
+    <span class="special">}</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<h5>
+<a name="primer.overview.design.h9"></a>
+        <span><a name="primer.overview.design.lua_coroutines"></a></span><a class="link" href="design.html#primer.overview.design.lua_coroutines">Lua
+        coroutines</a>
+      </h5>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">coroutine</span></code> is a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>
+        which represents a lua coroutine. It serves a similar purpose as <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code>, providing a safe and easy-to-use
+        interface.
+      </p>
+<h4>
+<a name="primer.overview.design.h10"></a>
+        <span><a name="primer.overview.design.constructing_apis"></a></span><a class="link" href="design.html#primer.overview.design.constructing_apis">Constructing
+        APIs</a>
+      </h4>
+<p>
+        <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>
+        is the base type which you use to construct an API.
+      </p>
+<p>
+        It has two special features:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            Data members of the API base can be declared as an "API feature",
+            using the macro <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>.
+            Such objects are expected to provide <code class="computeroutput"><span class="identifier">on_init</span><span class="special">,</span> <span class="identifier">on_persist_table</span><span class="special">,</span> <span class="identifier">on_unpersist_table</span></code>
+            methods, and optionally, <code class="computeroutput"><span class="identifier">on_serialize</span></code>
+            and <code class="computeroutput"><span class="identifier">on_deserialize</span></code>. This
+            allows the function object to declare permanent objects, and provide
+            additional serialized data besides what is visible in the global table.
+          </li>
+<li class="listitem">
+            Member functions of an API base can be automatically registered as "global"
+            functions in your lua api. This is done using the macro <code class="computeroutput"><span class="identifier">NEW_LUA_CALLBACK</span></code>.
+          </li>
+</ul></div>
+<p>
+        The <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span></code> namespace contains many additional
+        API feature objects which may be useful.
+      </p>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  name
+                </p>
+              </th>
+<th>
+                <p>
+                  functionality
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">callback_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Sets up the extraspace dispatch and moves API callbacks into the
+                  global table.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">userdata_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Registers a list of userdata types with the state, and makes sure
+                  their permanent objects go in the permanent objects table.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">library_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Registers a subset of the standard lua libraries with the state,
+                  and makes sure their functions go in the permanent objects table.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">print_manager</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Sets up a custom channel where <code class="computeroutput"><span class="identifier">print</span></code>
+                  signals from lua will go, and provides an interface for a temporary
+                  "interpreter" session useful for debugging.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">vfs</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Sets up a custom vfs to which functions like <code class="computeroutput"><span class="identifier">loadfile</span></code>,
+                  <code class="computeroutput"><span class="identifier">dofile</span></code>, and <code class="computeroutput"><span class="identifier">require</span></code> become attached, replacing
+                  the default implementations which access the filesystem directly.
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
+<p>
+        In order for member functions to be registered with the lua state, there
+        must be a <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">api</span><span class="special">::</span><span class="identifier">callback_manager</span></code>
+        which is explicitly declared as an <code class="computeroutput"><span class="identifier">API_FEATURE</span></code>
+        within the api. This callback manager is initialized using the <code class="computeroutput"><span class="keyword">this</span></code> pointer of the <code class="computeroutput"><span class="identifier">api</span><span class="special">::</span><span class="identifier">base</span></code>.
+        On initialization, it stores the this pointer in the lua extraspace, and
+        loads all of the methods into the global table, and into the permanent object
+        tables at appropriate times.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="motivation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../overview.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="usage_and_configuration.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

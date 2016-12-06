@@ -5,20 +5,20 @@
 <link rel="stylesheet" href="boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
 <link rel="home" href="index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
-<link rel="next" href="lua_primer/quickstart.html" title="Quickstart">
+<link rel="next" href="primer/quickstart.html" title="Quickstart">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
-<div class="spirit-nav"><a accesskey="n" href="lua_primer/quickstart.html"><img src="images/next.png" alt="Next"></a></div>
+<div class="spirit-nav"><a accesskey="n" href="primer/quickstart.html"><img src="images/next.png" alt="Next"></a></div>
 <div class="chapter">
 <div class="titlepage"><div>
 <div><h2 class="title">
-<a name="lua_primer"></a>Chapter&#160;1.&#160;Lua Primer 0.3</h2></div>
+<a name="primer"></a>Chapter&#160;1.&#160;Lua Primer 0.3</h2></div>
 <div><div class="author"><h3 class="author">
 <span class="firstname">Chris</span> <span class="surname">Beck</span>
 </h3></div></div>
 <div><p class="copyright">Copyright &#169; 2016 Chris Beck</p></div>
 <div><div class="legalnotice">
-<a name="lua_primer.legal"></a><p>
+<a name="primer.legal"></a><p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>
@@ -27,99 +27,99 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="section"><a href="lua_primer/quickstart.html">Quickstart</a></span></dt>
+<dt><span class="section"><a href="primer/quickstart.html">Quickstart</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/quickstart/intro.html">Intro</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/embedded_lua_crash_course.html">Embedded
+<dt><span class="section"><a href="primer/quickstart/intro.html">Intro</a></span></dt>
+<dt><span class="section"><a href="primer/quickstart/embedded_lua_crash_course.html">Embedded
       Lua Crash Course</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial.html">Tutorial</a></span></dt>
+<dt><span class="section"><a href="primer/quickstart/tutorial.html">Tutorial</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/pushing_and_reading.html">Pushing
+<dt><span class="section"><a href="primer/quickstart/tutorial/pushing_and_reading.html">Pushing
         and Reading</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/adapting_functions.html">Adapting
+<dt><span class="section"><a href="primer/quickstart/tutorial/adapting_functions.html">Adapting
         Functions</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/userdata.html">Userdata</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/userdata_methods.html">Userdata
+<dt><span class="section"><a href="primer/quickstart/tutorial/userdata.html">Userdata</a></span></dt>
+<dt><span class="section"><a href="primer/quickstart/tutorial/userdata_methods.html">Userdata
         Methods</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/lua_references.html">Lua
-        References</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/persistence.html">Persistence</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/persisting_userdata.html">Persisting
+<dt><span class="section"><a href="primer/quickstart/tutorial/lua_references.html">Lua References</a></span></dt>
+<dt><span class="section"><a href="primer/quickstart/tutorial/persistence.html">Persistence</a></span></dt>
+<dt><span class="section"><a href="primer/quickstart/tutorial/persisting_userdata.html">Persisting
         Userdata</a></span></dt>
-<dt><span class="section"><a href="lua_primer/quickstart/tutorial/vms_and_the_rule_of_five.html">VMs
+<dt><span class="section"><a href="primer/quickstart/tutorial/vms_and_the_rule_of_five.html">VMs
         and the rule of five</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="lua_primer/quickstart/conclusion.html">Conclusion</a></span></dt>
+<dt><span class="section"><a href="primer/quickstart/conclusion.html">Conclusion</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="lua_primer/overview.html">Overview</a></span></dt>
+<dt><span class="section"><a href="primer/overview.html">Overview</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/overview/motivation.html">Motivation</a></span></dt>
-<dt><span class="section"><a href="lua_primer/overview/design.html">Design</a></span></dt>
-<dt><span class="section"><a href="lua_primer/overview/usage_and_configuration.html">Usage and
-      Configuration</a></span></dt>
-<dt><span class="section"><a href="lua_primer/overview/exception_safety.html">Exception Safety</a></span></dt>
+<dt><span class="section"><a href="primer/overview/motivation.html">Motivation</a></span></dt>
+<dt><span class="section"><a href="primer/overview/design.html">Design</a></span></dt>
+<dt><span class="section"><a href="primer/overview/usage_and_configuration.html">Usage and Configuration</a></span></dt>
+<dt><span class="section"><a href="primer/overview/exception_safety.html">Exception
+      Safety</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="lua_primer/reference.html">Reference</a></span></dt>
+<dt><span class="section"><a href="primer/reference.html">Reference</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/reference/core.html">Core</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core.html">Core</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/reference/core/class_error.html">class error</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/class_expected.html">class expected</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/function_push.html">function push</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/function_read.html">function read</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/class_result.html">class result</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/metafunction_adapt.html">metafunction
+<dt><span class="section"><a href="primer/reference/core/class_error.html">class error</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/class_expected.html">class expected</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/push.html">function push</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/read.html">function
+        read</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/result.html">class result</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/adapt.html">metafunction
         adapt</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/concept_l_reg_sequence.html">concept
+<dt><span class="section"><a href="primer/reference/core/concept_l_reg_sequence.html">concept
         L_Reg_sequence</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/concept_userdata.html">concept
+<dt><span class="section"><a href="primer/reference/core/userdata.html">concept
         userdata</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/class_lua_ref.html">class lua_ref</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/class_lua_ref_seq.html">class
-        lua_ref_seq</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/class_bound_function.html">class
-        bound_function</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/core/class_coroutine.html">class coroutine</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/lua_ref.html">class
+        lua_ref</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/lua_ref_seq.html">class lua_ref_seq</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/class_bound_function.html">class bound_function</a></span></dt>
+<dt><span class="section"><a href="primer/reference/core/class_coroutine.html">class coroutine</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="lua_primer/reference/containers.html">Containers</a></span></dt>
+<dt><span class="section"><a href="primer/reference/containers.html">Containers</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/reference/containers/standard_containers.html">Standard
+<dt><span class="section"><a href="primer/reference/containers/standard_containers.html">Standard
         Containers</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/containers/optionals.html">Optionals</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/containers/visitable_structures.html">Visitable
+<dt><span class="section"><a href="primer/reference/containers/optionals.html">Optionals</a></span></dt>
+<dt><span class="section"><a href="primer/reference/containers/visitable_structures.html">Visitable
         Structures</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="lua_primer/reference/api.html">API</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api.html">API</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/reference/api/concepts.html">Concepts</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_feature.html">API Feature</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_library.html">API Library</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_userdata.html">API Userdata</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_persistent_value.html">API
-        Persistent Value</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_print_manager.html">API Print
-        Manager</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_vfs.html">API VFS</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_callback.html">API Callback</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/api/api_base.html">API Base</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/concepts.html">Concepts</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/features.html">API
+        Feature</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/api_library.html">API Library</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/api_userdata.html">API Userdata</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/api_persistent_value.html">API Persistent
+        Value</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/api_print_manager.html">API Print Manager</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/api_vfs.html">API VFS</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/callbacks.html">API
+        Callback</a></span></dt>
+<dt><span class="section"><a href="primer/reference/api/base.html">API Base</a></span></dt>
 </dl></dd>
-<dt><span class="section"><a href="lua_primer/reference/miscellaneous.html">Miscellaneous</a></span></dt>
+<dt><span class="section"><a href="primer/reference/miscellaneous.html">Miscellaneous</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="lua_primer/reference/miscellaneous/std_function.html">std::function</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/miscellaneous/cpppcall.html">CppPcall</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/miscellaneous/error_handler.html">Error
+<dt><span class="section"><a href="primer/reference/miscellaneous/std_function.html">std::function</a></span></dt>
+<dt><span class="section"><a href="primer/reference/miscellaneous/cpppcall.html">CppPcall</a></span></dt>
+<dt><span class="section"><a href="primer/reference/miscellaneous/error_handler.html">Error
         Handler</a></span></dt>
-<dt><span class="section"><a href="lua_primer/reference/miscellaneous/singletons.html">Singletons</a></span></dt>
+<dt><span class="section"><a href="primer/reference/miscellaneous/singletons.html">Singletons</a></span></dt>
 </dl></dd>
 </dl></dd>
 </dl>
 </div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
-<td align="left"><p><small>Last revised: December 05, 2016 at 23:17:36 GMT</small></p></td>
+<td align="left"><p><small>Last revised: December 06, 2016 at 01:23:24 GMT</small></p></td>
 <td align="right"><div class="copyright-footer"></div></td>
 </tr></table>
 <hr>
-<div class="spirit-nav"><a accesskey="n" href="lua_primer/quickstart.html"><img src="images/next.png" alt="Next"></a></div>
+<div class="spirit-nav"><a accesskey="n" href="primer/quickstart.html"><img src="images/next.png" alt="Next"></a></div>
 </body>
 </html>

@@ -1,0 +1,214 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Lua References</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Lua Primer 0.3">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="userdata_methods.html" title="Userdata Methods">
+<link rel="next" href="persistence.html" title="Persistence">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="userdata_methods.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="persistence.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="primer.quickstart.tutorial.lua_references"></a><a class="link" href="lua_references.html" title="Lua References">Lua References</a>
+</h4></div></div></div>
+<p>
+          As we saw, userdata is a way that you can allocate C++ objects in memory
+          owned by lua, and attach a lua interface to it.
+        </p>
+<p>
+          Sometimes, you want to have objects which are exposed like this, but aren't
+          owned exclusively by lua -- they exist in some other part of your program
+          and play an active role there.
+        </p>
+<p>
+          A common idiom for this is to make lua own a smart pointer to the object,
+          not the object itself:
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">foo_ref</span> <span class="special">{</span>
+  <span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span><span class="special">&lt;</span><span class="identifier">foo</span><span class="special">&gt;</span> <span class="identifier">foo_ptr</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">namespace</span> <span class="identifier">primer</span> <span class="special">{</span>
+<span class="keyword">namespace</span> <span class="identifier">traits</span> <span class="special">{</span>
+
+<span class="keyword">template</span> <span class="special">&lt;&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">userdata</span><span class="special">&lt;</span><span class="identifier">foo_ref</span><span class="special">&gt;</span> <span class="special">{</span> <span class="special">...</span> <span class="special">};</span>
+
+<span class="special">}</span> <span class="comment">// end namespace traits</span>
+<span class="special">}</span> <span class="comment">// end namespace primer</span>
+</pre>
+<p>
+          In this case, the object only gets freed when your program is finished
+          with it, and lua garbage collects the userdata. (In <code class="computeroutput"><span class="identifier">primer</span></code>,
+          if you don't specify a <code class="computeroutput"><span class="identifier">__gc</span></code>
+          metamethod, a default one is installed which calls the destructor, which
+          is almost always what you want. In pure lua you generally need to do that
+          manually. See <a class="link" href="../../reference/core/lua_ref.html#lua_ref_reference">reference page</a> for
+          more details.)
+        </p>
+<p>
+          This allows lua to share ownership with C++ of C++ objects. However, sometimes
+          we want to do the mirror of this -- C++ shares ownership with lua of lua
+          objects.
+        </p>
+<p>
+          lua provides a facility to do basically exactly that: <code class="computeroutput"><span class="identifier">luaL_ref</span></code>
+          and <code class="computeroutput"><span class="identifier">luaL_unref</span></code>.
+        </p>
+<p>
+          If you push an object on top of the stack and use <code class="computeroutput"><span class="identifier">luaL_ref</span></code>,
+          it basically increments lua's internal reference count for that object,
+          and gives you a token that you can use to find it again. <code class="computeroutput"><span class="identifier">luaL_unref</span></code> can be used to decrement the
+          count when you don't need to hold onto the object anymore.
+        </p>
+<p>
+          In C++, we can basically hold this token in an RAII object which calls
+          <code class="computeroutput"><span class="identifier">luaL_unref</span></code> from the destructor.
+        </p>
+<p>
+          In some cases this is more elegant and convenient than using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span></code> userdata. When <code class="computeroutput"><span class="identifier">shared_ptr</span></code> is used, there are actually
+          two reference counts taking place -- lua's internal reference counts for
+          its garbage collection, and the one within <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">shared_ptr</span></code>.
+          When we use <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code>, we effectively get a "smart
+          pointer" to a lua value which hooks into lua's own garbage collection,
+          so only one reference count is occuring rather than two.
+        </p>
+<p>
+          Particularly, this is one of the only ways you can "hang on"
+          to some objects within a lua state that can only really be represented
+          within lua and not easily in C++: lua functions, and lua coroutines.
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span></code> is an RAII object representing
+              a lua reference.
+              <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                    It can point to <span class="bold"><strong>any</strong></span> lua value.
+                  </li>
+<li class="listitem">
+                    After it is bound, you can push the object onto a given stack,
+                    or, recover the pointer <code class="computeroutput"><span class="identifier">lua_State</span>
+                    <span class="special">*</span></code> which it was bound to.
+                  </li>
+<li class="listitem">
+                    It doesn't become invalid or a dangling pointer, even if the
+                    lua state is closed.
+                  </li>
+</ul></div>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code> is a <code class="computeroutput"><span class="identifier">lua_ref</span></code> which is known to point to
+              a function.
+              <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                    It can be "called" similarly to any C++ function object.
+                  </li>
+<li class="listitem">
+                    When it is called (from C++), arguments are pushed onto the stack
+                    using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">push</span></code>.
+                    Depending on how you call it, various numbers of return values
+                    are expected, and taken from the stack using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">read</span></code>.
+                  </li>
+<li class="listitem">
+                    Calling the bound function is "safe". It won't raise
+                    a lua error, throw an exception, long jump, whatever. It may
+                    return an error message produced by lua in case of an error.
+                  </li>
+</ul></div>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">coroutine</span></code> is a <code class="computeroutput"><span class="identifier">lua_ref</span></code>
+              which is known to point to a coroutine.
+              <div class="itemizedlist"><ul class="itemizedlist" type="circle">
+<li class="listitem">
+                    It can be constructed from a <code class="computeroutput"><span class="identifier">bound_function</span></code>.
+                  </li>
+<li class="listitem">
+                    It can be called or resumed using a generic syntax, similar to
+                    the function call syntax.
+                  </li>
+</ul></div>
+            </li>
+</ul></div>
+<p>
+          Here's an example binding a <code class="computeroutput"><span class="identifier">lua_ref</span></code>:
+        </p>
+<pre class="programlisting"><span class="comment">// Make a table</span>
+<span class="identifier">luaL_newtable</span><span class="special">(</span><span class="identifier">L</span><span class="special">);</span>
+<span class="identifier">lua_pushinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="number">5</span><span class="special">);</span>
+<span class="identifier">lua_setfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"asdf"</span><span class="special">);</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">lua_ref</span> <span class="identifier">ref</span><span class="special">{</span><span class="identifier">L</span><span class="special">};</span> <span class="comment">// pops table from the stack</span>
+
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">ref</span><span class="special">);</span>
+
+<span class="identifier">ref</span><span class="special">.</span><span class="identifier">push</span><span class="special">();</span> <span class="comment">// pushes the table back onto the stack</span>
+            <span class="comment">// ref is still bound</span>
+
+<span class="identifier">lua_getfield</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">2</span><span class="special">,</span> <span class="string">"asdf"</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">lua_isinteger</span><span class="special">(</span><span class="identifier">L</span><span class="special">,</span> <span class="special">-</span><span class="number">1</span><span class="special">));</span>
+</pre>
+<p>
+          For extended syntax examples, see the reference pages.
+        </p>
+<p>
+          A particularly useful example has to do with using <code class="computeroutput"><span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span></code>
+          to bind user script functions to a C++ gui.
+        </p>
+<p>
+          In many applications, people want to use lua scripts to create mods or
+          plugins. They'd like to be able to create functions that act as callbacks,
+          in lua. For example, for rigging up gui's using lua:
+        </p>
+<pre class="programlisting"><span class="identifier">local</span> <span class="identifier">function</span> <span class="identifier">my_func</span><span class="special">()</span>
+  <span class="keyword">print</span><span class="special">(</span><span class="string">"Hello world!"</span><span class="special">)</span>
+<span class="identifier">end</span>
+
+<span class="identifier">bind_click</span><span class="special">(</span><span class="identifier">my_func</span><span class="special">)</span>
+</pre>
+<p>
+          Using primer, this can be used with a typical C++ gui by taking advantage
+          of <code class="computeroutput"><span class="identifier">bound_function</span></code>:
+        </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">lua_callback_runner</span> <span class="special">:</span> <span class="identifier">my_gui</span><span class="special">::</span><span class="identifier">event_handler</span> <span class="special">{</span>
+  <span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span> <span class="identifier">func_</span><span class="special">;</span>
+
+  <span class="keyword">void</span> <span class="identifier">handle_event</span><span class="special">()</span> <span class="special">{</span>
+    <span class="identifier">func_</span><span class="special">.</span><span class="identifier">call</span><span class="special">();</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="identifier">primer</span><span class="special">::</span><span class="identifier">result</span> <span class="identifier">bind_click</span><span class="special">(</span><span class="identifier">lua_State</span> <span class="special">*</span> <span class="identifier">L</span><span class="special">,</span> <span class="identifier">primer</span><span class="special">::</span><span class="identifier">bound_function</span> <span class="identifier">func</span><span class="special">)</span> <span class="special">{</span>
+  <span class="identifier">my_gui</span><span class="special">::</span><span class="identifier">bind_click</span><span class="special">(</span><span class="identifier">lua_callback_runner</span><span class="special">{</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">func</span><span class="special">)});</span>
+  <span class="keyword">return</span> <span class="number">0</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+          In this case, the bound function becomes the guts of a function object
+          meeting your gui's requirements. It's okay for the <code class="computeroutput"><span class="identifier">bound_function</span></code>
+          to live past the lifetime of your <code class="computeroutput"><span class="identifier">lua_State</span></code>,
+          it doesn't particularly matter when the gui cleans up its event handlers
+          in this example.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016 Chris Beck<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="userdata_methods.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="persistence.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
