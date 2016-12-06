@@ -1,8 +1,15 @@
-#include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
 using uint = unsigned int;
+
+#define ASSERT(X)                                                              \
+  if (!(X)) {                                                                  \
+    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: "         \
+              << #X << std::endl;                                              \
+    std::abort();                                                              \
+  }
 
 //[ primer_tutorial_example_api_rule_of_five ]
 
@@ -82,17 +89,17 @@ struct vm::impl : api::base<impl> {
   impl()
     : callbacks_(this)
   {
-    assert(this->initialize_api(lua_));
+    ASSERT(this->initialize_api(lua_));
   }
 
   std::string serialize() {
     std::string result;
-    this->persist(lua_, result);
+    ASSERT(this->persist(lua_, result));
     return result;
   }
 
   void deserialize(const std::string & buff) {
-    this->unpersist(lua_, buff);
+    ASSERT(this->unpersist(lua_, buff));
   }
 
   void run_script(const std::string & script) {
