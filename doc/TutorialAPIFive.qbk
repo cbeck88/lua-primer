@@ -1,22 +1,26 @@
 [section VMs and the rule of five]
 
-One of the basic things we wanted to do with VMs in our motivation, besides
-serialize them, was implement the rule of five, so that we can easily store
-large collections of VMs, and deep copy VMs with ease.
+One of the basic things we originally wanted to do with lua VMs, besides just
+serialize them, was show how to encapsulate them in an object with ['value-type]
+C++ semantics. We saw that it's not trivial to implement the rule of five for
+such objects, and as a result we didn't know how to e.g. put VMs in standard
+containers.
 
-However, lua does not provide a builtin way to deep copy a `lua_State *`, so
-it's not clear how to copy API objects that we created before. For that matter,
-API objects may not always be moveable even -- in the simplest cases, the `lua_State *`
-pointer can simply be moved, and any pure C++ objects can be moved, but in more complex
-cases care must be exercised -- lua may hold userdata objects containing smart pointers to C++ objects, or the
-C++ objects may be holding `primer::lua_ref` to specific lua objects. Sometimes in C++, the default move constructor
-of a type actually results in a copy -- this can result in objects being silently cloned, and the structure of
-your API object silently changing.
+There are several possible approaches to accomplish this with primer.
 
-This simplest way to achieve the rule of five for VMs is often to change the goal
-slightly, and only do it in concert with the `pimpl` idiom. In that case, move can always be handled by a  
-pointer move in the pimpl, and copy can always be done by serialization and deserialization of the API object 
--- we never have to actually move the API object at all, and the pimpl can still be naturally copyable and moveable with expected semantics.
+If we try to make API objects directly copyable and moveable, there are a number
+of potential pitfalls depending on how the API features work and how the userdata
+types work. For instance, lua userdata objects may hold smart pointers to C++ -- a naive
+approach to implementing a copy constructor, may inadvertently break those links
+in the copy, for instance, even if the implementation goes partially through eris.
+
+Probably the most straightforward and best encapsulated way to accomplish the
+goal is to avoid making API objects themselves copyable or moveable, but work
+via the ['pimpl] idiom, and make the pimpl object copyable and moveable.
+In this case, move can always be handled by a single pointer move in the pimpl,
+and copy can always be done by full serialization and deserialization. And the
+pimpl means that your application at large need not include primer or lua
+headers. Here's an example.
 
 [primer_tutorial_example_api_rule_of_five]
 
