@@ -30,6 +30,9 @@ might be something else. For instance if there is a global userdata of some type
 it could be serialized by putting it in the permanent objects table, rather than
 providing a `__persist` metamethod.
 
+[caution These methods must not throw exceptions, but they may raise lua errors
+  to signal a failure.]
+
 [h4 Extension: Serial Feature]
 
 Sometimes, the private state of an API feature is important, and you want

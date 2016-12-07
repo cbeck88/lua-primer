@@ -6,7 +6,7 @@ constructing API objects.
 
 An API object is a collection of features and methods which can be
 exposed to a lua VM. Each API object is supposed to be used with one and only
-one VM. It provides three methods `initialize`, `persist`, and `unpersist`.
+one VM. It provides three methods `initialize_api`, `persist`, and `unpersist`.
 
 You'll need to use these objects if you want to use a programming style like in
 the quick start examples for your application.

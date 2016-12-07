@@ -15,9 +15,9 @@ An object deriving from `primer::api::base` inherits three member functions that
 carry out high-level goals related to features and persistence.
 
 ``
-  void initialize_api(lua_State *);
-  void persist(lua_State *, std::string & buffer);
-  void unpersist(lua_State *, const std::string & buffer);
+  expected<void> initialize_api(lua_State *);
+  expected<void> persist(lua_State *, std::string & buffer);
+  expected<void> unpersist(lua_State *, const std::string & buffer);
 ``
 
 It carries out these tasks based on declarations that you make using the macro,
@@ -49,6 +49,11 @@ Other data, such as values stored in the lua registry, are not serialized. Any s
 that need to be serialized, should be managed by an `API_FEATURE` to ensure that.
 
 (See [link api_features_reference documentation on API Features] for more info.)
+
+Each of these functions returns `expected<void>`, and returns an error only if
+a lua error was raised during the operation. This can happen if `eris` itself
+raises an error, or if one of the feature objects raises a lua error within its
+method.
 
 [h3 Callbacks]
 

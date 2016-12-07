@@ -38,22 +38,27 @@
  * };
  *
  * All these functions should be stack neutral.
- * `on_init` is where metatables, registry entries, global entities should be
- * created.
- * `on_persist` will be called when the persist table is on top of the stack,
- * entries should be created.
- * `on_unpersist` will be called when the unpersist table is on top of the
- * stack.
- * It should be dual.
+ * They should not throw exceptions but may raise lua errors.
+ *
+ * `on_init`
+ *   is called by `initialize_api`. This is where metatables, registry entries,
+ *   global entities should be created.
+ * `on_persist`
+ *   will be called when the persist table is on top of the stack, entries
+ *   should be created.
+ * `on_unpersist`
+ *   will be called when the unpersist table is on top of the stack.
+ *   It should be dual.
  *
  * If `on_serialize` or `on_deserialize` is present, then the other should be
  * too, or there will be no effect.
  *
- * `on_serialize` should push one value onto the stack which can be persisted
- * to represent this object.
+ * `on_serialize`
+ *   should push one value onto the stack which can be persisted to represent
+ *   this object.
  *
- * `on_deserialize` should recover one value from the top of the stack, to
- * restore the object.
+ * `on_deserialize`
+ *   should recover one value from the top of the stack, to restore the object.
  */
 
 #include <primer/base.hpp>
@@ -145,13 +150,36 @@ struct ptr_to_member {
   static const char * get_name() { return name_func(); }
 };
 
+/***
+ * It would be nice if we could use PRIMER_ASSERT_STACK_NEUTRAL here, but these
+ * functions which we are calling may raise lua errors, which may be an
+ * exception when lua is compiled as C++, and that would cause the stack
+ * neutrality check to be fired from the dtor during stack unwinding. However,
+ * here the stack neutrality should not be enforced when a lua error is raised,
+ * the convention in lua is that you push the error message onto the stack
+ * before raising the error.
+ *
+ * So, we need a version of PRIMER_ASSERT_STACK_NEUTRAL that doesn't happen
+ * when exceptions are raised, and doesn't use the dtor of an object.
+ */
+ 
+#ifdef PRIMER_DEBUG
+#define PRIMER_API_FEATURE_STACK_CHECK(L, S, NAME)                             \
+   PRIMER_ASSERT(lua_gettop(L) == S, "API Feature " << NAME                    \
+                 << " was not stack neutral: initial = " << S                  \
+                 << " final = " << lua_gettop(L))
+#else
+   static_cast<void>(S)
+#endif
+
 struct on_init_visitor {
   lua_State * L;
 
   template <typename H, typename T>
   void visit_type(T & t) {
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    int top = lua_gettop(L);
     H::get_target(t).on_init(L);
+    PRIMER_API_FEATURE_STACK_CHECK(L, top, H::get_name());
   }
 };
 
@@ -161,8 +189,9 @@ struct on_persist_table_visitor {
   template <typename H, typename T>
   void visit_type(T & t) {
     PRIMER_ASSERT_TABLE(L);
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    int top = lua_gettop(L);
     H::get_target(t).on_persist_table(L);
+    PRIMER_API_FEATURE_STACK_CHECK(L, top, H::get_name());
   }
 };
 
@@ -172,8 +201,9 @@ struct on_unpersist_table_visitor {
   template <typename H, typename T>
   void visit_type(T & t) {
     PRIMER_ASSERT_TABLE(L);
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    int top = lua_gettop(L);
     H::get_target(t).on_unpersist_table(L);
+    PRIMER_API_FEATURE_STACK_CHECK(L, top, H::get_name());
   }
 };
 
@@ -184,9 +214,10 @@ struct on_serialize_visitor {
   enable_if_t<is_serial_feature<typename H::target_type>::value> visit_type(
     T & t) {
     PRIMER_ASSERT_TABLE(L);
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    int top = lua_gettop(L);
     H::get_target(t).on_serialize(L);
     lua_setfield(L, -2, H::get_name());
+    PRIMER_API_FEATURE_STACK_CHECK(L, top, H::get_name());
   }
 
   template <typename H, typename T>
@@ -202,9 +233,10 @@ struct on_deserialize_visitor {
   enable_if_t<is_serial_feature<typename H::target_type>::value> visit_type(
     T & t) {
     PRIMER_ASSERT_TABLE(L);
-    PRIMER_ASSERT_STACK_NEUTRAL(L);
+    int top = lua_gettop(L);
     lua_getfield(L, -1, H::get_name());
     H::get_target(t).on_deserialize(L);
+    PRIMER_API_FEATURE_STACK_CHECK(L, top, H::get_name());
   }
 
   template <typename H, typename T>
