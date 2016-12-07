@@ -162,14 +162,14 @@ struct ptr_to_member {
  * So, we need a version of PRIMER_ASSERT_STACK_NEUTRAL that doesn't happen
  * when exceptions are raised, and doesn't use the dtor of an object.
  */
- 
+
 #ifdef PRIMER_DEBUG
 #define PRIMER_API_FEATURE_STACK_CHECK(L, S, NAME)                             \
-   PRIMER_ASSERT(lua_gettop(L) == S, "API Feature " << NAME                    \
-                 << " was not stack neutral: initial = " << S                  \
-                 << " final = " << lua_gettop(L))
+  PRIMER_ASSERT(lua_gettop(L) == S,                                            \
+                "API Feature " << NAME << " was not stack neutral: initial = " \
+                               << S << " final = " << lua_gettop(L))
 #else
-   static_cast<void>(S)
+static_cast<void>(S)
 #endif
 
 struct on_init_visitor {

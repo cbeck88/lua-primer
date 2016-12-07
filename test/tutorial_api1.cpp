@@ -9,8 +9,8 @@ using uint = unsigned int;
 
 #define ASSERT(X)                                                              \
   if (!(X)) {                                                                  \
-    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: "         \
-              << #X << std::endl;                                              \
+    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: " << #X   \
+              << std::endl;                                                    \
     std::abort();                                                              \
   }
 
@@ -75,7 +75,9 @@ struct my_api : api::base<my_api> {
     return result;
   }
 
-  void deserialize(const std::string & str) { ASSERT(this->unpersist(lua_, str)); }
+  void deserialize(const std::string & str) {
+    ASSERT(this->unpersist(lua_, str));
+  }
 };
 
 // Test that we can make two separate, encapsulated copies of the api object,
@@ -117,18 +119,23 @@ main() {
 //` Recall that in our "token" api, the `next_token` function had a static
 //` local variable to serve as the counter. when we use primer usually we
 //` don't want that -- we want everything about the VM to be encapsulated in
-//` an object, and we want `api1` and `api2` in the example above to have independent
-//` counters. In primer, one way to do that is to make such state be a member of the API
-//` object. Here, we used `api::persistent_value<int>` for the counter.
+//` an object, and we want `api1` and `api2` in the example above to have
+//` independent
+//` counters. In primer, one way to do that is to make such state be a member of
+//` the API object. Here, we used `api::persistent_value<int>` for the counter.
 //`
-//` The `api::persistent_value` template creates a structure with one data member,
-//` which can be accessed via `get()`. When it is registered using `API_FEATURE`,
+//` The `api::persistent_value` template creates a structure with one data
+//` member,
+//` which can be accessed via `get()`. When it is registered using
+//` `API_FEATURE`,
 //` it gets to participate in serialization and deserialization. It does this by
-//` pushing its name and its value, using `primer::push`, so that it gets serialized
-//` by eris along with the global table. On deserialization, it recovers the value.
-//` This is sometimes a convenient way of creating C++ objects associated to your
+//` pushing its name and its value, using `primer::push`, so that it gets
+//` serialized
+//` by eris along with the global table. On deserialization, it recovers the
+//` value.
+//` This is sometimes a convenient way of creating C++ objects associated to
+//` your
 //` API that get serialized. Any data structure which can be used with both
 //` `primer::push` and `primer::read` can be used with `persistent_value`.
-
 
 //]

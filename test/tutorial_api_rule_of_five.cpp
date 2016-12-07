@@ -6,8 +6,8 @@ using uint = unsigned int;
 
 #define ASSERT(X)                                                              \
   if (!(X)) {                                                                  \
-    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: "         \
-              << #X << std::endl;                                              \
+    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: " << #X   \
+              << std::endl;                                                    \
     std::abort();                                                              \
   }
 
@@ -22,7 +22,7 @@ class vm {
   struct impl;
 
   std::unique_ptr<impl> impl_;
-  
+
 public:
   vm();
   ~vm();
@@ -30,16 +30,14 @@ public:
   vm(const vm &);
   vm(vm &&);
 
-  vm & operator =(const vm &);
-  vm & operator =(vm &&);
-
+  vm & operator=(const vm &);
+  vm & operator=(vm &&);
 
   void run_script(const std::string &);
 
   std::string serialize() const;
   void deserialize(const std::string &);
 };
-
 
 //` [*vm.cpp]
 
@@ -71,24 +69,23 @@ struct vm::impl : api::base<impl> {
 
   API_FEATURE(api::callbacks, callbacks_);
 
-  NEW_LUA_CALLBACK(a)(lua_State *) -> int {
+  NEW_LUA_CALLBACK(a)(lua_State *)->int {
     std::cout << "a" << std::endl;
     return 0;
   }
 
-  NEW_LUA_CALLBACK(b)(lua_State *) -> int {
+  NEW_LUA_CALLBACK(b)(lua_State *)->int {
     std::cout << "b" << std::endl;
     return 0;
   }
 
-  NEW_LUA_CALLBACK(c)(lua_State *) -> int {
+  NEW_LUA_CALLBACK(c)(lua_State *)->int {
     std::cout << "c" << std::endl;
     return 0;
   }
 
   impl()
-    : callbacks_(this)
-  {
+    : callbacks_(this) {
     ASSERT(this->initialize_api(lua_));
   }
 
@@ -112,7 +109,7 @@ struct vm::impl : api::base<impl> {
     if (LUA_OK != lua_pcall(lua_, 0, 0, 0)) {
       std::cerr << lua_tostring(lua_, -1);
       std::abort();
-    }    
+    }
   }
 };
 
@@ -121,11 +118,10 @@ struct vm::impl : api::base<impl> {
  */
 
 vm::vm()
-  : impl_(new vm::impl())
-{}
- 
+  : impl_(new vm::impl()) {}
+
 vm::~vm() = default;
- 
+
 vm::vm(vm &&) = default;
 
 vm::vm(const vm & m)
@@ -137,21 +133,25 @@ vm::vm(const vm & m)
 
 vm & vm::operator=(vm &&) = default;
 
-vm & vm::operator=(const vm & other) {
+vm &
+vm::operator=(const vm & other) {
   vm temp{other};
   *this = std::move(temp);
   return *this;
 }
 
-void vm::run_script(const std::string & script) {
+void
+vm::run_script(const std::string & script) {
   impl_->run_script(script);
 }
 
-std::string vm::serialize() const {
+std::string
+vm::serialize() const {
   return impl_->serialize();
 }
 
-void vm::deserialize(const std::string & buff) {
+void
+vm::deserialize(const std::string & buff) {
   impl_->deserialize(buff);
 }
 
@@ -161,22 +161,27 @@ void vm::deserialize(const std::string & buff) {
 #include <iostream>
 #include <string>
 
-void call_funcs(vm & m) {
-  m.run_script("a() "
-               "b() "
-               "c() ");
+void
+call_funcs(vm & m) {
+  m.run_script(
+    "a() "
+    "b() "
+    "c() ");
   std::cout << std::endl;
 }
 
-void cycle_funcs(vm & m) {
-  m.run_script("d = c "
-               "c = b "
-               "b = a "
-               "a = d "
-               "d = nil ");
+void
+cycle_funcs(vm & m) {
+  m.run_script(
+    "d = c "
+    "c = b "
+    "b = a "
+    "a = d "
+    "d = nil ");
 }
 
-int main() {
+int
+main() {
   vm m1;
   call_funcs(m1);
   cycle_funcs(m1);
@@ -206,7 +211,6 @@ int main() {
 //` copy assignment and move assignment work as expected here. The expected
 //` output is:
 
-
 //=a
 //=b
 //=c
@@ -239,19 +243,29 @@ int main() {
 //=b
 //=c
 
-//` It's worth it to note that copying the VM this way can potentially be made
-//` slightly more efficient, if we eliminate the use of the buffer.
+//` It's worth it to mention a non-obvious optimization in the above program:
+//` Ccopying the VM this way can ['potentially] be made
+//` slightly more efficient, by eliminating the use of the buffer.  
+//`
 //` Under the hood, eris' dump and undump functions are implemented in terms
 //` of incremental read and write functions, and don't require the use of a
-//` giant presized buffer. `primer`'s functions wrap over this by trivially
+//` giant presized buffer.  
+//` 
+//` `primer`'s functions wrap over this by trivially
 //` buffering to and from a `std::string`, but in principle if your goal is
 //` just to copy a VM, you could do without the buffer, and push bytes from
-//` one vm directly to the other, in producer / consumer fashion.
-//` The reason I didn't do this is that it's more complex to implement and
-//` complicates error handling -- it's not easy to abort the read / write
-//` operation for one if the other fails in the middle somewhere, at least
-//` so far as I know. If you decide to implement this, you could contribute it
-//` as a patch and it could become a part of `api::base`. :D
-
+//` one VM directly to the other, in producer / consumer fashion.  
+//`  
+//` The reason it isn't that way right now is that  
+//`
+//` * It's more complex to implement, and potentially to debug.
+//` * It's more complex to figure out how to do error handling in that case --
+//`   it's not clear to me that the reader / writer functions are permitted to
+//`   raise lua errors, so there might be some hackery involved.
+//` * It's not clear that it would really be that much faster, and I didn't
+//`   really need it.
+//`  
+//` If you decide to implement this, you could contribute it
+//` as a patch, it would be quite welcome!
 
 //]

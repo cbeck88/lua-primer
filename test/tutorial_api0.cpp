@@ -9,14 +9,15 @@ using uint = unsigned int;
 
 #define ASSERT(X)                                                              \
   if (!(X)) {                                                                  \
-    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: "         \
-              << #X << std::endl;                                              \
+    std::cerr << "Assertion failed [" << __FILE__ << __LINE__ << "]: " << #X   \
+              << std::endl;                                                    \
     std::abort();                                                              \
   }
 
 //[ primer_tutorial_api_example_0
 
-//` First, as a warmup, we'll give an api which only has some callback functions,
+//` First, as a warmup, we'll give an api which only has some callback
+//` functions,
 //` and show how the save / restore semantics works exactly.
 
 // lua_raii is a simple raii object that manages a lua state, for this demo
@@ -73,7 +74,9 @@ struct my_api : api::base<my_api> {
     return result;
   }
 
-  void deserialize(const std::string & str) { ASSERT(this->unpersist(lua_, str));; }
+  void deserialize(const std::string & str) {
+    ASSERT(this->unpersist(lua_, str));
+  }
 };
 
 // Test that we can make two separate, encapsulated copies of the api object,
@@ -87,13 +90,13 @@ main() {
     "msg2 = 'good bye world!' "
     "msg = msg1 "
     "announce(msg)");
-  
+
   std::string s = api1.serialize();
 
   api1.run_script("msg = msg2");
-  
+
   api1.deserialize(s);
-  
+
   api1.run_script("announce(msg)");
   api1.run_script("msg = msg2");
   api1.run_script("announce(msg)");
@@ -125,16 +128,17 @@ main() {
 //=  lua: hello world!
 //=  lua: goodbye world!
 //`  The second line is `hello world` and not `goodbye world` because when the
-//`  state gets serialized, `msg = msg2` hasn't happened yet. When it gets restored,
-//`  the entire global environment gets reset to the saved state. Only the second
-//`  line `msg = msg2` affects the state at the time of `announce.
+//`  state gets serialized, `msg = msg2` hasn't happened yet. When it gets
+//`  restored,
+//`  the entire global environment gets reset to the saved state. Only the
+//`  second line `msg = msg2` affects the state at the time of `announce.
 //`
 //` Another thing worth mentioning -- when callbacks are registered, they are
-//` automatically pushed into the global environment by `initialize_api`. However,
+//` automatically pushed into the global environment by `initialize_api`.
+//` However,
 //` the functions can be renamed or removed after this, and upon unpersisting,
 //` those renames will still be in effect. The global enviornment -- that is,
 //` the values of all variables visible to scripts -- are supposed to be exactly
 //` the same after a state is deserialized.
-
 
 //]

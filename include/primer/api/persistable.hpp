@@ -146,7 +146,7 @@ private:
     eris_undump(L, detail::trivial_string_reader, &rh); // [_unpersist] [target]
 
     lua_remove(L, 1); // [target]
-    this->consume_target_table(L); 
+    this->consume_target_table(L);
   }
 
 protected:
@@ -164,13 +164,14 @@ protected:
     lua_pop(L, 1);
 #endif
 
-    return cpp_pcall<0>(L, [&L, this](){ this->initialize_api_impl(L); });
+    return cpp_pcall<0>(L, [&L, this]() { this->initialize_api_impl(L); });
   }
 
   expected<void> persist(lua_State * L, std::string & buffer) {
     lua_settop(L, 0);
 
-    expected<void> result = cpp_pcall<0>(L, [&L, &buffer, this](){ this->persist_impl(L, buffer); });
+    expected<void> result =
+      cpp_pcall<0>(L, [&L, &buffer, this]() { this->persist_impl(L, buffer); });
 
     lua_settop(L, 0);
 
@@ -180,10 +181,11 @@ protected:
   expected<void> unpersist(lua_State * L, const std::string & buffer) {
     lua_settop(L, 0);
 
-    expected<void> result = cpp_pcall<0>(L, [&L, &buffer, this](){ this->unpersist_impl(L, buffer); });
+    expected<void> result = cpp_pcall<0>(
+      L, [&L, &buffer, this]() { this->unpersist_impl(L, buffer); });
 
     lua_settop(L, 0);
-    
+
     return result;
   }
 };
