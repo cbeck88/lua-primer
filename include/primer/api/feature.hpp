@@ -169,6 +169,7 @@ struct ptr_to_member {
                 "API Feature " << NAME << " was not stack neutral: initial = " \
                                << S << " final = " << lua_gettop(L))
 #else
+#define PRIMER_API_FEATURE_STACK_CHECK(L, S, NAME)                             \
 static_cast<void>(S)
 #endif
 
