@@ -27,6 +27,24 @@ PRIMER_ASSERT_FILESCOPE;
 #define PRIMER_BAD_ACCESS(X)                                                   \
   PRIMER_ASSERT((X), "Bad access to primer::expected")
 
+// Note: This generic container is *mostly* correct in regards to special member
+// functions, but the following defects exist:
+//
+// - It's only noexcept correct under the assumption that E has throwing copy
+//   ctors and copy assignment operators. (True of primer::error)
+// - The default constructor and copy constructors are still declared even if T
+//   is not default constructible or not copyable. Instantiating them will lead
+//   to a compile-time error, but it would be better if these declarations
+//   didn't exist at all, and then traits like `std::is_default_constructible`
+//   would give the right answer for `expected` types. See this blog post for
+//   more info about the issue:
+//
+//   https://akrzemi1.wordpress.com/2015/03/02/a-conditional-copy-constructor/
+//   I didn't implement it that way because it seems like too much work, feared
+//   that it might hurt readability of this code, and this specific thing
+//   wasn't an issue for any of my projects that used this, but patches would
+//   be welcome.
+
 namespace primer {
 
 //[ primer_expected
@@ -136,7 +154,7 @@ public:
   // Special member functions
 
   // expected<T> is only default constructible if T is, and it throws if T does
-  expected();
+  expected() noexcept(std::is_nothrow_default_constructible<T>::value);
 
   expected(expected &&) noexcept;
   expected & operator=(expected &&) noexcept;
@@ -285,7 +303,7 @@ template <typename T, typename E>
 
 // Special member functions
 template <typename T, typename E>
-expected<T, E>::expected() {
+expected<T, E>::expected() noexcept(std::is_nothrow_default_constructible<T>::value) {
   this->init_ham();
 }
 
