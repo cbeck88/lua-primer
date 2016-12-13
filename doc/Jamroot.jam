@@ -12,7 +12,7 @@ using quickbook ;
 
 boostbook primer-doc
   :
-        primer.qbk
+        qbk/primer.qbk
   :
         <xsl:param>chunk.section.depth=3
         <xsl:param>chunk.first.sections=1
