@@ -355,6 +355,26 @@ test_map_round_trip() {
 }
 
 void
+test_unordered_map_round_trip() {
+  lua_raii L;
+
+  round_trip_value(L, std::unordered_map<std::string, std::string>{}, __LINE__);
+  round_trip_value(L,
+                   std::unordered_map<std::string, std::string>{
+                     {"a", "jk"}, {"l", "wer"}, {"_@34", "wasd"}},
+                   __LINE__);
+  round_trip_value(L, std::unordered_map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}},
+                   __LINE__);
+  round_trip_value(L, std::unordered_map<std::string, int>{{"a", 1}, {"b", 5}, {"", 42}},
+                   __LINE__);
+  round_trip_value(
+    L,
+    std::unordered_map<int, std::vector<std::string>>{
+      {1, {}}, {2, {}}, {3, {"a", "b", "c"}}, {9, {"asdf", "jkl;"}}},
+    __LINE__);
+}
+
+void
 test_set_round_trip() {
   lua_raii L;
 
@@ -643,6 +663,7 @@ main() {
     {"pair roundtrip", &test_pair_round_trip},
     {"map roundtrip", &test_map_round_trip},
     {"set roundtrip", &test_set_round_trip},
+    {"unordered map roundtrip", &test_map_round_trip},
     {"userdata", &test_userdata},
     {"userdata two", &test_userdata_two},
     {"std function", &test_std_function},

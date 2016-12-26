@@ -22,11 +22,11 @@ namespace traits {
 
 template <typename T, typename U>
 struct push<std::unordered_map<T, U>>
-  : container::map_push_helper<std::map<T, U>> {};
+  : container::map_push_helper<std::unordered_map<T, U>> {};
 
 template <typename T, typename U>
 struct read<std::unordered_map<T, U>>
-  : container::map_read_helper<std::map<T, U>> {};
+  : container::map_read_helper<std::unordered_map<T, U>> {};
 
 } // end namespace traits
 
