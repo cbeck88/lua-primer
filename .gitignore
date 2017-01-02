@@ -36,3 +36,6 @@ update_docu.sh
 
 # aspell backup files
 *.bak
+
+# find and replace script
+/find_and_replace.sh

@@ -1,8 +1,8 @@
 [library Lua Primer
     [quickbook 1.6]
-    [version 0.3]
+    [version 0.4]
     [id primer]
-    [copyright 2016 Chris Beck]
+    [copyright 2016 - 2017 Chris Beck]
     [authors [Beck, Chris]]
     [category Inter-language Support]
     [purpose Reflect C++ into lua, and provide serialization capabilites]
