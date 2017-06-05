@@ -11,8 +11,8 @@ Environment variables:
 - `LUA_ROOT`  
   This should be a relative path from this
   directory to the root of the lua installation.  
-  Default is `eris-master-lua5.3`,
-  but you could select any of the `lua-5.3.x` folders or another eris folder.
+  Default is `eris-1.1.2-lua5.3`,
+  you could select any of the `lua-5.3.x` folders or another eris folder.
 
 - `BOOST_ROOT`  
   Specify this to use a boost installation
