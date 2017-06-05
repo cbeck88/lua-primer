@@ -113,7 +113,7 @@ script:
   - ./test.sh ${FLAGS} release --with-lua-as-cpp --with-lua32bit
   - ./test.sh ${FLAGS} release
 
-  - export LUA_ROOT=eris-master-lua5.3
+  - export LUA_ROOT=eris-1.1.2-lua5.3
   - echo ${LUA_ROOT}
 
   - ./test.sh ${FLAGS}
