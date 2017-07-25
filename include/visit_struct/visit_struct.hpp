@@ -17,19 +17,23 @@
 
 // For MSVC 2013 support, we put constexpr behind a define.
 
-# if (defined _MSC_VER) && (_MSC_VER <= 1800)
-#   define VISIT_STRUCT_CONSTEXPR
-# else
-#   define VISIT_STRUCT_CONSTEXPR constexpr
+# ifndef VISIT_STRUCT_CONSTEXPR
+#   if (defined _MSC_VER) && (_MSC_VER <= 1800)
+#     define VISIT_STRUCT_CONSTEXPR
+#   else
+#     define VISIT_STRUCT_CONSTEXPR constexpr
+#   endif
 # endif
 
-// After C++14 some more functions, notable apply_visitor, can be constexpr.
+// After C++14 the apply_visitor function can be constexpr.
 // We target C++11, but such functions are tagged VISIT_STRUCT_CXX14_CONSTEXPR.
 
-# if (defined _MSC_VER) || (!defined __cplusplus) || (__cplusplus == 201103L)
-#   define VISIT_STRUCT_CXX14_CONSTEXPR
-# else
-#   define VISIT_STRUCT_CXX14_CONSTEXPR constexpr
+# ifndef VISIT_STRUCT_CXX14_CONSTEXPR
+#   if ((defined _MSC_VER) && (_MSC_VER <= 1900)) || (!defined __cplusplus) || (__cplusplus == 201103L)
+#     define VISIT_STRUCT_CXX14_CONSTEXPR
+#   else
+#     define VISIT_STRUCT_CXX14_CONSTEXPR constexpr
+#   endif
 # endif
 
 namespace visit_struct {
@@ -66,8 +70,7 @@ struct common_type {
 
 } // end namespace traits
 
-// Expose number of fields in a visitable struct, and an enum allowing them to
-// be referenced by number.
+// Expose number of fields in a visitable struct
 template <typename S>
 VISIT_STRUCT_CONSTEXPR std::size_t field_count()
 {
@@ -109,8 +112,38 @@ VISIT_STRUCT_CXX14_CONSTEXPR auto apply_visitor(V && v, S1 && s1, S2 && s2) ->
                                                       std::forward<S2>(s2));
 }
 
+// Interface (like std::get for tuples)
+template <int idx, typename S>
+VISIT_STRUCT_CONSTEXPR auto get(S && s) ->
+  typename std::enable_if<
+             traits::is_visitable<traits::clean_t<S>>::value,
+             decltype(traits::visitable<traits::clean_t<S>>::get_value(std::integral_constant<int, idx>{}, std::forward<S>(s)))
+           >::type
+{
+  return traits::visitable<traits::clean_t<S>>::get_value(std::integral_constant<int, idx>{}, std::forward<S>(s));
+}
+
+// Interface (get name instead of value)
+// (This doesn't just return char *, it returns a constexpr reference to a character array,
+//  to allow you to actually read  he characters in a constexpr computation.)
+template <int idx, typename S>
+VISIT_STRUCT_CONSTEXPR auto get_name() ->
+  typename std::enable_if<
+             traits::is_visitable<traits::clean_t<S>>::value,
+             decltype(traits::visitable<traits::clean_t<S>>::get_name(std::integral_constant<int, idx>{}))
+           >::type
+{
+  return traits::visitable<traits::clean_t<S>>::get_name(std::integral_constant<int, idx>{});
+}
+
+template <int idx, typename S>
+VISIT_STRUCT_CONSTEXPR auto get_name(S &&) -> decltype(get_name<idx, S>()) {
+  return get_name<idx, S>();
+}
+
+
 /***
- * To implement the VISITABLE_STRUCTURE macro, we need a map-macro, which can take
+ * To implement the VISITABLE_STRUCT macro, we need a map-macro, which can take
  * the name of a macro and some other arguments, and apply that macro to each other argument.
  *
  * There are some techniques you can use within C preprocessor to accomplish this succinctly,
@@ -244,9 +277,34 @@ static VISIT_STRUCT_CONSTEXPR const int max_visitable_members = 69;
 #define VISIT_STRUCT_MEMBER_HELPER_PAIR(MEMBER_NAME)                                               \
   std::forward<V>(visitor)(#MEMBER_NAME, std::forward<S1>(s1).MEMBER_NAME, std::forward<S2>(s2).MEMBER_NAME);
 
+#define VISIT_STRUCT_MAKE_GETTERS(MEMBER_NAME)                                                     \
+  template <typename S>                                                                            \
+  static VISIT_STRUCT_CONSTEXPR auto                                                               \
+    get_value(std::integral_constant<int, fields_enum::MEMBER_NAME>,                               \
+              S && s) ->                                                                           \
+    decltype(std::forward<S>(s).MEMBER_NAME) {                                                     \
+    return std::forward<S>(s).MEMBER_NAME;                                                         \
+  }                                                                                                \
+                                                                                                   \
+  static VISIT_STRUCT_CONSTEXPR auto                                                               \
+    get_name(std::integral_constant<int, fields_enum::MEMBER_NAME>) ->                             \
+      decltype(#MEMBER_NAME) {                                                                     \
+    return #MEMBER_NAME;                                                                           \
+  }                                                                                                \
+
 // This macro specializes the trait, provides "apply" method which does the work.
 // Below, template parameter S should always be the same as STRUCT_NAME modulo const and reference.
 // The interface defined above ensures that STRUCT_NAME is clean_t<S> basically.
+//
+// Note: The code to make the indexed getters work is more convoluted than I'd like.
+//       PP_MAP doesn't give you the index of each member. And rather than hack it so that it will
+//       do that, what we do instead is:
+//       1: Declare an enum `field_enum` in the scope of visitable, which maps names to indices.
+//          This gives an easy way for the macro to get the index from the name token.
+//       2: Intuitively we'd like to use template partial specialization to make indices map to
+//          values, and have a new specialization for each member. But, specializations can only
+//          be made at namespace scope. So to keep things tidy and contained within this trait,
+//          we use tag dispatch with std::integral_constant<int> instead.
 
 #define VISITABLE_STRUCT(STRUCT_NAME, ...)                                                         \
 namespace visit_struct {                                                                           \
@@ -275,6 +333,12 @@ struct visitable<STRUCT_NAME, void> {                                           
   {                                                                                                \
     VISIT_STRUCT_PP_MAP(VISIT_STRUCT_MEMBER_HELPER_PAIR, __VA_ARGS__)                              \
   }                                                                                                \
+                                                                                                   \
+  struct fields_enum {                                                                             \
+    enum index { __VA_ARGS__ };                                                                    \
+  };                                                                                               \
+                                                                                                   \
+  VISIT_STRUCT_PP_MAP(VISIT_STRUCT_MAKE_GETTERS, __VA_ARGS__)                                      \
                                                                                                    \
   static VISIT_STRUCT_CONSTEXPR const bool value = true;                                           \
 };                                                                                                 \
