@@ -53,17 +53,18 @@ class bound_function {
       if (auto stack_check = detail::check_stack_push_each<int, Args...>(L)) {
 // TODO: MSVC seems to struggle with this lambda capture, not sure why.
 // For the moment we simply disable the pcall for msvc only
-#ifndef _MSC_VER
-        auto ok = mem_pcall(L, [this, L, &result, &args...]() {
-#endif
+// #ifndef _MSC_VER
+//        auto ok = mem_pcall(L, [this, L, &result, &args...]() {
+        auto ok = mem_pcall(L, [&]() {
+// #endif
           ref_.push(L);
           primer::push_each(L, std::forward<Args>(args)...);
           detail::fcn_call(result, L, sizeof...(args));
-#ifndef _MSC_VER
+// #ifndef _MSC_VER
         });
 
         if (!ok) { result = std::move(ok.err()); }
-#endif
+// #endif
 
       } else {
         result = std::move(stack_check.err());
