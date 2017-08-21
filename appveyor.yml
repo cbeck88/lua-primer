@@ -112,7 +112,8 @@ test_script:
         ForEach($file in $files) {
           Write-Host ""
           Write-Host $file.fullName " ... "
-          cdb -y $SymPath -c "|;g;kv;q" -o $file.fullName
+#          cdb -y $SymPath -c "|;g;kv;q" -o $file.fullName
+          $file.fullName
           Write-Host "Exit code: " $lastExitCode
         }
       }
