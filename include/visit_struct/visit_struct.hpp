@@ -49,8 +49,8 @@ template <typename T, typename ENABLE = void>
 struct is_visitable : std::false_type {};
 
 template <typename T>
-struct is_visitable< T,
-                     typename std::enable_if<traits::visitable<T>::value>::type>
+struct is_visitable<T,
+                    typename std::enable_if<traits::visitable<T>::value>::type>
  : std::true_type {};
 
 // Helper template which removes cv and reference from a type (saves some typing)
@@ -73,6 +73,15 @@ struct common_type {
 // Tag for tag dispatch
 template <typename T>
 struct type_c {};
+
+// Accessor type: function object encapsulating a pointer-to-member
+template <typename MemPtr, MemPtr ptr>
+struct accessor {
+  template <typename T>
+  VISIT_STRUCT_CONSTEXPR auto operator()(T && t) const -> decltype(std::forward<T>(t).*ptr) {
+    return std::forward<T>(t).*ptr;
+  }
+};
 
 //
 // User-interface
@@ -130,7 +139,18 @@ VISIT_STRUCT_CXX14_CONSTEXPR auto visit_pointers(V && v) ->
   traits::visitable<traits::clean_t<S>>::visit_pointers(std::forward<V>(v));
 }
 
-// Interface (no instances)
+// Interface: visit the accessors (function objects) of the registered members
+template <typename S, typename V>
+VISIT_STRUCT_CXX14_CONSTEXPR auto visit_accessors(V && v) ->
+  typename std::enable_if<
+             traits::is_visitable<traits::clean_t<S>>::value
+           >::type
+{
+  traits::visitable<traits::clean_t<S>>::visit_accessors(std::forward<V>(v));
+}
+
+
+// Interface (apply visitor with no instances)
 // This calls visit_pointers for backwards compat reasons
 template <typename S, typename V>
 VISIT_STRUCT_CXX14_CONSTEXPR auto apply_visitor(V && v) ->
@@ -171,6 +191,37 @@ VISIT_STRUCT_CONSTEXPR auto get_name(S &&) -> decltype(get_name<idx, S>()) {
   return get_name<idx, S>();
 }
 
+// Interface (get member pointer, by index)
+template <int idx, typename S>
+VISIT_STRUCT_CONSTEXPR auto get_pointer() ->
+  typename std::enable_if<
+             traits::is_visitable<traits::clean_t<S>>::value,
+             decltype(traits::visitable<traits::clean_t<S>>::get_pointer(std::integral_constant<int, idx>{}))
+           >::type
+{
+  return traits::visitable<traits::clean_t<S>>::get_pointer(std::integral_constant<int, idx>{});
+}
+
+template <int idx, typename S>
+VISIT_STRUCT_CONSTEXPR auto get_pointer(S &&) -> decltype(get_pointer<idx, S>()) {
+  return get_pointer<idx, S>();
+}
+
+// Interface (get member accessor, by index)
+template <int idx, typename S>
+VISIT_STRUCT_CONSTEXPR auto get_accessor() ->
+  typename std::enable_if<
+             traits::is_visitable<traits::clean_t<S>>::value,
+             decltype(traits::visitable<traits::clean_t<S>>::get_accessor(std::integral_constant<int, idx>{}))
+           >::type
+{
+  return traits::visitable<traits::clean_t<S>>::get_accessor(std::integral_constant<int, idx>{});
+}
+
+template <int idx, typename S>
+VISIT_STRUCT_CONSTEXPR auto get_accessor(S &&) -> decltype(get_accessor<idx, S>()) {
+  return get_accessor<idx, S>();
+}
 
 /***
  * To implement the VISITABLE_STRUCT macro, we need a map-macro, which can take
@@ -302,10 +353,14 @@ static VISIT_STRUCT_CONSTEXPR const int max_visitable_members = 69;
   std::forward<V>(visitor)(#MEMBER_NAME, std::forward<S>(struct_instance).MEMBER_NAME);
 
 #define VISIT_STRUCT_MEMBER_HELPER_PTR(MEMBER_NAME)                                                \
-  std::forward<V>(visitor)(#MEMBER_NAME, &self_type::MEMBER_NAME);
+  std::forward<V>(visitor)(#MEMBER_NAME, &this_type::MEMBER_NAME);
 
 #define VISIT_STRUCT_MEMBER_HELPER_TYPE(MEMBER_NAME)                                               \
-  std::forward<V>(visitor)(#MEMBER_NAME, visit_struct::type_c<decltype(self_type::MEMBER_NAME)>{});
+  std::forward<V>(visitor)(#MEMBER_NAME, visit_struct::type_c<decltype(this_type::MEMBER_NAME)>{});
+
+#define VISIT_STRUCT_MEMBER_HELPER_ACC(MEMBER_NAME)                                                \
+  std::forward<V>(visitor)(#MEMBER_NAME, visit_struct::accessor<decltype(&this_type::MEMBER_NAME), &this_type::MEMBER_NAME>{});
+
 
 #define VISIT_STRUCT_MEMBER_HELPER_PAIR(MEMBER_NAME)                                               \
   std::forward<V>(visitor)(#MEMBER_NAME, std::forward<S1>(s1).MEMBER_NAME, std::forward<S2>(s2).MEMBER_NAME);
@@ -323,6 +378,19 @@ static VISIT_STRUCT_CONSTEXPR const int max_visitable_members = 69;
       decltype(#MEMBER_NAME) {                                                                     \
     return #MEMBER_NAME;                                                                           \
   }                                                                                                \
+                                                                                                   \
+  static VISIT_STRUCT_CONSTEXPR auto                                                               \
+    get_pointer(std::integral_constant<int, fields_enum::MEMBER_NAME>) ->                          \
+      decltype(&this_type::MEMBER_NAME) {                                                          \
+    return &this_type::MEMBER_NAME;                                                                \
+  }                                                                                                \
+                                                                                                   \
+  static VISIT_STRUCT_CONSTEXPR auto                                                               \
+    get_accessor(std::integral_constant<int, fields_enum::MEMBER_NAME>) ->                         \
+      visit_struct::accessor<decltype(&this_type::MEMBER_NAME), &this_type::MEMBER_NAME > {        \
+    return {};                                                                                     \
+  }                                                                                                \
+
 
 // This macro specializes the trait, provides "apply" method which does the work.
 // Below, template parameter S should always be the same as STRUCT_NAME modulo const and reference.
@@ -344,6 +412,9 @@ namespace traits {                                                              
                                                                                                    \
 template <>                                                                                        \
 struct visitable<STRUCT_NAME, void> {                                                              \
+                                                                                                   \
+  using this_type = STRUCT_NAME;                                                                   \
+                                                                                                   \
   static VISIT_STRUCT_CONSTEXPR const std::size_t field_count = 0                                  \
     VISIT_STRUCT_PP_MAP(VISIT_STRUCT_FIELD_COUNT, __VA_ARGS__);                                    \
                                                                                                    \
@@ -362,15 +433,19 @@ struct visitable<STRUCT_NAME, void> {                                           
   template <typename V>                                                                            \
   VISIT_STRUCT_CXX14_CONSTEXPR static void visit_pointers(V && visitor)                            \
   {                                                                                                \
-    using self_type = STRUCT_NAME;                                                                 \
     VISIT_STRUCT_PP_MAP(VISIT_STRUCT_MEMBER_HELPER_PTR, __VA_ARGS__)                               \
   }                                                                                                \
                                                                                                    \
   template <typename V>                                                                            \
   VISIT_STRUCT_CXX14_CONSTEXPR static void visit_types(V && visitor)                               \
   {                                                                                                \
-    using self_type = STRUCT_NAME;                                                                 \
     VISIT_STRUCT_PP_MAP(VISIT_STRUCT_MEMBER_HELPER_TYPE, __VA_ARGS__)                              \
+  }                                                                                                \
+                                                                                                   \
+  template <typename V>                                                                            \
+  VISIT_STRUCT_CXX14_CONSTEXPR static void visit_accessors(V && visitor)                           \
+  {                                                                                                \
+    VISIT_STRUCT_PP_MAP(VISIT_STRUCT_MEMBER_HELPER_ACC, __VA_ARGS__)                               \
   }                                                                                                \
                                                                                                    \
   struct fields_enum {                                                                             \
