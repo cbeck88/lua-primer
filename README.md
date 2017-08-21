@@ -165,21 +165,9 @@ go to `/test/stage_lua`.
 Compiler Support
 ================
 
-It is currently tested against `gcc 4.9, gcc 5.3, clang 3.5, clang 3.7`.
+`primer` is currently tested against `gcc 4.9, gcc 5.3, clang 3.5, clang 3.7`,
+and against MSVC 2015 and 2017.
 
 (It should work with all later versions of `gcc` and `clang`, for instance I also
 use this code at time of writing in another project with clang 3.8 and clang 4.0, but I don't specifically
 run the primer unit tests there.)
-
-MSVC 2015 support is a work in progress, but it's mostly there.
-
-The appveyor build is currently passing, however, two parts of the code were disabled with `#ifdef` and marked `TODO: MSVC` in order to get it to compile and prevent losing ground wrt msvc.
-
-* There is a problem with an instance of lambda capture and parameter packs (see `bound_function.hpp`)  
-  I don't see a reasonable workaround here right now unfortunately. The `#ifdef` results in us not using a `pcall` when technically we should. It means that a memory allocation error could be fatal,
-  instead of recoverable. This is bad, but it's rare that it would actually cause a problem. If you are compiling with `PRIMER_NO_MEMORY_FAILURE` then this `pcall` gets stripped out anyways.
-* There is a problem with a trait which detects if a type is nothrow swappable.  
-  This is really not essential, it's only there to enable a minor optimization in some corner cases.
-  On MSVC there is a cryptic compilation error here related to `std::swap` which I think is a standard library bug, so for now the trait is fixed to yield false on MSVC.
-
-I'm not aware of any other problems with the MSVC build. The unit tests themselves are actually passing, once these two `#ifdef` are applied. Patches are welcome!
