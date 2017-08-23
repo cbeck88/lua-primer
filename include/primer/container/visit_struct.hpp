@@ -62,15 +62,6 @@ struct stack_space_push_checker {
   }
 };
 
-struct field_counter {
-  int count = 0;
-
-  template <typename T>
-  void operator()(const char *, const T &) {
-    ++count;
-  }
-};
-
 } // end namespace detail
 
 namespace traits {
@@ -86,15 +77,13 @@ struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
       }
     }
 
-    {
-      detail::field_counter fc{};
-      visit_struct::apply_visitor(fc, t);
-      lua_createtable(L, 0, fc.count);
-    }
+    lua_createtable(L, 0, visit_struct:field_count(t));
 
     detail::push_helper vis{L};
     visit_struct::apply_visitor(vis, t);
   }
+  // If we could evaluate stack_space_push_checker at compile time, we could
+  // factor it into stack_space_needed here and skip the run time check above
   static constexpr int stack_space_needed = 2;
 };
 
@@ -176,6 +165,8 @@ struct read<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
     return result;
   }
   static constexpr int stack_space_needed = 2;
+  // If we could evaluate stack_space_push_checker at compile time, we could
+  // factor it into stack_space_needed here and skip the run time check above
 };
 
 } // end namespace traits
