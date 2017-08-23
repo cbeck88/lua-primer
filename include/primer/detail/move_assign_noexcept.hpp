@@ -34,16 +34,31 @@ move_assign_noexcept(T & dest, T && src) noexcept
 
 using std::swap;
 
-// TODO: Fix on MSVC ?
-// error C2660: 'std::swap': function does not take 1 arguments
-// MSVC 2015, 2017 fail here
-#if (!defined _MSC_VER)
-
 /***
  * is_nothrow_swappable
  *   This implementation is stolen from WG proposal 0185
  *   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0185r1.html#Appendix
+ *
+ * However, MSVC 2015, 2017 fail here
+ *   error C2660: 'std::swap': function does not take 1 arguments
+ *
+ * Newest MSVC (2015 update 3) provides std::is_nothrow_swappable.
  */
+
+#if (defined _MSC_VER)
+# if (_MSC_FULL_VER >= 190024210)
+
+template <typename T>
+using is_nothrow_swappable = std::is_nothrow_swappable<T>;
+
+# else
+
+template <typename T>
+struct is_nothrow_swappable : std::false_type {};
+
+# endif
+#else
+
 struct do_is_nothrow_swappable {
   template <class T>
   static auto test(int)
@@ -54,13 +69,9 @@ struct do_is_nothrow_swappable {
   static std::false_type test(...);
 };
 
+
 template <typename T>
 struct is_nothrow_swappable : decltype(do_is_nothrow_swappable::test<T>(0)) {};
-
-#else
-
-template <typename T>
-struct is_nothrow_swappable : std::false_type {};
 
 #endif
 
