@@ -77,7 +77,7 @@ struct push<T, enable_if_t<visit_struct::traits::is_visitable<T>::value>> {
       }
     }
 
-    lua_createtable(L, 0, visit_struct:field_count(t));
+    lua_createtable(L, 0, visit_struct::field_count(t));
 
     detail::push_helper vis{L};
     visit_struct::apply_visitor(vis, t);
