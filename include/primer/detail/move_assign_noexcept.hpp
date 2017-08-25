@@ -45,19 +45,7 @@ using std::swap;
  * Newest MSVC (2015 update 3) provides std::is_nothrow_swappable.
  */
 
-#if (defined _MSC_VER)
-# if (_MSC_FULL_VER >= 190024210)
-
-template <typename T>
-using is_nothrow_swappable = std::is_nothrow_swappable<T>;
-
-# else
-
-template <typename T>
-struct is_nothrow_swappable : std::false_type {};
-
-# endif
-#else
+#if (!defined _MSC_VER)
 
 struct do_is_nothrow_swappable {
   template <class T>
@@ -72,6 +60,20 @@ struct do_is_nothrow_swappable {
 
 template <typename T>
 struct is_nothrow_swappable : decltype(do_is_nothrow_swappable::test<T>(0)) {};
+
+#else
+
+# if (_MSC_FULL_VER >= 190024210)
+
+template <typename T>
+using is_nothrow_swappable = std::is_nothrow_swappable<T>;
+
+# else
+
+template <typename T>
+struct is_nothrow_swappable : std::false_type {};
+
+# endif
 
 #endif
 
