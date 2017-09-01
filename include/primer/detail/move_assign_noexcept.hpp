@@ -61,19 +61,18 @@ struct do_is_nothrow_swappable {
 template <typename T>
 struct is_nothrow_swappable : decltype(do_is_nothrow_swappable::test<T>(0)) {};
 
-#else
+#elif (_MSC_FULL_VER >= 190024210)
 
-# if (_MSC_FULL_VER >= 190024210)
+// This is C++17 but it is available in recent MSVC
 
 template <typename T>
 using is_nothrow_swappable = std::is_nothrow_swappable<T>;
 
-# else
+#else
 
+// For older MSVC I don't have a solution
 template <typename T>
 struct is_nothrow_swappable : std::false_type {};
-
-# endif
 
 #endif
 
