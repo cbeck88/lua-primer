@@ -14,5 +14,6 @@ fi
 for file in stage/*
 do
   echo ${file} "..."
-  gdb -return-child-result -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./${file}
+  #gdb -return-child-result -batch -ex "run" -ex "thread apply all bt" -ex "quit" --args ./${file}
+  ./${file}
 done
